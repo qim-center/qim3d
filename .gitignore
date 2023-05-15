@@ -1,0 +1,17 @@
+# Compiled Python files
+*.pyc
+*.pyo
+__pycache__/
+
+# Distribution directories
+dist/
+build/
+*.egg-info/
+
+# Development and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.pyc
+*~
