@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="qim3d",
-    version="0.1.0",
+    version="0.1.3",
     author="Felipe Delestro",
     author_email="fima@dtu.dk",
     description="QIM tools and user interfaces",
@@ -17,6 +17,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://lab.compute.dtu.dk/QIM/qim",
     packages=find_packages(),
+    include_package_data=True,
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",

@@ -26,7 +26,7 @@ class Interface:
 
         # Data examples
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        examples_dir = ["..", "..", "img_examples"]
+        examples_dir = ["..", "img_examples"]
         examples = [
             "blobs_256x256x256.tif",
             "cement_128x128x128.tif",

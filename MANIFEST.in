@@ -1,0 +1,2 @@
+recursive-include qim3d/img_examples *
+recursive-include qim3d/css *
