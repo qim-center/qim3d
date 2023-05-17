@@ -1,8 +1,8 @@
 import gradio as gr
 import numpy as np
 import os
-from qim.tools import internal_tools
-from qim.io import DataLoader
+from qim3d.tools import internal_tools
+from qim3d.io import DataLoader
 import tifffile
 import outputformat as ouf
 import datetime
