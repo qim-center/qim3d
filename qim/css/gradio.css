@@ -18,6 +18,7 @@ h2 {
   border-radius: 0.375rem !important;
   border: 0px !important;
 }
+
 /* Hides Gradio footer */
 footer {
   visibility: hidden;
@@ -29,12 +30,12 @@ footer {
 }
 
 /* No shadow by default */
-.block *{
+.block * {
   box-shadow: none !important;
 }
 
 /* Bootstrap border radius */
-.block{
+.block {
   border-radius: 0.375rem !important;
 }
 
@@ -52,10 +53,11 @@ footer {
 input[type="number" i] {
   width: 36px !important;
 }
+
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0; 
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 /* Checkbox */
@@ -74,7 +76,8 @@ input[type="range"] {
 
 
 input[type="range"]::-webkit-slider-thumb {
-  cursor: pointer; /* Cursor on hover */
+  cursor: pointer;
+  /* Cursor on hover */
 }
 
 
@@ -135,6 +138,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 0.375rem !important;
   font-weight: normal !important;
 }
+
 .btn-run:hover {
   background: #198754 !important;
   border-color: #198754 !important;
@@ -144,6 +148,7 @@ input[type="range"]::-webkit-slider-thumb {
 .btn {
   height: 100% !important;
 }
+
 .btn:active::after {
   content: "";
   position: absolute;
@@ -169,6 +174,7 @@ input[type="range"]::-webkit-slider-thumb {
     transform: rotate(1turn);
   }
 }
+
 .btn-clear {
   background: white !important;
   border-color: #6c757d !important;
@@ -192,6 +198,7 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 0.375rem !important;
   font-weight: normal !important;
 }
+
 .gallery-item:hover {
   background: #6c757d !important;
   border-color: #6c757d !important;
@@ -254,9 +261,15 @@ div.svelte-1frtwj3 {
   height: 320px !important;
 }
 
+.w-320 {
+  width: 320px !important;
+}
+
+
 .h-256 {
   height: 256px !important;
 }
+
 .w-256 {
   width: 256px !important;
 }
@@ -264,6 +277,7 @@ div.svelte-1frtwj3 {
 .h-128 {
   height: 128px !important;
 }
+
 .w-128 {
   width: 128px !important;
 }
@@ -271,6 +285,7 @@ div.svelte-1frtwj3 {
 .h-64 {
   height: 64px !important;
 }
+
 .w-64 {
   width: 64px !important;
 }
@@ -278,6 +293,7 @@ div.svelte-1frtwj3 {
 .h-32 {
   height: 32px !important;
 }
+
 .w-32 {
   width: 32px !important;
 }
@@ -285,6 +301,7 @@ div.svelte-1frtwj3 {
 .h-0 {
   height: 0px !important;
 }
+
 .w-0 {
   width: 0px !important;
 }

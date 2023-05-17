@@ -1,38 +1,37 @@
-# QIM (Quantitative Imaging Library)
+# QIM (Quantitative Imaging)
 
-QIM is a Python library for quantitative imaging analysis. It provides functionality for loading and saving image data, as well as tools for visualization and analysis.
+QIM is a Python library for 3D quantitative imaging analysis. It provides functionality for handling data, as well as tools for visualization and analysis.
 
-## Features
-
-- Load image data from TIFF and HDF5 files.
-- GUI components for interactive data exploration.
-- Tools for performing quantitative analysis on image data.
-
+&nbsp;
 ## Installation
 
-QIM can be installed using pip:
+Install using pip:
 
-```shell
+```bash
 pip install qim
 ```
 
-## Usage
+&nbsp;
+# Usage
 
-### Loading Data
-To load image data from a file, use the qim.io.load() function:
+&nbsp;
+## Loading Data
+To load image data from a file, use `qim.io.load()`
 
 ```python
 import qim
 
 # Load a TIFF file
-data = qim.io.load("path/to/file.tif")
+vol = qim.io.load("path/to/file.tif")
 
 # Load a TIFF file as a virtual stack
-data = qim.io.load("path/to/file.tif", virtual_stack=True)
+vol = qim.io.load("path/to/file.tif", virtual_stack=True)
 ```
 
-### GUI Components
-QIM provides GUI components for interactive data exploration. The qim.gui module contains various classes for visualization and analysis:
+&nbsp;
+## GUI Components
+QIM provides GUI components for interactive data exploration. The `qim.gui` module contains various classes for visualization and analysis:
+
 ```python
 import qim
 
@@ -40,8 +39,16 @@ app = qim.gui.iso3d.Interface()
 app.launch()
 ```
 
+Graphical interfaces currently available:
+- Data exploration tool (`qim.gui.data_exploration`)
+- 3D visualization with isosurfaces (`qim.gui.iso3d`)
+- Local thickness (`qim.gui.local_thickness`)
+
+
+&nbsp;
 # Contributing
 Contributions to QIM are welcome! If you find a bug, have a feature request, or would like to contribute code, please open an issue or submit a pull request.
 
+&nbsp;
 # License
 This project is licensed under the MIT License.
