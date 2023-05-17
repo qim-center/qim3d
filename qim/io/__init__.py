@@ -1,2 +1,2 @@
-from .load import load
+from .load import DataLoader, load
 from .save import save

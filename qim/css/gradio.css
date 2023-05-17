@@ -1,0 +1,290 @@
+h1 {
+  font-size: 2.5rem !important;
+  opacity: 0.9 !important;
+  margin-top: 32px !important;
+}
+
+h2 {
+  font-size: 2rem !important;
+  opacity: 0.8 !important;
+  margin-top: 32px !important;
+}
+
+.monospace-box * {
+  font-family: monospace;
+  font-size: 15px !important;
+  line-height: 18px !important;
+  box-shadow: none !important;
+  border-radius: 0.375rem !important;
+  border: 0px !important;
+}
+/* Hides Gradio footer */
+footer {
+  visibility: hidden;
+}
+
+/* Hides the plotly menu */
+.modebar {
+  display: none;
+}
+
+/* No shadow by default */
+.block *{
+  box-shadow: none !important;
+}
+
+/* Bootstrap border radius */
+.block{
+  border-radius: 0.375rem !important;
+}
+
+.svelte-jigama {
+  display: flex !important;
+  gap: 8px !important;
+  box-shadow: none !important;
+  border-radius: 0.375rem !important;
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+  transition: all 0.15s !important;
+}
+
+/* Input */
+input[type="number" i] {
+  width: 36px !important;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; 
+}
+
+/* Checkbox */
+input[type="checkbox"] {
+  filter: hue-rotate(-10deg);
+  opacity: 0.7;
+  transition: all 0.15s !important;
+}
+
+/* Sliders */
+
+input[type="range"] {
+  opacity: 0.7;
+  transition: all 0.15s !important;
+}
+
+
+input[type="range"]::-webkit-slider-thumb {
+  cursor: pointer; /* Cursor on hover */
+}
+
+
+/* Adjustments for the file object */
+.file-preview-holder {
+  display: flex;
+  align-items: flex-end;
+}
+
+.file-preview {
+  margin-top: 12px;
+  margin-bottom: 12px;
+}
+
+/* Border for the file input */
+.file-input {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+}
+
+.svelte-116rqfv {
+  box-shadow: inset 0 0 16px rgba(25, 135, 84, 0.06) !important;
+  border-style: solid !important;
+  border-width: 1px !important;
+  border-color: rgba(25, 135, 84, 1) !important;
+  border-radius: 0.375rem !important;
+  transition: all 0.6s !important;
+  animation-timing-function: ease-out;
+}
+
+.svelte-116rqfv:hover {
+  box-shadow: inset 0 0 32px rgba(25, 135, 84, 0.2) !important;
+  border-color: rgba(25, 135, 84, 1) !important;
+}
+
+/* File output */
+.file-output {
+  /* display: flex !important;
+  flex-direction: column; */
+  /* align-items: center !important;
+  justify-content: center !important; */
+  overflow: hidden !important;
+}
+
+.svelte-xrr240 {
+  width: auto !important;
+}
+
+/* Buttons */
+.btn-run {
+  background: white !important;
+  border-color: #198754 !important;
+  color: #198754 !important;
+  transition: all 0.15s !important;
+  box-shadow: none !important;
+  border-radius: 0.375rem !important;
+  font-weight: normal !important;
+}
+.btn-run:hover {
+  background: #198754 !important;
+  border-color: #198754 !important;
+  color: white !important;
+}
+
+.btn {
+  height: 100% !important;
+}
+.btn:active::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
+  border: 4px solid transparent;
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: button-loading-spinner 1s ease infinite;
+}
+
+@keyframes button-loading-spinner {
+  from {
+    transform: rotate(0turn);
+  }
+
+  to {
+    transform: rotate(1turn);
+  }
+}
+.btn-clear {
+  background: white !important;
+  border-color: #6c757d !important;
+  transition: all 0.15s !important;
+  box-shadow: none !important;
+  border-radius: 0.375rem !important;
+  font-weight: normal !important;
+}
+
+.btn-clear:hover {
+  background: #dc3545 !important;
+  border-color: #dc3545 !important;
+  color: white !important;
+}
+
+.gallery-item {
+  background: white !important;
+  border-color: #6c757d !important;
+  transition: all 0.15s !important;
+  box-shadow: none !important;
+  border-radius: 0.375rem !important;
+  font-weight: normal !important;
+}
+.gallery-item:hover {
+  background: #6c757d !important;
+  border-color: #6c757d !important;
+  color: white !important;
+}
+
+.gallery-item:focus {
+  background: #198754 !important;
+  border-color: #198754 !important;
+  color: white !important;
+}
+
+
+/* Hide Examples label */
+.label.svelte-13hsdno {
+  display: none !important;
+}
+
+.rounded img {
+  border-radius: 0.375rem !important;
+}
+
+/* Gradio badge title for plots */
+span.svelte-1frtwj3 {
+  visibility: hidden !important;
+  margin-right: 0 !important;
+  width: 0 !important;
+}
+
+div.svelte-1frtwj3 {
+  border-top-left-radius: 0.3rem !important;
+
+  border: 0px !important;
+  box-shadow: none !important;
+}
+
+/* Hide icons from outputs */
+.icon.svelte-1u5vjgs {
+  visibility: hidden !important;
+}
+
+/* Size shortcuts */
+.h-1024 {
+  height: 1024px !important;
+}
+
+.h-768 {
+  height: 768px !important;
+}
+
+.h-512 {
+  height: 512px !important;
+}
+
+.h-480 {
+  height: 480px !important;
+}
+
+.h-320 {
+  height: 320px !important;
+}
+
+.h-256 {
+  height: 256px !important;
+}
+.w-256 {
+  width: 256px !important;
+}
+
+.h-128 {
+  height: 128px !important;
+}
+.w-128 {
+  width: 128px !important;
+}
+
+.h-64 {
+  height: 64px !important;
+}
+.w-64 {
+  width: 64px !important;
+}
+
+.h-32 {
+  height: 32px !important;
+}
+.w-32 {
+  width: 32px !important;
+}
+
+.h-0 {
+  height: 0px !important;
+}
+.w-0 {
+  width: 0px !important;
+}
