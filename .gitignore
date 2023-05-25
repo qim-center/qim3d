@@ -15,3 +15,6 @@ build/
 *.swo
 *.pyc
 *~
+
+# Notebook checkpoints
+.ipynb_checkpoints/

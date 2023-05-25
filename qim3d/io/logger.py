@@ -41,6 +41,45 @@ def set_level_CRITICAL():
     logging.getLogger("qim3d").setLevel(logging.CRITICAL)
 
 
+def level(level):
+    """Set the logging level based on the specified level.
+
+    Args:
+        level (str or int): The logging level to set. It can be one of the following:
+            - "DEBUG" or "debug": Set the logging level to DEBUG.
+            - "INFO" or "info": Set the logging level to INFO.
+            - "WARNING" or "warning": Set the logging level to WARNING.
+            - "ERROR" or "error": Set the logging level to ERROR.
+            - "CRITICAL" or "critical": Set the logging level to CRITICAL.
+            - int: Set the logging level using the numeric value of the level (e.g., logging.DEBUG).
+
+    Raises:
+        ValueError: If the specified level is not a valid logging level.
+
+    """
+    if level in ["DEBUG", "debug"]:
+        set_level_DEBUG()
+
+    elif level in ["INFO", "info"]:
+        set_level_INFO()
+
+    elif level in ["WARNING", "warning"]:
+        set_level_WARNING()
+
+    elif level in ["ERROR", "error"]:
+        set_level_ERROR()
+
+    elif level in ["CRITICAL", "critical"]:
+        set_level_CRITICAL()
+
+    elif isinstance(level, int):
+        logging.getLogger("qim3d").setLevel(level)
+
+    else:
+        raise ValueError(
+            f"Invalid logging level: '{level}'.\nPlease use 'debug', 'info', 'warning', 'error', 'critical' or an int."
+        )
+
 
 # create the logger
 log = logging.getLogger("qim3d")
