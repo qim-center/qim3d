@@ -3,6 +3,7 @@ import numpy as np
 import os
 from qim3d.tools import internal_tools
 from qim3d.io import DataLoader
+from qim3d import log
 import plotly.graph_objects as go
 from scipy import ndimage
 
@@ -54,7 +55,7 @@ class Interface:
         original_Z, original_Y, original_X = np.shape(self.vol)
         max_size = np.max([original_Z, original_Y, original_X])
         if self.verbose:
-            print(f"\nOriginal volume: {original_Z, original_Y, original_X}")
+            log.info(f"\nOriginal volume: {original_Z, original_Y, original_X}")
 
         # Resize for display
         self.vol = ndimage.zoom(
@@ -68,7 +69,7 @@ class Interface:
             self.vol
         )
         if self.verbose:
-            print(
+            log.info(
                 f"Resized volume: {self.display_size_z, self.display_size_y, self.display_size_x}"
             )
 

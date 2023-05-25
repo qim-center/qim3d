@@ -3,6 +3,7 @@ import numpy as np
 import os
 from qim3d.tools import internal_tools
 from qim3d.io import DataLoader
+from qim3d import log
 import tifffile
 import outputformat as ouf
 import datetime
@@ -297,7 +298,7 @@ class Pipeline:
         session.vol = DataLoader().load_tiff(session.data_path)
 
         if self.verbose:
-            print(ouf.br(3, return_str=True) + session.summary_str())
+            log.info(ouf.br(3, return_str=True) + session.summary_str())
 
         return session
 

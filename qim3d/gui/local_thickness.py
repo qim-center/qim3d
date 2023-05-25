@@ -3,6 +3,7 @@ import numpy as np
 import os
 from qim3d.tools import internal_tools
 from qim3d.io import DataLoader
+from qim3d import log
 import tifffile
 import plotly.express as px
 from scipy import ndimage
@@ -313,11 +314,11 @@ class Session:
         self.max_size = np.max(self.original_shape)
 
         if self.verbose:
-            print(f"Original volume shape:{self.original_shape}")
-            print(f"Original Z: {self.original_Z}")
-            print(f"Original Y: {self.original_Y}")
-            print(f"Original X: {self.original_X}")
-            print(f"Max size: {self.max_size}")
+            log.info(f"Original volume shape:{self.original_shape}")
+            log.info(f"Original Z: {self.original_Z}")
+            log.info(f"Original Y: {self.original_Y}")
+            log.info(f"Original X: {self.original_X}")
+            log.info(f"Max size: {self.max_size}")
 
 
 class Pipeline:
