@@ -6,13 +6,13 @@ import difflib
 
 class DataLoader:
     def __init__(self, **kwargs):
-        self.verbose = False
 
         # Virtual stack is False by default
         self.virtual_stack = kwargs.get("virtual_stack", False)
 
     def load_tiff(self, path):
         if self.virtual_stack:
+            log.info("Using virtual stack")
             vol = tifffile.memmap(path)
         else:
             vol = tifffile.imread(path)

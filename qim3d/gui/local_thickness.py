@@ -3,7 +3,7 @@ import numpy as np
 import os
 from qim3d.tools import internal_tools
 from qim3d.io import DataLoader
-from qim3d import log
+from qim3d.io.logger import log
 import tifffile
 import plotly.express as px
 from scipy import ndimage

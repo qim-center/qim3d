@@ -39,3 +39,10 @@ def set_level_ERROR():
 
 def set_level_CRITICAL():
     logging.getLogger("qim3d").setLevel(logging.CRITICAL)
+
+
+
+# create the logger
+log = logging.getLogger("qim3d")
+set_simple_output()
+set_level_WARNING()
