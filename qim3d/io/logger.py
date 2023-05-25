@@ -1,43 +1,41 @@
 import logging
 
-log = logging.getLogger()
 
-
-def set_detailed_output(logger):
+def set_detailed_output():
     formatter = logging.Formatter(
         "%(levelname)-10s%(filename)s:%(lineno)-5s%(message)s"
     )
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger.handlers = [handler]
+    logger = logging.getLogger("qim3d")
+    logger.handlers = []
+    logger.addHandler(handler)
 
 
-def set_simple_output(logger):
+def set_simple_output():
     formatter = logging.Formatter("%(message)s")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger.handlers = [handler]
+    logger = logging.getLogger("qim3d")
+    logger.handlers = []
+    logger.addHandler(handler)
 
 
 def set_level_DEBUG():
-    log.setLevel(logging.DEBUG)
+    logging.getLogger("qim3d").setLevel(logging.DEBUG)
 
 
 def set_level_INFO():
-    log.setLevel(logging.INFO)
-    logging.basicConfig(format="%(message)s")
+    logging.getLogger("qim3d").setLevel(logging.INFO)
 
 
 def set_level_WARNING():
-    log.setLevel(logging.WARNING)
-    logging.basicConfig(format="%(message)s")
+    logging.getLogger("qim3d").setLevel(logging.WARNING)
 
 
 def set_level_ERROR():
-    log.setLevel(logging.ERROR)
-    logging.basicConfig(format="%(message)s")
+    logging.getLogger("qim3d").setLevel(logging.ERROR)
 
 
 def set_level_CRITICAL():
-    log.setLevel(logging.CRITICAL)
-    logging.basicConfig(format="%(message)s")
+    logging.getLogger("qim3d").setLevel(logging.CRITICAL)
