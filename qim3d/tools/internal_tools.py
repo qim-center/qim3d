@@ -1,6 +1,14 @@
 import socket
 import hashlib
+import qim3d
 
+def log_test():
+    log = qim3d.io.logger.log
+    log.debug('This is a debug level message')
+    log.info('This is a info level message')
+    log.warning('This is a warning level message')
+    log.error('This is an error level message')
+    log.critical('This is a critical level message')
 
 def mock_plot():
     import matplotlib.pyplot as plt
