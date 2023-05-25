@@ -1,12 +1,14 @@
 import tifffile
 import h5py
 import os
+import sys
 import difflib
+from qim3d.io.logger import log
+from qim3d.tools.internal_tools import sizeof
 
 
 class DataLoader:
     def __init__(self, **kwargs):
-
         # Virtual stack is False by default
         self.virtual_stack = kwargs.get("virtual_stack", False)
 
@@ -17,6 +19,8 @@ class DataLoader:
         else:
             vol = tifffile.imread(path)
 
+        log.info(f"Loaded shape: {vol.shape}")
+        log.info(f"Using {sizeof(sys.getsizeof(vol))} of memory")
         return vol
 
     def load_h5(self, path):
@@ -25,8 +29,10 @@ class DataLoader:
         return vol
 
     def load(self, path):
-        # Load a single file
+        
+        # Load a file
         if os.path.isfile(path):
+            # Choose the loader based on the file extension
             if path.endswith(".tif") or path.endswith(".tiff"):
                 return self.load_tiff(path)
             elif path.endswith(".h5"):
@@ -53,5 +59,7 @@ class DataLoader:
                 raise ValueError("Invalid path")
 
 
-def load(path, **kwargs):
-    return DataLoader(**kwargs).load(path)
+def load(path, virtual_stack=False, **kwargs):
+    loader = DataLoader(virtual_stack=virtual_stack, **kwargs)
+
+    return loader.load(path)
