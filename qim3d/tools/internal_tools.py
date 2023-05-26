@@ -1,21 +1,4 @@
-""" Provides a collection of internal utility functions.
-
-This module contains various utility functions that are intended for internal
-use within the project. These functions cover a range of tasks such as size
-formatting, file manipulation, network operations, and more. They are designed
-to assist with common tasks and provide convenient functionality for other
-components of the project.
-
-Example:
-    # Importing the module
-    import internal_tools
-
-    # Using the functions
-    size = internal_tools.sizeof(1024)
-    internal_tools.mock_write_file("example.txt")
-    ip_address = internal_tools.get_local_ip()
-    internal_tools.gradio_header("Gradio server", 4242)
-"""
+""" Provides a collection of internal utility functions."""
 
 import socket
 import hashlib
