@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 import localthickness as lt
 import matplotlib
 
-matplotlib.use("Agg")
+# matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 

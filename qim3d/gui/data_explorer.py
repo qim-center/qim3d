@@ -8,7 +8,7 @@ import tifffile
 import outputformat as ouf
 import datetime
 import matplotlib
-matplotlib.use("Agg")
+# matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 

@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 
-matplotlib.use("Agg")
 
 
 def mock_plot():
@@ -22,6 +21,10 @@ def mock_plot():
         >>> fig = mock_plot()
         >>> plt.show()
     """
+
+    # TODO: Check if using Agg backend conflicts with other pipelines
+    
+    matplotlib.use("Agg")
 
     fig = plt.figure(figsize=(5, 4))
     axes = fig.add_axes([0.1, 0.1, 0.8, 0.8])

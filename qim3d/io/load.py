@@ -51,12 +51,6 @@ class DataLoader:
         Returns:
             numpy.ndarray: The loaded volume as a NumPy array.
 
-        Raises:
-            FileNotFoundError: If the file does not exist.
-
-        Example:
-            loader = DataLoader()
-            data = loader.load_tiff("image.tif")
         """
         if self.virtual_stack:
             log.info("Using virtual stack")
@@ -78,12 +72,6 @@ class DataLoader:
         Returns:
             numpy.ndarray: The loaded volume as a NumPy array.
 
-        Raises:
-            FileNotFoundError: If the file does not exist.
-
-        Example:
-            loader = DataLoader()
-            data = loader.load_h5("data.h5")
         """
         with h5py.File(path, "r") as f:
             vol = f["data"][:]
