@@ -1,7 +1,7 @@
 import gradio as gr
 import numpy as np
 import os
-from qim3d.tools import internal_tools
+from qim3d.utils import internal_tools
 from qim3d.io import DataLoader
 from qim3d.io.logger import log
 import tifffile
