@@ -6,7 +6,7 @@ import difflib
 import tifffile
 import h5py
 from qim3d.io.logger import log
-from qim3d.tools.internal_tools import sizeof
+from qim3d.utils.internal_tools import sizeof
 
 
 class DataLoader:

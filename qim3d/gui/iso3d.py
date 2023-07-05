@@ -1,7 +1,7 @@
 import gradio as gr
 import numpy as np
 import os
-from qim3d.tools import internal_tools
+from qim3d.utils import internal_tools
 from qim3d.io import DataLoader
 from qim3d.io.logger import log
 import plotly.graph_objects as go
@@ -44,7 +44,6 @@ class Interface:
         return None
 
     def load_data(self, filepath):
-
         # TODO: Add support for multiple files
         self.vol = DataLoader().load_tiff(filepath)
 
