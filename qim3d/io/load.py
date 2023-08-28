@@ -36,11 +36,17 @@ class DataLoader:
         """Initializes a new instance of the DataLoader class.
 
         Args:
+            path (str): The path to the file or directory.
             virtual_stack (bool, optional): Specifies whether to use virtual
-            stack when loading TIFF files. Default is False.
+            stack when loading TIFF and HDF5 files. Default is False.
+            dataset_name (str, optional): Specifies the name of the dataset to be loaded
+            in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
+            return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
         """
         # Virtual stack is False by default
         self.virtual_stack = kwargs.get("virtual_stack", False)
+        self.dataset_name = kwargs.get("dataset_name", None)
+        self.return_metadata = kwargs.get("return_metadata", False)
 
     def load_tiff(self, path):
         """Load a TIFF file from the specified path.
@@ -70,12 +76,80 @@ class DataLoader:
             path (str): The path to the HDF5 file.
 
         Returns:
-            numpy.ndarray: The loaded volume as a NumPy array.
+            numpy.ndarray or tuple: The loaded volume as a NumPy array.
+                If 'return_metadata' is True, returns a tuple (volume, metadata).
+
+        Raises:
+            ValueError: If the specified dataset_name is not found or is invalid.
+            ValueError: If the dataset_name is not specified in case of multiple datasets in the HDF5 file
+            ValueError: If no datasets are found in the file.
 
         """
-        with h5py.File(path, "r") as f:
-            vol = f["data"][:]
-        return vol
+        # Read file
+        f = h5py.File(path, "r")
+        data_keys = self._get_h5_dataset_keys(f)
+        datasets = []
+        metadata = {}
+        for key in data_keys:
+            if (
+                f[key].ndim > 1
+            ):  # Data is assumed to be a dataset if it is two dimensions or more
+                datasets.append(key)
+            if f[key].attrs.keys():
+                metadata[key] = {
+                    "value": f[key][()],
+                    **{attr_key: val for attr_key, val in f[key].attrs.items()},
+                }
+
+        # Only one dataset was found
+        if len(datasets) == 1:
+            if self.dataset_name:
+                log.info(
+                    "'dataset_name' argument is unused since there is only one dataset in the file"
+                )
+            name = datasets[0]
+            vol = f[name]
+
+        # Multiple datasets were found
+        elif len(datasets) > 1:
+            if self.dataset_name in datasets:  # Provided dataset name is valid
+                name = self.dataset_name
+                vol = f[name]
+            else:
+                if self.dataset_name:  # Dataset name is provided
+                    similar_names = difflib.get_close_matches(
+                        self.dataset_name, list(datasets.keys())
+                    )  # Find closest matching name if any
+                    if similar_names:
+                        suggestion = similar_names[0]  # Get the closest match
+                        raise ValueError(
+                            f"Invalid dataset name. Did you mean '{suggestion}'?"
+                        )
+                    else:
+                        raise ValueError(
+                            f"Invalid dataset name. Please choose between the following datasets: {datasets}"
+                        )
+                else:
+                    raise ValueError(
+                        f"Found multiple datasets: {datasets}. Please specify which of them that you want to load with the argument 'dataset_name'"
+                    )
+
+        # No datasets were found
+        else:
+            raise ValueError(f"Did not find any data in the file: {path}")
+
+        if not self.virtual_stack:
+            vol = vol[()]  # Load dataset into memory
+            f.close()
+
+        log.info("Loaded the following dataset: %s", name)
+        log.info("Loaded shape: %s", vol.shape)
+        log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
+
+        if self.return_metadata:
+            return vol, metadata
+        else:
+            return vol
 
     def load(self, path):
         """
@@ -123,15 +197,25 @@ class DataLoader:
             else:
                 raise ValueError("Invalid path")
 
+    def _get_h5_dataset_keys(self, f):
+        keys = []
+        f.visit(
+            lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None
+        )
+        return keys
 
-def load(path, virtual_stack=False, **kwargs):
+
+def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, **kwargs):
     """
     Load data from the specified file or directory.
 
     Args:
         path (str): The path to the file or directory.
         virtual_stack (bool, optional): Specifies whether to use virtual
-        stack when loading TIFF files. Default is False.
+        stack when loading TIFF and HDF5 files. Default is False.
+        dataset_name (str, optional): Specifies the name of the dataset to be loaded
+        in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
+        return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
 
         **kwargs: Additional keyword arguments to be passed
         to the DataLoader constructor.
@@ -147,6 +231,11 @@ def load(path, virtual_stack=False, **kwargs):
     Example:
         data = load("image.tif", virtual_stack=True)
     """
-    loader = DataLoader(virtual_stack=virtual_stack, **kwargs)
+    loader = DataLoader(
+        virtual_stack=virtual_stack,
+        dataset_name=dataset_name,
+        return_metadata=return_metadata,
+        **kwargs,
+    )
 
     return loader.load(path)
