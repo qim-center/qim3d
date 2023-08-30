@@ -37,7 +37,7 @@ class Interface:
             with gr.Row():
                 with gr.Column(scale=0.75):
                     data_path = gr.Textbox(
-                        value="gbar/zhome/15/b/200707/h5files/small_foram_recon.h5",
+                        value="gbar/zhome/15/b/200707/img_examples/shell_225x128x128.tif",
                         max_lines=1,
                         label="Path to the 3D volume",
                     )
