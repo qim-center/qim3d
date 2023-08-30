@@ -37,7 +37,7 @@ class Interface:
             with gr.Row():
                 with gr.Column(scale=0.75):
                     data_path = gr.Textbox(
-                        value="/home/fima/reconstructor-main/small_foram.h5",
+                        value="gbar/zhome/15/b/200707/h5files/small_foram_recon.h5",
                         max_lines=1,
                         label="Path to the 3D volume",
                     )
@@ -63,6 +63,7 @@ class Interface:
                 data_summary = gr.Text(
                     label=None, show_label=False, elem_classes="monospace-box"
                 )
+            with gr.Row():
                 with gr.Column():
                     zslice_plot = gr.Plot(label="Z slice", elem_classes="rounded")
                     zpos = gr.Slider(
