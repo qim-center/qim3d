@@ -2,12 +2,13 @@ import gradio as gr
 import numpy as np
 import os
 from qim3d.utils import internal_tools
-from qim3d.io import DataLoader
+from qim3d.io import load
 from qim3d.io.logger import log
 import tifffile
 import outputformat as ouf
 import datetime
 import matplotlib
+
 # matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -31,17 +32,29 @@ class Interface:
 
     def create_interface(self):
         with gr.Blocks(css=self.css_path) as gradio_interface:
-            gr.Markdown("# Data Explorer \n Quick insights from large datasets")
+            gr.Markdown("# Data Explorer")
 
             with gr.Row():
-                data_path = gr.Textbox(
-                    value="/home/fima/Downloads/MarineGatropod_1.tif",
-                    max_lines=1,
-                    label="Path to the 3D volume",
-                )
-            with gr.Row(elem_classes=" w-128"):
-                btn_run = gr.Button(value="Load & Run", elem_classes="btn btn-run")
+                with gr.Column(scale=0.75):
+                    data_path = gr.Textbox(
+                        value="/home/fima/reconstructor-main/small_foram.h5",
+                        max_lines=1,
+                        label="Path to the 3D volume",
+                    )
+                with gr.Column(scale=0.25):
+                    dataset_name = gr.Textbox(
+                        label="Dataset name (in case of H5 files, for example)"
+                    )
 
+            with gr.Row(elem_classes="w-256"):
+                cmap = gr.Dropdown(
+                    value="viridis",
+                    choices=plt.colormaps(),
+                    label="Colormap",
+                    interactive=True,
+                )
+            with gr.Row(elem_classes="w-128"):
+                btn_run = gr.Button(value="Load & Run", elem_classes="btn btn-run")
             # Outputs
             with gr.Row():
                 gr.Markdown("## Data overview")
@@ -85,24 +98,10 @@ class Interface:
             pipeline.verbose = self.verbose
             session = gr.State([])
 
-            with gr.Row():
-                gr.Markdown("## Local thickness")
-            with gr.Row():
-                gr.Plot()
-                gr.Plot()
-                gr.Plot()
-
-            with gr.Row():
-                gr.Markdown("## Structure tensor")
-            with gr.Row():
-                gr.Plot()
-                gr.Plot()
-                gr.Plot()
-
             ### Gradio objects lists
 
             # Inputs
-            inputs = [zpos, ypos, xpos]
+            inputs = [zpos, ypos, xpos, cmap, dataset_name]
             # Outputs
             outputs = [
                 data_summary,
@@ -156,6 +155,8 @@ class Interface:
         session.zpos = args[0]
         session.ypos = args[1]
         session.xpos = args[2]
+        session.cmap = args[3]
+        session.dataset_name = args[4]
 
         return session
 
@@ -191,7 +192,6 @@ class Interface:
         else:
             quiet = True
 
-
         interface.launch(
             quiet=quiet,
             height=self.height,
@@ -208,6 +208,9 @@ class Session:
         self.zpos = 0.5
         self.ypos = 0.5
         self.xpos = 0.5
+        self.cmap = "viridis"
+        self.dataset_name = None
+        self.error_message = None
 
         # Volume info
         self.zsize = None
@@ -229,40 +232,51 @@ class Session:
 
     def get_data_info(self):
         # Open file
-        tif = tifffile.TiffFile(self.data_path)
-        first_slice = tif.pages[0]
+        try:
+            vol = load(
+                self.data_path, virtual_stack=True, dataset_name=self.dataset_name
+            )
+        except Exception as error_message:
+            self.error_message = error_message
+            return
+
+        first_slice = vol[0]
 
         # Get info
-        self.zsize = len(tif.pages)
+        self.zsize = len(vol)
         self.ysize, self.xsize = first_slice.shape
-        self.data_type = first_slice.dtype
-        self.axes = tif.series[0].axes
+        self.data_type = str(first_slice.dtype)
         self.last_modified = datetime.datetime.fromtimestamp(
             os.path.getmtime(self.data_path)
         ).strftime("%Y-%m-%d %H:%M")
         self.file_size = os.path.getsize(self.data_path)
 
-        # Close file
-        tif.close()
 
     def create_summary_dict(self):
         # Create dictionary
-        self.summary_dict = {
-            "Last modified": self.last_modified,
-            "File size": internal_tools.sizeof(self.file_size),
-            "Axes": self.axes,
-            "Z-size": str(self.zsize),
-            "Y-size": str(self.ysize),
-            "X-size": str(self.xsize),
-            "Data type": self.data_type,
-            "Min value": self.min_value,
-            "Mean value": self.mean_intensity,
-            "Max value": self.max_value,
-        }
+        if self.error_message:
+            self.summary_dict = {"error_mesage": self.error_message}
+
+        else:
+            self.summary_dict = {
+                "Last modified": self.last_modified,
+                "File size": internal_tools.sizeof(self.file_size),
+                "Z-size": str(self.zsize),
+                "Y-size": str(self.ysize),
+                "X-size": str(self.xsize),
+                "Data type": self.data_type,
+                "Min value": self.min_value,
+                "Mean value": self.mean_intensity,
+                "Max value": self.max_value,
+            }
 
     def summary_str(self):
-        display_dict = {k: v for k, v in self.summary_dict.items() if v is not None}
-        return ouf.showdict(display_dict, return_str=True, title="Data summary")
+        if "error_mesage" in self.summary_dict:
+            error_box = ouf.boxtitle("ERROR", return_str=True)
+            return f"{error_box}\n{self.summary_dict['error_mesage']}"
+        else:
+            display_dict = {k: v for k, v in self.summary_dict.items() if v is not None}
+            return ouf.showdict(display_dict, return_str=True, title="Data summary")
 
     def zslice_from_zpos(self):
         self.zslice = int(self.zpos * (self.zsize - 1))
@@ -295,7 +309,13 @@ class Pipeline:
         session.create_summary_dict()
 
         # Memory map data as a virtual stack
-        session.vol = DataLoader().load_tiff(session.data_path)
+
+        try:
+            session.vol = load(
+                session.data_path, virtual_stack=True, dataset_name=session.dataset_name
+            )
+        except:
+            return session
 
         if self.verbose:
             log.info(ouf.br(3, return_str=True) + session.summary_str())
@@ -324,6 +344,7 @@ class Pipeline:
     def create_slice_fig(self, axis, session):
         plt.close()
         vol = session.vol
+        plt.set_cmap(session.cmap)
 
         zslice = session.zslice_from_zpos()
         yslice = session.yslice_from_ypos()
