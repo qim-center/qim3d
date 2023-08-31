@@ -5,6 +5,7 @@ import sys
 import difflib
 import tifffile
 import h5py
+import numpy as np
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof
 
@@ -22,6 +23,7 @@ class DataLoader:
     Methods:
         load_tiff(path): Load a TIFF file from the specified path.
         load_h5(path): Load an HDF5 file from the specified path.
+        load_tiff_stack(path): Load a stack of TIFF files from the specified path.
         load(path): Load a file or directory based on the given path.
 
     Raises:
@@ -42,11 +44,13 @@ class DataLoader:
             dataset_name (str, optional): Specifies the name of the dataset to be loaded
             in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
             return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
+            contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks)   
         """
         # Virtual stack is False by default
         self.virtual_stack = kwargs.get("virtual_stack", False)
         self.dataset_name = kwargs.get("dataset_name", None)
         self.return_metadata = kwargs.get("return_metadata", False)
+        self.contains = kwargs.get("contains", None)
 
     def load_tiff(self, path):
         """Load a TIFF file from the specified path.
@@ -118,7 +122,7 @@ class DataLoader:
             else:
                 if self.dataset_name:  # Dataset name is provided
                     similar_names = difflib.get_close_matches(
-                        self.dataset_name, list(datasets.keys())
+                        self.dataset_name, datasets
                     )  # Find closest matching name if any
                     if similar_names:
                         suggestion = similar_names[0]  # Get the closest match
@@ -141,6 +145,8 @@ class DataLoader:
         if not self.virtual_stack:
             vol = vol[()]  # Load dataset into memory
             f.close()
+        else:
+            log.info("Using virtual stack")
 
         log.info("Loaded the following dataset: %s", name)
         log.info("Loaded shape: %s", vol.shape)
@@ -150,7 +156,54 @@ class DataLoader:
             return vol, metadata
         else:
             return vol
+        
+    def load_tiff_stack(self, path):
+        """Load a stack of TIFF files from the specified path.
 
+        Args:
+            path (str): The path to the stack of TIFF files.
+
+        Returns:
+            numpy.ndarray: The loaded volume as a NumPy array.
+
+        Raises:
+            ValueError: If the 'contains' argument is not specified.
+            ValueError: If the 'contains' argument matches multiple TIFF stacks in the directory
+
+        """
+        if not self.contains:
+            raise ValueError(
+                "Please specify a part of the name that is common for the TIFF file stack with the argument 'contains'"
+            )
+
+        tiff_stack = [file for file in os.listdir(path) if (file.endswith('.tif') or file.endswith('.tiff')) and self.contains in file]
+        tiff_stack.sort()  # Ensure proper ordering
+
+        # Check that only one TIFF stack in the directory contains the provided string in its name
+        tiff_stack_only_letters = []
+        for filename in tiff_stack:
+            name = os.path.splitext(filename)[0] # Remove file extension
+            tiff_stack_only_letters.append(''.join(filter(str.isalpha, name))) # Remove everything else than letters from the name
+
+        # Get unique elements from tiff_stack_only_letters
+        unique_names = list(set(tiff_stack_only_letters))
+        if len(unique_names)>1:
+            raise ValueError(f"The provided part of the filename for the TIFF stack matches multiple TIFF stacks: {unique_names}.\nPlease provide a string that is unique for the TIFF stack that is intended to be loaded")
+    
+
+        vol = tifffile.imread([os.path.join(path, file) for file in tiff_stack])
+
+        if not self.virtual_stack:
+            vol = np.copy(vol) # Copy to memory
+        else:
+            log.info("Using virtual stack")
+
+        log.info("Found %s file(s)", len(tiff_stack))
+        log.info("Loaded shape: %s", vol.shape)
+        log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
+
+        return vol
+    
     def load(self, path):
         """
         Load a file or directory based on the given path.
@@ -181,7 +234,7 @@ class DataLoader:
 
         # Load a directory
         elif os.path.isdir(path):
-            raise NotImplementedError("Loading from directory is not implemented yet")
+            return self.load_tiff_stack(path)
 
         # Fails
         else:
@@ -205,7 +258,7 @@ class DataLoader:
         return keys
 
 
-def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, **kwargs):
+def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, contains=None, **kwargs):
     """
     Load data from the specified file or directory.
 
@@ -216,7 +269,7 @@ def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, **
         dataset_name (str, optional): Specifies the name of the dataset to be loaded
         in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
         return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
-
+        contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks)
         **kwargs: Additional keyword arguments to be passed
         to the DataLoader constructor.
 
@@ -235,6 +288,7 @@ def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, **
         virtual_stack=virtual_stack,
         dataset_name=dataset_name,
         return_metadata=return_metadata,
+        contains=contains,
         **kwargs,
     )
 
