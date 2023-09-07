@@ -1,1 +1,1 @@
-from .img import grid_pred, grid_overview
+from .img import grid_pred, grid_overview, slice_viz

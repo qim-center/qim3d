@@ -5,7 +5,7 @@ from matplotlib import cm
 import torch
 import numpy as np
 from qim3d.io.logger import log
-
+from qim3d.io.load import load
 
 def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5):
     """Displays an overview grid of images, labels, and masks (if they exist).
@@ -192,4 +192,71 @@ def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", 
 
     fig.show()
 
+def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2, img_width=2):
+    """ Displays one or several slices from a 3d array.
 
+    Args:
+        input (str, numpy.ndarray): Path to the file or 3-dimensional array.
+        position (str, int, list, array, optional): One or several slicing levels.
+        cmap (str, optional): Specifies the color map for the image.
+        axis (bool, optional): Specifies whether the axes should be included.
+
+    Raises:
+        ValueError: If provided string for 'position' argument is not valid (not upper, middle or bottom).
+
+    Usage:
+        image_path = '/my_image_path/my_image.tif'
+        slice_viz(image_path)
+    """
+    
+    # Filepath input
+    if isinstance(input,str):
+        vol = load(input) # Function has its own ValueErrors
+        dim = vol.ndim
+        
+        if dim == 3:
+            pass
+        else:
+            raise ValueError(f"Given array is not a volume! Current dimension: {dim}")
+            
+        
+    # Numpy array input
+    elif isinstance(input,np.ndarray):
+        dim = input.ndim
+        
+        if dim == 3:
+            vol = input
+        else:
+            raise ValueError(f"Given array is not a volume! Current dimension: {dim}")
+
+    # Position is a string
+    if isinstance(position,str):
+        if position.lower() in ['mid','middle']:
+            height = [int(vol.shape[-1]/2)]
+        elif position.lower() in ['top','upper', 'start']:
+            height = [0]
+        elif position.lower() in ['bot','bottom', 'end']:
+            height = [vol.shape[-1]-1]
+        else:
+            raise ValueError('Position not recognized. Choose an integer, list, array or "start","mid","end".')
+    
+    # Position is an integer
+    elif isinstance(position,int):
+        height = [position]
+
+    # Position is a list or array of integers
+    elif isinstance(position,(list,np.ndarray)):
+        height = position
+
+    num_images = len(height)
+    
+    fig = plt.figure(figsize=(img_width * num_images, img_height), constrained_layout = True)
+    axs = fig.subplots(nrows = 1, ncols = num_images)
+    
+    for col, ax in enumerate(np.atleast_1d(axs)):
+        ax.imshow(vol[:,:,height[col]],cmap = cmap)
+        ax.set_title(f'Slice {height[col]}', fontsize=8)
+        if not axis:
+            ax.axis('off')
+    
+    fig.show()
