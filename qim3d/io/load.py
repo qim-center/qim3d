@@ -15,7 +15,7 @@ class DataLoader:
 
     Args:
         virtual_stack (bool, optional): Specifies whether to use virtual stack
-        when loading TIFF files. Default is False.
+        when loading files. Default is False.
 
     Attributes:
         virtual_stack (bool): Specifies whether virtual stack is enabled.
@@ -24,6 +24,7 @@ class DataLoader:
         load_tiff(path): Load a TIFF file from the specified path.
         load_h5(path): Load an HDF5 file from the specified path.
         load_tiff_stack(path): Load a stack of TIFF files from the specified path.
+        load_txrm(path): Load a TXRM/TXM/XRM file from the specified path
         load(path): Load a file or directory based on the given path.
 
     Raises:
@@ -40,7 +41,7 @@ class DataLoader:
         Args:
             path (str): The path to the file or directory.
             virtual_stack (bool, optional): Specifies whether to use virtual
-            stack when loading TIFF and HDF5 files. Default is False.
+            stack when loading files. Default is False.
             dataset_name (str, optional): Specifies the name of the dataset to be loaded
             in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
             return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
@@ -87,11 +88,11 @@ class DataLoader:
             ValueError: If the specified dataset_name is not found or is invalid.
             ValueError: If the dataset_name is not specified in case of multiple datasets in the HDF5 file
             ValueError: If no datasets are found in the file.
-
         """
+
         # Read file
         f = h5py.File(path, "r")
-        data_keys = self._get_h5_dataset_keys(f)
+        data_keys = _get_h5_dataset_keys(f)
         datasets = []
         metadata = {}
         for key in data_keys:
@@ -169,8 +170,8 @@ class DataLoader:
         Raises:
             ValueError: If the 'contains' argument is not specified.
             ValueError: If the 'contains' argument matches multiple TIFF stacks in the directory
-
         """
+
         if not self.contains:
             raise ValueError(
                 "Please specify a part of the name that is common for the TIFF file stack with the argument 'contains'"
@@ -191,7 +192,7 @@ class DataLoader:
             raise ValueError(f"The provided part of the filename for the TIFF stack matches multiple TIFF stacks: {unique_names}.\nPlease provide a string that is unique for the TIFF stack that is intended to be loaded")
     
 
-        vol = tifffile.imread([os.path.join(path, file) for file in tiff_stack])
+        vol = tifffile.imread([os.path.join(path, file) for file in tiff_stack],out='memmap')
 
         if not self.virtual_stack:
             vol = np.copy(vol) # Copy to memory
@@ -203,6 +204,40 @@ class DataLoader:
         log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
         return vol
+    
+    def load_txrm(self,path):
+        """Load a TXRM/XRM/TXM file from the specified path.
+
+        Args:
+            path (str): The path to the HDF5 file.
+
+        Returns:
+            numpy.ndarray or tuple: The loaded volume as a NumPy array.
+                If 'return_metadata' is True, returns a tuple (volume, metadata).
+
+        Raises:
+            ValueError: If the dxchange library is not installed
+        """
+
+        try:
+            import dxchange
+        except ImportError:
+            raise ValueError('The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html')
+        
+        vol, metadata = dxchange.read_txrm(path)
+        vol = vol.squeeze() # In case of an XRM file, the third redundant dimension is removed
+        
+
+        log.info("Loaded shape: %s", vol.shape)
+        log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
+
+        if self.virtual_stack:
+            raise NotImplementedError("Using virtual stack for TXRM files is not implemented yet")
+
+        if self.return_metadata:
+            return vol, metadata
+        else:
+            return vol
     
     def load(self, path):
         """
@@ -229,6 +264,8 @@ class DataLoader:
                 return self.load_tiff(path)
             elif path.endswith(".h5"):
                 return self.load_h5(path)
+            elif path.endswith((".txrm",".txm",".xrm")):
+                return self.load_txrm(path)
             else:
                 raise ValueError("Unsupported file format")
 
@@ -250,12 +287,12 @@ class DataLoader:
             else:
                 raise ValueError("Invalid path")
 
-    def _get_h5_dataset_keys(self, f):
-        keys = []
-        f.visit(
-            lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None
-        )
-        return keys
+def _get_h5_dataset_keys(f):
+    keys = []
+    f.visit(
+        lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None
+    )
+    return keys
 
 
 def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, contains=None, **kwargs):
@@ -268,7 +305,7 @@ def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, co
         stack when loading TIFF and HDF5 files. Default is False.
         dataset_name (str, optional): Specifies the name of the dataset to be loaded
         in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
-        return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
+        return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM files)
         contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks)
         **kwargs: Additional keyword arguments to be passed
         to the DataLoader constructor.
