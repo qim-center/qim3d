@@ -145,17 +145,16 @@ class Interface:
                         cmap_original = gr.Dropdown(
                             value="viridis",
                             choices=plt.colormaps(),
-                            label="Colormap",
+                            label="Colormap - input",
                             interactive=True,
                         )
                         cmap_lt = gr.Dropdown(
                             value="magma",
                             choices=plt.colormaps(),
-                            label="Colormap",
+                            label="Colormap - local thickness",
                             interactive=True,
                         )
 
-                        gr.Markdown("Thickness histogram options")
                         nbins = gr.Slider(
                             5, 50, value=25, step=1, label="Histogram bins"
                         )
