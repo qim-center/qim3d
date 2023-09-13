@@ -51,7 +51,7 @@ footer {
 
 /* Input */
 input[type="number" i] {
-  width: 36px !important;
+  width: 64px !important;
 }
 
 input::-webkit-outer-spin-button,
@@ -233,6 +233,10 @@ div.svelte-1frtwj3 {
 
   border: 0px !important;
   box-shadow: none !important;
+}
+
+.matplotlib > img{
+  border-radius: 0.375rem !important;
 }
 
 /* Hide icons from outputs */

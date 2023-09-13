@@ -60,15 +60,15 @@ class Interface:
         session.lt_scale = args[1]
         session.threshold = args[2]
         session.dark_objects = args[3]
-        session.flip_z = args[4]
-        session.nbins = args[5]
-        session.display_size_input = args[6]
-        session.surface_count_input = args[7]
-        session.display_size_output = args[8]
-        session.surface_count_output = args[9]
-        session.reversescale = args[10]
-        session.show_caps = args[11]
+        session.nbins = args[4]
+        session.zpos = args[5]
+        session.cmap_originals = args[6]
+        session.cmap_lt = args[7]
 
+        return session
+
+    def update_session_zpos(self, session, zpos):
+        session.zpos = zpos
         return session
 
     def launch(self, **kwargs):
@@ -107,14 +107,15 @@ class Interface:
                     with gr.Tab("Examples"):
                         gr.Examples(examples=self.img_examples, inputs=data)
 
-                    # Run button
                     with gr.Row():
-                        with gr.Column(scale=3, min_width=64):
-                            btn = gr.Button(
-                                "Run local thickness", elem_classes="btn btn-run"
-                            )
-                        with gr.Column(scale=1, min_width=64):
-                            btn_clear = gr.Button("Clear", elem_classes="btn btn-clear")
+                        zpos = gr.Slider(
+                            minimum=0,
+                            maximum=1,
+                            value=0.5,
+                            step=0.01,
+                            label="Z position",
+                            info="Local thickness is calculated in 3D, this slider controls the visualization only.",
+                        )
 
                     with gr.Tab("Parameters"):
                         gr.Markdown(
@@ -134,102 +135,87 @@ class Interface:
                                 info="Local thickness uses a binary image, so a threshold value is needed.",
                             )
 
-                        dark_objects = gr.Checkbox(value=False, label="Dark objects")
-
-                    with gr.Tab("Display"):
-                        with gr.Row():
-                            gr.Markdown("Input display")
-
-                            display_size_input = gr.Slider(
-                                16,
-                                64,
-                                step=4,
-                                label="Display resolution",
-                                info="Number of voxels for the largest dimension",
-                                value=32,
-                            )
-
-                            surface_count_input = gr.Slider(
-                                2, 16, step=1, label="Total iso-surfaces", value=4
-                            )
-                        with gr.Row():
-                            gr.Markdown("Output display")
-
-                            display_size_output = gr.Slider(
-                                32,
-                                128,
-                                step=4,
-                                label="Display resolution",
-                                info="Number of voxels for the largest dimension",
-                                value=64,
-                            )
-
-                            surface_count_output = gr.Slider(
-                                2, 16, step=1, label="Total iso-surfaces", value=12
-                            )
-
-                        reversescale = gr.Checkbox(
-                            value=False, label="Reverse color scale"
+                        dark_objects = gr.Checkbox(
+                            value=False,
+                            label="Dark objects",
+                            info="Inverts the image before trhesholding. Use in case your foreground is darker than the background.",
                         )
 
-                        show_caps = gr.Checkbox(value=True, label="Show surface caps")
-
-                        flip_z = gr.Checkbox(value=True, label="Flip Z axis")
+                    with gr.Tab("Display options"):
+                        cmap_original = gr.Dropdown(
+                            value="viridis",
+                            choices=plt.colormaps(),
+                            label="Colormap",
+                            interactive=True,
+                        )
+                        cmap_lt = gr.Dropdown(
+                            value="magma",
+                            choices=plt.colormaps(),
+                            label="Colormap",
+                            interactive=True,
+                        )
 
                         gr.Markdown("Thickness histogram options")
                         nbins = gr.Slider(
                             5, 50, value=25, step=1, label="Histogram bins"
                         )
 
+                    # Run button
+                    with gr.Row():
+                        with gr.Column(scale=3, min_width=64):
+                            btn = gr.Button(
+                                "Run local thickness", elem_classes="btn btn-run"
+                            )
+                        with gr.Column(scale=1, min_width=64):
+                            btn_clear = gr.Button("Clear", elem_classes="btn btn-clear")
+
                     inputs = [
                         data,
                         lt_scale,
                         threshold,
                         dark_objects,
-                        flip_z,
                         nbins,
-                        display_size_input,
-                        surface_count_input,
-                        display_size_output,
-                        surface_count_output,
-                        reversescale,
-                        show_caps,
+                        zpos,
+                        cmap_original,
+                        cmap_lt,
                     ]
 
                 with gr.Column(scale=4):
                     with gr.Row():
-                        with gr.Column(min_width=256):
-                            input_vol = gr.Plot(
-                                show_label=True, label="Original volume", visible=True
-                            )
+                        input_vol = gr.Plot(
+                            show_label=True,
+                            label="Original",
+                            visible=True,
+                            elem_classes="plot",
+                        )
 
-                        with gr.Column(min_width=256):
-                            binary_vol = gr.Plot(
-                                show_label=True, label="Binary volume", visible=True
-                            )
+                        binary_vol = gr.Plot(
+                            show_label=True,
+                            label="Binary",
+                            visible=True,
+                            elem_classes="plot",
+                        )
 
+                        output_vol = gr.Plot(
+                            show_label=True,
+                            label="Local thickness",
+                            visible=True,
+                            elem_classes="plot",
+                        )
                     with gr.Row():
-                        with gr.Column(min_width=256):
-                            output_vol = gr.Plot(
-                                show_label=True,
-                                label="Local thickness volume",
-                                visible=True,
-                            )
-                        with gr.Column(min_width=256):
-                            histogram = gr.Plot(
-                                show_label=True,
-                                label="Thickness histogram",
-                                visible=True,
-                            )
+                        histogram = gr.Plot(
+                            show_label=True,
+                            label="Thickness histogram",
+                            visible=True,
+                        )
                     with gr.Row():
-                        with gr.Column():
-                            lt_output = gr.File(
-                                interactive=False,
-                                show_label=True,
-                                label="Output file",
-                                visible=False,
-                                elem_classes="w-320",
-                            )
+                        lt_output = gr.File(
+                            interactive=False,
+                            show_label=True,
+                            label="Output file",
+                            visible=False,
+                            elem_classes="",
+                        )
 
             # Pipelines
             pipeline = Pipeline()
@@ -250,17 +236,21 @@ class Interface:
             btn.click(
                 fn=self.start_session, inputs=inputs, outputs=session).success(
                 fn=pipeline.process_input, inputs=session, outputs=session).success(
-                fn=pipeline.prepare_volume, inputs=session,outputs=session).success(
                 fn=pipeline.input_viz, inputs=session, outputs=input_vol).success(
                 fn=pipeline.make_binary, inputs=session, outputs=session).success(
                 fn=pipeline.binary_viz, inputs=session, outputs=binary_vol).success(
                 fn=pipeline.compute_localthickness, inputs=session, outputs=session).success(
-                fn=pipeline.prepare_output_for_display, inputs=session, outputs=session).success(
                 fn=pipeline.output_viz, inputs=session, outputs=output_vol).success(
                 fn=pipeline.thickness_histogram, inputs=session, outputs=histogram).success(
                 fn=pipeline.save_lt, inputs=session, outputs=lt_output).success(
                 fn=self.make_visible, inputs=None, outputs=lt_output)
 
+
+            zpos.change(
+                fn=self.update_session_zpos, inputs=[session, zpos], outputs=session, show_progress=False).success(
+                fn=pipeline.input_viz, inputs=session, outputs=input_vol, show_progress=False).success(
+                fn=pipeline.binary_viz, inputs=session, outputs=binary_vol,show_progress=False).success(
+                fn=pipeline.output_viz, inputs=session, outputs=output_vol,show_progress=False)
             # fmt: on
 
         return gradio_interface
@@ -275,53 +265,24 @@ class Session:
 
         # Args from gradio
         self.data = None
-        self.vol = None
         self.lt_scale = None
         self.threshold = 0.5
         self.dark_objects = False
         self.flip_z = True
         self.nbins = 25
-        self.display_size_input = 32
-        self.surface_count_input = 4
-        self.display_size_output = 64
-        self.surface_count_output = 12
         self.reversescale = False
-        self.show_caps = True
 
         # From pipeline
-        self.vol_input_display = None
-        self.input_display_size_z = None
-        self.input_display_size_y = None
-        self.input_display_size_x = None
-        self.Zgrid = None
-        self.Ygrid = None
-        self.Xgrid = None
+        self.vol = None
         self.vol_binary = None
-        self.vol_binary_display = None
         self.vol_thickness = None
-        self.output_display_size_z = None
-        self.output_display_size_y = None
-        self.output_display_size_x = None
-        self.Zgrid_output = None
-        self.Ygrid_output = None
-        self.Xgrid_output = None
-
-    def get_vol_info(self):
-        self.original_shape = np.shape(self.vol)
-        self.original_Z = self.original_shape[0]
-        self.original_Y = self.original_shape[1]
-        self.original_X = self.original_shape[2]
-        self.max_size = np.max(self.original_shape)
-
-        if self.verbose:
-            log.info(f"Original volume shape:{self.original_shape}")
-            log.info(f"Original Z: {self.original_Z}")
-            log.info(f"Original Y: {self.original_Y}")
-            log.info(f"Original X: {self.original_X}")
-            log.info(f"Max size: {self.max_size}")
+        self.zpos = 0
 
 
 class Pipeline:
+    def __init__(self):
+        self.figsize = 6
+
     def process_input(self, session):
         # Load volume
         session.vol = DataLoader().load(session.data.name)
@@ -334,68 +295,22 @@ class Pipeline:
 
         return session
 
-    def prepare_volume(self, session):
-        # Get volume shape
-        session.get_vol_info()
+    def show_slice(self, vol, z_idx, cmap="viridis"):
+        plt.close()
+        fig, ax = plt.subplots(figsize=(self.figsize, self.figsize))
 
-        # Resize for display
-        session.vol_input_display = ndimage.zoom(
-            input=session.vol,
-            zoom=(session.display_size_input / session.max_size),
-            prefilter=False,
-            order=0,
-        )
+        ax.imshow(vol[z_idx], interpolation="nearest", cmap=cmap)
 
-        display_shape = np.shape(session.vol_input_display)
-        session.input_display_size_z = display_shape[0]
-        session.input_display_size_y = display_shape[1]
-        session.input_display_size_x = display_shape[2]
+        # Adjustments
+        ax.axis("off")
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 
-        # Create 3D grid
-        session.Zgrid, session.Ygrid, session.Xgrid = np.mgrid[
-            0 : session.input_display_size_z,
-            0 : session.input_display_size_y,
-            0 : session.input_display_size_x,
-        ]
-
-        return session
+        return fig
 
     def input_viz(self, session):
         # Generate input visualization
-        data = go.Volume(
-            z=session.Zgrid.flatten(),
-            y=session.Ygrid.flatten(),
-            x=session.Xgrid.flatten(),
-            value=session.vol_input_display.flatten(),
-            opacity=0.3,
-            isomin=0.05 * np.max(session.vol_input_display),
-            isomax=1.0 * np.max(session.vol_input_display),
-            cmin=np.min(session.vol_input_display),
-            cmax=np.max(session.vol_input_display),
-            opacityscale="uniform",
-            surface_count=session.surface_count_input,
-            caps=dict(
-                x_show=session.show_caps,
-                y_show=session.show_caps,
-                z_show=session.show_caps,
-            ),
-            showscale=False,
-            reversescale=session.reversescale,
-        )
-
-        fig = go.Figure(data)
-        fig.update_layout(
-            scene_aspectmode="data",
-            scene_xaxis_showticklabels=session.show_ticks,
-            scene_yaxis_showticklabels=session.show_ticks,
-            scene_zaxis_showticklabels=session.show_ticks,
-            scene_xaxis_visible=session.show_axis,
-            scene_yaxis_visible=session.show_axis,
-            scene_zaxis_visible=session.show_axis,
-            hovermode=False,
-            scene_camera_eye=dict(x=1.5, y=-1.5, z=1.2),
-        )
-
+        z_idx = int(session.zpos * session.vol.shape[0])
+        fig = self.show_slice(vol=session.vol, z_idx=z_idx, cmap=session.cmap_originals)
         return fig
 
     def make_binary(self, session):
@@ -403,52 +318,14 @@ class Pipeline:
         # Nothing fancy, but we could add new features here
         session.vol_binary = session.vol > (session.threshold * np.max(session.vol))
 
-        session.vol_binary_display = ndimage.zoom(
-            input=session.vol_binary * 255,
-            zoom=(session.display_size_input / session.max_size),
-            prefilter=False,
-            order=0,
-        )
-
         return session
 
     def binary_viz(self, session):
         # Generate input visualization
-        data = go.Volume(
-            z=session.Zgrid.flatten(),
-            y=session.Ygrid.flatten(),
-            x=session.Xgrid.flatten(),
-            value=session.vol_binary_display.flatten(),
-            opacity=0.3,
-            isomin=0.99 * np.max(session.vol_binary_display),
-            isomax=1.0 * np.max(session.vol_binary_display),
-            cmin=np.min(session.vol_binary_display),
-            cmax=np.max(session.vol_binary_display),
-            opacityscale="max",
-            surface_count=2,
-            caps=dict(
-                x_show=session.show_caps,
-                y_show=session.show_caps,
-                z_show=session.show_caps,
-            ),
-            showscale=False,
-            reversescale=session.reversescale,
-            colorscale="Greys",
+        z_idx = int(session.zpos * session.vol_binary.shape[0])
+        fig = self.show_slice(
+            vol=session.vol_binary, z_idx=z_idx, cmap=session.cmap_originals
         )
-
-        fig = go.Figure(data)
-        fig.update_layout(
-            scene_aspectmode="data",
-            scene_xaxis_showticklabels=session.show_ticks,
-            scene_yaxis_showticklabels=session.show_ticks,
-            scene_zaxis_showticklabels=session.show_ticks,
-            scene_xaxis_visible=session.show_axis,
-            scene_yaxis_visible=session.show_axis,
-            scene_zaxis_visible=session.show_axis,
-            hovermode=False,
-            scene_camera_eye=dict(x=1.5, y=-1.5, z=1.2),
-        )
-
         return fig
 
     def compute_localthickness(self, session):
@@ -456,64 +333,12 @@ class Pipeline:
 
         return session
 
-    def prepare_output_for_display(self, session):
-        # Display Local thickness
-        session.vol_output_display = ndimage.zoom(
-            input=session.vol_thickness,
-            zoom=(session.display_size_output / session.max_size),
-            prefilter=False,
-            order=0,
-        )
-
-        output_display_shape = np.shape(session.vol_output_display)
-        session.output_display_size_z = output_display_shape[0]
-        session.output_display_size_y = output_display_shape[1]
-        session.output_display_size_x = output_display_shape[2]
-
-        session.Zgrid_output, session.Ygrid_output, session.Xgrid_output = np.mgrid[
-            0 : session.output_display_size_z,
-            0 : session.output_display_size_y,
-            0 : session.output_display_size_x,
-        ]
-
-        return session
-
     def output_viz(self, session):
         # Generate input visualization
-        data = go.Volume(
-            z=session.Zgrid_output.flatten(),
-            y=session.Ygrid_output.flatten(),
-            x=session.Xgrid_output.flatten(),
-            value=session.vol_output_display.flatten(),
-            opacity=0.3,
-            isomin=0.05 * np.max(session.vol_output_display),
-            isomax=1.0 * np.max(session.vol_output_display),
-            cmin=np.min(session.vol_output_display),
-            cmax=np.max(session.vol_output_display),
-            opacityscale="uniform",
-            surface_count=session.surface_count_input,
-            caps=dict(
-                x_show=session.show_caps,
-                y_show=session.show_caps,
-                z_show=session.show_caps,
-            ),
-            showscale=False,
-            reversescale=session.reversescale,
+        z_idx = int(session.zpos * session.vol_thickness.shape[0])
+        fig = self.show_slice(
+            vol=session.vol_thickness, z_idx=z_idx, cmap=session.cmap_lt
         )
-
-        fig = go.Figure(data)
-        fig.update_layout(
-            scene_aspectmode="data",
-            scene_xaxis_showticklabels=session.show_ticks,
-            scene_yaxis_showticklabels=session.show_ticks,
-            scene_zaxis_showticklabels=session.show_ticks,
-            scene_xaxis_visible=session.show_axis,
-            scene_yaxis_visible=session.show_axis,
-            scene_zaxis_visible=session.show_axis,
-            hovermode=False,
-            scene_camera_eye=dict(x=1.5, y=-1.5, z=1.2),
-        )
-
         return fig
 
     def thickness_histogram(self, session):
@@ -544,35 +369,3 @@ class Pipeline:
         tifffile.imwrite(filename, session.vol_thickness)
 
         return filename
-
-
-def gradio_fn(
-    gradio_file,
-    lt_scale,
-    threshold,
-    dark_objects,
-    flip_z,
-    nbins,
-    display_size_input,
-    surface_count_input,
-    display_size_output,
-    surface_count_output,
-    reversescale,
-    show_caps,
-    show_ticks=False,
-    show_axis=True,
-):
-    # Some cleanup
-    vol_input = None
-    vol_input_display = None
-    vol_output = None
-    vol_output_display = None
-    data = None
-
-    return fig_input, fig_output, fig_binary, fig_hist, "localthickness.tif"
-
-
-if __name__ == "__main__":
-    app = Interface()
-    app.show_header = True
-    app.launch(server_name="0.0.0.0", show_error=True)
