@@ -1,5 +1,155 @@
-""" Tools performed with trained models."""
+""" Tools performed with models."""
 import torch
+import matplotlib.pyplot as plt
+
+from torchinfo import summary
+from qim3d.io.logger import log, level
+from qim3d.viz.visualizations import plot_metrics
+
+from tqdm.auto import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
+
+
+def train_model(model, qim_hyperparameters, train_loader, val_loader, eval_every = 1, print_every = 5, plot = True):
+    """ Function for training Neural Network models.
+    
+    Args:
+        model (torch.nn.Module): PyTorch model.
+        qim_hyperparameters (dict): dictionary with n_epochs, optimizer and criterion.
+        train_loader (torch.utils.data.DataLoader): DataLoader for the training data.
+        val_loader (torch.utils.data.DataLoader): DataLoader for the validation data.
+        eval_every (int, optional): frequency of model evaluation. Defaults to every epoch.
+        print_every (int, optional): frequency of log for model performance. Defaults to every 5 epochs.
+
+    Returns:
+        tuple:
+            train_loss (dict): dictionary with average losses and batch losses for training loop.
+            val_loss (dict): dictionary with average losses and batch losses for validation loop.
+        
+    Example:
+        # defining the model.
+        model = qim3d.qim3d.utils.qim_UNet()
+        
+        # choosing the hyperparameters
+        qim_hyper = qim3d.qim3d.utils.qim_hyperparameters(model)
+        hyper_dict = qim_hyper()
+
+        # DataLoaders
+        train_loader = MyTrainLoader()
+        val_loader = MyValLoader()
+
+        # training the model.
+        train_loss,val_loss = train_model(model, hyper_dict, train_loader, val_loader)
+    """
+
+    n_epochs = qim_hyperparameters['n_epochs']
+    optimizer = qim_hyperparameters['optimizer']
+    criterion = qim_hyperparameters['criterion']
+
+    # Choosing best device available.
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    model.to(device)
+    
+    # Avoid logging twice.
+    log.propagate = False
+    
+    train_loss = {'loss' : [],'batch_loss': []}
+    val_loss = {'loss' : [], 'batch_loss' : []}
+    with logging_redirect_tqdm():
+        for epoch in tqdm(range(n_epochs)): 
+            epoch_loss = 0
+            step = 0
+    
+            model.train()
+            
+            for data in train_loader:
+                inputs, targets = data
+                inputs = inputs.to(device)
+                targets = targets.to(device).type(torch.cuda.FloatTensor).unsqueeze(1)
+    
+                optimizer.zero_grad()
+                outputs = model(inputs)
+                loss = criterion(outputs, targets)
+    
+                # Backpropagation
+                loss.backward()
+                optimizer.step()
+    
+                epoch_loss += loss.detach().item()
+                step += 1
+
+                # Log and store batch training loss.
+                train_loss['batch_loss'].append(loss.detach().item())
+    
+            # Log and store average training loss per epoch.
+            epoch_loss = epoch_loss / step
+            train_loss['loss'].append(epoch_loss)
+        
+            if epoch % eval_every ==0:
+                eval_loss = 0
+                step = 0
+                
+                model.eval()
+        
+                for data in val_loader:
+                    inputs, targets = data
+                    inputs = inputs.to(device)
+                    targets = targets.to(device).type(torch.cuda.FloatTensor).unsqueeze(1)
+                
+                    with torch.no_grad():
+                        outputs = model(inputs)
+                        loss = criterion(outputs, targets)
+                    
+                    eval_loss += loss.item()
+                    step += 1
+
+                    # Log and store batch validation loss.
+                    val_loss['batch_loss'].append(loss.item())
+                
+                # Log and store average validation loss.
+                eval_loss = eval_loss / step
+                val_loss['loss'].append(eval_loss)
+                
+                if epoch % print_every == 0:
+                    log.info(
+                        f"Epoch {epoch: 3}, train loss: {train_loss['loss'][epoch]:.4f}, "
+                        f"val loss: {val_loss['loss'][epoch]:.4f}"
+                    )
+
+    if plot:
+        fig = plt.figure(figsize=(16, 6), constrained_layout = True)
+        plot_metrics(train_loss, label = 'Train')
+        plot_metrics(val_loss,color = 'orange', label = 'Valid.')
+        fig.show()
+
+
+def model_summary(dataloader,model):
+    """Prints the summary of a PyTorch model.
+
+    Args:
+        model (torch.nn.Module): The PyTorch model to summarize.
+        dataloader (torch.utils.data.DataLoader): The data loader used to determine the input shape.
+
+    Returns:
+        str: Summary of the model architecture.
+
+    Example:
+        model = MyModel()
+        dataloader = DataLoader(dataset, batch_size=32)
+        summary = model_summary(model, dataloader)
+        print(summary)
+    """
+    
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
+
+    images,_ = next(iter(dataloader)) 
+    batch_size = tuple(images.shape)
+    model_s = summary(model,batch_size,depth = torch.inf)
+    
+    return model_s
+
 
 def inference(data,model):
     """Performs inference on input data using the specified model.
@@ -68,7 +218,7 @@ def inference(data,model):
     inputs = inputs.cpu().squeeze()
     targets = targets.squeeze()
     if outputs.shape[1] == 1:
-        preds = outputs.cpu().squeeze() > 0.5
+        preds = outputs.cpu().squeeze() > 0.5 # TODO: outputs from model are not between [0,1] yet, need to implement that
     else:
         preds = outputs.cpu().argmax(axis=1)
 
