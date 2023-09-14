@@ -231,11 +231,11 @@ def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2,
     # Position is a string
     if isinstance(position,str):
         if position.lower() in ['mid','middle']:
-            height = [int(vol.shape[-1]/2)]
+            height = [int(vol.shape[0]/2)]
         elif position.lower() in ['top','upper', 'start']:
             height = [0]
         elif position.lower() in ['bot','bottom', 'end']:
-            height = [vol.shape[-1]-1]
+            height = [vol.shape[0]-1]
         else:
             raise ValueError('Position not recognized. Choose an integer, list, array or "start","mid","end".')
     
@@ -253,7 +253,7 @@ def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2,
     axs = fig.subplots(nrows = 1, ncols = num_images)
     
     for col, ax in enumerate(np.atleast_1d(axs)):
-        ax.imshow(vol[:,:,height[col]],cmap = cmap)
+        ax.imshow(vol[height[col],:,:],cmap = cmap)
         ax.set_title(f'Slice {height[col]}', fontsize=8)
         if not axis:
             ax.axis('off')
