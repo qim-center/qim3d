@@ -5,7 +5,7 @@ from matplotlib import cm
 import torch
 import numpy as np
 from qim3d.io.logger import log
-from qim3d.io.load import load
+import qim3d.io
 
 def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5):
     """Displays an overview grid of images, labels, and masks (if they exist).
@@ -211,7 +211,7 @@ def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2,
     
     # Filepath input
     if isinstance(input,str):
-        vol = load(input) # Function has its own ValueErrors
+        vol = qim3d.io.load(input) # Function has its own ValueErrors
         dim = vol.ndim
         
         if dim == 3:
