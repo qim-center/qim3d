@@ -71,13 +71,13 @@ class Interface:
         session.zpos = zpos
         return session
 
-    def launch(self, **kwargs):
+    def launch(self, img=None):
         # Show header
         if self.show_header:
             internal_tools.gradio_header(self.title, self.port)
 
         # Create gradio interfaces
-        interface = self.create_interface()
+        interface = self.create_interface(img=img)
 
         # Set gradio verbose level
         if self.verbose:
@@ -89,10 +89,11 @@ class Interface:
             quiet=quiet,
             height=self.height,
             width=self.width,
-            **kwargs,
+            show_tips=False,
         )
 
-    def create_interface(self):
+    def create_interface(self, img=None):
+        print(img)
         with gr.Blocks(css=self.css_path) as gradio_interface:
             gr.Markdown(
                 "# 3D Local thickness \n Interface for _Fast local thickness in 3D and 2D_ (https://github.com/vedranaa/local-thickness)"
@@ -276,6 +277,10 @@ class Session:
         self.vol_binary = None
         self.vol_thickness = None
         self.zpos = 0
+        self.vmin = None
+        self.vmax = None
+        self.vmin_lt = None
+        self.vmax_lt = None
 
 
 class Pipeline:
@@ -289,16 +294,17 @@ class Pipeline:
         if session.dark_objects:
             session.vol = np.invert(session.vol)
 
-        if session.flip_z:
-            session.vol = np.flip(session.vol, axis=0)
+        # Get min and max values for visualization
+        session.vmin = np.min(session.vol)
+        session.vmax = np.max(session.vol)
 
         return session
 
-    def show_slice(self, vol, z_idx, cmap="viridis"):
+    def show_slice(self, vol, z_idx, vmin=None, vmax=None, cmap="viridis"):
         plt.close()
         fig, ax = plt.subplots(figsize=(self.figsize, self.figsize))
 
-        ax.imshow(vol[z_idx], interpolation="nearest", cmap=cmap)
+        ax.imshow(vol[z_idx], interpolation="nearest", cmap=cmap, vmin=vmin, vmax=vmax)
 
         # Adjustments
         ax.axis("off")
@@ -308,8 +314,14 @@ class Pipeline:
 
     def input_viz(self, session):
         # Generate input visualization
-        z_idx = int(session.zpos * session.vol.shape[0])
-        fig = self.show_slice(vol=session.vol, z_idx=z_idx, cmap=session.cmap_originals)
+        z_idx = int(session.zpos * (session.vol.shape[0] - 1))
+        fig = self.show_slice(
+            vol=session.vol,
+            z_idx=z_idx,
+            cmap=session.cmap_originals,
+            vmin=session.vmin,
+            vmax=session.vmax,
+        )
         return fig
 
     def make_binary(self, session):
@@ -321,7 +333,7 @@ class Pipeline:
 
     def binary_viz(self, session):
         # Generate input visualization
-        z_idx = int(session.zpos * session.vol_binary.shape[0])
+        z_idx = int(session.zpos * (session.vol_binary.shape[0] - 1))
         fig = self.show_slice(
             vol=session.vol_binary, z_idx=z_idx, cmap=session.cmap_originals
         )
@@ -330,13 +342,21 @@ class Pipeline:
     def compute_localthickness(self, session):
         session.vol_thickness = lt.local_thickness(session.vol_binary, session.lt_scale)
 
+        # Valus for visualization
+        session.vmin_lt = np.min(session.vol_thickness)
+        session.vmax_lt = np.max(session.vol_thickness)
+
         return session
 
     def output_viz(self, session):
         # Generate input visualization
-        z_idx = int(session.zpos * session.vol_thickness.shape[0])
+        z_idx = int(session.zpos * (session.vol_thickness.shape[0] - 1))
         fig = self.show_slice(
-            vol=session.vol_thickness, z_idx=z_idx, cmap=session.cmap_lt
+            vol=session.vol_thickness,
+            z_idx=z_idx,
+            cmap=session.cmap_lt,
+            vmin=session.vmin_lt,
+            vmax=session.vmax_lt,
         )
         return fig
 
