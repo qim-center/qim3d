@@ -21,8 +21,8 @@ def plot_metrics(metric, color = 'blue', linestyle = '-', batch_linestyle = 'dot
     Example:
         train_loss = {'epoch_loss' : [...], 'batch_loss': [...]}
         plot_metrics(train_loss, color = 'red', label='Train')
-    
     """
+    
     # plotting parameters
     snb.set_style('darkgrid')
     snb.set(font_scale=1.5)

@@ -91,7 +91,6 @@ def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha
             else:
                 ax.imshow(plot_data[col][row].squeeze(), cmap=cmap_im)
                 ax.axis("off")
-
     fig.show()
 
 

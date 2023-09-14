@@ -27,8 +27,7 @@ class UNet(nn.Module):
         ValueError: If `size` is not one of 'small', 'medium', or 'large'.
 
     Example:
-        unet = qim_UNet(size='large')
-        model = unet()
+        model = UNet(size='large')
     """
     def __init__(self, size = 'medium',
                  dropout = 0,
@@ -103,15 +102,15 @@ class Hyperparameters:
 
     Example:
         # Create hyperparameters instance
-        hyperparams = qim_hyperparameters(model=my_model, n_epochs=20, learning_rate=0.001)
+        hyperparams = Hyperparameters(model=my_model, n_epochs=20, learning_rate=0.001)
 
         # Get the hyperparameters
-        params = hyperparams()
+        params_dict = hyperparams()
         
         # Access the optimizer and criterion
-        optimizer = params['optimizer']
-        criterion = params['criterion']
-        n_epochs = params['n_epochs']
+        optimizer = params_dict['optimizer']
+        criterion = params_dict['criterion']
+        n_epochs  = params_dict['n_epochs']
     """
     def __init__(self,
                  model,

@@ -10,12 +10,12 @@ from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 
-def train_model(model, qim_hyperparameters, train_loader, val_loader, eval_every = 1, print_every = 5, plot = True):
+def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1, print_every = 5, plot = True):
     """ Function for training Neural Network models.
     
     Args:
         model (torch.nn.Module): PyTorch model.
-        qim_hyperparameters (dict): dictionary with n_epochs, optimizer and criterion.
+        hyperparameters (class): dictionary with n_epochs, optimizer and criterion.
         train_loader (torch.utils.data.DataLoader): DataLoader for the training data.
         val_loader (torch.utils.data.DataLoader): DataLoader for the validation data.
         eval_every (int, optional): frequency of model evaluation. Defaults to every epoch.
@@ -28,23 +28,22 @@ def train_model(model, qim_hyperparameters, train_loader, val_loader, eval_every
         
     Example:
         # defining the model.
-        model = qim3d.qim3d.utils.qim_UNet()
+        model = qim3d.utils.UNet()
         
         # choosing the hyperparameters
-        qim_hyper = qim3d.qim3d.utils.qim_hyperparameters(model)
-        hyper_dict = qim_hyper()
+        hyperparameters = qim3d.utils.hyperparameters(model)
 
         # DataLoaders
         train_loader = MyTrainLoader()
         val_loader = MyValLoader()
 
         # training the model.
-        train_loss,val_loss = train_model(model, hyper_dict, train_loader, val_loader)
+        train_loss,val_loss = train_model(model, hyperparameters, train_loader, val_loader)
     """
-
-    n_epochs = qim_hyperparameters['n_epochs']
-    optimizer = qim_hyperparameters['optimizer']
-    criterion = qim_hyperparameters['criterion']
+    params_dict = hyperparameters()
+    n_epochs = params_dict['n_epochs']
+    optimizer = params_dict['optimizer']
+    criterion = params_dict['criterion']
 
     # Choosing best device available.
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
