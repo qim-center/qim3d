@@ -77,7 +77,8 @@ class Interface:
             internal_tools.gradio_header(self.title, self.port)
 
         # Create gradio interfaces
-        interface = self.create_interface(img=img)
+
+        self.interface = self.create_interface(img=img)
 
         # Set gradio verbose level
         if self.verbose:
@@ -85,15 +86,38 @@ class Interface:
         else:
             quiet = True
 
-        interface.launch(
+        self.interface.launch(
             quiet=quiet,
             height=self.height,
             width=self.width,
             show_tips=False,
         )
 
+        return
+
+    def get_result(self):
+        # Get the temporary files from gradio
+        temp_sets = self.interface.temp_file_sets
+        for temp_set in temp_sets:
+            if "localthickness" in str(temp_set):
+                # Get the lsit of the temporary files
+                temp_path_list = list(temp_set)
+
+        # Files are not in creation order,
+        # so we need to get find the latest
+        creation_time_list = []
+        for path in temp_path_list:
+            creation_time_list.append(os.path.getctime(path))
+
+        # Get index for the latest file
+        file_idx = np.argmax(creation_time_list)
+
+        # Load the temporary file
+        vol_lt = DataLoader().load(temp_path_list[file_idx])
+
+        return vol_lt
+
     def create_interface(self, img=None):
-        print(img)
         with gr.Blocks(css=self.css_path) as gradio_interface:
             gr.Markdown(
                 "# 3D Local thickness \n Interface for _Fast local thickness in 3D and 2D_ (https://github.com/vedranaa/local-thickness)"
@@ -101,12 +125,17 @@ class Interface:
 
             with gr.Row():
                 with gr.Column(scale=1, min_width=320):
-                    with gr.Tab("Input"):
-                        data = gr.File(
-                            show_label=False, elem_classes="file-input h-128"
-                        )
-                    with gr.Tab("Examples"):
-                        gr.Examples(examples=self.img_examples, inputs=data)
+                    if img is not None:
+                        data = gr.State(value=img)
+                    else:
+                        with gr.Tab("Input"):
+                            data = gr.File(
+                                show_label=False,
+                                elem_classes="file-input h-128",
+                                value=img,
+                            )
+                        with gr.Tab("Examples"):
+                            gr.Examples(examples=self.img_examples, inputs=data)
 
                     with gr.Row():
                         zpos = gr.Slider(
@@ -289,7 +318,10 @@ class Pipeline:
 
     def process_input(self, session):
         # Load volume
-        session.vol = DataLoader().load(session.data.name)
+        try:
+            session.vol = DataLoader().load(session.data.name)
+        except:
+            session.vol = session.data
 
         if session.dark_objects:
             session.vol = np.invert(session.vol)
