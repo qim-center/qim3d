@@ -6,6 +6,8 @@ import difflib
 import tifffile
 import h5py
 import numpy as np
+from pathlib import Path
+import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof
 
@@ -45,7 +47,7 @@ class DataLoader:
             dataset_name (str, optional): Specifies the name of the dataset to be loaded
             in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
             return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
-            contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks)   
+            contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks)
         """
         # Virtual stack is False by default
         self.virtual_stack = kwargs.get("virtual_stack", False)
@@ -157,7 +159,7 @@ class DataLoader:
             return vol, metadata
         else:
             return vol
-        
+
     def load_tiff_stack(self, path):
         """Load a stack of TIFF files from the specified path.
 
@@ -176,25 +178,35 @@ class DataLoader:
                 "Please specify a part of the name that is common for the TIFF file stack with the argument 'contains'"
             )
 
-        tiff_stack = [file for file in os.listdir(path) if (file.endswith('.tif') or file.endswith('.tiff')) and self.contains in file]
+        tiff_stack = [
+            file
+            for file in os.listdir(path)
+            if (file.endswith(".tif") or file.endswith(".tiff"))
+            and self.contains in file
+        ]
         tiff_stack.sort()  # Ensure proper ordering
 
         # Check that only one TIFF stack in the directory contains the provided string in its name
         tiff_stack_only_letters = []
         for filename in tiff_stack:
-            name = os.path.splitext(filename)[0] # Remove file extension
-            tiff_stack_only_letters.append(''.join(filter(str.isalpha, name))) # Remove everything else than letters from the name
+            name = os.path.splitext(filename)[0]  # Remove file extension
+            tiff_stack_only_letters.append(
+                "".join(filter(str.isalpha, name))
+            )  # Remove everything else than letters from the name
 
         # Get unique elements from tiff_stack_only_letters
         unique_names = list(set(tiff_stack_only_letters))
-        if len(unique_names)>1:
-            raise ValueError(f"The provided part of the filename for the TIFF stack matches multiple TIFF stacks: {unique_names}.\nPlease provide a string that is unique for the TIFF stack that is intended to be loaded")
-    
+        if len(unique_names) > 1:
+            raise ValueError(
+                f"The provided part of the filename for the TIFF stack matches multiple TIFF stacks: {unique_names}.\nPlease provide a string that is unique for the TIFF stack that is intended to be loaded"
+            )
 
-        vol = tifffile.imread([os.path.join(path, file) for file in tiff_stack],out='memmap')
+        vol = tifffile.imread(
+            [os.path.join(path, file) for file in tiff_stack], out="memmap"
+        )
 
         if not self.virtual_stack:
-            vol = np.copy(vol) # Copy to memory
+            vol = np.copy(vol)  # Copy to memory
         else:
             log.info("Using virtual stack")
 
@@ -203,8 +215,8 @@ class DataLoader:
         log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
         return vol
-    
-    def load_txrm(self,path):
+
+    def load_txrm(self, path):
         """Load a TXRM/XRM/TXM file from the specified path.
 
         Args:
@@ -221,23 +233,28 @@ class DataLoader:
         try:
             import dxchange
         except ImportError:
-            raise ValueError('The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html')
-        
+            raise ValueError(
+                "The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html"
+            )
+
         vol, metadata = dxchange.read_txrm(path)
-        vol = vol.squeeze() # In case of an XRM file, the third redundant dimension is removed
-        
+        vol = (
+            vol.squeeze()
+        )  # In case of an XRM file, the third redundant dimension is removed
 
         log.info("Loaded shape: %s", vol.shape)
         log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
         if self.virtual_stack:
-            raise NotImplementedError("Using virtual stack for TXRM files is not implemented yet")
+            raise NotImplementedError(
+                "Using virtual stack for TXRM files is not implemented yet"
+            )
 
         if self.return_metadata:
             return vol, metadata
         else:
             return vol
-    
+
     def load(self, path):
         """
         Load a file or directory based on the given path.
@@ -263,7 +280,7 @@ class DataLoader:
                 return self.load_tiff(path)
             elif path.endswith(".h5"):
                 return self.load_h5(path)
-            elif path.endswith((".txrm",".txm",".xrm")):
+            elif path.endswith((".txrm", ".txm", ".xrm")):
                 return self.load_txrm(path)
             else:
                 raise ValueError("Unsupported file format")
@@ -286,15 +303,21 @@ class DataLoader:
             else:
                 raise ValueError("Invalid path")
 
+
 def _get_h5_dataset_keys(f):
     keys = []
-    f.visit(
-        lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None
-    )
+    f.visit(lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None)
     return keys
 
 
-def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, contains=None, **kwargs):
+def load(
+    path,
+    virtual_stack=False,
+    dataset_name=None,
+    return_metadata=False,
+    contains=None,
+    **kwargs,
+):
     """
     Load data from the specified file or directory.
 
@@ -329,3 +352,18 @@ def load(path, virtual_stack=False, dataset_name=None, return_metadata=False, co
     )
 
     return loader.load(path)
+
+
+class ImgExamples:
+    """Image examples"""
+
+    def __init__(self):
+        img_examples_path = Path(qim3d.__file__).parents[0] / "img_examples"
+        img_paths = list(img_examples_path.glob("*.tif"))
+        img_names = []
+        for path in img_paths:
+            img_names.append(path.stem)
+
+        # Generate loader for each image found
+        for idx, name in enumerate(img_names):
+            exec(f"self.{name} = qim3d.io.load('{img_paths[idx]}')")
