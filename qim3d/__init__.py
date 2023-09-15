@@ -4,3 +4,5 @@ import qim3d.viz
 import qim3d.utils
 import qim3d.models
 import logging
+
+examples = qim3d.io.ImgExamples()
