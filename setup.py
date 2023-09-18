@@ -15,7 +15,7 @@ setup(
     description="QIM tools and user interfaces",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://lab.compute.dtu.dk/QIM/qim",
+    url="https://lab.compute.dtu.dk/QIM/tools/qim3d",
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
