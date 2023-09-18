@@ -16,7 +16,7 @@ Or clone this repository for the most recent version.
 
 
 # Usage
-Some basic funtionalites are descibred here, for the full functionatilies please see the documentation.
+Some basic funtionalites are descibred here. The full documentation is still under development.
 
 ## Loading Data
 To load image data from a file, use `qim.io.load()`
@@ -32,7 +32,7 @@ vol = qim3d.io.load("path/to/file.tif", virtual_stack=True)
 ```
 
 ## Visualize data
-YOu can easily check slices from your volume using `slice_viz`
+You can easily check slices from your volume using `slice_viz`
 
 ```python
 import qim3d
@@ -52,7 +52,7 @@ qim3d.viz.slice_viz(img, img_width=6, img_height=6, cmap="inferno")
 
 
 ## GUI Components
-The library also provides GUI components for interactive data exploration. 
+The library also provides GUI components for interactive data analysis and exploration. 
 The `qim3d.gui` module contains various classes for visualization and analysis:
 
 ```python
@@ -63,7 +63,7 @@ app.launch()
 ```
 
 # Contributing
-Contributions to QIM are welcome! If you find a bug, have a feature request, or would like to contribute code, please open an issue or submit a pull request.
+Contributions to `qim3d` are welcome! If you find a bug, have a feature request, or would like to contribute code, please open an issue or submit a pull request.
 
 # License
 This project is licensed under the MIT License.
