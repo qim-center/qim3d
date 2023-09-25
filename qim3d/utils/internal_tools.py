@@ -6,6 +6,7 @@ import outputformat as ouf
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
+import socket
 
 
 
@@ -34,7 +35,7 @@ def mock_plot():
     return fig
 
 
-def mock_write_file(path):
+def mock_write_file(path, content="File created by qim3d"):
     """
     Creates a file at the specified path and writes a predefined text into it.
 
@@ -45,7 +46,7 @@ def mock_write_file(path):
         >>> mock_write_file("example.txt")
     """
     _file = open(path, "w", encoding="utf-8")
-    _file.write("File created by apptools")
+    _file.write(content)
     _file.close()
 
 
@@ -166,3 +167,12 @@ def sizeof(num, suffix="B"):
             return f"{num:3.1f} {unit}{suffix}"
         num /= 1024.0
     return f"{num:.1f} Y{suffix}"
+
+def is_server_running(ip, port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((ip, int(port)))
+        s.shutdown(2)
+        return True
+    except:
+        return False
