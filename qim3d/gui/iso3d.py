@@ -13,7 +13,7 @@ class Interface:
         self.show_header = False
         self.verbose = False
         self.title = "Isosurfaces for 3D visualization"
-
+        self.interface = None
         self.plot_height = 768
         self.height = 1024
         self.width = 960
@@ -381,7 +381,7 @@ class Interface:
             internal_tools.gradio_header(self.title, self.port)
 
         # Create gradio interface
-        interface = self.create_interface()
+        self.interface = self.create_interface()
 
         # Set gradio verbose level
         if self.verbose:
@@ -389,7 +389,7 @@ class Interface:
         else:
             quiet = True
 
-        interface.launch(
+        self.interface.launch(
             quiet=quiet,
             height=self.height,
             width=self.width,
