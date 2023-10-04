@@ -6,6 +6,10 @@ import difflib
 import tifffile
 import h5py
 import numpy as np
+import struct
+import olefile
+import re
+import dask.array as da
 from pathlib import Path
 import qim3d
 from qim3d.io.logger import log
@@ -230,30 +234,50 @@ class DataLoader:
             ValueError: If the dxchange library is not installed
         """
 
-        try:
-            import dxchange
-        except ImportError:
-            raise ValueError(
-                "The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html"
-            )
+        ole = olefile.OleFileIO(path)
+        metadata = _get_ole_metadata(ole)
+        offsets = _get_ole_offsets(ole)
 
-        vol, metadata = dxchange.read_txrm(path)
-        vol = (
-            vol.squeeze()
-        )  # In case of an XRM file, the third redundant dimension is removed
+        assert len(offsets)==metadata['no_images']
+
+        if metadata['no_images']>1:
+            # Get list of offset values
+            lst = list(offsets.values())
+            # Check if all offset values are ascending, otherwise log a warning
+            if not all(lst[i] <= lst[i+1] for i in range(len(lst)-1)):
+                log.warning('Offsets are not ascending, some slices are erroneous')
+
+        if self.virtual_stack:
+            slices = []
+            for _,offset in offsets.items():
+                slices.append(
+                    np.memmap(path,dtype=metadata['dtype'].newbyteorder('<'),mode='r+',offset=offset,shape = (1,metadata['height'],metadata['width']))
+                )
+            
+            vol = da.concatenate(slices,axis=0)
+
+
+        else:
+            try:
+                import dxchange
+            except ImportError:
+                raise ValueError(
+                    "The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html"
+                )
+
+            vol, metadata = dxchange.read_txrm(path)
+            vol = (
+                vol.squeeze()
+            )  # In case of an XRM file, the third redundant dimension is removed
+
 
         log.info("Loaded shape: %s", vol.shape)
         log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
-        if self.virtual_stack:
-            raise NotImplementedError(
-                "Using virtual stack for TXRM files is not implemented yet"
-            )
-
         if self.return_metadata:
             return vol, metadata
         else:
-            return vol
+            return vol, offsets
 
     def load(self, path):
         """
@@ -308,6 +332,38 @@ def _get_h5_dataset_keys(f):
     keys = []
     f.visit(lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None)
     return keys
+
+def _get_ole_metadata(ole):
+    datatype = struct.unpack('<L', ole.openstream(
+            'ImageInfo/DataType').read())[0]
+    
+    metadata = {
+        'no_images': struct.unpack('<L', ole.openstream(
+        'ImageInfo/NoOfImages').read())[0],
+        'width': struct.unpack('<L', ole.openstream(
+                'ImageInfo/ImageWidth').read())[0],
+        'height': struct.unpack('<L', ole.openstream(
+            'ImageInfo/ImageHeight').read())[0],
+        'dtype': {5: np.dtype('uint16'), 10: np.dtype('float32')}[datatype]
+    }
+
+    return metadata
+
+def _get_ole_offsets(ole):
+    slice_offset = {}
+    for stream in ole.listdir():
+        if stream[0].startswith('ImageData'):
+            sid = ole._find(stream)
+            direntry = ole.direntries[sid]
+            sect_start = direntry.isectStart
+            offset = ole.sectorsize * (sect_start+1)
+            slice_offset[f'{stream[0]}/{stream[1]}']=offset
+
+    # sort dictionary after natural sorting (https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/)
+    sorted_keys = sorted(slice_offset.keys(),key=lambda string_: [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)])
+    slice_offset_sorted = {key: slice_offset[key] for key in sorted_keys}
+
+    return slice_offset_sorted
 
 
 def load(
