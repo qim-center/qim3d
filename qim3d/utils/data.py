@@ -101,29 +101,36 @@ class Dataset(torch.utils.data.Dataset):
         return Image.open(str(image_path)).size
 
 
-def check_resize(im_height: int, im_width: int, n_channels: int):
-        """
-        Checks the compatibility of the image shape with the depth of the model. 
-        If the image height and width cannot be divided by 2 `n_channels` times, then the image size is inappropriate.
-        If so, the image is reshaped to the closest appropriate dimension, and the user is notified with a warning.
+def check_resize(im_height: int, im_width: int, resize: str, n_channels: int):
+    """
+    Checks the compatibility of the image shape with the depth of the model.
+    If the image height and width cannot be divided by 2 `n_channels` times, then the image size is inappropriate.
+    If so, the image is changed to the closest appropriate dimension, and the user is notified with a warning.
 
-        Args:
-            im_height (int): Height of the image chosen by the user.
-            im_width (int): Width of the image chosen by the user.
-            n_channels (int): Number of channels in the model.
+    Args:
+        im_height (int) : Height of the original image from the dataset.
+        im_width (int)  : Width of the original image from the dataset.
+        resize (str)    : Type of resize to be used on the image if the size doesn't fit the model.
+        n_channels (int): Number of channels in the model.
 
-        Raises:
-            ValueError: If the image size is smaller than minimum required for the model's depth.               
-        """
-
-        h_adjust, w_adjust = (im_height // 2**n_channels) * 2**n_channels , (im_width // 2**n_channels) * 2**n_channels
+    Raises:
+        ValueError: If the image size is smaller than minimum required for the model's depth.               
+    """
+    # finding suitable size to upsize with padding 
+    if resize == 'padding':
+        h_adjust, w_adjust = (im_height // 2**n_channels+1) * 2**n_channels , (im_width // 2**n_channels+1) * 2**n_channels
         
-        if h_adjust == 0 or w_adjust == 0:
-            raise ValueError("The size of the image is too small compared to the depth of the UNet. Choose a different 'resize' and/or a smaller model.")
-        elif (h_adjust!=im_height) or (w_adjust != im_width):
-            log.warning(f"The image size doesn't match the Unet model's depth. The image is resized to: {h_adjust,w_adjust}")
-        
-        return h_adjust, w_adjust 
+    # finding suitable size to downsize with crop / resize
+    else:
+        h_adjust, w_adjust = (im_height // 2**n_channels) * 2**n_channels , (im_width // 2**n_channels) * 2**n_channels    
+    
+    if h_adjust == 0 or w_adjust == 0:
+        raise ValueError("The size of the image is too small compared to the depth of the UNet. Choose a different 'resize' and/or a smaller model.")
+    
+    elif h_adjust != im_height or w_adjust != im_width:
+        log.warning(f"The image size doesn't match the Unet model's depth. The image is changed with '{resize}', from {im_height, im_width} to {h_adjust, w_adjust}.")
+    
+    return h_adjust, w_adjust 
 
 
 def prepare_datasets(path: str, val_fraction: float, model, augmentation):
@@ -145,21 +152,14 @@ def prepare_datasets(path: str, val_fraction: float, model, augmentation):
 
     resize = augmentation.resize
     n_channels = len(model.channels)
-    
-    if isinstance(resize,type(None)):
-        # OPEN THE FIRST IMAGE
-        im_path = Path(path) / 'train'
-        first_img = sorted((im_path / "images").iterdir())[0]
-        image = Image.open(str(first_img))
-        im_h, im_w = image.size[:2]
-        log.info("User did not choose a specific value for 'resize'. Checking the first image in the dataset...")
+
+    # taking the size of the 1st image in the dataset
+    im_path = Path(path) / 'train'
+    first_img = sorted((im_path / "images").iterdir())[0]
+    image = Image.open(str(first_img))
+    orig_h, orig_w = image.size[:2]
         
-    elif isinstance(resize,int):
-        im_h, im_w = resize, resize
-    else:
-        im_h,im_w = resize
-    
-    final_h, final_w = check_resize(im_h, im_w, n_channels)
+    final_h, final_w = check_resize(orig_h, orig_w, resize, n_channels)
     
     train_set = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, augmentation.transform_train))
     val_set   = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, augmentation.transform_validation))

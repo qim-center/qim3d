@@ -8,38 +8,38 @@ class Augmentation:
     Class for defining image augmentation transformations using the Albumentations library.
         
     Args:
-        resize ((int,tuple), optional): The target size to resize the image.
+        resize (str, optional): Specifies how the images should be reshaped to the appropriate size.
         trainsform_train (str, optional): level of transformation for the training set.
         transform_validation (str, optional): level of transformation for the validation set.
         transform_test (str, optional): level of transformation for the test set.
         mean (float, optional): The mean value for normalizing pixel intensities.
-        std (float, optional): The standard deviation value for normalizing pixel intensities. 
+        std (float, optional): The standard deviation value for normalizing pixel intensities.
 
     Raises:
-        ValueError: If `resize` is neither a None, int nor tuple.  
+        ValueError: If the ´resize´ is neither 'crop', 'resize' or 'padding'.
     
     Example:
-        my_augmentation = Augmentation(resize = (256,256), transform_train = 'heavy')
+        my_augmentation = Augmentation(resize = 'crop', transform_train = 'heavy')
     """
     
     def __init__(self, 
-                 resize = None, 
+                 resize = 'crop', 
                  transform_train = 'moderate', 
                  transform_validation = None,
                  transform_test = None,
                  mean: float = 0.5, 
                  std: float = 0.5
                 ):
-        
-        if not isinstance(resize,(type(None),int,tuple)):
-            raise ValueError(f"Invalid input for resize: {resize}. Use an integer or tuple to modify the data.")
+
+        if resize not in ['crop', 'reshape', 'padding']:
+            raise ValueError(f"Invalid resize type: {resize}. Use either 'crop', 'resize' or 'padding'.")
 
         self.resize = resize
         self.mean = mean
         self.std = std
         self.transform_train = transform_train
         self.transform_validation = transform_validation
-        self.transform_test = transform_test                     
+        self.transform_test = transform_test
     
     def augment(self, im_h, im_w, level=None):
         """
@@ -62,10 +62,21 @@ class Augmentation:
 
         # Baseline
         baseline_aug = [
-            A.Resize(im_h, im_w),
             A.Normalize(mean = (self.mean),std = (self.std)),
             ToTensorV2()
         ]
+        if self.resize == 'crop':
+            resize_aug = [
+                A.CenterCrop(im_h,im_w)
+            ]
+        elif self.resize == 'reshape':
+            resize_aug =[
+                A.Resize(im_h,im_w)
+            ]
+        elif self.resize == 'padding':
+            resize_aug = [
+                A.PadIfNeeded(im_h,im_w,border_mode = 0) # OpenCV border mode
+            ]
         
         # Level of augmentation
         if level == None:
@@ -91,6 +102,6 @@ class Augmentation:
                 A.Affine(scale = [0.8,1.4], translate_percent = (0.2,0.2), shear = (-15,15))
             ]
 
-        augment = A.Compose(level_aug + baseline_aug)
+        augment = A.Compose(level_aug + resize_aug + baseline_aug)
         
         return augment
