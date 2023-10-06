@@ -140,9 +140,6 @@ def model_summary(dataloader,model):
         print(summary)
     """
     
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.to(device)
-
     images,_ = next(iter(dataloader)) 
     batch_size = tuple(images.shape)
     model_s = summary(model,batch_size,depth = torch.inf)
