@@ -10,6 +10,7 @@ from pathlib import Path
 import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof
+from qim3d.utils.system import Memory
 
 
 class DataLoader:
@@ -66,13 +67,11 @@ class DataLoader:
 
         """
         if self.virtual_stack:
-            log.info("Using virtual stack")
             vol = tifffile.memmap(path)
         else:
             vol = tifffile.imread(path)
 
         log.info("Loaded shape: %s", vol.shape)
-        log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
         return vol
 
@@ -148,12 +147,9 @@ class DataLoader:
         if not self.virtual_stack:
             vol = vol[()]  # Load dataset into memory
             f.close()
-        else:
-            log.info("Using virtual stack")
 
         log.info("Loaded the following dataset: %s", name)
         log.info("Loaded shape: %s", vol.shape)
-        log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
         if self.return_metadata:
             return vol, metadata
@@ -207,12 +203,9 @@ class DataLoader:
 
         if not self.virtual_stack:
             vol = np.copy(vol)  # Copy to memory
-        else:
-            log.info("Using virtual stack")
 
         log.info("Found %s file(s)", len(tiff_stack))
         log.info("Loaded shape: %s", vol.shape)
-        log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
         return vol
 
@@ -243,7 +236,6 @@ class DataLoader:
         )  # In case of an XRM file, the third redundant dimension is removed
 
         log.info("Loaded shape: %s", vol.shape)
-        log.info("Using %s of memory", sizeof(sys.getsizeof(vol)))
 
         if self.virtual_stack:
             raise NotImplementedError(
@@ -351,7 +343,20 @@ def load(
         **kwargs,
     )
 
-    return loader.load(path)
+    data = loader.load(path)
+
+    if not virtual_stack:
+        mem = Memory()
+        log.info(
+            "Volume using %s of memory\n",
+            sizeof(data[0].nbytes if return_metadata else data.nbytes),
+        )
+        mem.report()
+
+    else:
+        log.info("Using virtual stack")
+
+    return data
 
 
 class ImgExamples:
