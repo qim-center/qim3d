@@ -284,7 +284,7 @@ class DataLoader:
         # Fails
         else:
             # Find the closest matching path to warn the user
-            parent_dir = os.path.dirname(path)
+            parent_dir = os.path.dirname(path) or '.'
             parent_files = os.listdir(parent_dir)
             valid_paths = [os.path.join(parent_dir, file) for file in parent_files]
             similar_paths = difflib.get_close_matches(path, valid_paths)
