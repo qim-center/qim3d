@@ -265,6 +265,7 @@ class DataLoader:
             loader = DataLoader()
             data = loader.load("image.tif")
         """
+
         # Load a file
         if os.path.isfile(path):
             # Choose the loader based on the file extension
@@ -335,6 +336,7 @@ def load(
     Example:
         data = load("image.tif", virtual_stack=True)
     """
+
     loader = DataLoader(
         virtual_stack=virtual_stack,
         dataset_name=dataset_name,
@@ -365,10 +367,11 @@ class ImgExamples:
     def __init__(self):
         img_examples_path = Path(qim3d.__file__).parents[0] / "img_examples"
         img_paths = list(img_examples_path.glob("*.tif"))
+        
         img_names = []
         for path in img_paths:
             img_names.append(path.stem)
 
         # Generate loader for each image found
         for idx, name in enumerate(img_names):
-            exec(f"self.{name} = qim3d.io.load('{img_paths[idx]}')")
+            exec(f"self.{name} = qim3d.io.load(path = str(img_paths[idx]))")
