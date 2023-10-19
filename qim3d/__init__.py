@@ -6,3 +6,4 @@ import qim3d.models
 import logging
 
 examples = qim3d.io.ImgExamples()
+downloader = qim3d.io.Downloader()
