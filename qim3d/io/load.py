@@ -1,7 +1,6 @@
 """Provides functionality for loading data from various file formats."""
 
 import os
-import sys
 import difflib
 import tifffile
 import h5py
@@ -16,25 +15,24 @@ from qim3d.utils.system import Memory
 class DataLoader:
     """Utility class for loading data from different file formats.
 
-    Args:
-        virtual_stack (bool, optional): Specifies whether to use virtual stack
-        when loading files. Default is False.
-
     Attributes:
         virtual_stack (bool): Specifies whether virtual stack is enabled.
-
+        dataset_name (str): Specifies the name of the dataset to be loaded
+            (only relevant for HDF5 files)
+        return_metadata (bool): Specifies if metadata is returned or not
+            (only relevant for HDF5 and TXRM/TXM/XRM files)
+        contains (str): Specifies a part of the name that is common for the
+            TIFF file stack to be loaded (only relevant for TIFF stacks)
+        
     Methods:
         load_tiff(path): Load a TIFF file from the specified path.
         load_h5(path): Load an HDF5 file from the specified path.
         load_tiff_stack(path): Load a stack of TIFF files from the specified path.
         load_txrm(path): Load a TXRM/TXM/XRM file from the specified path
-        load(path): Load a file or directory based on the given path.
-
-    Raises:
-        ValueError: If the file format is not supported or the path is invalid.
+        load(path): Load a file or directory based on the given path
 
     Example:
-        loader = DataLoader(virtual_stack=True)
+        loader = qim3d.io.DataLoader(virtual_stack=True)
         data = loader.load_tiff("image.tif")
     """
 
@@ -42,15 +40,14 @@ class DataLoader:
         """Initializes a new instance of the DataLoader class.
 
         Args:
-            path (str): The path to the file or directory.
             virtual_stack (bool, optional): Specifies whether to use virtual
-            stack when loading files. Default is False.
+                stack when loading files. Default is False.
             dataset_name (str, optional): Specifies the name of the dataset to be loaded
-            in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
-            return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 files)
-            contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks)
+                in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
+            return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM/TXM/XRM files)
+            contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks).
+                Default is None.
         """
-        # Virtual stack is False by default
         self.virtual_stack = kwargs.get("virtual_stack", False)
         self.dataset_name = kwargs.get("dataset_name", None)
         self.return_metadata = kwargs.get("return_metadata", False)
@@ -258,11 +255,11 @@ class DataLoader:
             numpy.ndarray: The loaded volume as a NumPy array.
 
         Raises:
-            ValueError: If the format is not supported or the path is invalid.
-            FileNotFoundError: If the file or directory does not exist.
+            ValueError: If the format is not supported
+            ValueError: If the file or directory does not exist.
 
         Example:
-            loader = DataLoader()
+            loader = qim3d.io.DataLoader()
             data = loader.load("image.tif")
         """
 
@@ -286,7 +283,7 @@ class DataLoader:
         else:
             # Find the closest matching path to warn the user
             parent_dir = os.path.dirname(path) or '.'
-            parent_files = os.listdir(parent_dir)
+            parent_files = os.listdir(parent_dir) if os.path.isdir(parent_dir) else ''
             valid_paths = [os.path.join(parent_dir, file) for file in parent_files]
             similar_paths = difflib.get_close_matches(path, valid_paths)
             if similar_paths:
@@ -317,24 +314,21 @@ def load(
     Args:
         path (str): The path to the file or directory.
         virtual_stack (bool, optional): Specifies whether to use virtual
-        stack when loading TIFF and HDF5 files. Default is False.
+            stack when loading files. Default is False.
         dataset_name (str, optional): Specifies the name of the dataset to be loaded
-        in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
-        return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM files)
-        contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks)
+            in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
+        return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM/TXM/XRM files)
+        contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks).
+            Default is None.
         **kwargs: Additional keyword arguments to be passed
         to the DataLoader constructor.
 
     Returns:
         numpy.ndarray: The loaded volume as a NumPy array.
-
-    Raises:
-        ValueError: If the file format is not supported or the path is invalid.
-        NotImplementedError: If loading from a directory is not implemented yet.
-        FileNotFoundError: If the file or directory does not exist.
+            If 'return_metadata' is True and file format is either HDF5 or TXRM/TXM/XRM, returns a tuple (volume, metadata).
 
     Example:
-        data = load("image.tif", virtual_stack=True)
+        data = qim3d.io.load("image.tif", virtual_stack=True)
     """
 
     loader = DataLoader(
