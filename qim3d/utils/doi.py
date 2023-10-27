@@ -38,7 +38,13 @@ def _make_request(doi, header):
 def _log_and_get_text(doi, header):
     response = _make_request(doi, header)
 
-    if response:
+    if response and response.encoding:
+        # Explicitly decode the response content using the specified encoding
+        text = response.content.decode(response.encoding)
+        log.info(text)
+        return text
+    elif response:
+        # If encoding is not specified, default to UTF-8
         text = response.text
         log.info(text)
         return text
