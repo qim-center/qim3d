@@ -10,7 +10,7 @@ from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
 
-def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1, print_every = 5, plot = True):
+def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1, print_every = 5, plot = True, return_loss = False):
     """ Function for training Neural Network models.
     
     Args:
@@ -20,6 +20,7 @@ def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1
         val_loader (torch.utils.data.DataLoader): DataLoader for the validation data.
         eval_every (int, optional): frequency of model evaluation. Defaults to every epoch.
         print_every (int, optional): frequency of log for model performance. Defaults to every 5 epochs.
+        
 
     Returns:
         tuple:
@@ -65,10 +66,11 @@ def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1
             for data in train_loader:
                 inputs, targets = data
                 inputs = inputs.to(device)
-                targets = targets.to(device).type(torch.cuda.FloatTensor).unsqueeze(1)
+                targets = targets.to(device).unsqueeze(1)
     
                 optimizer.zero_grad()
                 outputs = model(inputs)
+                
                 loss = criterion(outputs, targets)
     
                 # Backpropagation
@@ -94,8 +96,8 @@ def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1
                 for data in val_loader:
                     inputs, targets = data
                     inputs = inputs.to(device)
-                    targets = targets.to(device).type(torch.cuda.FloatTensor).unsqueeze(1)
-                
+                    targets = targets.to(device).unsqueeze(1)
+                    
                     with torch.no_grad():
                         outputs = model(inputs)
                         loss = criterion(outputs, targets)
@@ -121,6 +123,9 @@ def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1
         plot_metrics(train_loss, label = 'Train')
         plot_metrics(val_loss,color = 'orange', label = 'Valid.')
         fig.show()
+
+    if return_loss:
+        return train_loss,val_loss
 
 
 def model_summary(dataloader,model):
@@ -196,7 +201,7 @@ def inference(data,model):
     else:
         raise ValueError("Input image must be (C,H,W) format")
 
-    
+    model.to(device)
     model.eval()
 
     # Make new list such that possible augmentations remain identical for all three rows

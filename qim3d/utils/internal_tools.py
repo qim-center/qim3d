@@ -8,6 +8,9 @@ import matplotlib
 import numpy as np
 import socket
 import os
+import shutil
+from PIL import Image
+from pathlib import Path
 
 
 
@@ -177,6 +180,48 @@ def is_server_running(ip, port):
         return True
     except:
         return False
+
+def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
+    folder_trte = ['train','test']
+    sub_folders = ['images','labels']
+
+    # Creating train/test folder
+    path_train = Path(folder) / folder_trte[0]
+    path_test = Path(folder) / folder_trte[1]
+
+    # Creating folders for images and labels
+    path_train_im = path_train / sub_folders[0]
+    path_train_lab = path_train / sub_folders[1]
+    path_test_im = path_test / sub_folders[0]
+    path_test_lab = path_test / sub_folders[1]
+
+    # Random image
+    img = np.random.randint(2,size = img_shape,dtype = np.uint8)
+    img = Image.fromarray(img)
+
+    if not os.path.exists(path_train):
+        os.makedirs(path_train_im)
+        os.makedirs(path_test_im)
+        os.makedirs(path_train_lab)
+        os.makedirs(path_test_lab)
+        for i in range(n):
+            img.save(path_train_im / f'img_train{i}.png')
+            img.save(path_train_lab / f'img_train{i}.png')
+            img.save(path_test_im / f'img_test{i}.png')
+            img.save(path_test_lab / f'img_test{i}.png')
+
+    if remove:
+        for filename in os.listdir(folder):
+            file_path = os.path.join(folder, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.unlink(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except Exception as e:
+                print('Failed to delete %s. Reason: %s' % (file_path, e))
+        
+        os.rmdir(folder)
     
 def stringify_path(path):
     """Converts an os.PathLike object to a string
