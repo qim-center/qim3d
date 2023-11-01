@@ -4,11 +4,12 @@ import os
 import difflib
 import tifffile
 import h5py
+import nibabel as nib
 import numpy as np
 from pathlib import Path
 import qim3d
 from qim3d.io.logger import log
-from qim3d.utils.internal_tools import sizeof
+from qim3d.utils.internal_tools import sizeof, stringify_path
 from qim3d.utils.system import Memory
 
 
@@ -20,7 +21,7 @@ class DataLoader:
         dataset_name (str): Specifies the name of the dataset to be loaded
             (only relevant for HDF5 files)
         return_metadata (bool): Specifies if metadata is returned or not
-            (only relevant for HDF5 and TXRM/TXM/XRM files)
+            (only relevant for HDF5, TXRM/TXM/XRM and NIfTI files)
         contains (str): Specifies a part of the name that is common for the
             TIFF file stack to be loaded (only relevant for TIFF stacks)
         
@@ -80,7 +81,7 @@ class DataLoader:
 
         Returns:
             numpy.ndarray or tuple: The loaded volume as a NumPy array.
-                If 'return_metadata' is True, returns a tuple (volume, metadata).
+                If 'self.return_metadata' is True, returns a tuple (volume, metadata).
 
         Raises:
             ValueError: If the specified dataset_name is not found or is invalid.
@@ -214,7 +215,7 @@ class DataLoader:
 
         Returns:
             numpy.ndarray or tuple: The loaded volume as a NumPy array.
-                If 'return_metadata' is True, returns a tuple (volume, metadata).
+                If 'self.return_metadata' is True, returns a tuple (volume, metadata).
 
         Raises:
             ValueError: If the dxchange library is not installed
@@ -243,13 +244,41 @@ class DataLoader:
             return vol, metadata
         else:
             return vol
+        
+    def load_nifti(self,path):
+        """Load a NIfTI file from the specified path.
+
+        Args:
+            path (str): The path to the NIfTI file.
+
+        Returns:
+            numpy.ndarray or tuple: The loaded volume as a NumPy array.
+                If 'self.return_metadata' is True, returns a tuple (volume, metadata).
+        """
+        
+        data = nib.load(path)
+
+        # Get image array proxy
+        vol = data.dataobj
+
+        if not self.virtual_stack:
+            vol = np.asarray(vol,dtype=data.get_data_dtype())
+
+        if self.return_metadata:
+            metadata = {}
+            for key in data.header:
+                metadata[key]=data.header[key]
+            
+            return vol, metadata
+        else:
+            return vol
 
     def load(self, path):
         """
         Load a file or directory based on the given path.
 
         Args:
-            path (str): The path to the file or directory.
+            path (str or os.PathLike): The path to the file or directory.
 
         Returns:
             numpy.ndarray: The loaded volume as a NumPy array.
@@ -263,6 +292,8 @@ class DataLoader:
             data = loader.load("image.tif")
         """
 
+        path = stringify_path(path)
+
         # Load a file
         if os.path.isfile(path):
             # Choose the loader based on the file extension
@@ -272,6 +303,8 @@ class DataLoader:
                 return self.load_h5(path)
             elif path.endswith((".txrm", ".txm", ".xrm")):
                 return self.load_txrm(path)
+            elif path.endswith((".nii",".nii.gz")):
+                return self.load_nifti(path)
             else:
                 raise ValueError("Unsupported file format")
 
@@ -312,7 +345,7 @@ def load(
     Load data from the specified file or directory.
 
     Args:
-        path (str): The path to the file or directory.
+        path (str or os.PathLike): The path to the file or directory.
         virtual_stack (bool, optional): Specifies whether to use virtual
             stack when loading files. Default is False.
         dataset_name (str, optional): Specifies the name of the dataset to be loaded
@@ -368,4 +401,4 @@ class ImgExamples:
 
         # Generate loader for each image found
         for idx, name in enumerate(img_names):
-            exec(f"self.{name} = qim3d.io.load(path = str(img_paths[idx]))")
+            exec(f"self.{name} = qim3d.io.load(path = img_paths[idx])")
