@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
 import socket
+import os
 
 
 
@@ -176,3 +177,10 @@ def is_server_running(ip, port):
         return True
     except:
         return False
+    
+def stringify_path(path):
+    """Converts an os.PathLike object to a string
+    """
+    if isinstance(path,os.PathLike):
+        path = path.__fspath__()
+    return path

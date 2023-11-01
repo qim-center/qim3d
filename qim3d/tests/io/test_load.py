@@ -8,7 +8,7 @@ import pytest
 vol = qim3d.examples.blobs_256x256
 
 # Ceate memory map to blobs 
-blobs_path = str(Path(qim3d.__file__).parents[0] / "img_examples" / "blobs_256x256.tif")
+blobs_path = Path(qim3d.__file__).parents[0] / "img_examples" / "blobs_256x256.tif"
 vol_memmap = qim3d.io.load(blobs_path,virtual_stack=True)
 
 def test_load_shape():
@@ -28,9 +28,7 @@ def test_invalid_path():
 
 def test_did_you_mean():
     # Remove last two characters from the path
-    blobs_path_misspelled = blobs_path[:-2]
+    blobs_path_misspelled = str(blobs_path)[:-2]
 
     with pytest.raises(ValueError,match=f"Invalid path.\nDid you mean '{blobs_path}'?"):
         qim3d.io.load(blobs_path_misspelled)
-
-

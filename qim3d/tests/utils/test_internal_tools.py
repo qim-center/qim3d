@@ -1,6 +1,7 @@
 import qim3d
 import os
 import re
+from pathlib import Path
 
 
 def test_mock_plot():
@@ -35,3 +36,18 @@ def test_get_local_ip():
     local_ip = qim3d.utils.internal_tools.get_local_ip()
 
     assert validate_ip(local_ip) == True
+
+def test_stringify_path1():
+    """Test that the function converts os.PathLike objects to strings
+    """
+    blobs_path = Path(qim3d.__file__).parents[0] / "img_examples" / "blobs_256x256.tif"
+    
+    assert str(blobs_path) == qim3d.utils.internal_tools.stringify_path(blobs_path)
+
+def test_stringify_path2():
+    """Test that the function returns input unchanged if input is a string
+    """
+    # Create test_path 
+    test_path = os.path.join('this','path','doesnt','exist.tif')
+
+    assert test_path == qim3d.utils.internal_tools.stringify_path(test_path)
