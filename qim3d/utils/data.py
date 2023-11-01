@@ -160,21 +160,21 @@ def prepare_datasets(path: str, val_fraction: float, model, augmentation):
     orig_h, orig_w = image.size[:2]
         
     final_h, final_w = check_resize(orig_h, orig_w, resize, n_channels)
-    
+
     train_set = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, augmentation.transform_train))
     val_set   = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, augmentation.transform_validation))
     test_set  = Dataset(root_path = path, split='test', transform = augmentation.augment(final_h, final_w, augmentation.transform_test))
 
     split_idx = int(np.floor(val_fraction * len(train_set)))
     indices = torch.randperm(len(train_set))
-    
+
     train_set = torch.utils.data.Subset(train_set, indices[split_idx:])
     val_set = torch.utils.data.Subset(val_set, indices[:split_idx])
     
     return train_set, val_set, test_set
 
 
-def prepare_dataloaders(train_set, val_set, test_set, batch_size, shuffle_train = True, num_workers = 8, pin_memory = True):  
+def prepare_dataloaders(train_set, val_set, test_set, batch_size, shuffle_train = True, num_workers = 8, pin_memory = False):  
     """
     Prepares the dataloaders for model training.
 
