@@ -119,10 +119,7 @@ def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1
                     )
 
     if plot:
-        fig = plt.figure(figsize=(16, 6), constrained_layout = True)
-        plot_metrics(train_loss, label = 'Train')
-        plot_metrics(val_loss,color = 'orange', label = 'Valid.')
-        fig.show()
+        plot_metrics(train_loss, val_loss, labels = ['Train','Valid.'], show = True)
 
     if return_loss:
         return train_loss,val_loss
