@@ -4,6 +4,7 @@ import numpy as np
 import os
 import hashlib
 import pytest
+import re
 
 def test_image_exist():
     # Create random test image
@@ -141,7 +142,9 @@ def test_folder_doesnt_exist():
     # Create invalid path 
     invalid_path = os.path.join('this','path','doesnt','exist.tif')
 
-    with pytest.raises(ValueError,match=f'The directory {os.path.dirname(invalid_path)} does not exist. Please provide a valid directory'):
+    message = f'The directory {re.escape(os.path.dirname(invalid_path))} does not exist. Please provide a valid directory'
+    
+    with pytest.raises(ValueError,match=message):
         # Try to save test image to an invalid path
         qim3d.io.save(invalid_path,test_image)
     

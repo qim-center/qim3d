@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 import os
 import pytest
+import re
 
 # Load blobs volume into memory
 vol = qim3d.examples.blobs_256x256
@@ -30,5 +31,7 @@ def test_did_you_mean():
     # Remove last two characters from the path
     blobs_path_misspelled = str(blobs_path)[:-2]
 
-    with pytest.raises(ValueError,match=f"Invalid path.\nDid you mean '{blobs_path}'?"):
+    message = f"Invalid path. Did you mean '{blobs_path}'?"
+
+    with pytest.raises(ValueError,match=re.escape(repr(message))):
         qim3d.io.load(blobs_path_misspelled)

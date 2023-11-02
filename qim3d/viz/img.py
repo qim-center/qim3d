@@ -7,7 +7,7 @@ import numpy as np
 from qim3d.io.logger import log
 import qim3d.io
 
-def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5):
+def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5, show = False):
     """Displays an overview grid of images, labels, and masks (if they exist).
 
     Labels are the annotated target segmentations
@@ -15,16 +15,12 @@ def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha
     sparse labeled data
 
     Args:
-        data (list or torch.utils.data.Dataset): A list of tuples or Torch dataset containing image,
-            label, (and mask data).
-        num_images (int, optional): The maximum number of images to display.
-            Defaults to 7.
-        cmap_im (str, optional): The colormap to be used for displaying input images.
-            Defaults to 'gray'.
-        cmap_segm (str, optional): The colormap to be used for displaying labels.
-            Defaults to 'viridis'.
-        alpha (float, optional): The transparency level of the label and mask overlays.
-            Defaults to 0.5.
+        data (list or torch.utils.data.Dataset): A list of tuples or Torch dataset containing image, label, (and mask data).
+        num_images (int, optional): The maximum number of images to display. Defaults to 7.
+        cmap_im (str, optional): The colormap to be used for displaying input images. Defaults to 'gray'.
+        cmap_segm (str, optional): The colormap to be used for displaying labels. Defaults to 'viridis'.
+        alpha (float, optional): The transparency level of the label and mask overlays. Defaults to 0.5.
+        show (bool, optional): If True, displays the plot. Defaults to False.
 
     Raises:
         ValueError: If the data elements are not tuples.
@@ -91,10 +87,15 @@ def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha
             else:
                 ax.imshow(plot_data[col][row].squeeze(), cmap=cmap_im)
                 ax.axis("off")
-    fig.show()
+    
+    if show:
+        plt.show()
+    plt.close()
+    
+    return fig
 
 
-def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5):
+def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5,show = False):
     """Displays a grid of input images, predicted segmentations, ground truth segmentations, and their comparison.
 
     Displays a grid of subplots representing different aspects of the input images and segmentations.
@@ -113,6 +114,7 @@ def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", 
         cmap_im (str, optional): Color map for input images. Defaults to "gray".
         cmap_segm (str, optional): Color map for segmentations. Defaults to "viridis".
         alpha (float, optional): Alpha value for transparency. Defaults to 0.5.
+        show (bool, optional): If True, displays the plot. Defaults to False.
 
     Returns:
         None
@@ -189,9 +191,13 @@ def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", 
                 ax.imshow(comp_rgb[col].permute(1, 2, 0), alpha=alpha)
                 ax.axis("off")
 
-    fig.show()
+    if show:
+        plt.show()
+    plt.close()
 
-def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2, img_width=2):
+    return fig
+
+def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2, img_width=2,show = False):
     """ Displays one or several slices from a 3d array.
 
     Args:
@@ -199,6 +205,7 @@ def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2,
         position (str, int, list, array, optional): One or several slicing levels.
         cmap (str, optional): Specifies the color map for the image.
         axis (bool, optional): Specifies whether the axes should be included.
+        show (bool, optional): If True, displays the plot. Defaults to False.
 
     Raises:
         ValueError: If provided string for 'position' argument is not valid (not upper, middle or bottom).
@@ -220,7 +227,7 @@ def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2,
             
         
     # Numpy array input
-    elif isinstance(input,np.ndarray):
+    elif isinstance(input,(np.ndarray,torch.Tensor)):
         dim = input.ndim
         
         if dim == 3:
@@ -258,4 +265,8 @@ def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2,
         if not axis:
             ax.axis('off')
     
-    fig.show()
+    if show:
+        plt.show()
+    plt.close()
+
+    return fig

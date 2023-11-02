@@ -321,8 +321,8 @@ class DataLoader:
             similar_paths = difflib.get_close_matches(path, valid_paths)
             if similar_paths:
                 suggestion = similar_paths[0]  # Get the closest match
-                message = f"Invalid path.\nDid you mean '{suggestion}'?"
-                raise ValueError(message)
+                message = f"Invalid path. Did you mean '{suggestion}'?"
+                raise ValueError(repr(message))
             else:
                 raise ValueError("Invalid path")
 
