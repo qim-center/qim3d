@@ -127,11 +127,13 @@ def test_no_file_ext():
     # Create filename without extension
     filename = 'test_image'
 
+    message = 'Please provide a file extension if you want to save as a single file. Otherwise, please provide a basename to save as a TIFF stack'
+
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
         image_path = os.path.join(temp_dir,filename)
 
-        with pytest.raises(ValueError,match='Please provide a file extension'):
+        with pytest.raises(ValueError,match=message):
             # Try to save the test image to a path witout file extension
             qim3d.io.save(image_path,test_image)
 
@@ -142,8 +144,10 @@ def test_folder_doesnt_exist():
     # Create invalid path 
     invalid_path = os.path.join('this','path','doesnt','exist.tif')
 
-    message = f'The directory {re.escape(os.path.dirname(invalid_path))} does not exist. Please provide a valid directory'
-    
+    #message = f'The directory {re.escape(os.path.dirname(invalid_path))} does not exist. Please provide a valid directory'
+    message = f"""The directory {re.escape(os.path.dirname(invalid_path))} does not exist. Please provide a valid directory or specify a basename
+ if you want to save a tiff stack as several files to a folder that does not yet exist"""
+
     with pytest.raises(ValueError,match=message):
         # Try to save test image to an invalid path
         qim3d.io.save(invalid_path,test_image)
@@ -162,6 +166,62 @@ def test_unsupported_file_format():
             # Try to save test image with an unsupported file extension
             qim3d.io.save(image_path,test_image)
 
+def test_no_basename():
+    # Create random test image
+    test_image = np.random.randint(0,256,(100,100,100),'uint8')
+
+    # Create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        message = f"""Please provide a basename with the keyword argument 'basename' if you want to save
+ a TIFF stack as several files to '{re.escape(temp_dir)}'. Otherwise, please provide a path with a valid filename"""
+
+        with pytest.raises(ValueError,match=message):
+            # Try to save test image to an existing directory (indicating
+            # that you want to save as several files) without providing a basename
+            qim3d.io.save(temp_dir,test_image)
+
+def test_mkdir_tiff_stack():
+    # Create random test image
+    test_image = np.random.randint(0,256,(10,100,100),'uint8')
+
+    # create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Define a folder that does not yet exist
+        path2save= os.path.join(temp_dir,'tempfolder')
+       
+        # Save to this folder with a basename
+        qim3d.io.save(path2save,test_image,basename='test')
+
+        # Assert that folder is created
+        assert os.path.isdir(path2save)
+
+def test_tiff_stack_naming():
+    # Create random test image
+    test_image = np.random.randint(0,256,(10,100,100),'uint8')
+
+    # Define expected filenames
+    basename = 'test'
+    expected_filenames = [basename + str(i).zfill(2) + '.tif' for i,_ in enumerate(test_image)]
+    
+    # create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        qim3d.io.save(temp_dir,test_image,basename=basename)
+
+        assert expected_filenames==sorted(os.listdir(temp_dir))
+    
+
+def test_tiff_stack_slicing_dim():
+    # Create random test image where the three dimensions are not the same length
+    test_image = np.random.randint(0,256,(5,10,15),'uint8')
+    
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Iterate thorugh all three dims and save the image as slices in 
+        # each dimension in separate folder and assert the number of files
+        # match the shape of the image
+        for dim in range(3):
+            path2save = os.path.join(temp_dir,'dim'+str(dim))
+            qim3d.io.save(path2save,test_image,basename='test',sliced_dim=dim)
+            assert len(os.listdir(path2save))==test_image.shape[dim]
 
 def calculate_image_hash(image): 
     image_bytes = image.tobytes()
