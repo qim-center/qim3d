@@ -145,8 +145,7 @@ def test_folder_doesnt_exist():
     invalid_path = os.path.join('this','path','doesnt','exist.tif')
 
     #message = f'The directory {re.escape(os.path.dirname(invalid_path))} does not exist. Please provide a valid directory'
-    message = f"""The directory {re.escape(os.path.dirname(invalid_path))} does not exist. Please provide a valid directory or specify a basename
- if you want to save a tiff stack as several files to a folder that does not yet exist"""
+    message = f"""The directory '{re.escape(os.path.dirname(invalid_path))}' does not exist.\nPlease provide a valid directory or specify a basename if you want to save a tiff stack as several files to a folder that does not yet exist"""
 
     with pytest.raises(ValueError,match=message):
         # Try to save test image to an invalid path
@@ -172,8 +171,7 @@ def test_no_basename():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        message = f"""Please provide a basename with the keyword argument 'basename' if you want to save
- a TIFF stack as several files to '{re.escape(temp_dir)}'. Otherwise, please provide a path with a valid filename"""
+        message = f"""To save a stack as several TIFF files to the directory '{re.escape(temp_dir)}', please provide the keyword argument 'basename'. Otherwise, to save a single file, please provide a full path with a filename and valid extension."""
 
         with pytest.raises(ValueError,match=message):
             # Try to save test image to an existing directory (indicating
