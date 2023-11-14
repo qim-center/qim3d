@@ -32,7 +32,7 @@ def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha
         - The grid layout and dimensions vary based on the presence of a mask.
 
     Returns:
-        None
+        fig (matplotlib.figure.Figure): The figure with an overview of the images and their labels.   
 
     Example:
         data = [(image1, label1, mask1), (image2, label2, mask2)]
@@ -117,7 +117,7 @@ def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", 
         show (bool, optional): If True, displays the plot. Defaults to False.
 
     Returns:
-        None
+        fig (matplotlib.figure.Figure): The figure with images, labels and the label prediction from the trained models.
 
     Raises:
         None
@@ -197,20 +197,31 @@ def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", 
 
     return fig
 
-def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2, img_width=2,show = False):
+def slice_viz(input, position = None, n_slices = 5, cmap = "viridis", axis = False, img_height = 4, img_width = 4, show = False):
     """ Displays one or several slices from a 3d array.
 
+    By default if `position` is None, slice_viz plots an overview of the entire stack.
+    If `position` is given as a string or integer, slice_viz will plot an overview with `n_slices` figures around that position.
+    If `position` is given as a list or array, `n_slices` will be ignored and the idxs from `position` will be plotted.
+    
     Args:
         input (str, numpy.ndarray): Path to the file or 3-dimensional array.
         position (str, int, list, array, optional): One or several slicing levels.
+        n_slices (int, optional): Defines how many slices the user wants.
         cmap (str, optional): Specifies the color map for the image.
         axis (bool, optional): Specifies whether the axes should be included.
+        img_height(int, optional): Height of the figure.
+        img_width(int, optional): Width of the figure.
         show (bool, optional): If True, displays the plot. Defaults to False.
 
-    Raises:
-        ValueError: If provided string for 'position' argument is not valid (not upper, middle or bottom).
+    Returns:
+        fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
 
-    Usage:
+    Raises:
+        ValueError: If the file or array is not a 3D volume.
+        ValueError: If provided string for 'position' argument is not valid (not upper, middle or bottom).
+    
+    Example:
         image_path = '/my_image_path/my_image.tif'
         slice_viz(image_path)
     """
@@ -218,50 +229,68 @@ def slice_viz(input, position = 'mid', cmap="viridis", axis=False, img_height=2,
     # Filepath input
     if isinstance(input,str):
         vol = qim3d.io.load(input) # Function has its own ValueErrors
-        dim = vol.ndim
-        
-        if dim == 3:
-            pass
-        else:
-            raise ValueError(f"Given array is not a volume! Current dimension: {dim}")
-            
+        dim = vol.ndim        
         
     # Numpy array input
     elif isinstance(input,(np.ndarray,torch.Tensor)):
+        vol = input
         dim = input.ndim
         
-        if dim == 3:
-            vol = input
-        else:
-            raise ValueError(f"Given array is not a volume! Current dimension: {dim}")
+    if dim != 3:
+        raise ValueError(f"Given array is not a volume! Current dimension: {dim}")
 
+    if position is None:
+        height = np.linspace(0,vol.shape[0]-1,n_slices).astype(int)
+    
     # Position is a string
-    if isinstance(position,str):
+    elif isinstance(position,str):
+        
         if position.lower() in ['mid','middle']:
-            height = [int(vol.shape[0]/2)]
+            expansion_start = int(vol.shape[0]/2)
+            height = np.linspace(expansion_start - n_slices / 2,expansion_start + n_slices / 2,n_slices).astype(int)
+            
         elif position.lower() in ['top','upper', 'start']:
-            height = [0]
+            expansion_start = 0
+            height = np.linspace(expansion_start,n_slices-1,n_slices).astype(int)
+            
         elif position.lower() in ['bot','bottom', 'end']:
-            height = [vol.shape[0]-1]
+            expansion_start = vol.shape[0]-1
+            height = np.linspace(expansion_start - n_slices,expansion_start,n_slices).astype(int)
+        
         else:
             raise ValueError('Position not recognized. Choose an integer, list, array or "start","mid","end".')
+
     
     # Position is an integer
     elif isinstance(position,int):
-        height = [position]
+        expansion_start = position
+        n_stacks = vol.shape[0]-1
 
+        # if linspace would extend beyond n_stacks
+        if expansion_start + n_slices > n_stacks:
+            height = np.linspace(n_stacks - n_slices,n_stacks,n_slices).astype(int)
+        
+        # if linspace would extend below 0 
+        elif expansion_start - n_slices < 0:
+            height = np.linspace(0,n_slices-1,n_slices).astype(int)
+
+        else:
+            height = np.linspace(expansion_start - n_slices / 2,expansion_start + n_slices / 2,n_slices).astype(int)
+
+    
     # Position is a list or array of integers
     elif isinstance(position,(list,np.ndarray)):
         height = position
 
     num_images = len(height)
-    
+
+
     fig = plt.figure(figsize=(img_width * num_images, img_height), constrained_layout = True)
     axs = fig.subplots(nrows = 1, ncols = num_images)
     
     for col, ax in enumerate(np.atleast_1d(axs)):
         ax.imshow(vol[height[col],:,:],cmap = cmap)
-        ax.set_title(f'Slice {height[col]}', fontsize=8)
+        ax.set_title(f'Slice {height[col]}', fontsize=6*img_height)
         if not axis:
             ax.axis('off')
     

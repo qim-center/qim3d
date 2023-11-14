@@ -15,17 +15,19 @@ def train_model(model, hyperparameters, train_loader, val_loader, eval_every = 1
     
     Args:
         model (torch.nn.Module): PyTorch model.
-        hyperparameters (class): dictionary with n_epochs, optimizer and criterion.
+        hyperparameters (class): Dictionary with n_epochs, optimizer and criterion.
         train_loader (torch.utils.data.DataLoader): DataLoader for the training data.
         val_loader (torch.utils.data.DataLoader): DataLoader for the validation data.
-        eval_every (int, optional): frequency of model evaluation. Defaults to every epoch.
-        print_every (int, optional): frequency of log for model performance. Defaults to every 5 epochs.
+        eval_every (int, optional): Frequency of model evaluation. Defaults to every epoch.
+        print_every (int, optional): Frequency of log for model performance. Defaults to every 5 epochs.
+        plot (bool, optional): If True, plots the training and validation loss after the model is done training.
+        return_loss (bool, optional), If True, returns a dictionary with the history of the train and validation losses.
         
-
     Returns:
-        tuple:
-            train_loss (dict): dictionary with average losses and batch losses for training loop.
-            val_loss (dict): dictionary with average losses and batch losses for validation loop.
+        if return_loss = True:
+            tuple:
+                train_loss (dict): Dictionary with average losses and batch losses for training loop.
+                val_loss (dict): Dictionary with average losses and batch losses for validation loop.
         
     Example:
         # defining the model.
@@ -141,7 +143,6 @@ def model_summary(dataloader,model):
         summary = model_summary(model, dataloader)
         print(summary)
     """
-    
     images,_ = next(iter(dataloader)) 
     batch_size = tuple(images.shape)
     model_s = summary(model,batch_size,depth = torch.inf)

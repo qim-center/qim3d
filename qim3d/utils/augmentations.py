@@ -1,7 +1,6 @@
 """Class for choosing the level of data augmentations with albumentations"""
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from qim3d.io.logger import log
 
 class Augmentation:
     """
