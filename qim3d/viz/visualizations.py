@@ -22,15 +22,13 @@ def plot_metrics(*metrics,
         show (bool, optional): If True, displays the plot. Defaults to False.
 
     Returns:
-        if return_fig:
-            fig (matplotlib.figure.Figure): plot with metrics.
+        fig (matplotlib.figure.Figure): plot with metrics.
 
     Example:
         train_loss = {'epoch_loss' : [...], 'batch_loss': [...]}
         val_loss = {'epoch_loss' : [...], 'batch_loss': [...]}
         plot_metrics(train_loss,val_loss, labels=['Train','Valid.'])
     """
-    
     if labels == None:
         labels = [None]*len(metrics)
     elif len(metrics) != len(labels):

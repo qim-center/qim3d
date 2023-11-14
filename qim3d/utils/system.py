@@ -1,4 +1,4 @@
-"""Provides tools for obtaining informaion about the system."""
+"""Provides tools for obtaining information about the system."""
 import psutil
 from qim3d.utils.internal_tools import sizeof
 from qim3d.io.logger import log

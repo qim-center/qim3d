@@ -9,9 +9,10 @@ import numpy as np
 import socket
 import os
 import shutil
+
 from PIL import Image
 from pathlib import Path
-
+from qim3d.io.logger import log
 
 
 def mock_plot():
@@ -182,6 +183,21 @@ def is_server_running(ip, port):
         return False
 
 def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
+    """Creates a temporary folder to test deep learning tools.
+    
+    Creates two folders, 'train' and 'test', who each also have two subfolders 'images' and 'labels'.
+    n random images are then added to all four subfolders.
+    If the 'remove' variable is True, the folders and their content are removed.
+
+    Args:
+        folder (str): The path where the folders should be placed.
+        remove (bool, optional): If True, all folders are removed from their location.
+        n (int, optional): Number of random images and labels in the temporary dataset.
+        img_shape (tuple, options): Tuple with the height and width of the images and labels.
+
+    Example:
+        >>> tempdata('temporary_folder',n = 10, img_shape = (16,16))
+    """
     folder_trte = ['train','test']
     sub_folders = ['images','labels']
 
@@ -219,7 +235,7 @@ def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                print('Failed to delete %s. Reason: %s' % (file_path, e))
+                log.warning('Failed to delete %s. Reason: %s' % (file_path, e))
         
         os.rmdir(folder)
     

@@ -35,7 +35,7 @@ def test_grid_pred():
     in_targ_pred = qim3d.utils.models.inference(train_set,model)
 
     fig = qim3d.viz.grid_pred(in_targ_pred)
-
+    
     assert (fig.get_figwidth(),fig.get_figheight()) == (2*(n),10)
 
     temp_data(folder,remove = True)
@@ -45,7 +45,7 @@ def test_grid_pred():
 def test_slice_viz():
     example_volume = ones(10,10,10)
     img_width = 3
-    fig = qim3d.viz.slice_viz(example_volume,img_width = img_width)
+    fig = qim3d.viz.slice_viz(example_volume,n_slices = 1, img_width = img_width)
 
     assert fig.get_figwidth() == img_width
 
