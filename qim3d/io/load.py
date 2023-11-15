@@ -11,6 +11,7 @@ import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 from qim3d.utils.system import Memory
+from PIL import Image, UnidentifiedImageError
 
 
 class DataLoader:
@@ -45,7 +46,7 @@ class DataLoader:
                 stack when loading files. Default is False.
             dataset_name (str, optional): Specifies the name of the dataset to be loaded
                 in case multiple dataset exist within the same file. Default is None (only for HDF5 files)
-            return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM/TXM/XRM files)
+            return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5, TXRM/TXM/XRM and NIfTI files)
             contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks).
                 Default is None.
         """
@@ -61,7 +62,8 @@ class DataLoader:
             path (str): The path to the TIFF file.
 
         Returns:
-            numpy.ndarray: The loaded volume as a NumPy array.
+            numpy.ndarray or numpy.memmap: The loaded volume.
+                If 'self.virtual_stack' is True, returns a numpy.memmap object.
 
         """
         if self.virtual_stack:
@@ -80,7 +82,8 @@ class DataLoader:
             path (str): The path to the HDF5 file.
 
         Returns:
-            numpy.ndarray or tuple: The loaded volume as a NumPy array.
+            numpy.ndarray, h5py._hl.dataset.Dataset or tuple: The loaded volume.
+                If 'self.virtual_stack' is True, returns a h5py._hl.dataset.Dataset object
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
 
         Raises:
@@ -161,7 +164,8 @@ class DataLoader:
             path (str): The path to the stack of TIFF files.
 
         Returns:
-            numpy.ndarray: The loaded volume as a NumPy array.
+            numpy.ndarray or numpy.memmap: The loaded volume.
+                If 'self.virtual_stack' is True, returns a numpy.memmap object.
 
         Raises:
             ValueError: If the 'contains' argument is not specified.
@@ -214,7 +218,7 @@ class DataLoader:
             path (str): The path to the HDF5 file.
 
         Returns:
-            numpy.ndarray or tuple: The loaded volume as a NumPy array.
+            numpy.ndarray or tuple: The loaded volume.
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
 
         Raises:
@@ -252,7 +256,8 @@ class DataLoader:
             path (str): The path to the NIfTI file.
 
         Returns:
-            numpy.ndarray or tuple: The loaded volume as a NumPy array.
+            numpy.ndarray, nibabel.arrayproxy.ArrayProxy or tuple: The loaded volume.
+                If 'self.virtual_stack' is True, returns a nibabel.arrayproxy.ArrayProxy object
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
         """
         
@@ -272,6 +277,17 @@ class DataLoader:
             return vol, metadata
         else:
             return vol
+        
+    def load_pil(self, path):
+        """Load a PIL image from the specified path
+        
+        Args:
+            path (str): The path to the image supported by PIL.
+
+        Returns:
+            numpy.ndarray: The loaded image/volume.
+        """
+        return np.array(Image.open(path))
 
     def load(self, path):
         """
@@ -281,8 +297,9 @@ class DataLoader:
             path (str or os.PathLike): The path to the file or directory.
 
         Returns:
-            numpy.ndarray: The loaded volume as a NumPy array.
-
+            numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple: The loaded volume.
+                If 'self.virtual_stack' is True, returns numpy.memmap, h5py._hl.dataset.Dataset or nibabel.arrayproxy.ArrayProxy depending on file format
+                If 'self.return_metadata' is True and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns a tuple (volume, metadata).
         Raises:
             ValueError: If the format is not supported
             ValueError: If the file or directory does not exist.
@@ -292,6 +309,7 @@ class DataLoader:
             data = loader.load("image.tif")
         """
 
+        # Stringify path in case it is not already a string
         path = stringify_path(path)
 
         # Load a file
@@ -306,7 +324,10 @@ class DataLoader:
             elif path.endswith((".nii",".nii.gz")):
                 return self.load_nifti(path)
             else:
-                raise ValueError("Unsupported file format")
+                try:
+                    return self.load_pil(path)
+                except UnidentifiedImageError:
+                    raise ValueError("Unsupported file format")
 
         # Load a directory
         elif os.path.isdir(path):
@@ -357,8 +378,9 @@ def load(
         to the DataLoader constructor.
 
     Returns:
-        numpy.ndarray: The loaded volume as a NumPy array.
-            If 'return_metadata' is True and file format is either HDF5 or TXRM/TXM/XRM, returns a tuple (volume, metadata).
+        numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple: The loaded volume.
+            If 'virtual_stack' is True, returns numpy.memmap, h5py._hl.dataset.Dataset or nibabel.arrayproxy.ArrayProxy depending on file format
+            If 'return_metadata' is True and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns a tuple (volume, metadata).
 
     Example:
         data = qim3d.io.load("image.tif", virtual_stack=True)
@@ -374,16 +396,27 @@ def load(
 
     data = loader.load(path)
 
-    if not virtual_stack:
+
+    def log_memory_info(data):
         mem = Memory()
         log.info(
             "Volume using %s of memory\n",
-            sizeof(data[0].nbytes if return_metadata else data.nbytes),
+            sizeof(data[0].nbytes if isinstance(data, tuple) else data.nbytes),
         )
         mem.report()
 
+    if return_metadata and not isinstance(data,tuple):
+        log.warning('The file format does not contain metadata')
+
+    if not virtual_stack:
+        log_memory_info(data)
     else:
-        log.info("Using virtual stack")
+        # Only log if file type is not a np.ndarray, i.e., it is some kind of memmap object
+        if not isinstance( data[0] if isinstance(data,tuple) else data, np.ndarray ):
+            log.info("Using virtual stack")
+        else:
+            log.warning('Virtual stack is not supported for this file format')
+            log_memory_info(data)
 
     return data
 

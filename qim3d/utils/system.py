@@ -19,7 +19,7 @@ class Memory:
 
         self.total = mem.total
         self.free = mem.available
-        self.free_pct = (mem.free / mem.total) * 100
+        self.free_pct = (mem.available / mem.total) * 100
         self.used = mem.total - mem.available
         self.used_pct = mem.percent
 
@@ -28,7 +28,7 @@ class Memory:
             "System memory:\n • Total.: %s\n • Used..: %s (%s%%)\n • Free..: %s (%s%%)",
             sizeof(self.total),
             sizeof(self.used),
-            round(self.used_pct, 2),
+            round(self.used_pct, 1),
             sizeof(self.free),
-            round(self.free_pct, 2),
+            round(self.free_pct, 1),
         )
