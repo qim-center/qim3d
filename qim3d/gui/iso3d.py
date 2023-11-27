@@ -398,6 +398,10 @@ class Interface:
 
 
 if __name__ == "__main__":
-    app = Interface()
-    app.show_header = True
-    app.launch(server_name="0.0.0.0", show_error=True, default_port=True)
+    # Get port using the QIM API
+    port_dict = internal_tools.get_port_dict()
+    internal_tools.gradio_header(Interface().title, port_dict["port"])
+
+    # Creates interface
+    app = Interface().create_interface()
+    app.launch(server_name="0.0.0.0", server_port=int(port_dict["port"]))

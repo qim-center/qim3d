@@ -9,7 +9,8 @@ import numpy as np
 import socket
 import os
 import shutil
-
+import requests
+import getpass
 from PIL import Image
 from pathlib import Path
 from qim3d.io.logger import log
@@ -29,7 +30,7 @@ def mock_plot():
     """
 
     # TODO: Check if using Agg backend conflicts with other pipelines
-    
+
     matplotlib.use("Agg")
 
     fig = plt.figure(figsize=(5, 4))
@@ -173,6 +174,7 @@ def sizeof(num, suffix="B"):
         num /= 1024.0
     return f"{num:.1f} Y{suffix}"
 
+
 def is_server_running(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
@@ -182,9 +184,10 @@ def is_server_running(ip, port):
     except:
         return False
 
-def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
+
+def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
     """Creates a temporary folder to test deep learning tools.
-    
+
     Creates two folders, 'train' and 'test', who each also have two subfolders 'images' and 'labels'.
     n random images are then added to all four subfolders.
     If the 'remove' variable is True, the folders and their content are removed.
@@ -198,8 +201,8 @@ def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
     Example:
         >>> tempdata('temporary_folder',n = 10, img_shape = (16,16))
     """
-    folder_trte = ['train','test']
-    sub_folders = ['images','labels']
+    folder_trte = ["train", "test"]
+    sub_folders = ["images", "labels"]
 
     # Creating train/test folder
     path_train = Path(folder) / folder_trte[0]
@@ -212,7 +215,7 @@ def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
     path_test_lab = path_test / sub_folders[1]
 
     # Random image
-    img = np.random.randint(2,size = img_shape,dtype = np.uint8)
+    img = np.random.randint(2, size=img_shape, dtype=np.uint8)
     img = Image.fromarray(img)
 
     if not os.path.exists(path_train):
@@ -221,10 +224,10 @@ def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
         os.makedirs(path_train_lab)
         os.makedirs(path_test_lab)
         for i in range(n):
-            img.save(path_train_im / f'img_train{i}.png')
-            img.save(path_train_lab / f'img_train{i}.png')
-            img.save(path_test_im / f'img_test{i}.png')
-            img.save(path_test_lab / f'img_test{i}.png')
+            img.save(path_train_im / f"img_train{i}.png")
+            img.save(path_train_lab / f"img_train{i}.png")
+            img.save(path_test_im / f"img_test{i}.png")
+            img.save(path_test_lab / f"img_test{i}.png")
 
     if remove:
         for filename in os.listdir(folder):
@@ -235,13 +238,30 @@ def temp_data(folder,remove = False,n = 3,img_shape = (32,32)):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                log.warning('Failed to delete %s. Reason: %s' % (file_path, e))
-        
+                log.warning("Failed to delete %s. Reason: %s" % (file_path, e))
+
         os.rmdir(folder)
-    
+
+
 def stringify_path(path):
-    """Converts an os.PathLike object to a string
-    """
-    if isinstance(path,os.PathLike):
+    """Converts an os.PathLike object to a string"""
+    if isinstance(path, os.PathLike):
         path = path.__fspath__()
     return path
+
+
+def get_port_dict():
+    # Gets user and port
+    username = getpass.getuser()
+    url = f"https://platform.qim.dk/qim-api/get-port/{username}"
+
+    response = requests.get(url, timeout=10)
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Parse the JSON response into a Python dictionary
+        port_dict = response.json()
+    else:
+        # Print an error message if the request was not successful
+        raise (f"Error: {response.status_code}")
+
+    return port_dict
