@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 import localthickness as lt
 import matplotlib
 
+
 # matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -420,3 +421,13 @@ class Pipeline:
         tifffile.imwrite(filename, session.vol_thickness)
 
         return filename
+
+
+if __name__ == "__main__":
+    # Get port using the QIM API
+    port_dict = internal_tools.get_port_dict()
+    internal_tools.gradio_header(Interface().title, port_dict["port"])
+
+    # Creates interface
+    app = Interface().create_interface()
+    app.launch(server_name="0.0.0.0", server_port=int(port_dict["port"]))

@@ -252,7 +252,6 @@ class Session:
         ).strftime("%Y-%m-%d %H:%M")
         self.file_size = os.path.getsize(self.data_path)
 
-
     def create_summary_dict(self):
         # Create dictionary
         if self.error_message:
@@ -477,6 +476,10 @@ class Pipeline:
 
 
 if __name__ == "__main__":
-    app = Interface()
-    app.show_header = True
-    app.launch(server_name="0.0.0.0", show_error=True)
+    # Get port using the QIM API
+    port_dict = internal_tools.get_port_dict()
+    internal_tools.gradio_header(Interface().title, port_dict["port"])
+
+    # Creates interface
+    app = Interface().create_interface()
+    app.launch(server_name="0.0.0.0", server_port=int(port_dict["port"]))
