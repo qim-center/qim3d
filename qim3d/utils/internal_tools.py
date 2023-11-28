@@ -14,7 +14,9 @@ import getpass
 from PIL import Image
 from pathlib import Path
 from qim3d.io.logger import log
-
+from fastapi import FastAPI
+import gradio as gr
+from uvicorn import run
 
 def mock_plot():
     """Creates a mock plot of a sine wave.
@@ -265,3 +267,20 @@ def get_port_dict():
         raise (f"Error: {response.status_code}")
 
     return port_dict
+
+def run_gradio_app(gradio_interface):
+    host = "0.0.0.0"
+    # Get port using the QIM API
+    port_dict = get_port_dict()
+    gradio_header(gradio_interface.title, port_dict["port"])
+
+    # Create FastAPI with mounted gradio interface
+    app = FastAPI()
+    path = f"/gui/{port_dict['username']}/{port_dict['port']}/"
+    app = gr.mount_gradio_app(app, gradio_interface, path=path)
+
+    # Full path
+    print(f"http://{host}:{port_dict['port']}{path}")
+
+    # Run the FastAPI server usign uvicorn
+    run(app, host="0.0.0.0", port=int(port_dict["port"]))

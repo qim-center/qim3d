@@ -398,10 +398,6 @@ class Interface:
 
 
 if __name__ == "__main__":
-    # Get port using the QIM API
-    port_dict = internal_tools.get_port_dict()
-    internal_tools.gradio_header(Interface().title, port_dict["port"])
-
     # Creates interface
-    app = Interface().create_interface()
-    app.launch(server_name="0.0.0.0", server_port=int(port_dict["port"]))
+    gradio_interface = Interface().create_interface()
+    internal_tools.run_gradio_app(gradio_interface)
