@@ -272,15 +272,24 @@ def run_gradio_app(gradio_interface):
     host = "0.0.0.0"
     # Get port using the QIM API
     port_dict = get_port_dict()
-    gradio_header(gradio_interface.title, port_dict["port"])
+
+    if "gradio_port" in port_dict:
+        port = port_dict["gradio_port"]
+    elif "port" in port_dict:
+        port = port_dict["port"]
+    else:
+        raise Exception("Port not specified from QIM API")
+    
+    print(port_dict)
+    gradio_header(gradio_interface.title, port)
 
     # Create FastAPI with mounted gradio interface
     app = FastAPI()
-    path = f"/gui/{port_dict['username']}/{port_dict['port']}/"
+    path = f"/gui/{port_dict['username']}/{port}/"
     app = gr.mount_gradio_app(app, gradio_interface, path=path)
 
     # Full path
-    print(f"http://{host}:{port_dict['port']}{path}")
+    print(f"http://{host}:{port}{path}")
 
     # Run the FastAPI server usign uvicorn
-    run(app, host="0.0.0.0", port=int(port_dict["port"]))
+    run(app, host="0.0.0.0", port=int(port))
