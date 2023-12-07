@@ -293,3 +293,15 @@ def run_gradio_app(gradio_interface):
 
     # Run the FastAPI server usign uvicorn
     run(app, host="0.0.0.0", port=int(port))
+
+
+def get_css():
+
+    current_directory = os.path.dirname(os.path.abspath(__file__))
+    parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
+    css_path = os.path.join(parent_directory,"css","gradio.css")
+    
+    with open(css_path,'r') as file:
+        css_content = file.read()
+    
+    return css_content
