@@ -615,3 +615,8 @@ div.svelte-1frtwj3 {
 .hide-overflow{
   overflow: hidden !important;
 }
+
+
+.wrap.default{
+  visibility: hidden !important;
+}
