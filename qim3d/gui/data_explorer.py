@@ -18,10 +18,18 @@ class Interface:
         self.show_header = False
         self.verbose = False
         self.title = "Data Explorer"
-
         self.height = 1024
         self.width = 900
+        self.operations = [
+            "Z Slicer",
+            "Y Slicer",
+            "X Slicer",
+            "Z max projection",
+            "Z min projection",
+            "Intensity histogram",
+            "Data summary",
 
+        ]
         # CSS path
         current_dir = os.path.dirname(os.path.abspath(__file__))
         self.css_path = os.path.join(current_dir, "..", "css", "gradio.css")
@@ -30,120 +38,225 @@ class Interface:
         """Used to reset outputs with the clear button"""
         return None
 
+    def update_explorer(self, new_path):
+        new_path = os.path.expanduser(new_path)
+
+        # In case we have a directory
+        if os.path.isdir(new_path):
+            return gr.update(root=new_path, label=new_path)
+
+        elif os.path.isfile(new_path):
+            parent_dir = os.path.dirname(new_path)
+            file_name = str(os.path.basename(new_path))
+            return gr.update(root=parent_dir, label=parent_dir, value=file_name)
+
+        else:
+            raise ValueError("Invalid path")
+
+    def set_visible(self):
+        return gr.update(visible=True)
+
+    def set_spinner(self, message):
+        return gr.update(
+            elem_classes="btn btn-spinner",
+            value=f"{message}",
+            interactive=False,
+        )
+
+    def set_relaunch_button(self):
+        return gr.update(
+            elem_classes="btn btn-run",
+            value=f"Relaunch",
+            interactive=True,
+        )
+
+    def show_results(self, operations):
+        update_list = []
+        for operation in self.operations:
+            if operation in operations:
+                update_list.append(gr.update(visible=True))
+            else:
+                update_list.append(gr.update(visible=False))
+        return update_list
+
     def create_interface(self):
         with gr.Blocks(css=self.css_path) as gradio_interface:
             gr.Markdown("# Data Explorer")
 
+            # File selection and parameters
             with gr.Row():
-                with gr.Column(scale=0.75):
-                    data_path = gr.Textbox(
-                        value="gbar/zhome/15/b/200707/img_examples/shell_225x128x128.tif",
-                        max_lines=1,
-                        label="Path to the 3D volume",
+                with gr.Column(scale=2):
+                    gr.Markdown("### File selection")
+                    with gr.Row():
+                        with gr.Column(scale=99, min_width=128):
+                            base_path = gr.Textbox(
+                                max_lines=1,
+                                container=False,
+                                label="Base path",
+                                elem_classes="h-36",
+                                value=os.getcwd(),
+                            )
+                        with gr.Column(scale=1, min_width=36):
+                            reload_base_path = gr.Button(
+                                value="⟳", elem_classes="btn-html h-36"
+                            )
+                    explorer = gr.FileExplorer(
+                        glob="{*/,}{*.*}",
+                        root=os.getcwd(),
+                        label=os.getcwd(),
+                        render=True,
+                        file_count="single",
+                        interactive=True,
+                        elem_classes="h-256 hide-overflow",
                     )
-                with gr.Column(scale=0.25):
+
+                with gr.Column(scale=1):
+                    gr.Markdown("### Parameters")
+                    virtual_stack = gr.Checkbox(value=False, label="Virtual stack")
+
+                    cmap = gr.Dropdown(
+                        value="viridis",
+                        choices=plt.colormaps(),
+                        label="Colormap",
+                        interactive=True,
+                    )
                     dataset_name = gr.Textbox(
-                        label="Dataset name (in case of H5 files, for example)"
+                        label="Dataset name (in case of H5 files, for example)",
+                        value="exchange/data",
                     )
 
-            with gr.Row(elem_classes="w-256"):
-                cmap = gr.Dropdown(
-                    value="viridis",
-                    choices=plt.colormaps(),
-                    label="Colormap",
-                    interactive=True,
-                )
-            with gr.Row(elem_classes="w-128"):
-                btn_run = gr.Button(value="Load & Run", elem_classes="btn btn-run")
-            # Outputs
-            with gr.Row():
-                gr.Markdown("## Data overview")
+                with gr.Column(scale=1):
+                    gr.Markdown("### Operations")
+                    operations = gr.CheckboxGroup(
+                        choices=self.operations,
+                        value=[self.operations[0], self.operations[-1]],
+                        label=None,
+                        container=False,
+                        interactive=True,
+                    )
+                    with gr.Row():
+                        btn_run = gr.Button(
+                            value="Load & Run", elem_classes="btn btn-html btn-run"
+                        )
 
-            with gr.Row():
-                data_summary = gr.Text(
-                    label=None, show_label=False, elem_classes="monospace-box"
-                )
-            with gr.Row():
-                with gr.Column():
+            # Visualization and results
+            with gr.Row(elem_classes="mt-64"):
+
+                # Z Slicer
+                with gr.Column(visible=False) as result_z_slicer:
                     zslice_plot = gr.Plot(label="Z slice", elem_classes="rounded")
                     zpos = gr.Slider(
                         minimum=0, maximum=1, value=0.5, step=0.01, label="Z position"
                     )
-                with gr.Column():
+
+                # Y Slicer
+                with gr.Column(visible=False) as result_y_slicer:
                     yslice_plot = gr.Plot(label="Y slice", elem_classes="rounded")
 
                     ypos = gr.Slider(
                         minimum=0, maximum=1, value=0.5, step=0.01, label="Y position"
                     )
 
-                with gr.Column():
+                # X Slicer
+                with gr.Column(visible=False) as result_x_slicer:
                     xslice_plot = gr.Plot(label="X slice", elem_classes="rounded")
 
                     xpos = gr.Slider(
                         minimum=0, maximum=1, value=0.5, step=0.01, label="X position"
                     )
-            with gr.Row(elem_classes="h-32"):
-                gr.Markdown()
+                # Z Max projection
+                with gr.Column(visible=False) as result_z_max_projection:
+                    max_projection_plot = gr.Plot(
+                        label="Z max projection", elem_classes="rounded"
+                    )
 
-            with gr.Row(elem_classes="h-480"):
-                max_projection_plot = gr.Plot(
-                    label="Z max projection", elem_classes="rounded"
-                )
-                min_projection_plot = gr.Plot(
-                    label="Z min projection", elem_classes="rounded"
-                )
+                # Z Min projection
+                with gr.Column(visible=False) as result_z_min_projection:
+                    min_projection_plot = gr.Plot(
+                        label="Z min projection", elem_classes="rounded"
+                    )
 
-                hist_plot = gr.Plot(label="Volume intensity histogram")
-
-            pipeline = Pipeline()
-            pipeline.verbose = self.verbose
-            session = gr.State([])
-
+                # Intensity histogram
+                with gr.Column(visible=False) as result_intensity_histogram:
+                    hist_plot = gr.Plot(label="Volume intensity histogram")
+                
+                # Text box with data summary
+                with gr.Column(visible=False) as result_data_summary:
+                    data_summary = gr.Text(
+                        lines=24,
+                        label=None,
+                        show_label=False,
+                        elem_classes="monospace-box",
+                        value="Data summary",
+                    )
             ### Gradio objects lists
 
+            session = gr.State([])
+            pipeline = Pipeline()
+
+            # Results
+            results = [
+                result_z_slicer,
+                result_y_slicer,
+                result_x_slicer,
+                result_z_max_projection,
+                result_z_min_projection,
+                result_intensity_histogram,
+                result_data_summary,
+            ]
             # Inputs
-            inputs = [zpos, ypos, xpos, cmap, dataset_name]
+            inputs = [
+                operations,
+                base_path,
+                explorer,
+                zpos,
+                ypos,
+                xpos,
+                cmap,
+                dataset_name,
+                virtual_stack,
+            ]
             # Outputs
             outputs = [
-                data_summary,
                 zslice_plot,
                 yslice_plot,
                 xslice_plot,
                 max_projection_plot,
                 min_projection_plot,
+                hist_plot,
+                data_summary,
+
             ]
 
-            projection_outputs = [session, max_projection_plot, min_projection_plot]
-
             ### Listeners
-            # Clear button
-            # for gr_obj in outputs:
-            #     btn_clear.click(fn=self.clear, inputs=[], outputs=gr_obj)
-
-            # Run button
+            spinner_session = gr.Text("Starting session...", visible=False)
+            spinner_loading = gr.Text("Loading data...", visible=False)
+            spinner_operations = gr.Text("Running pipeline...", visible=False)
             # fmt: off
+            reload_base_path.click(fn=self.update_explorer,inputs=base_path, outputs=explorer)
+            
             btn_run.click(
-                fn=self.start_session, inputs=inputs, outputs=session).success(
-                fn=pipeline.process_input, inputs=[session, data_path], outputs=session).success(
-                fn=pipeline.show_summary_str, inputs=session, outputs=data_summary).success(
-                fn=pipeline.create_zslice_fig, inputs=session, outputs=zslice_plot).success(
-                fn=pipeline.create_yslice_fig, inputs=session, outputs=yslice_plot).success(
-                fn=pipeline.create_xslice_fig, inputs=session, outputs=xslice_plot).success(
-                fn=pipeline.create_projections_figs, inputs=session, outputs=projection_outputs).success(
-                fn=pipeline.show_summary_str, inputs=session, outputs=data_summary).success(
-                fn=pipeline.plot_vol_histogram, inputs=session, outputs=hist_plot)
+                fn=self.set_spinner, inputs=spinner_session, outputs=btn_run).then(
+                fn=self.start_session, inputs=inputs, outputs=session).then(
+                fn=self.set_spinner, inputs=spinner_loading, outputs=btn_run).then(
+                fn=pipeline.load_data, inputs=session, outputs=session).then(
+                fn=self.set_spinner, inputs=spinner_operations, outputs=btn_run).then(
+                fn=pipeline.run_pipeline, inputs=session, outputs=outputs).then(
+                fn=self.show_results, inputs=operations, outputs=results).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
+
                 
 
             zpos.release(
                 fn=self.update_zpos, inputs=[session, zpos], outputs=[session, zslice_plot]).success(
-                fn=pipeline.create_zslice_fig, inputs=session, outputs=zslice_plot,show_progress=False)
+                fn=pipeline.create_zslice_fig, inputs=[], outputs=zslice_plot,show_progress="hidden")
             ypos.release(
                 fn=self.update_ypos, inputs=[session, ypos], outputs=[session, yslice_plot]).success(
-                fn=pipeline.create_yslice_fig, inputs=session, outputs=yslice_plot,show_progress=False)
+                fn=pipeline.create_yslice_fig, inputs=[], outputs=yslice_plot,show_progress="hidden")
             
             xpos.release(
                 fn=self.update_xpos, inputs=[session, xpos], outputs=[session, xslice_plot]).success(
-                fn=pipeline.create_xslice_fig, inputs=session, outputs=xslice_plot,show_progress=False)
+                fn=pipeline.create_xslice_fig, inputs=[], outputs=xslice_plot,show_progress="hidden")
 
             # fmt: on
 
@@ -152,12 +265,24 @@ class Interface:
     def start_session(self, *args):
         # Starts a new session dictionary
         session = Session()
-        session.interface = "gradio"
-        session.zpos = args[0]
-        session.ypos = args[1]
-        session.xpos = args[2]
-        session.cmap = args[3]
-        session.dataset_name = args[4]
+        session.all_operations = Interface().operations
+        session.operations = args[0]
+        session.base_path = args[1]
+        session.explorer = args[2]
+        session.zpos = args[3]
+        session.ypos = args[4]
+        session.xpos = args[5]
+        session.cmap = args[6]
+        session.dataset_name = args[7]
+        session.virtual_stack = args[8]
+
+        # Get the file path from the explorer or base path
+        if session.base_path and os.path.isfile(session.base_path):
+            session.file_path = session.base_path
+        elif session.explorer and os.path.isfile(session.explorer):
+            session.file_path = session.explorer
+        else:
+            raise ValueError("Invalid file path")
 
         return session
 
@@ -203,8 +328,8 @@ class Interface:
 
 class Session:
     def __init__(self):
-        self.interface = None
-        self.data_path = None
+        self.virtual_stack = False
+        self.file_path = None
         self.vol = None
         self.zpos = 0.5
         self.ypos = 0.5
@@ -212,7 +337,10 @@ class Session:
         self.cmap = "viridis"
         self.dataset_name = None
         self.error_message = None
-
+        self.file_path = None
+        self.max_projection = None
+        self.min_projection = None
+        self.projections_calculated = False
         # Volume info
         self.zsize = None
         self.ysize = None
@@ -230,53 +358,6 @@ class Session:
 
         # Histogram
         self.nbins = 32
-
-    def get_data_info(self):
-        # Open file
-        try:
-            vol = load(
-                self.data_path, virtual_stack=True, dataset_name=self.dataset_name
-            )
-        except Exception as error_message:
-            self.error_message = error_message
-            return
-
-        first_slice = vol[0]
-
-        # Get info
-        self.zsize = len(vol)
-        self.ysize, self.xsize = first_slice.shape
-        self.data_type = str(first_slice.dtype)
-        self.last_modified = datetime.datetime.fromtimestamp(
-            os.path.getmtime(self.data_path)
-        ).strftime("%Y-%m-%d %H:%M")
-        self.file_size = os.path.getsize(self.data_path)
-
-    def create_summary_dict(self):
-        # Create dictionary
-        if self.error_message:
-            self.summary_dict = {"error_mesage": self.error_message}
-
-        else:
-            self.summary_dict = {
-                "Last modified": self.last_modified,
-                "File size": internal_tools.sizeof(self.file_size),
-                "Z-size": str(self.zsize),
-                "Y-size": str(self.ysize),
-                "X-size": str(self.xsize),
-                "Data type": self.data_type,
-                "Min value": self.min_value,
-                "Mean value": self.mean_intensity,
-                "Max value": self.max_value,
-            }
-
-    def summary_str(self):
-        if "error_mesage" in self.summary_dict:
-            error_box = ouf.boxtitle("ERROR", return_str=True)
-            return f"{error_box}\n{self.summary_dict['error_mesage']}"
-        else:
-            display_dict = {k: v for k, v in self.summary_dict.items() if v is not None}
-            return ouf.showdict(display_dict, return_str=True, title="Data summary")
 
     def zslice_from_zpos(self):
         self.zslice = int(self.zpos * (self.zsize - 1))
@@ -299,61 +380,125 @@ class Pipeline:
         self.figsize = 8  # Used for matplotlig figure size
         self.display_saturation_percentile = 99
         self.verbose = False
+        self.session = None
 
-    def process_input(self, *args):
-        session = args[0]
-        session.data_path = args[1]
-
-        # Get info from Tiff file
-        session.get_data_info()
-        session.create_summary_dict()
-
-        # Memory map data as a virtual stack
-
+    def load_data(self, session):
         try:
             session.vol = load(
-                session.data_path, virtual_stack=True, dataset_name=session.dataset_name
+                session.file_path,
+                virtual_stack=session.virtual_stack,
+                dataset_name=session.dataset_name,
             )
-        except:
-            return session
+        except Exception as error_message:
+            raise ValueError(
+                f"Failed to load the image: {error_message}"
+            ) from error_message
 
-        if self.verbose:
-            log.info(ouf.br(3, return_str=True) + session.summary_str())
+        session = self.get_data_info(session)
 
         return session
 
-    def show_summary_str(self, session):
-        session.create_summary_dict()
-        return session.summary_str()
+    def get_data_info(self, session):
+        first_slice = session.vol[0]
 
-    def create_zslice_fig(self, session):
-        slice_fig = self.create_slice_fig("z", session)
+        # Get info
+        session.zsize = len(session.vol)
+        session.ysize, session.xsize = first_slice.shape
+        session.data_type = str(first_slice.dtype)
+        session.last_modified = datetime.datetime.fromtimestamp(
+            os.path.getmtime(session.file_path)
+        ).strftime("%Y-%m-%d %H:%M")
+        session.file_size = os.path.getsize(session.file_path)
+
+        return session
+
+    def run_pipeline(self, session):
+        self.session = session
+        outputs = []
+        log.info(session.all_operations)
+        for operation in session.all_operations:
+            if operation in session.operations:
+                outputs.append(self.run_operation(operation))
+
+            else:
+                log.info(f"Skipping {operation}")
+                outputs.append(None)
+
+        return outputs
+
+    def run_operation(self, operation):
+        log.info(f"Running {operation}")
+
+        if operation == "Data summary":
+            return self.show_data_summary()
+
+        if operation == "Z Slicer":
+            return self.create_zslice_fig()
+
+        if operation == "Y Slicer":
+            return self.create_yslice_fig()
+
+        if operation == "X Slicer":
+            return self.create_xslice_fig()
+
+        if operation == "Z max projection":
+            return self.create_projections_figs()[0]
+
+        if operation == "Z min projection":
+            return self.create_projections_figs()[1]
+
+        if operation == "Intensity histogram":
+            return self.plot_vol_histogram()
+
+        # In case nothing was triggered, raise error
+        raise ValueError("Unknown operation")
+
+    def show_data_summary(self):
+        # Get info from Tiff file
+
+        summary_dict = {
+            "Last modified": self.session.last_modified,
+            "File size": internal_tools.sizeof(self.session.file_size),
+            "Z-size": str(self.session.zsize),
+            "Y-size": str(self.session.ysize),
+            "X-size": str(self.session.xsize),
+            "Data type": self.session.data_type,
+            "Min value": self.session.min_value,
+            "Mean value": self.session.mean_intensity,
+            "Max value": self.session.max_value,
+        }
+
+        display_dict = {k: v for k, v in summary_dict.items() if v is not None}
+        return ouf.showdict(display_dict, return_str=True, title="Data summary")
+
+    def create_zslice_fig(self):
+        slice_fig = self.create_slice_fig("z")
 
         return slice_fig
 
-    def create_yslice_fig(self, session):
-        slice_fig = self.create_slice_fig("y", session)
+    def create_yslice_fig(self):
+        slice_fig = self.create_slice_fig("y")
 
         return slice_fig
 
-    def create_xslice_fig(self, session):
-        slice_fig = self.create_slice_fig("x", session)
+    def create_xslice_fig(self):
+        slice_fig = self.create_slice_fig("x")
 
         return slice_fig
 
-    def create_slice_fig(self, axis, session):
+    def create_slice_fig(self, axis):
         plt.close()
-        vol = session.vol
-        plt.set_cmap(session.cmap)
+        vol = self.session.vol
+        plt.set_cmap(self.session.cmap)
 
-        zslice = session.zslice_from_zpos()
-        yslice = session.yslice_from_ypos()
-        xslice = session.xslice_from_xpos()
+        zslice = self.session.zslice_from_zpos()
+        yslice = self.session.yslice_from_ypos()
+        xslice = self.session.xslice_from_xpos()
 
         # Check if we something to use as vmin and vmax
-        if session.min_percentile and session.max_percentile:
-            vmin = session.min_percentile
-            vmax = session.max_percentile
+        if self.session.min_percentile and self.session.max_percentile:
+            vmin = self.session.min_percentile
+            vmax = self.session.max_percentile
         else:
             vmin = None
             vmax = None
@@ -393,55 +538,65 @@ class Pipeline:
 
         return fig
 
-    def create_projections_figs(self, session):
-        vol = session.vol
+    def create_projections_figs(self):
+        vol = self.session.vol
 
-        # Run projections
-        max_projection, min_projection = self.get_projections(vol, session)
+        if not self.session.projections_calculated:
+            projections = self.get_projections(vol)
+            self.session.max_projection = projections[0]
+            self.session.min_projection = projections[1]
 
         # Generate figures
         max_projection_fig = self.create_img_fig(
-            max_projection,
-            vmin=session.min_percentile,
-            vmax=session.max_percentile,
+            self.session.max_projection,
+            vmin=self.session.min_percentile,
+            vmax=self.session.max_percentile,
         )
         min_projection_fig = self.create_img_fig(
-            min_projection,
-            vmin=session.min_percentile,
-            vmax=session.max_percentile,
+            self.session.min_projection,
+            vmin=self.session.min_percentile,
+            vmax=self.session.max_percentile,
         )
-        return session, max_projection_fig, min_projection_fig
 
-    def get_projections(self, vol, session):
+        self.session.projections_calculated = True
+        return max_projection_fig, min_projection_fig
+
+    def get_projections(self, vol):
         # Create arrays for iteration
         max_projection = np.zeros(np.shape(vol[0]))
         min_projection = np.ones(np.shape(vol[0])) * float("inf")
         intensity_sum = 0
 
-        # Iterate over slices
+        # Iterate over slices. This is needed in case of virtual stacks.
         for zslice in vol:
             max_projection = np.maximum(max_projection, zslice)
             min_projection = np.minimum(min_projection, zslice)
             intensity_sum += np.sum(zslice)
 
-        session.min_value = np.min(min_projection)
-        session.min_percentile = np.percentile(
+        self.session.min_value = np.min(min_projection)
+        self.session.min_percentile = np.percentile(
             min_projection, 100 - self.display_saturation_percentile
         )
-        session.max_value = np.max(max_projection)
-        session.max_percentile = np.percentile(
+        self.session.max_value = np.max(max_projection)
+        self.session.max_percentile = np.percentile(
             max_projection, self.display_saturation_percentile
         )
 
-        session.intensity_sum = intensity_sum
+        self.session.intensity_sum = intensity_sum
 
-        nvoxels = session.zsize * session.ysize * session.xsize
-        session.mean_intensity = intensity_sum / nvoxels
+        nvoxels = self.session.zsize * self.session.ysize * self.session.xsize
+        self.session.mean_intensity = intensity_sum / nvoxels
+
         return max_projection, min_projection
 
-    def plot_vol_histogram(self, session):
+    def plot_vol_histogram(self):
+
+        # The Histogram needs results from the projections    
+        if not self.session.projections_calculated:
+            _ = self.get_projections(self.session.vol)
+        
         vol_hist, bin_edges = self.vol_histogram(
-            session.vol, session.nbins, session.min_value, session.max_value
+            self.session.vol, self.session.nbins, self.session.min_value, self.session.max_value
         )
 
         fig, ax = plt.subplots(figsize=(6, 4))
