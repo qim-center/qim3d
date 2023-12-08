@@ -247,14 +247,14 @@ class Interface:
 
                 
 
-            zpos.release(
+            zpos.change(
                 fn=self.update_zpos, inputs=[session, zpos], outputs=[session, zslice_plot]).success(
                 fn=pipeline.create_zslice_fig, inputs=[], outputs=zslice_plot,show_progress="hidden")
-            ypos.release(
+            ypos.change(
                 fn=self.update_ypos, inputs=[session, ypos], outputs=[session, yslice_plot]).success(
                 fn=pipeline.create_yslice_fig, inputs=[], outputs=yslice_plot,show_progress="hidden")
             
-            xpos.release(
+            xpos.change(
                 fn=self.update_xpos, inputs=[session, xpos], outputs=[session, xslice_plot]).success(
                 fn=pipeline.create_xslice_fig, inputs=[], outputs=xslice_plot,show_progress="hidden")
 
