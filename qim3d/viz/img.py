@@ -1,7 +1,7 @@
 """ Provides a collection of visualization functions."""
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib import cm
+from matplotlib import colormaps
 import torch
 import numpy as np
 from qim3d.io.logger import log
@@ -56,7 +56,7 @@ def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha
         num_images = len(data)
 
     # Adapt segmentation cmap so that background is transparent
-    colors_segm = cm.get_cmap(cmap_segm)(np.linspace(0, 1, 256))
+    colors_segm = colormaps.get_cmap(cmap_segm)(np.linspace(0, 1, 256))
     colors_segm[:128, 3] = 0
     custom_cmap = LinearSegmentedColormap.from_list("CustomCmap", colors_segm)
 
@@ -142,7 +142,7 @@ def grid_pred(in_targ_preds, num_images=7, cmap_im="gray", cmap_segm="viridis", 
     inputs,targets,preds = [items[:num_images] for items in in_targ_preds]
     
     # Adapt segmentation cmap so that background is transparent
-    colors_segm = cm.get_cmap(cmap_segm)(np.linspace(0, 1, 256))
+    colors_segm = colormaps.get_cmap(cmap_segm)(np.linspace(0, 1, 256))
     colors_segm[:128, 3] = 0
     custom_cmap = LinearSegmentedColormap.from_list("CustomCmap", colors_segm)
     

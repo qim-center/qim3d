@@ -9,13 +9,14 @@ def test_starting_class():
     assert app.title == "Isosurfaces for 3D visualization"
 
 
-def test_app_launch():
-    ip = "0.0.0.0"
-    port = 65432
+def start_server(ip, port):
+    app = qim3d.gui.iso3d.Interface()
+    app.launch(server_name=ip, server_port=port)
 
-    def start_server(ip, port):
-        app = qim3d.gui.iso3d.Interface()
-        app.launch(server_name=ip, server_port=port)
+
+def test_app_launch():
+    ip = "localhost"
+    port = 65432
 
     proc = multiprocessing.Process(target=start_server, args=(ip, port))
     proc.start()

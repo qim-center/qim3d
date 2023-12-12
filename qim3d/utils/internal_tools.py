@@ -6,7 +6,6 @@ import outputformat as ouf
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
-import socket
 import os
 import shutil
 import requests
