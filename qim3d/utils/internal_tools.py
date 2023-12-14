@@ -267,8 +267,8 @@ def get_port_dict():
 
     return port_dict
 
-def run_gradio_app(gradio_interface):
-    host = "0.0.0.0"
+def run_gradio_app(gradio_interface, host = "0.0.0.0"):
+
     # Get port using the QIM API
     port_dict = get_port_dict()
 
@@ -291,7 +291,7 @@ def run_gradio_app(gradio_interface):
     print(f"http://{host}:{port}{path}")
 
     # Run the FastAPI server usign uvicorn
-    run(app, host="0.0.0.0", port=int(port))
+    run(app, host=host, port=int(port))
 
 
 def get_css():
