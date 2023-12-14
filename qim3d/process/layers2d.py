@@ -24,20 +24,19 @@ class Layers2d:
         
     def __init__(self, 
                  data = None, 
+                 is_inverted = False,
                  n_layers = 1, 
                  delta = 1, 
-                 min_margin = 10,
-                 is_inverted = False
+                 min_margin = 10
                  ):
         if data is not None:
             if not isinstance(data, np.ndarray):
                 raise TypeError("Data must be a numpy.ndarray.")
         
         self.data = data
+        self.is_inverted = is_inverted
         self.data_not_inverted = data
         self.data_inverted = ~data
-        
-        self.is_inverted = is_inverted
         
         if self.is_inverted:
             self.data = self.data_inverted
@@ -47,6 +46,7 @@ class Layers2d:
         self.n_layers = n_layers
         
         self.layers = []
+
         for i in range(self.n_layers):
             self.layers.append(GraphObject(self.data))
         
@@ -75,6 +75,12 @@ class Layers2d:
             raise TypeError("Data must be a numpy.ndarray.")
         self.data = data
     
+    def get_is_inverted(self):
+        return self.is_inverted
+    
+    def set_is_inverted(self, is_inverted):
+        self.is_inverted = is_inverted
+        
     def get_data_not_inverted(self):
         return self.data_not_inverted
     
@@ -93,17 +99,35 @@ class Layers2d:
     def update_data_inverted(self):
         self.set_data_inverted(~self.get_data())
     
-    def get_is_inverted(self):
-        return self.is_inverted
-    
-    def set_is_inverted(self, is_inverted):
-        self.is_inverted = is_inverted
+    def update_data(self):
+        if self.get_is_inverted():
+            self.set_data(self.get_data_inverted())
+        else:
+            self.set_data(self.get_data_not_inverted())        
     
     def get_n_layers(self):
         return self.n_layers
     
     def set_n_layers(self, n_layers):
         self.n_layers = n_layers
+    
+    def get_layers(self):
+        return self.layers
+    
+    def set_layers(self, layers):
+        self.layers = layers
+    
+    def add_layer_to_layers(self):
+        self.get_layers().append(GraphObject(self.get_data()))
+    
+    def add_n_layers_to_layers(self):
+        for i in range(self.get_n_layers()):
+            self.add_layer()
+    
+    def update_layers(self):
+        self.set_layers([])
+        self.add_n_layers_to_layers()
+    
     
 
 
