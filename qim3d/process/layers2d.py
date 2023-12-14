@@ -35,6 +35,9 @@ class Layers2d:
         
         self.data = data
         self.is_inverted = is_inverted
+        self.delta = delta
+        self.min_margin = min_margin
+        
         self.data_not_inverted = data
         self.data_inverted = ~data
         
@@ -81,6 +84,18 @@ class Layers2d:
     def set_is_inverted(self, is_inverted):
         self.is_inverted = is_inverted
         
+    def get_delta(self):
+        return self.delta
+    
+    def set_delta(self, delta):
+        self.delta = delta
+    
+    def get_min_margin(self):
+        return self.min_margin
+    
+    def set_min_margin(self, min_margin):
+        self.min_margin = min_margin    
+    
     def get_data_not_inverted(self):
         return self.data_not_inverted
     
@@ -128,7 +143,19 @@ class Layers2d:
         self.set_layers([])
         self.add_n_layers_to_layers()
     
+    def get_helper(self):
+        return self.helper
     
+    def set_helper(self, helper):
+        self.helper = helper
+    
+    def create_new_helper(self):
+        self.set_helper(MaxflowBuilder())
+    
+    def update_helper(self):
+        self.get_helper().add_objects(self.get_layers())
+        self.get_helper().add_layered_boundary_cost()
+        self.get_helper().add_layered_smoothness(delta = self.get_delta())
 
 
 import matplotlib.pyplot as plt
