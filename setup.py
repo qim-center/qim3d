@@ -18,6 +18,11 @@ setup(
     url="https://lab.compute.dtu.dk/QIM/tools/qim3d",
     packages=find_packages(),
     include_package_data=True,
+    entry_points = {
+        'console_scripts': [
+            'qim3d=qim3d.utils.cli:main'
+        ]
+    },
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
