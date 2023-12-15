@@ -29,6 +29,21 @@ class Layers2d:
                  delta = 1, 
                  min_margin = 10
                  ):
+        '''
+        Create an object to store graphs for layered surface segmentations.\n
+        - 'Data' must be a numpy.ndarray.\n
+        - 'is_inverted' is a boolean which decides if the data is inverted or not.\n
+        - 'n_layers' is the number of layers.\n
+        - 'delta' is the smoothness parameter.\n
+        - 'min_margin' is the minimum margin between layers.\n
+        - 'data_not_inverted' is the original data.\n
+        - 'data_inverted' is the inverted data.\n
+        - 'layers' is a list of GraphObject objects.\n
+        - 'helper' is a MaxflowBuilder object.\n
+        - 'flow' is the result of the maxflow algorithm on the helper.\n
+        - 'segmentations' is a list of segmentations.\n
+        - 'segmentation_lines' is a list of segmentation lines.\n
+        '''
         if data is not None:
             if not isinstance(data, np.ndarray):
                 raise TypeError("Data must be a numpy.ndarray.")
@@ -47,11 +62,14 @@ class Layers2d:
         self.segmentations = []
         self.segmentation_lines = []
 
-
     def get_data(self):
         return self.data    
     
     def set_data(self, data):
+        '''
+        Sets data.\n
+        - Data must be a numpy.ndarray.
+        '''
         if not isinstance(data, np.ndarray):
             raise TypeError("Data must be a numpy.ndarray.")
         self.data = data
@@ -96,6 +114,11 @@ class Layers2d:
             self.set_data_inverted(None)
     
     def update_data(self):
+        '''
+        Updates data:\n
+        - If 'is_inverted' is True, data is set to 'data_inverted'.\n
+        - If 'is_inverted' is False, data is set to 'data_not_inverted'.
+        '''
         if self.get_is_inverted():
             self.set_data(self.get_data_inverted())
         else:
@@ -114,15 +137,27 @@ class Layers2d:
         self.layers = layers
     
     def add_layer_to_layers(self):
+        '''
+        Append a layer to layers.\n
+        - Data must be set and not Nonetype before adding a layer.\n
+        '''
         if self.get_data() is None:
             raise ValueError("Data must be set before adding a layer.")
         self.get_layers().append(GraphObject(self.get_data()))
     
     def add_n_layers_to_layers(self):
+        '''
+        Append n_layers to layers.
+        '''
         for i in range(self.get_n_layers()):
             self.add_layer_to_layers()
     
     def update_layers(self):
+        '''
+        Updates layers:\n
+        - Resets layers to empty list.\n
+        - Appends n_layers to layers.
+        '''
         self.set_layers([])
         self.add_n_layers_to_layers()
     
@@ -133,18 +168,33 @@ class Layers2d:
         self.helper = helper
     
     def create_new_helper(self):
+        '''
+        Creates a new helper MaxflowBuilder object.
+        '''
         self.set_helper(MaxflowBuilder())
     
     def add_objects_to_helper(self):
+        '''
+        Adds layers as objects to the helper.
+        '''
         self.get_helper().add_objects(self.get_layers())
     
     def add_layered_boundary_cost_to_helper(self):
+        '''
+        Adds layered boundary cost to the helper.
+        '''
         self.get_helper().add_layered_boundary_cost()
     
     def add_layered_smoothness_to_helper(self):
+        '''
+        Adds layered smoothness to the helper.
+        '''
         self.get_helper().add_layered_smoothness(delta = self.get_delta())
     
     def add_a_layered_containment_to_helper(self, outer_object, inner_object):
+        '''
+        Adds a layered containment to the helper.
+        '''
         self.get_helper().add_layered_containment(
                 outer_object = outer_object, 
                 inner_object = inner_object, 
@@ -152,6 +202,10 @@ class Layers2d:
             )
     
     def add_all_layered_containments_to_helper(self):
+        '''
+        Adds all layered containments to the helper.\n
+        n_layers most be at least 1.
+        '''
         if len(self.get_layers()) < 1:
             raise ValueError("There must be at least 1 layer to add containment.")
         
@@ -168,7 +222,26 @@ class Layers2d:
         self.flow = flow
     
     def solve_helper(self):
+        '''
+        Solves maxflow of the helper and stores the result in self.flow.
+        '''
         self.set_flow(self.get_helper().solve())
+
+    def update_helper(self):
+        '''
+        Updates helper MaxflowBuilder object:\n
+        - Adds to helper:
+            - objects\n 
+            - layered boundary cost\n 
+            - layered smoothness\n 
+            - all layered containments\n
+        - Finally solves maxflow of the helper.
+        '''
+        self.add_objects_to_helper()
+        self.add_layered_boundary_cost_to_helper()
+        self.add_layered_smoothness_to_helper()
+        self.add_all_layered_containments_to_helper()
+        self.solve_helper()
 
     def get_segmentations(self):
         return self.segmentations
@@ -177,9 +250,17 @@ class Layers2d:
         self.segmentations = segmentations
 
     def add_segmentation_to_segmentations(self, layer, type = np.int32):
+        '''
+        Adds a segmentation of a layer to segmentations.\n
+        '''
         self.get_segmentations().append(self.get_helper().what_segments(layer).astype(type))
 
     def add_all_segmentations_to_segmentations(self, type = np.int32):
+        '''
+        Adds all segmentations to segmentations.\n
+        - Resets segmentations to empty list.\n
+        - Appends segmentations of all layers to segmentations.
+        '''
         self.set_segmentations([])
         for l in self.get_layers():
             self.add_segmentation_to_segmentations(l, type = type)
@@ -191,31 +272,71 @@ class Layers2d:
         self.segmentation_lines = segmentation_lines
         
     def add_segmentation_line_to_segmentation_lines(self, segmentation):
+        '''
+        Adds a segmentation line to segmentation_lines.\n
+        - A segmentation line is the minimum values along a given axis of a segmentation.\n
+        - Each segmentation line is shifted by 0.5 to be in the middle of the pixel.
+        '''
         self.get_segmentation_lines().append(np.argmin(segmentation, axis = 0) - 0.5)
     
     def add_all_segmentation_lines_to_segmentation_lines(self):
+        '''
+        Adds all segmentation lines to segmentation_lines.\n
+        - Resets segmentation_lines to an empty list.\n
+        - Appends segmentation lines of all segmentations to segmentation_lines.
+        '''
         self.set_segmentation_lines([])
         for s in self.get_segmentations():
             self.add_segmentation_line_to_segmentation_lines(s)
-    
-    def update_helper(self, type = np.int32):
-        self.add_objects_to_helper()
-        self.add_layered_boundary_cost_to_helper()
-        self.add_layered_smoothness_to_helper()
-        self.add_all_layered_containments_to_helper()
-        self.solve_helper()
+        
+    def update_semgmentations_and_semgmentation_lines(self, type = np.int32):
+        '''
+        Updates segmentations and segmentation_lines:\n
+        - Adds all segmentations to segmentations.\n
+        - Adds all segmentation lines to segmentation_lines.
+        '''
         self.add_all_segmentations_to_segmentations(type = type)
         self.add_all_segmentation_lines_to_segmentation_lines()
 
+    def prepare_update(self, 
+                       data = None,
+                       is_inverted = None,
+                       n_layers = None,
+                       delta = None,
+                       min_margin = None
+                       ):
+        '''
+        Prepare update of all fields of the object.\n
+        - If a field is None, it is not updated.\n
+        - If a field is not None, it is updated.
+        '''
+        if data is not None:
+            self.set_data(data)
+        if is_inverted is not None:
+            self.set_is_inverted(is_inverted)
+        if n_layers is not None:
+            self.set_n_layers(n_layers)
+        if delta is not None:
+            self.set_delta(delta)
+        if min_margin is not None:
+            self.set_min_margin(min_margin)
+    
     def update(self, type = np.int32):
+        '''
+        Update all fields of the object.
+        '''
         self.update_data_not_inverted()
         self.update_data_inverted()
         self.update_data()
         self.update_layers()
         self.create_new_helper()
-        self.update_helper(type = type)
+        self.update_helper()
+        self.update_semgmentations_and_semgmentation_lines(type = type)
 
     def __repr__(self):
+        '''
+        Returns string representation of all fields of the object.
+        '''
         return "data: %s\n, \nis_inverted: %s, \nn_layers: %s, \ndelta: %s, \nmin_margin: %s, \ndata_not_inverted: %s, \ndata_inverted: %s, \nlayers: %s, \nhelper: %s, \nflow: %s, \nsegmentations: %s, \nsegmentations_lines: %s" % (
             self.get_data(),
             self.get_is_inverted(),
@@ -235,18 +356,6 @@ import matplotlib.pyplot as plt
 from skimage.io import imread
     
 if __name__ == "__main__":        
-    
-    path = os.path.join(os.getcwd(), "qim3d", "img_examples", "slice_218x193.png")
-    data = imread(path).astype(np.int32)
-
-    layers2d = Layers2d(data = data, n_layers = 3)
-    layers2d.update()
-    
-    print(np.shape(layers2d.segmentations))
-    print(np.shape(layers2d.segmentation_lines))
-
-    print(layers2d.get_segmentations())
-
     # Draw results.
     def visulise():
         plt.figure(figsize = (10, 10))
@@ -261,5 +370,14 @@ if __name__ == "__main__":
         for line in layers2d.get_segmentation_lines():
             ax.plot(line)
         plt.show()
+    
+    
+    path = os.path.join(os.getcwd(), "qim3d", "img_examples", "slice_218x193.png")
+    data = imread(path).astype(np.int32)
+
+    layers2d = Layers2d(data = data, n_layers = 3, delta = 1, min_margin = 10)
+    layers2d.update()
+    
+    
     
     visulise()   
