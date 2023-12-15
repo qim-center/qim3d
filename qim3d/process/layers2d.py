@@ -352,22 +352,24 @@ class Layers2d:
             self.get_segmentation_lines()
         )
 
+
+
 import matplotlib.pyplot as plt
 from skimage.io import imread
     
 if __name__ == "__main__":        
     # Draw results.
-    def visulise():
+    def visulise(l2d = None):
         plt.figure(figsize = (10, 10))
         ax = plt.subplot(1, 3, 1)
-        ax.imshow(layers2d.get_data(), cmap = "gray")
+        ax.imshow(l2d.get_data(), cmap = "gray")
 
         ax = plt.subplot(1, 3, 2)
-        ax.imshow(np.sum(layers2d.get_segmentations(), axis = 0))
+        ax.imshow(np.sum(l2d.get_segmentations(), axis = 0))
 
         ax = plt.subplot(1, 3, 3)
         ax.imshow(data, cmap = "gray")
-        for line in layers2d.get_segmentation_lines():
+        for line in l2d.get_segmentation_lines():
             ax.plot(line)
         plt.show()
     
@@ -377,7 +379,12 @@ if __name__ == "__main__":
 
     layers2d = Layers2d(data = data, n_layers = 3, delta = 1, min_margin = 10)
     layers2d.update()
+    visulise(layers2d)
     
+    layers2d.prepare_update(n_layers = 1)
+    layers2d.update()
+    visulise(layers2d)
     
-    
-    visulise()   
+    layers2d.prepare_update(is_inverted = True)
+    layers2d.update()
+    visulise(layers2d)
