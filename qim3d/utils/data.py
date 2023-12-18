@@ -174,7 +174,7 @@ def prepare_datasets(path: str, val_fraction: float, model, augmentation):
     return train_set, val_set, test_set
 
 
-def prepare_dataloaders(train_set, val_set, test_set, batch_size, shuffle_train = True, num_workers = 8, pin_memory = False):  
+def prepare_dataloaders(train_set, val_set, test_set, batch_size, shuffle_train = True, num_workers = 0, pin_memory = False):  
     """
     Prepares the dataloaders for model training.
 
