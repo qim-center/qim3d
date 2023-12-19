@@ -3,14 +3,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qim3d.process import layers2d as l2d
 
-def create_subplot_from_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
+def create_subplot_of_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
     '''
-    Creates a subplot from a collection of 2D arrays.
+    Creates a `m x n` grid subplot from a collection of 2D arrays.
     
     Args:
-        data (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
-        m_rows (int): The number of rows in the subplot grid.
-        n_cols (int): The number of columns in the subplot grid.
+        `data` (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
+        `m_rows` (int): The number of rows in the subplot grid.
+        `n_cols` (int): The number of columns in the subplot grid.
 
     Raises:
         ValueError: If the product of m_rows and n_cols is not equal to the number of 2d arrays in data.
@@ -35,6 +35,21 @@ def create_subplot_from_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
         ax.imshow(data[k], cmap = "gray")
     
     plt.tight_layout()
+
+def create_plot_of_2d_array(data, figsize = (10, 10)):
+    '''
+    Creates a plot of a 2D array.
+    
+    Args:
+        data (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
+        figsize (tuple of int): The figure size.
+    Notes:
+        - If data is not a list, it is converted to a list.
+    '''
+    if not isinstance(data, list):
+        data = [data]
+    
+    create_subplot_of_2d_arrays(data, figsize = figsize)
     
 def merge_multiple_segmentations_2d(segmentations):
     '''
@@ -71,18 +86,21 @@ if __name__ == "__main__":
     
     
     # Show how merge_multiple_segmentations_2d works:
-    
     data = []
     for i in range(len(l2d_obj.get_segmentations())):
         data.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
     
-    # Create a subplot
-    create_subplot_from_2d_arrays(
+    create_subplot_of_2d_arrays(
             data, 
-            m_rows = 1, 
-            n_cols = len(l2d_obj.get_segmentations())
+            # m_rows = 1, 
+            # n_cols = len(l2d_obj.get_segmentations())
+            m_rows = len(l2d_obj.get_segmentations()), 
+            n_cols = 1
         )
+    
+    # Show how create_plot_from_2d_arrays works:
+    create_plot_of_2d_array(data[0])
 
-    # Display the plot
+
     plt.show()
     
