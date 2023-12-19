@@ -3,12 +3,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 from qim3d.process import layers2d as l2d
 
-def create_subplot_from_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = (10, 10)):
+def create_subplot_from_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
     '''
-    Creates a subplot from a collection of 2d arrays.
+    Creates a subplot from a collection of 2D arrays.
     
     Args:
-        data (list of 2d numpy.ndarray): A list of 2d numpy.ndarray.
+        data (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
         m_rows (int): The number of rows in the subplot grid.
         n_cols (int): The number of columns in the subplot grid.
 
@@ -22,15 +22,35 @@ def create_subplot_from_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = (10, 1
     total = m_rows * n_cols
     
     if total != len(data):
-        raise ValueError("The product of m_rows and n_cols must be equal to the number of 2d arrays in data.\nCurrently, m_rows * n_cols = {}, while arrays in data = {}".format(m_rows * n_cols, len(data)))
+        raise ValueError("The product of m_rows and n_cols must be equal to the number of 2D arrays in data.\nCurrently, m_rows * n_cols = {}, while arrays in data = {}".format(m_rows * n_cols, len(data)))
     
     pos_idx = range(1, total + 1)
     
+    if figsize is None:
+        figsize = (m_rows * 10, n_cols * 10)
     fig = plt.figure(figsize = figsize)
     
     for k in range(total):
         ax = fig.add_subplot(m_rows, n_cols, pos_idx[k])
         ax.imshow(data[k], cmap = "gray")
+    
+    plt.tight_layout()
+    
+def merge_multiple_segmentations_2d(segmentations):
+    '''
+    Merges multiple segmentations of a 2D image into a single image.
+    
+    Args:
+        segmenations (list of numpy.ndarray): A list of 2D numpy.ndarray.
+    Returns:
+        A 2D numpy.ndarray representing the merged segmentations.
+    '''
+    if len(segmentations) == 0:
+        raise ValueError("Segmentations must contain at least one segmentation.")
+    if len(segmentations) == 1:
+        return segmentations[0]
+    else:
+        return np.sum(segmentations, axis = 0)
 
 import os
 from skimage.io import imread
@@ -45,17 +65,24 @@ if __name__ == "__main__":
         is_inverted=False,
         delta=1,
         min_margin=10,
-        n_layers=3
+        n_layers=4,
         ) 
     l2d_obj.update()    
     
+    
+    # Show how merge_multiple_segmentations_2d works:
+    
     data = []
     for i in range(len(l2d_obj.get_segmentations())):
-        data.append(l2d_obj.get_segmentations()[i])
+        data.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
     
     # Create a subplot
-    create_subplot_from_2d_arrays(data, m_rows = 1, n_cols = 3, figsize = (10, 10))
-    
+    create_subplot_from_2d_arrays(
+            data, 
+            m_rows = 1, 
+            n_cols = len(l2d_obj.get_segmentations())
+        )
+
     # Display the plot
     plt.show()
     
