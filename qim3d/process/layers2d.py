@@ -47,8 +47,8 @@ class Layers2d:
         if data is not None:
             if not isinstance(data, np.ndarray):
                 raise TypeError("Data must be a numpy.ndarray.")
+            self.data = data.astype(np.int32)
         
-        self.data = data.astype(np.int32)
         self.is_inverted = is_inverted
         self.n_layers = n_layers
         self.delta = delta
