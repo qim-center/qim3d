@@ -18,6 +18,9 @@ def create_subplot_of_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
     Notes:
     - Subplots are organized in a m rows x n columns Grid.
     - The total number of subplots is equal to the product of m_rows and n_cols.
+    
+    Returns:
+        A tuple of (`fig`, `ax_list`), where fig is a matplotlib.pyplot.figure and ax_list is a list of matplotlib.pyplot.axes.
     '''
     total = m_rows * n_cols
     
@@ -30,11 +33,14 @@ def create_subplot_of_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
         figsize = (m_rows * 10, n_cols * 10)
     fig = plt.figure(figsize = figsize)
     
+    ax_list = []
+    
     for k in range(total):
-        ax = fig.add_subplot(m_rows, n_cols, pos_idx[k])
-        ax.imshow(data[k], cmap = "gray")
+        ax_list.append(fig.add_subplot(m_rows, n_cols, pos_idx[k]))
+        ax_list[k].imshow(data[k], cmap = "gray")
     
     plt.tight_layout()
+    return fig, ax_list
 
 def create_plot_of_2d_array(data, figsize = (10, 10)):
     '''
@@ -45,11 +51,14 @@ def create_plot_of_2d_array(data, figsize = (10, 10)):
         figsize (tuple of int): The figure size.
     Notes:
         - If data is not a list, it is converted to a list.
+    Returns:
+        A tuple of (`fig`, `ax`), where fig is a matplotlib.pyplot.figure and ax is a matplotlib.pyplot.axes.
     '''
     if not isinstance(data, list):
         data = [data]
     
-    create_subplot_of_2d_arrays(data, figsize = figsize)
+    fig, ax_list = create_subplot_of_2d_arrays(data, figsize = figsize)
+    return fig, ax_list[0]
     
 def merge_multiple_segmentations_2d(segmentations):
     '''
@@ -66,6 +75,40 @@ def merge_multiple_segmentations_2d(segmentations):
         return segmentations[0]
     else:
         return np.sum(segmentations, axis = 0)
+
+def add_line_to_plot(plot, line, line_color = None):
+    '''
+    Adds a line to plot.
+    
+    Args:
+        plot (matplotlib.pyplot): A matplotlib.pyplot.
+        line (numpy.ndarray): A 1D numpy.ndarray.
+    
+    Notes:
+        - The line is added on top of to the plot.
+    '''
+    if line_color is None:
+        plot.plot(line)
+    else:
+        plot.plot(line, color = line_color)
+
+def add_lines_to_plot(plot, lines, line_colors = None):
+    '''
+    Adds multiple lines to plot.
+    
+    Args:
+        plot (matplotlib.pyplot): A matplotlib.pyplot.
+        lines (list of numpy.ndarray): A list of 1D numpy.ndarray.
+    
+    Notes:
+        - The lines are added on top of to the plot.
+    '''
+    if line_colors is None:
+        for line in lines:
+            plot.plot(line)
+    else:
+        for i in range(len(lines)):
+            plot.plot(lines[i], color = line_colors[i])
 
 import os
 from skimage.io import imread
@@ -86,21 +129,31 @@ if __name__ == "__main__":
     
     
     # Show how merge_multiple_segmentations_2d works:
-    data = []
+    data_seg = []
     for i in range(len(l2d_obj.get_segmentations())):
-        data.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
-    
-    create_subplot_of_2d_arrays(
-            data, 
-            # m_rows = 1, 
-            # n_cols = len(l2d_obj.get_segmentations())
-            m_rows = len(l2d_obj.get_segmentations()), 
-            n_cols = 1
-        )
+        data_seg.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
     
     # Show how create_plot_from_2d_arrays works:
-    create_plot_of_2d_array(data[0])
-
-
+    fig1, ax1 = create_plot_of_2d_array(data_seg[0])
+    
+    data_lines = []
+    for i in range(len(l2d_obj.get_segmentation_lines())):
+        data_lines.append(l2d_obj.get_segmentation_lines()[i])
+    
+    # Show how add_line_to_plot works:
+    add_line_to_plot(ax1, data_lines[1])
+    
+    # Show how create_subplot_of_2d_arrays works:
+    fig3, ax_list = create_subplot_of_2d_arrays(
+            data_seg, 
+            m_rows = 1, 
+            n_cols = len(l2d_obj.get_segmentations())
+            # m_rows = len(l2d_obj.get_segmentations()), 
+            # n_cols = 1
+        )
+    
+    # Show how add_lines_to_plot works:
+    add_lines_to_plot(ax_list[1], data_lines[1:3])
+    
     plt.show()
     
