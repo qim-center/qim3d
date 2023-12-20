@@ -47,8 +47,8 @@ def create_plot_of_2d_array(data, figsize = (10, 10)):
     Creates a plot of a 2D array.
     
     Args:
-        data (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
-        figsize (tuple of int): The figure size.
+        `data` (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
+        `figsize` (tuple of int): The figure size.
     Notes:
         - If data is not a list, it is converted to a list.
     Returns:
@@ -65,7 +65,7 @@ def merge_multiple_segmentations_2d(segmentations):
     Merges multiple segmentations of a 2D image into a single image.
     
     Args:
-        segmenations (list of numpy.ndarray): A list of 2D numpy.ndarray.
+        `segmenations` (list of numpy.ndarray): A list of 2D numpy.ndarray.
     Returns:
         A 2D numpy.ndarray representing the merged segmentations.
     '''
@@ -76,39 +76,39 @@ def merge_multiple_segmentations_2d(segmentations):
     else:
         return np.sum(segmentations, axis = 0)
 
-def add_line_to_plot(plot, line, line_color = None):
+def add_line_to_plot(axes, line, line_color = None):
     '''
     Adds a line to plot.
     
     Args:
-        plot (matplotlib.pyplot): A matplotlib.pyplot.
-        line (numpy.ndarray): A 1D numpy.ndarray.
+        `axes` (matplotlib.pyplot.axes): A matplotlib.pyplot.axes.
+        `line` (numpy.ndarray): A 1D numpy.ndarray.
     
     Notes:
         - The line is added on top of to the plot.
     '''
     if line_color is None:
-        plot.plot(line)
+        axes.plot(line)
     else:
-        plot.plot(line, color = line_color)
+        axes.plot(line, color = line_color)
 
-def add_lines_to_plot(plot, lines, line_colors = None):
+def add_lines_to_plot(axes, lines, line_colors = None):
     '''
     Adds multiple lines to plot.
     
     Args:
-        plot (matplotlib.pyplot): A matplotlib.pyplot.
-        lines (list of numpy.ndarray): A list of 1D numpy.ndarray.
+        `axes` (matplotlib.pyplot.axes): A matplotlib.pyplot.axes.
+        `lines` (list of numpy.ndarray): A list of 1D numpy.ndarray.
     
     Notes:
         - The lines are added on top of to the plot.
     '''
     if line_colors is None:
         for line in lines:
-            plot.plot(line)
+            axes.plot(line)
     else:
         for i in range(len(lines)):
-            plot.plot(lines[i], color = line_colors[i])
+            axes.plot(lines[i], color = line_colors[i])
 
 import os
 from skimage.io import imread
