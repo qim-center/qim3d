@@ -186,6 +186,11 @@ class Interface:
         self.save_fig(fig, "iso3d.html")
 
         return fig, "iso3d.html"
+    
+    def remove_unused_file(self):
+        # Remove localthickness.tif file from working directory
+        # as it otherwise is not deleted
+        os.remove("iso3d.html")
 
     def create_interface(self):
         # Create gradio app
@@ -367,6 +372,7 @@ class Interface:
             # fmt: off
             btn_run.click(
                 fn=self.process, inputs=inputs, outputs=outputs).success(
+                fn=self.remove_unused_file).success(
                 fn=self.make_visible, inputs=None, outputs=plot_download)
             # fmt: on
 
