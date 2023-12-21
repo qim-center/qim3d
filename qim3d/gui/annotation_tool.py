@@ -170,7 +170,9 @@ class Interface:
                 fn=operations.save_mask,
                 inputs=output_masks,
                 outputs=[save_output, save_output],
-            )
+            ).success(
+                fn=lambda: os.remove('mask.tif')
+                ) # Remove mask file from working directory immediately after sending it to /tmp/gradio
 
             # Update 'Add mask' button interactivit according to the current count
             counts.change(
