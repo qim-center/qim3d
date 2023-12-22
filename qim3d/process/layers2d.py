@@ -1,5 +1,6 @@
 """Class for layered surface segmentation in 2D images."""
 import numpy as np
+from scipy import signal as sig
 import os
 from slgbuilder import GraphObject 
 from slgbuilder import MaxflowBuilder
@@ -277,7 +278,8 @@ class Layers2d:
         - A segmentation line is the minimum values along a given axis of a segmentation.\n
         - Each segmentation line is shifted by 0.5 to be in the middle of the pixel.
         '''
-        self.get_segmentation_lines().append(np.argmin(segmentation, axis = 0) - 0.5)
+        self.get_segmentation_lines().append(sig.medfilt(
+            np.argmin(segmentation, axis = 0), kernel_size = 3))
     
     def add_all_segmentation_lines_to_segmentation_lines(self):
         '''

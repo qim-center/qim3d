@@ -126,22 +126,21 @@ if __name__ == "__main__":
         n_layers=4,
         ) 
     l2d_obj.update()    
-    
-    
-    # Show how merge_multiple_segmentations_2d works:
-    data_seg = []
-    for i in range(len(l2d_obj.get_segmentations())):
-        data_seg.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
-    
+        
     # Show how create_plot_from_2d_arrays works:
-    fig1, ax1 = create_plot_of_2d_array(data_seg[0])
+    fig1, ax1 = create_plot_of_2d_array(l2d_obj.get_data())
     
     data_lines = []
     for i in range(len(l2d_obj.get_segmentation_lines())):
         data_lines.append(l2d_obj.get_segmentation_lines()[i])
     
     # Show how add_line_to_plot works:
-    add_line_to_plot(ax1, data_lines[1])
+    add_line_to_plot(ax1, data_lines[3])
+    
+    # Show how merge_multiple_segmentations_2d works:
+    data_seg = []
+    for i in range(len(l2d_obj.get_segmentations())):
+        data_seg.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
     
     # Show how create_subplot_of_2d_arrays works:
     fig3, ax_list = create_subplot_of_2d_arrays(
@@ -153,7 +152,11 @@ if __name__ == "__main__":
         )
     
     # Show how add_lines_to_plot works:
-    add_lines_to_plot(ax_list[1], data_lines[1:3])
+    add_lines_to_plot(ax_list[1], data_lines[0:3])
+    
+    print(data_lines[0][75:90])
+    
+    
     
     plt.show()
     
