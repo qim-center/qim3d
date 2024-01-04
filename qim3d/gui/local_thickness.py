@@ -90,7 +90,6 @@ class Interface:
             quiet=quiet,
             height=self.height,
             width=self.width,
-            show_tips=False,
         )
 
         return
@@ -272,6 +271,7 @@ class Interface:
                 fn=pipeline.output_viz, inputs=session, outputs=output_vol).success(
                 fn=pipeline.thickness_histogram, inputs=session, outputs=histogram).success(
                 fn=pipeline.save_lt, inputs=session, outputs=lt_output).success(
+                fn=pipeline.remove_unused_file).success(
                 fn=self.make_visible, inputs=None, outputs=lt_output)
 
 
@@ -420,9 +420,16 @@ class Pipeline:
         tifffile.imwrite(filename, session.vol_thickness)
 
         return filename
+    
+    def remove_unused_file(self):
+        # Remove localthickness.tif file from working directory
+        # as it otherwise is not deleted
+        os.remove('localthickness.tif')
 
+def run_interface(host = "0.0.0.0"):
+    gradio_interface = Interface().create_interface()
+    internal_tools.run_gradio_app(gradio_interface,host)
 
 if __name__ == "__main__":
     # Creates interface
-    gradio_interface = Interface().create_interface()
-    internal_tools.run_gradio_app(gradio_interface)
+    run_interface()

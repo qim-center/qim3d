@@ -629,8 +629,11 @@ class Pipeline:
 
         return vol_hist, bin_edges
 
+def run_interface(host = "0.0.0.0"):
+    gradio_interface = Interface().create_interface()
+    internal_tools.run_gradio_app(gradio_interface,host)
+
 
 if __name__ == "__main__":
     # Creates interface
-    gradio_interface = Interface().create_interface()
-    internal_tools.run_gradio_app(gradio_interface)
+    run_interface()
