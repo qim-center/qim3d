@@ -23,9 +23,11 @@ class Session:
         self.min_margin = 10
         self.n_layers = 4
         self.is_inverted = False
-        
+
+        self.l2d_obj = None
+
         #TODO: Add here the slice positions
-        #TODO: Add here the l2d_obj ? 
+
 
 class Interface:
     def __init__(self):
@@ -68,14 +70,23 @@ class Interface:
 
         return session
 
-    def update_session_slices(self, session, x_pos, y_pos, z_pos):
-        #TODO: Add here the update of the slices
+    #TODO: Add here the update of the slices
+    # def update_session_slices(self, session, x_pos, y_pos, z_pos):
+    #     return session
+    
+    def update_session_delta(self, session, delta):
+        session.delta = delta
         return session
     
-    def update_session_parameters(self, session, delta, min_margin, n_layers, is_inverted):
-        session.delta = delta
+    def update_session_min_margin(self, session, min_margin):
         session.min_margin = min_margin
+        return session
+    
+    def update_session_n_layers(self, session, n_layers):
         session.n_layers = n_layers
+        return session
+    
+    def update_session_is_inverted(self, session, is_inverted):
         session.is_inverted = is_inverted
         return session
     
@@ -95,19 +106,20 @@ class Interface:
         else:
             raise ValueError("Invalid path")
 
+    def set_relaunch_button(self):
+        # Sets the button to relaunch
+        return gr.update(
+            elem_classes="btn btn-run",
+            value=f"Relaunch",
+            interactive=True,
+        )
+
     def set_spinner(self, message):
         # spinner icon/shows the user something is happeing
         return gr.update(
             elem_classes="btn btn-spinner",
             value=f"{message}",
             interactive=False,
-        )
-
-    def set_relaunch_button(self):
-        return gr.update(
-            elem_classes="btn btn-run",
-            value=f"Relaunch",
-            interactive=True,
         )
 
     def create_interface(self):
@@ -191,12 +203,15 @@ class Interface:
                             visible=True,
                             elem_classes="rounded",
                         )
-            # Session
+            
             session = gr.State([])
+            
             pipeline = Pipeline()
+            
             inputs = [base_path, explorer, delta, min_margin, n_layers, is_inverted]
             spinner_loading = gr.Text("Loading data...", visible=False)
             spinner_running = gr.Text("Running pipeline...", visible=False)
+            spinner_updating = gr.Text("Updating layers...", visible=False)
 
             # fmt: off
             reload_base_path.click(fn=self.update_explorer,inputs=base_path, outputs=explorer)
@@ -213,63 +228,41 @@ class Interface:
             
             #TODO: Add here the update of the slices
             
-            #TODO: Add here the update of the parameters
+            delta.change(
+                fn=self.update_session_delta, inputs=[session, delta], outputs=session, show_progress=False).success(
+                fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
+                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
             
+            min_margin.change(
+                fn=self.update_session_min_margin, inputs=[session, min_margin], outputs=session, show_progress=False).success(
+                fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
+                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
+            
+            n_layers.change(
+                fn=self.update_session_n_layers, inputs=[session, n_layers], outputs=session, show_progress=False).success(
+                fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
+                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
+            
+            is_inverted.change(
+                fn=self.update_session_is_inverted, inputs=[session, is_inverted], outputs=session, show_progress=False).success(
+                fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
+                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)            
             # fmt: on
+            
         return gradio_interface
 
 
 class Pipeline:
     def __init__(self):
         self.figsize = (8, 8)
-
-    def plot_input_img(self, session, cmap="Greys_r"):
-        plt.close()
-        fig, ax = plt.subplots(figsize=self.figsize)
-
-        ax.imshow(session.data, interpolation="nearest", cmap=cmap)
-
-        # Adjustments
-        ax.axis("off")
-        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-
-        return fig
-
-    def plot_l2d_output(self, session):
-        l2d_obj = session.l2d_obj
-        fig, ax = qim3d.viz.layers2d.create_plot_of_2d_array(l2d_obj.get_data())
-
-        data_lines = []
-        for i in range(len(l2d_obj.get_segmentation_lines())):
-            data_lines.append(l2d_obj.get_segmentation_lines()[i])
-
-        # Show how add_line_to_plot works:
-        for line in data_lines:
-            qim3d.viz.layers2d.add_line_to_plot(ax, line)
-
-        # Adjustments
-        ax.axis("off")
-        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
-
-        return fig
-
-    def process_l2d(self, session):
-        data = session.data
-        # TODO Add here some checks to be user data is 2D
-
-        l2d_obj = l2d.Layers2d()
-        l2d_obj.prepare_update(
-            data=data,
-            is_inverted=session.is_inverted,
-            delta=session.delta,
-            min_margin=session.min_margin,
-            n_layers=session.n_layers,
-        )
-        l2d_obj.update()
-
-        session.l2d_obj = l2d_obj
-
-        return session
 
     def load_data(self, session):
         try:
@@ -284,6 +277,60 @@ class Pipeline:
             ) from error_message
 
         return session
+
+    def process_l2d(self, session):
+        data = session.data
+        # TODO Add here some checks to be user data is 2D
+
+        if session.l2d_obj is None:
+            l2d_obj = l2d.Layers2d()
+        else:
+            l2d_obj = session.l2d_obj
+            
+        l2d_obj.prepare_update(
+            data=data,
+            is_inverted=session.is_inverted,
+            delta=session.delta,
+            min_margin=session.min_margin,
+            n_layers=session.n_layers,
+        )
+        l2d_obj.update()
+
+        session.l2d_obj = l2d_obj
+
+        return session
+    
+    def plot_input_img(self, session, cmap="Greys_r"):
+        
+        plt.close()
+        fig, ax = plt.subplots(figsize=self.figsize)
+
+        ax.imshow(session.data, interpolation="nearest", cmap=cmap)
+
+        # Adjustments
+        ax.axis("off")
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+        return fig
+
+    def plot_l2d_output(self, session):
+        l2d_obj = session.l2d_obj
+        fig, ax = qim3d.viz.layers2d.create_plot_of_2d_array(l2d_obj.get_data_not_inverted())
+
+        data_lines = []
+        for i in range(len(l2d_obj.get_segmentation_lines())):
+            data_lines.append(l2d_obj.get_segmentation_lines()[i])
+
+        # Show how add_line_to_plot works:
+        for line in data_lines:
+            qim3d.viz.layers2d.add_line_to_plot(ax, line)
+
+        # Adjustments
+        ax.axis("off")
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+        return fig
+    
 
 def run_interface(host = "0.0.0.0"):
     gradio_interface = Interface().create_interface()
