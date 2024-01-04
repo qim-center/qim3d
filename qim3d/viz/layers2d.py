@@ -143,7 +143,7 @@ if __name__ == "__main__":
         data_seg.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
     
     # Show how create_subplot_of_2d_arrays works:
-    fig3, ax_list = create_subplot_of_2d_arrays(
+    fig2, ax_list = create_subplot_of_2d_arrays(
             data_seg, 
             m_rows = 1, 
             n_cols = len(l2d_obj.get_segmentations())
@@ -153,10 +153,6 @@ if __name__ == "__main__":
     
     # Show how add_lines_to_plot works:
     add_lines_to_plot(ax_list[1], data_lines[0:3])
-    
-    print(data_lines[0][75:90])
-    
-    
     
     plt.show()
     

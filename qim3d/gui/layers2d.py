@@ -22,7 +22,10 @@ class Session:
         self.delta = 1
         self.min_margin = 10
         self.n_layers = 4
-
+        self.is_inverted = False
+        
+        #TODO: Add here the slice positions
+        #TODO: Add here the l2d_obj ? 
 
 class Interface:
     def __init__(self):
@@ -30,18 +33,18 @@ class Interface:
 
         # Data examples
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        examples_dir = ["..", "img_examples"]
-        examples = [
-            "blobs_256x256x256.tif",
-            "cement_128x128x128.tif",
-            "bone_128x128x128.tif",
-            "slice_218x193.png",
-        ]
-        self.img_examples = []
-        for example in examples:
-            self.img_examples.append(
-                [os.path.join(current_dir, *examples_dir, example)]
-            )
+        # examples_dir = ["..", "img_examples"]
+        # examples = [
+        #     "blobs_256x256x256.tif",
+        #     "cement_128x128x128.tif",
+        #     "bone_128x128x128.tif",
+        #     "slice_218x193.png",
+        # ]
+        # self.img_examples = []
+        # for example in examples:
+        #     self.img_examples.append(
+        #         [os.path.join(current_dir, *examples_dir, example)]
+        #     )
 
         # CSS path
         self.css_path = os.path.join(current_dir, "..", "css", "gradio.css")
@@ -53,6 +56,7 @@ class Interface:
         session.delta = args[2]
         session.min_margin = args[3]
         session.n_layers = args[4]
+        session.is_inverted = args[5]
 
         # Get the file path from the explorer or base path
         if session.base_path and os.path.isfile(session.base_path):
@@ -64,7 +68,19 @@ class Interface:
 
         return session
 
+    def update_session_slices(self, session, x_pos, y_pos, z_pos):
+        #TODO: Add here the update of the slices
+        return session
+    
+    def update_session_parameters(self, session, delta, min_margin, n_layers, is_inverted):
+        session.delta = delta
+        session.min_margin = min_margin
+        session.n_layers = n_layers
+        session.is_inverted = is_inverted
+        return session
+    
     def update_explorer(self, new_path):
+        # Refresh the file explorer object
         new_path = os.path.expanduser(new_path)
 
         # In case we have a directory
@@ -80,6 +96,7 @@ class Interface:
             raise ValueError("Invalid path")
 
     def set_spinner(self, message):
+        # spinner icon/shows the user something is happeing
         return gr.update(
             elem_classes="btn btn-spinner",
             value=f"{message}",
@@ -122,27 +139,39 @@ class Interface:
                         elem_classes="h-256 hide-overflow",
                     )
 
-                    # TODO Add description for parameters in the interface
                     with gr.Row():
+                        # Add descriptions for parameters
                         delta = gr.Slider(
                             minimum=0.5,
                             maximum=1.0,
                             value=1,
                             step=0.01,
                             label="Delta value",
+                            info="Delta value for the gradient calculation. The lower the delta value is set, the more accurate the gradient calculation will be. However, the calculation takes longer to execute.", 
                         )
                     with gr.Row():
                         min_margin = gr.Slider(
-                            minimum=1, maximum=50, value=10, step=1, label="Min margin"
+                            minimum=1, 
+                            maximum=50, 
+                            value=10, 
+                            step=1, 
+                            label="Min margin",
+                            info="Minimum margin between layers to be detected in the image.",
                         )
                     with gr.Row():
                         n_layers = gr.Slider(
                             minimum=1,
-                            maximum=8,
+                            maximum=10,
                             value=4,
                             step=1,
                             label="Number of layers",
+                            info="Number of layers to be detected in the image",
                         )
+                    with gr.Row():
+                        is_inverted = gr.Checkbox(
+                            label="Is inverted",
+                            info="To invert the image before processing, click this box. By inverting the source image before processing, the algorithm effectively flips the gradient.",
+                        )                    
                     with gr.Row():
                         btn_run = gr.Button(
                             "Run Layers2D", elem_classes="btn btn-html btn-run"
@@ -165,7 +194,7 @@ class Interface:
             # Session
             session = gr.State([])
             pipeline = Pipeline()
-            inputs = [base_path, explorer, delta, min_margin, n_layers]
+            inputs = [base_path, explorer, delta, min_margin, n_layers, is_inverted]
             spinner_loading = gr.Text("Loading data...", visible=False)
             spinner_running = gr.Text("Running pipeline...", visible=False)
 
@@ -181,7 +210,11 @@ class Interface:
                 fn=pipeline.process_l2d, inputs=session, outputs=session).then(
                 fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
                 fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
-
+            
+            #TODO: Add here the update of the slices
+            
+            #TODO: Add here the update of the parameters
+            
             # fmt: on
         return gradio_interface
 
@@ -222,13 +255,12 @@ class Pipeline:
 
     def process_l2d(self, session):
         data = session.data
-        # TODO Add here some checks to be usre data is 2D
+        # TODO Add here some checks to be user data is 2D
 
-        # TODO: Handle "is_inverted" from gradio
         l2d_obj = l2d.Layers2d()
         l2d_obj.prepare_update(
             data=data,
-            is_inverted=False,
+            is_inverted=session.is_inverted,
             delta=session.delta,
             min_margin=session.min_margin,
             n_layers=session.n_layers,
