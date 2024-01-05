@@ -14,20 +14,32 @@ import matplotlib.pyplot as plt
 class Session:
     def __init__(self):
         self.data = None
-        self.virtual_stack = False
-        self.dataset_name = "exchange/data"
+        self.virtual_stack = True
+        self.dataset_name = ""
         self.base_path = None
         self.explorer = None
         self.file_path = None
-        self.delta = 1
-        self.min_margin = 10
-        self.n_layers = 4
+
+        # Layers2D objects
+        self.l2d_obj_x = None
+        self.l2d_obj_y = None
+        self.l2d_obj_z = None
+        
+        # Layers2D parameters
+        self.delta = 0
+        self.min_margin = 0
+        self.n_layers = 0
         self.is_inverted = False
-
-        self.l2d_obj = None
-
-        #TODO: Add here the slice positions
-
+        
+        # Axis positions
+        self.x_pos = 0
+        self.y_pos = 0
+        self.z_pos = 0
+        
+        # Slices
+        self.x_slice = None
+        self.y_slice = None
+        self.z_slice = None
 
 class Interface:
     def __init__(self):
@@ -60,6 +72,10 @@ class Interface:
         session.n_layers = args[4]
         session.is_inverted = args[5]
 
+        session.x_pos = args[6]
+        session.y_pos = args[7]
+        session.z_pos = args[8]
+        
         # Get the file path from the explorer or base path
         if session.base_path and os.path.isfile(session.base_path):
             session.file_path = session.base_path
@@ -70,9 +86,17 @@ class Interface:
 
         return session
 
-    #TODO: Add here the update of the slices
-    # def update_session_slices(self, session, x_pos, y_pos, z_pos):
-    #     return session
+    def update_session_x_pos(self, session, x_pos):
+        session.x_pos = x_pos
+        return session
+    
+    def update_session_y_pos(self, session, y_pos):
+        session.y_pos = y_pos
+        return session
+    
+    def update_session_z_pos(self, session, z_pos):
+        session.z_pos = z_pos
+        return session
     
     def update_session_delta(self, session, delta):
         session.delta = delta
@@ -127,6 +151,7 @@ class Interface:
             gr.Markdown(f"# {self.title}")
 
             with gr.Row():
+                # Control panel: Input data and parameters
                 with gr.Column(scale=1, min_width=320):
                     with gr.Row():
                         with gr.Column(scale=99, min_width=128):
@@ -150,17 +175,18 @@ class Interface:
                         interactive=True,
                         elem_classes="h-256 hide-overflow",
                     )
-
+                    
+                    # Parameters sliders and checkboxes
                     with gr.Row():
-                        # Add descriptions for parameters
                         delta = gr.Slider(
                             minimum=0.5,
                             maximum=1.0,
-                            value=1,
+                            value=0.75,
                             step=0.01,
                             label="Delta value",
                             info="Delta value for the gradient calculation. The lower the delta value is set, the more accurate the gradient calculation will be. However, the calculation takes longer to execute.", 
                         )
+                        
                     with gr.Row():
                         min_margin = gr.Slider(
                             minimum=1, 
@@ -170,91 +196,200 @@ class Interface:
                             label="Min margin",
                             info="Minimum margin between layers to be detected in the image.",
                         )
+
                     with gr.Row():
                         n_layers = gr.Slider(
                             minimum=1,
                             maximum=10,
-                            value=4,
+                            value=2,
                             step=1,
                             label="Number of layers",
                             info="Number of layers to be detected in the image",
                         )
+
                     with gr.Row():
                         is_inverted = gr.Checkbox(
                             label="Is inverted",
                             info="To invert the image before processing, click this box. By inverting the source image before processing, the algorithm effectively flips the gradient.",
                         )                    
+
+                    # Relaunch button
                     with gr.Row():
                         btn_run = gr.Button(
                             "Run Layers2D", elem_classes="btn btn-html btn-run"
                         )
 
+                # Output panel: Plots
                 with gr.Column(scale=2):
-                    with gr.Row():
-                        input_plot = gr.Plot(
+                    with gr.Row(): # Source image outputs
+                        input_plot_x = gr.Plot(
                             show_label=True,
-                            label="Source image",
+                            label="Slice along X-axis",
                             visible=True,
                             elem_classes="rounded",
                         )
-                        output_plot = gr.Plot(
+                        input_plot_y = gr.Plot(
                             show_label=True,
-                            label="Detected layers",
+                            label="Slice along Y-axis",
                             visible=True,
                             elem_classes="rounded",
+                        )
+                        input_plot_z = gr.Plot(
+                            show_label=True,
+                            label="Slice along Z-axis",
+                            visible=True,
+                            elem_classes="rounded",
+                        )
+                    with gr.Row(): # Detected layers outputs
+                        output_plot_x = gr.Plot(
+                            show_label=True,
+                            label="Detected layers X-axis",
+                            visible=True,
+                            elem_classes="rounded",
+                        )
+                        output_plot_y = gr.Plot(
+                            show_label=True,
+                            label="Detected layers Y-axis",
+                            visible=True,
+                            elem_classes="rounded",
+                        )
+                        output_plot_z = gr.Plot(
+                            show_label=True,
+                            label="Detected layers Z-axis",
+                            visible=True,
+                            elem_classes="rounded",
+                        )
+                    with gr.Row(): # Axis position sliders
+                        x_pos = gr.Slider(
+                            minimum=0,
+                            maximum=1,
+                            value=0.5,
+                            step=0.01,
+                            label="X position",
+                            info="The 3D image is sliced along the X-axis.",
+                        )
+                        y_pos = gr.Slider(
+                            minimum=0,
+                            maximum=1,
+                            value=0.5,
+                            step=0.01,
+                            label="Y position",
+                            info="The 3D image is sliced along the Y-axis.",
+                        )
+                        z_pos = gr.Slider(
+                            minimum=0,
+                            maximum=1,
+                            value=0.5,
+                            step=0.01,
+                            label="Z position",
+                            info="The 3D image is sliced along the Z-axis.",
                         )
             
             session = gr.State([])
             
             pipeline = Pipeline()
             
-            inputs = [base_path, explorer, delta, min_margin, n_layers, is_inverted]
+            inputs = [base_path, explorer, delta, min_margin, n_layers, is_inverted, x_pos, y_pos, z_pos]
             spinner_loading = gr.Text("Loading data...", visible=False)
             spinner_running = gr.Text("Running pipeline...", visible=False)
             spinner_updating = gr.Text("Updating layers...", visible=False)
 
             # fmt: off
-            reload_base_path.click(fn=self.update_explorer,inputs=base_path, outputs=explorer)
+            reload_base_path.click(
+                fn=self.update_explorer,inputs=base_path, outputs=explorer)
 
             btn_run.click(
                 fn=self.start_session, inputs=inputs, outputs=session).then(
                 fn=self.set_spinner, inputs=spinner_loading, outputs=btn_run).then(
                 fn=pipeline.load_data, inputs=session, outputs=session).then(
                 fn=self.set_spinner, inputs=spinner_running, outputs=btn_run).then(
-                fn=pipeline.plot_input_img, inputs=session, outputs=input_plot).then(
-                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
-                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_x, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_y, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_z, inputs=session, outputs=session).then(
+                fn=pipeline.plot_input_img_x, inputs=session, outputs=input_plot_x).then(
+                fn=pipeline.plot_input_img_y, inputs=session, outputs=input_plot_y).then(
+                fn=pipeline.plot_input_img_z, inputs=session, outputs=input_plot_z).then(
+                fn=pipeline.plot_l2d_output_x, inputs=session, outputs=output_plot_x).then(
+                fn=pipeline.plot_l2d_output_y, inputs=session, outputs=output_plot_y).then(
+                fn=pipeline.plot_l2d_output_z, inputs=session, outputs=output_plot_z).then(
                 fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
-            
-            #TODO: Add here the update of the slices
             
             delta.change(
                 fn=self.update_session_delta, inputs=[session, delta], outputs=session, show_progress=False).success(
                 fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
-                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
-                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_x, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_y, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_z, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output_x, inputs=session, outputs=output_plot_x).then(
+                fn=pipeline.plot_l2d_output_y, inputs=session, outputs=output_plot_y).then(
+                fn=pipeline.plot_l2d_output_z, inputs=session, outputs=output_plot_z).then(
                 fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
             
             min_margin.change(
                 fn=self.update_session_min_margin, inputs=[session, min_margin], outputs=session, show_progress=False).success(
                 fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
-                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
-                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_x, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_y, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_z, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output_x, inputs=session, outputs=output_plot_x).then(
+                fn=pipeline.plot_l2d_output_y, inputs=session, outputs=output_plot_y).then(
+                fn=pipeline.plot_l2d_output_z, inputs=session, outputs=output_plot_z).then(
                 fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
             
             n_layers.change(
                 fn=self.update_session_n_layers, inputs=[session, n_layers], outputs=session, show_progress=False).success(
                 fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
-                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
-                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_x, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_y, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_z, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output_x, inputs=session, outputs=output_plot_x).then(
+                fn=pipeline.plot_l2d_output_y, inputs=session, outputs=output_plot_y).then(
+                fn=pipeline.plot_l2d_output_z, inputs=session, outputs=output_plot_z).then(
                 fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
             
             is_inverted.change(
                 fn=self.update_session_is_inverted, inputs=[session, is_inverted], outputs=session, show_progress=False).success(
                 fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
-                fn=pipeline.process_l2d, inputs=session, outputs=session).then(
-                fn=pipeline.plot_l2d_output, inputs=session, outputs=output_plot).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_x, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_y, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_z, inputs=session, outputs=session).then(
+                fn=pipeline.plot_l2d_output_x, inputs=session, outputs=output_plot_x).then(
+                fn=pipeline.plot_l2d_output_y, inputs=session, outputs=output_plot_y).then(
+                fn=pipeline.plot_l2d_output_z, inputs=session, outputs=output_plot_z).then(
                 fn=self.set_relaunch_button, inputs=[], outputs=btn_run)            
+            
+            x_pos.change(
+                fn=self.update_session_x_pos, inputs=[session, x_pos], outputs=session, show_progress=False).success(
+                fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_x, inputs=session, outputs=session).then(
+                fn=pipeline.plot_input_img_x, inputs=session, outputs=input_plot_x).then(
+                fn=pipeline.plot_l2d_output_x, inputs=session, outputs=output_plot_x).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
+            
+            y_pos.change(
+                fn=self.update_session_y_pos, inputs=[session, y_pos], outputs=session, show_progress=False).success(
+                fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_y, inputs=session, outputs=session).then(
+                fn=pipeline.plot_input_img_y, inputs=session, outputs=input_plot_y).then(
+                fn=pipeline.plot_l2d_output_y, inputs=session, outputs=output_plot_y).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
+            
+            z_pos.change(
+                fn=self.update_session_z_pos, inputs=[session, z_pos], outputs=session, show_progress=False).success(
+                fn=self.set_spinner, inputs=spinner_updating, outputs=btn_run).then(
+                fn=pipeline.update_slices, inputs=session, outputs=session).then(
+                fn=pipeline.process_l2d_z, inputs=session, outputs=session).then(
+                fn=pipeline.plot_input_img_z, inputs=session, outputs=input_plot_z).then(
+                fn=pipeline.plot_l2d_output_z, inputs=session, outputs=output_plot_z).then(
+                fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
+            
             # fmt: on
             
         return gradio_interface
@@ -277,18 +412,25 @@ class Pipeline:
             ) from error_message
 
         return session
+    
+    def update_slices(self, session):
+        x_idx = int(session.x_pos * (session.data.shape[0] - 1))
+        y_idx = int(session.y_pos * (session.data.shape[1] - 1))
+        z_idx = int(session.z_pos * (session.data.shape[2] - 1))
+        
+        session.x_slice = session.data[x_idx, :, :]
+        session.y_slice = session.data[:, y_idx, :]
+        session.z_slice = session.data[:, :, z_idx]
+        return session
 
-    def process_l2d(self, session):
-        data = session.data
-        # TODO Add here some checks to be user data is 2D
-
-        if session.l2d_obj is None:
+    def process_l2d_x(self, session):
+        if session.l2d_obj_x is None:
             l2d_obj = l2d.Layers2d()
         else:
-            l2d_obj = session.l2d_obj
+            l2d_obj = session.l2d_obj_x
             
         l2d_obj.prepare_update(
-            data=data,
+            data=session.x_slice,
             is_inverted=session.is_inverted,
             delta=session.delta,
             min_margin=session.min_margin,
@@ -296,16 +438,64 @@ class Pipeline:
         )
         l2d_obj.update()
 
-        session.l2d_obj = l2d_obj
+        session.l2d_obj_x = l2d_obj
 
         return session
     
-    def plot_input_img(self, session, cmap="Greys_r"):
-        
+    def process_l2d_y(self, session):
+        if session.l2d_obj_y is None:
+            l2d_obj = l2d.Layers2d()
+        else:
+            l2d_obj = session.l2d_obj_y
+            
+        l2d_obj.prepare_update(
+            data=session.y_slice,
+            is_inverted=session.is_inverted,
+            delta=session.delta,
+            min_margin=session.min_margin,
+            n_layers=session.n_layers,
+        )
+        l2d_obj.update()
+
+        session.l2d_obj_y = l2d_obj
+
+        return session
+
+    def process_l2d_z(self, session):
+        if session.l2d_obj_z is None:
+            l2d_obj = l2d.Layers2d()
+        else:
+            l2d_obj = session.l2d_obj_z
+            
+        l2d_obj.prepare_update(
+            data=session.z_slice,
+            is_inverted=session.is_inverted,
+            delta=session.delta,
+            min_margin=session.min_margin,
+            n_layers=session.n_layers,
+        )
+        l2d_obj.update()
+
+        session.l2d_obj_z = l2d_obj
+
+        return session
+    
+    # Plotting functions
+    def plot_input_img_x(self, session, cmap="Greys_r"):
         plt.close()
         fig, ax = plt.subplots(figsize=self.figsize)
+        ax.imshow(session.x_slice, interpolation="nearest", cmap=cmap)
 
-        ax.imshow(session.data, interpolation="nearest", cmap=cmap)
+        # Adjustments
+        ax.axis("off")
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+        return fig
+    
+    def plot_input_img_y(self, session, cmap="Greys_r"):
+        plt.close()
+        fig, ax = plt.subplots(figsize=self.figsize)
+        ax.imshow(session.y_slice, interpolation="nearest", cmap=cmap)
 
         # Adjustments
         ax.axis("off")
@@ -313,8 +503,19 @@ class Pipeline:
 
         return fig
 
-    def plot_l2d_output(self, session):
-        l2d_obj = session.l2d_obj
+    def plot_input_img_z(self, session, cmap="Greys_r"):
+        plt.close()
+        fig, ax = plt.subplots(figsize=self.figsize)
+        ax.imshow(session.z_slice, interpolation="nearest", cmap=cmap)
+
+        # Adjustments
+        ax.axis("off")
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+        return fig
+
+    def plot_l2d_output_x(self, session):
+        l2d_obj = session.l2d_obj_x
         fig, ax = qim3d.viz.layers2d.create_plot_of_2d_array(l2d_obj.get_data_not_inverted())
 
         data_lines = []
@@ -331,6 +532,41 @@ class Pipeline:
 
         return fig
     
+    def plot_l2d_output_y(self, session):
+        l2d_obj = session.l2d_obj_y
+        fig, ax = qim3d.viz.layers2d.create_plot_of_2d_array(l2d_obj.get_data_not_inverted())
+
+        data_lines = []
+        for i in range(len(l2d_obj.get_segmentation_lines())):
+            data_lines.append(l2d_obj.get_segmentation_lines()[i])
+
+        # Show how add_line_to_plot works:
+        for line in data_lines:
+            qim3d.viz.layers2d.add_line_to_plot(ax, line)
+
+        # Adjustments
+        ax.axis("off")
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+        return fig
+    
+    def plot_l2d_output_z(self, session):
+        l2d_obj = session.l2d_obj_z
+        fig, ax = qim3d.viz.layers2d.create_plot_of_2d_array(l2d_obj.get_data_not_inverted())
+
+        data_lines = []
+        for i in range(len(l2d_obj.get_segmentation_lines())):
+            data_lines.append(l2d_obj.get_segmentation_lines()[i])
+
+        # Show how add_line_to_plot works:
+        for line in data_lines:
+            qim3d.viz.layers2d.add_line_to_plot(ax, line)
+
+        # Adjustments
+        ax.axis("off")
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+        return fig
 
 def run_interface(host = "0.0.0.0"):
     gradio_interface = Interface().create_interface()
@@ -339,8 +575,4 @@ def run_interface(host = "0.0.0.0"):
 if __name__ == "__main__":
     # Creates interface
     run_interface()
-
-# if __name__ == "__main__":
-#     # Creates interface
-#     gradio_interface = Interface().create_interface()
-#     internal_tools.run_gradio_app(gradio_interface)
+    
