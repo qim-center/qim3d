@@ -358,7 +358,8 @@ class Layers2d:
 
 import matplotlib.pyplot as plt
 from skimage.io import imread
-    
+from qim3d.io import load
+
 if __name__ == "__main__":        
     # Draw results.
     def visulise(l2d = None):
@@ -375,9 +376,26 @@ if __name__ == "__main__":
             ax.plot(line)
         plt.show()
     
+    # Data input
+    d_switch = False    
+    if d_switch:
+        path = os.path.join(os.getcwd(), "qim3d", "img_examples", "slice_218x193.png")
+        data = imread(path).astype(np.int32)
+    else:
+        path = os.path.join(os.getcwd(), "qim3d", "img_examples", "bone_128x128x128.tif")
+        data3D = load(
+                    path,
+                    virtual_stack=True,
+                    dataset_name="",
+                )
     
-    path = os.path.join(os.getcwd(), "qim3d", "img_examples", "slice_218x193.png")
-    data = imread(path).astype(np.int32)
+        x = data3D.shape[0]
+        y = data3D.shape[1]
+        z = data3D.shape[2]
+    
+        data = data3D[x//2, :, :] 
+        data = data3D[:, y//2, :]
+        data = data3D[:, :, z//2] 
 
     layers2d = Layers2d(data = data, n_layers = 3, delta = 1, min_margin = 10)
     layers2d.update()
