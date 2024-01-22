@@ -161,9 +161,9 @@ def prepare_datasets(path: str, val_fraction: float, model, augmentation):
         
     final_h, final_w = check_resize(orig_h, orig_w, resize, n_channels)
 
-    train_set = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, augmentation.transform_train))
-    val_set   = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, augmentation.transform_validation))
-    test_set  = Dataset(root_path = path, split='test', transform = augmentation.augment(final_h, final_w, augmentation.transform_test))
+    train_set = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, 'train'))
+    val_set   = Dataset(root_path = path, transform = augmentation.augment(final_h, final_w, 'validation'))
+    test_set  = Dataset(root_path = path, split='test', transform = augmentation.augment(final_h, final_w, 'test'))
 
     split_idx = int(np.floor(val_fraction * len(train_set)))
     indices = torch.randperm(len(train_set))
