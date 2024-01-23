@@ -304,3 +304,14 @@ def get_css():
         css_content = file.read()
     
     return css_content
+
+def find_one_image(path):
+    for entry in os.scandir(path):
+        if entry.is_dir():
+            return find_one_image(entry.path)
+        elif entry.is_file():
+            if any(entry.path.endswith(imagetype) for imagetype in ['jpg','jpeg','tif','tiff','png','PNG']):
+                return entry.path
+            
+    # If all folders/sub-folders do not have anything:
+    raise ValueError('No Images Found.')
