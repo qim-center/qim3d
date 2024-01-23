@@ -144,8 +144,10 @@ def model_summary(dataloader,model):
         print(summary)
     """
     images,_ = next(iter(dataloader)) 
-    batch_size = tuple(images.shape)
-    model_s = summary(model,batch_size,depth = torch.inf)
+    model_s = summary(model,
+        input_size = images.size(),
+        depth = torch.inf
+    )
     
     return model_s
 
