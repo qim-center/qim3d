@@ -43,12 +43,12 @@ class Interface:
 
         # In case we have a directory
         if os.path.isdir(new_path):
-            return gr.update(root=new_path, label=new_path)
+            return gr.update(root_dir=new_path, label=new_path)
 
         elif os.path.isfile(new_path):
             parent_dir = os.path.dirname(new_path)
             file_name = str(os.path.basename(new_path))
-            return gr.update(root=parent_dir, label=parent_dir, value=file_name)
+            return gr.update(root_dir=parent_dir, label=parent_dir, value=file_name)
 
         else:
             raise ValueError("Invalid path")
@@ -102,7 +102,7 @@ class Interface:
                             )
                     explorer = gr.FileExplorer(
                         glob="{*/,}{*.*}",
-                        root=os.getcwd(),
+                        root_dir=os.getcwd(),
                         label=os.getcwd(),
                         render=True,
                         file_count="single",

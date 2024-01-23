@@ -62,6 +62,11 @@ app = qim3d.gui.iso3d.Interface()
 app.launch()
 ```
 
+GUIs can also be launched using the Qim3D CLI:
+```
+$ qim3d gui --data-explorer
+```
+
 # Contributing
 Contributions to `qim3d` are welcome! If you find a bug, have a feature request, or would like to contribute code, please open an issue or submit a pull request.
 

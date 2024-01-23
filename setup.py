@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="qim3d",
-    version="0.2.0",
+    version="0.3.0",
     author="Felipe Delestro",
     author_email="fima@dtu.dk",
     description="QIM tools and user interfaces",
@@ -26,7 +26,7 @@ setup(
     classifiers=[
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Education",
         "Intended Audience :: Science/Research",
         "Natural Language :: English",
@@ -35,15 +35,15 @@ setup(
         "Topic :: Scientific/Engineering :: Visualization",
         "Topic :: Software Development :: User Interfaces",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.10",
     install_requires=[
         "albumentations>=1.3.1",
-        "gradio>=3.44.3",
+        "gradio>=4.15.0",
         "h5py>=3.9.0",
         "localthickness>=0.1.2",
-        "matplotlib>=3.7.1",
+        "matplotlib>=3.8.0",
         "monai>=1.2.0",
-        "numpy>=1.25.2",
+        "numpy>=1.26.0",
         "outputformat>=0.1.3",
         "Pillow>=10.0.1",
         "plotly>=5.14.1",
@@ -55,5 +55,6 @@ setup(
         "torchvision>=0.15.2",
         "torchinfo>=1.8.0",
         "tqdm>=4.65.0",
+        "nibabel>=5.2.0"
     ],
 )
