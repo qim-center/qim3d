@@ -31,7 +31,7 @@ class Augmentation:
                 ):
 
         if resize not in ['crop', 'reshape', 'padding']:
-            raise ValueError(f"Invalid resize type: {resize}. Use either 'crop', 'resize' or 'padding'.")
+            raise ValueError(f"Invalid resize type: {resize}. Use either 'crop', 'reshape' or 'padding'.")
 
         self.resize = resize
         self.mean = mean
