@@ -66,10 +66,14 @@ class DataLoader:
                 If 'self.virtual_stack' is True, returns a numpy.memmap object.
 
         """
+        # Get the number of TIFF series (some BigTIFF have multiple series)
+        with tifffile.TiffFile(path) as tif:
+            series = len(tif.series)
+
         if self.virtual_stack:
             vol = tifffile.memmap(path)
         else:
-            vol = tifffile.imread(path)
+            vol = tifffile.imread(path, key=range(series) if series>1 else None)
 
         log.info("Loaded shape: %s", vol.shape)
 
@@ -215,7 +219,7 @@ class DataLoader:
         """Load a TXRM/XRM/TXM file from the specified path.
 
         Args:
-            path (str): The path to the HDF5 file.
+            path (str): The path to the TXRM/XRM/TXM file.
 
         Returns:
             numpy.ndarray or tuple: The loaded volume.
@@ -412,7 +416,7 @@ def load(
         log_memory_info(data)
     else:
         # Only log if file type is not a np.ndarray, i.e., it is some kind of memmap object
-        if not isinstance( data[0] if isinstance(data,tuple) else data, np.ndarray ):
+        if not isinstance( type(data[0]) if isinstance(data,tuple) else type(data), np.ndarray ):
             log.info("Using virtual stack")
         else:
             log.warning('Virtual stack is not supported for this file format')
