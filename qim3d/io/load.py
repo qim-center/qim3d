@@ -342,11 +342,15 @@ class DataLoader:
 
         Args:
             path (str): The path to the VGI file.
+        
+        returns:
+            numpy.ndarray or tuple: The loaded volume.
+                If 'self.return_metadata' is True, returns a tuple (volume, metadata).
         """ 
         # makes sure path point to .VGI metadata file and not the .VOL file
         if path.endswith(".vol") and os.path.isfile(path.replace(".vol",".vgi")):
             path = path.replace(".vol",".vgi")
-            print("WARNING: Corrected path to .vgi metadata file from .vol file")
+            log.warning("Corrected path to .vgi metadata file from .vol file")
 
         meta_data = self._load_vgi_metadata(path)
 
