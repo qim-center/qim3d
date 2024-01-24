@@ -306,6 +306,7 @@ class DataLoader:
         with open(path, 'r') as f:
             for line in f:
                 line = line.strip()
+                # {NAME} is start of a new object, so should indent
                 if line.startswith('{') and line.endswith('}'):
                     section_name = line[1:-1]
                     current_section[section_name] = {}
@@ -313,6 +314,7 @@ class DataLoader:
                     current_section = current_section[section_name]
 
                     should_indent = True
+                # [NAME] is start of a section, so should not indent
                 elif line.startswith('[') and line.endswith(']'):
                     section_name = line[1:-1]
 
@@ -325,6 +327,7 @@ class DataLoader:
                     current_section = current_section[section_name]
 
                     should_indent = False
+                # = is a key value pair
                 elif '=' in line:
                     key, value = line.split('=', 1)
                     current_section[key.strip()] = value.strip()
@@ -397,7 +400,7 @@ class DataLoader:
 
         # Stringify path in case it is not already a string
         path = stringify_path(path)
-        
+
         # Load a file
         if os.path.isfile(path):
             # Choose the loader based on the file extension
