@@ -119,6 +119,29 @@ class DataSaver:
         # Save image
         nib.save(img, path)
 
+    def save_vol(self, path, data):
+        """ Save data to a VOL file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+
+        # Create custom .vgi metadata file
+        metadata = ""
+        metadata += "{volume1}\n"
+        metadata += "[file1]"
+        metadata += "Size = 1000 1000 766"
+        metadata += "datatype = float\n"
+        metadata += "Name = WFW_200kV_6W_1mmSn_6micro_1s.vol"
+
+        # Save metadata
+        with open(path[:-3] + ".vgi", "w") as f:
+            f.write(metadata)
+
+        # Save data using numpy in binary format
+        np.save(path[:-3] + ".vol", data)
+        
     def save(self, path, data):
         """Save data to the given path.
 
@@ -185,6 +208,12 @@ class DataSaver:
                         return self.save_tiff(path, data)
                     elif path.endswith((".nii","nii.gz")):
                         return self.save_nifti(path, data)
+                    elif path.endswith(("TXRM","XRM","TXM")):
+                        raise NotImplementedError("Saving TXRM files is not yet supported")
+                    elif path.endswith(("h5")):
+                        raise NotImplementedError("Saving HDF5 files is not yet supported")
+                    elif path.endswith((".vol",".vgi")):
+                        raise NotImplementedError("Saving VOL files is not yet supported")
                     else:
                         raise ValueError("Unsupported file format")
                 # If there is no file extension in the path

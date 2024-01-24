@@ -378,6 +378,8 @@ class DataLoader:
         match dt:
             case 'float':
                 dt = np.float32
+            case 'float32':
+                dt = np.float32
             case 'uint8':
                 dt = np.uint8
             case 'unsigned integer':
