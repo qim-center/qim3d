@@ -335,16 +335,40 @@ class DataLoader:
         return meta_data
 
     def load_vol(self, path):
-        """ Load a VOL/VGI file from the specified path
+        """ Load a VOL filed based on the VGI metadata file
 
         Args:
-            path (str): The path to the VOL/VGI file.
+            path (str): The path to the VGI file.
         """ 
-
         meta_data = self._load_vgi_metadata(path)
 
-        file_path =  meta_data['Volume1']["file1"]["Name"]
-        return None
+        # Extracts relevant information from the metadata
+        file_name =  meta_data['volume1']["file1"]["Name"]
+        path = path.rsplit('/', 1)[0]  # Remove characters after the last "/"
+        vol_path = os.path.join(path, file_name)
+        dims = meta_data['volume1']['file1']['Size']
+        dims = [int(n) for n in dims.split() if n.isdigit()]
+        
+        dt = meta_data['volume1']['file1']['Datatype']
+        match dt:
+            case 'float':
+                dt = np.float32
+            case 'uint8':
+                dt = np.uint8
+            case 'unsigned integer':
+                dt = np.uint16
+            case _:
+                raise ValueError(f"Unsupported data type: {dt}")
+        
+        vol = np.fromfile(vol_path, dtype=dt, count=np.prod(dims))
+        # Reshape and transposes the volume to match standard orientation
+        vol = np.reshape(vol, (dims[2], dims[0], dims[1]))
+        vol = vol.transpose((0, 2, 1))
+
+        if self.return_metadata:
+            return vol, meta_data
+        else:
+            return vol
 
     def load(self, path):
         """
@@ -368,7 +392,7 @@ class DataLoader:
 
         # Stringify path in case it is not already a string
         path = stringify_path(path)
-
+        print(os.path.isfile(path),path,path.endswith((".vgi")))
         # Load a file
         if os.path.isfile(path):
             # Choose the loader based on the file extension
