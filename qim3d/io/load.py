@@ -372,10 +372,11 @@ class DataLoader:
             case _:
                 raise ValueError(f"Unsupported data type: {dt}")
         
-        vol = np.fromfile(vol_path, dtype=dt, count=np.prod(dims))
-        # Reshape and transposes the volume to match standard orientation
-        vol = np.reshape(vol, (dims[2], dims[0], dims[1]))
-        vol = vol.transpose((0, 2, 1))
+        if self.virtual_stack:
+            vol = np.memmap(vol_path, dtype=dt, mode='r', shape=(dims[2], dims[0], dims[1]))
+        else:
+            vol = np.fromfile(vol_path, dtype=dt, count=np.prod(dims))
+            vol = np.reshape(vol, (dims[2], dims[0], dims[1]))
 
         if self.return_metadata:
             return vol, meta_data
