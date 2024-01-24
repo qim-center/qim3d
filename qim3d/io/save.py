@@ -1,8 +1,11 @@
 """Provides functionality for saving data to various file formats."""
 
 import os
-import tifffile
+
+import nibabel as nib
 import numpy as np
+import tifffile
+
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 
@@ -90,6 +93,32 @@ class DataSaver:
 
             log.info(f"Total of {no_slices} files saved following the pattern '{pattern_string}'")
 
+    def save_nifti(self, path, data):
+        """ Save data to a NIfTI file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+        # Create header
+        header = nib.Nifti1Header()
+        header.set_data_dtype(data.dtype)
+
+        # Create NIfTI image object
+        img = nib.Nifti1Image(data, np.eye(4), header)
+        
+        # nib does automatically compress if filetype ends with .gz
+        if self.compression and not path.endswith(".gz"):
+            path += ".gz"
+            log.warning("File extension '.gz' is added since compression is enabled.")
+
+        if not self.compression and path.endswith(".gz"):
+            path = path[:-3]
+            log.warning("File extension '.gz' is ignored since compression is disabled.")
+
+        # Save image
+        nib.save(img, path)
+
     def save(self, path, data):
         """Save data to the given path.
 
@@ -154,6 +183,8 @@ class DataSaver:
 
                     if path.endswith((".tif", ".tiff")):
                         return self.save_tiff(path, data)
+                    elif path.endswith((".nii","nii.gz")):
+                        return self.save_nifti(path, data)
                     else:
                         raise ValueError("Unsupported file format")
                 # If there is no file extension in the path
