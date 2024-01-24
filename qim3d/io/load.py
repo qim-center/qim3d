@@ -33,6 +33,7 @@ class DataLoader:
         load_h5(path): Load an HDF5 file from the specified path.
         load_tiff_stack(path): Load a stack of TIFF files from the specified path.
         load_txrm(path): Load a TXRM/TXM/XRM file from the specified path
+        load_vol(path): Load a VOL file from the specified path. Path should point to the .vgi metadata file
         load(path): Load a file or directory based on the given path
 
     Example:
@@ -300,6 +301,9 @@ class DataLoader:
 
         Args:
             path (str): The path to the VGI file.
+        
+        returns:
+            dict: The loaded metadata.
         """
         meta_data = {}
         current_section = meta_data
@@ -350,7 +354,7 @@ class DataLoader:
         returns:
             numpy.ndarray or tuple: The loaded volume.
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
-        """ 
+        """
         # makes sure path point to .VGI metadata file and not the .VOL file
         if path.endswith(".vol") and os.path.isfile(path.replace(".vol",".vgi")):
             path = path.replace(".vol",".vgi")
@@ -360,8 +364,8 @@ class DataLoader:
 
         # Extracts relevant information from the metadata
         file_name =  meta_data['volume1']["file1"]["Name"]
-        path = path.rsplit('/', 1)[0]  # Remove characters after the last "/"
-        vol_path = os.path.join(path, file_name)
+        path = path.rsplit('/', 1)[0]  # Remove characters after the last "/" to be replaced with .vol filename
+        vol_path = os.path.join(path, file_name) # .vol and .vgi files are assumed to be in the same directory
         dims = meta_data['volume1']['file1']['Size']
         dims = [int(n) for n in dims.split() if n.isdigit()]
         
