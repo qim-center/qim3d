@@ -1,17 +1,19 @@
 """Provides functionality for loading data from various file formats."""
 
-import os
 import difflib
-import tifffile
+import os
+from pathlib import Path
+
 import h5py
 import nibabel as nib
 import numpy as np
-from pathlib import Path
+import tifffile
+from PIL import Image, UnidentifiedImageError
+
 import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 from qim3d.utils.system import Memory
-from PIL import Image, UnidentifiedImageError
 
 
 class DataLoader:
@@ -289,6 +291,61 @@ class DataLoader:
         """
         return np.array(Image.open(path))
 
+    def _load_vgi_metadata(self, path):
+        """ Helper functions that loads metadata from a VGI file
+
+        Args:
+            path (str): The path to the VGI file.
+        """
+        meta_data = {}
+        current_section = meta_data
+        section_stack = [meta_data]
+
+        should_indent = True
+
+        with open(path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                if line.startswith('{') and line.endswith('}'):
+                    section_name = line[1:-1]
+                    current_section[section_name] = {}
+                    section_stack.append(current_section)
+                    current_section = current_section[section_name]
+
+                    should_indent = True
+                elif line.startswith('[') and line.endswith(']'):
+                    section_name = line[1:-1]
+
+                    if not should_indent:
+                        if len(section_stack) > 1:
+                            current_section = section_stack.pop()
+
+                    current_section[section_name] = {}
+                    section_stack.append(current_section)
+                    current_section = current_section[section_name]
+
+                    should_indent = False
+                elif '=' in line:
+                    key, value = line.split('=', 1)
+                    current_section[key.strip()] = value.strip()
+                elif line == '':
+                    if len(section_stack) > 1:
+                        current_section = section_stack.pop()
+
+        return meta_data
+
+    def load_vol(self, path):
+        """ Load a VOL/VGI file from the specified path
+
+        Args:
+            path (str): The path to the VOL/VGI file.
+        """ 
+
+        meta_data = self._load_vgi_metadata(path)
+
+        file_path =  meta_data['Volume1']["file1"]["Name"]
+        return None
+
     def load(self, path):
         """
         Load a file or directory based on the given path.
@@ -323,6 +380,8 @@ class DataLoader:
                 return self.load_txrm(path)
             elif path.endswith((".nii",".nii.gz")):
                 return self.load_nifti(path)
+            elif path.endswith((".vol",".vgi")):
+                return self.load_vol(path)
             else:
                 try:
                     return self.load_pil(path)
