@@ -351,14 +351,19 @@ class DataLoader:
         Args:
             path (str): The path to the VGI file.
         
+        Raises:
+            ValueError: If path points to a .vol file and not a .vgi file
+        
         returns:
-            numpy.ndarray or tuple: The loaded volume.
+            numpy.ndarray, numpy.memmap or tuple: The loaded volume.
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
         """
         # makes sure path point to .VGI metadata file and not the .VOL file
         if path.endswith(".vol") and os.path.isfile(path.replace(".vol",".vgi")):
             path = path.replace(".vol",".vgi")
             log.warning("Corrected path to .vgi metadata file from .vol file")
+        elif path.endswith(".vol") and not os.path.isfile(path.replace(".vol",".vgi")):
+            raise ValueError(f"Unsupported file format, should point to .vgi metadata file assumed to be in same folder as .vol file: {path}")
 
         meta_data = self._load_vgi_metadata(path)
 
