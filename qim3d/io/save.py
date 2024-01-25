@@ -2,8 +2,10 @@
 
 import os
 
+import h5py
 import nibabel as nib
 import numpy as np
+import PIL
 import tifffile
 
 from qim3d.io.logger import log
@@ -126,21 +128,55 @@ class DataSaver:
             path (str): The path to save file to
             data (numpy.ndarray): The data to be saved
         """
+        # No support for compression yet
+        if self.compression:
+            raise NotImplementedError("Saving compressed .vol files is not yet supported")
 
         # Create custom .vgi metadata file
         metadata = ""
-        metadata += "{volume1}\n"
-        metadata += "[file1]"
-        metadata += "Size = 1000 1000 766"
-        metadata += "datatype = float\n"
-        metadata += "Name = WFW_200kV_6W_1mmSn_6micro_1s.vol"
+        metadata += "{volume1}\n" # .vgi organization 
+        metadata += "[file1]\n" # .vgi organization 
+        metadata += "Size = {} {} {}\n".format(data.shape[1], data.shape[2], data.shape[0]) # Swap axes to match .vol format
+        metadata += "Datatype = {}\n".format(str(data.dtype)) # Get datatype as string
+        metadata += "Name = {}.vol\n".format(path.rsplit('/', 1)[-1][:-4]) # Get filename without extension
 
         # Save metadata
-        with open(path[:-3] + ".vgi", "w") as f:
+        with open(path[:-4] + ".vgi", "w") as f:
             f.write(metadata)
 
         # Save data using numpy in binary format
-        np.save(path[:-3] + ".vol", data)
+        data.tofile(path[:-4] + ".vol")
+
+    def save_h5(self, path, data):
+        """ Save data to a HDF5 file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+
+        with h5py.File(path, "w") as f:
+            f.create_dataset("dataset", data=data, compression="gzip" if self.compression else None)
+        
+    def save_PIL(self, path, data):
+        """ Save data to a PIL file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+        # No support for compression yet
+        if self.compression and path.endswith(".png"):
+            raise NotImplementedError("png does not support compression")
+        elif not self.compression and path.endswith((".jpeg",".jpg")):
+            raise NotImplementedError("jpeg does not support no compression")
+
+        # Convert to PIL image
+        img = PIL.Image.fromarray(data)
+
+        # Save image
+        img.save(path)
+
         
     def save(self, path, data):
         """Save data to the given path.
@@ -210,10 +246,12 @@ class DataSaver:
                         return self.save_nifti(path, data)
                     elif path.endswith(("TXRM","XRM","TXM")):
                         raise NotImplementedError("Saving TXRM files is not yet supported")
-                    elif path.endswith(("h5")):
-                        raise NotImplementedError("Saving HDF5 files is not yet supported")
+                    elif path.endswith((".h5")):
+                        return self.save_h5(path, data)
                     elif path.endswith((".vol",".vgi")):
-                        raise NotImplementedError("Saving VOL files is not yet supported")
+                        return self.save_vol(path, data)
+                    elif path.endswith((".jpeg",".jpg", ".png")):
+                        return self.save_PIL(path, data)
                     else:
                         raise ValueError("Unsupported file format")
                 # If there is no file extension in the path
