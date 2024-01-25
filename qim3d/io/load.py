@@ -384,6 +384,8 @@ class DataLoader:
                 dt = np.uint8
             case 'unsigned integer':
                 dt = np.uint16
+            case 'uint16':
+                dt = np.uint16
             case _:
                 raise ValueError(f"Unsupported data type: {dt}")
         
