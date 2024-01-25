@@ -172,7 +172,7 @@ class Dataset(torch.utils.data.Dataset):
 
             # if the first folder contains the targets:
             if any(ext in self.folder_names[0].lower() for ext in target_folder_names):
-                images = self.folders_names[1]
+                images = self.folder_names[1]
                 targets  = self.folder_names[0]
             
             # if the second folder contains the targets:
