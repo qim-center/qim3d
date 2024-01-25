@@ -145,7 +145,8 @@ class Dataset(torch.utils.data.Dataset):
             NotImplementedError: in Case 3, if a folder is found among the list of files.
             NotImplementedError: If the data structure does not fall into one of the three cases.
         '''
-        
+
+        # TODO: make sure user can specify extra mask names (add in prepare_datasets()?)
         target_folder_names = ['mask','label','target']
 
         # Case 1
@@ -186,6 +187,7 @@ class Dataset(torch.utils.data.Dataset):
             self.sample_targets = [target for target in sorted(Path(self.root_path,targets).iterdir())]
 
         # Case 3
+        # TODO: Make sure the split keeps the data from the same patient in either train, val or predict.
         elif self.n_folders > 2:
             sample_images = []
             sample_targets = []
