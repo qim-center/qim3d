@@ -19,14 +19,14 @@ def test_augment():
 def test_resize():
     resize_str = 'not valid resize'
 
-    with pytest.raises(ValueError,match = f"Invalid resize type: {resize_str}. Use either 'crop', 'resize' or 'padding'."):
+    with pytest.raises(ValueError,match = f"Invalid resize type: {resize_str}. Use either 'crop', 'reshape' or 'padding'."):
         augment_class = qim3d.utils.Augmentation(resize = resize_str)
 
 
 def test_levels():
     augment_class = qim3d.utils.Augmentation()
 
-    level = 'Not a valid level'
+    type = 'Not a valid level'
 
-    with pytest.raises(ValueError, match=f"Invalid transformation level: {level}. Please choose one of the following levels: None, 'light', 'moderate', 'heavy'."):
-        augment_class.augment(256,256,level)
+    with pytest.raises(ValueError, match=f"Invalid transformation level: {type}. Please choose one of the following levels: None, 'light', 'moderate', 'heavy'."):
+        augment_class.augment(256,256,type = type)

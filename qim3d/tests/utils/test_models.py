@@ -13,7 +13,8 @@ def test_model_summary():
 
     unet = qim3d.models.UNet(size = 'small')
     augment = qim3d.utils.Augmentation(transform_train=None)
-    train_set,val_set,test_set = qim3d.utils.prepare_datasets(folder,1/3,unet,augment)
+    train_set,val_set,test_set = qim3d.utils.prepare_datasets(folder,unet,augment,val_fraction=1/3,
+                                                              train_folder="train",test_folder="test")
 
     _,val_loader,_ = qim3d.utils.prepare_dataloaders(train_set,val_set,test_set,
                                                      batch_size = 1,num_workers = 1,
@@ -32,7 +33,8 @@ def test_inference():
 
     unet = qim3d.models.UNet(size = 'small')
     augment = qim3d.utils.Augmentation(transform_train=None)
-    train_set,_,_ = qim3d.utils.prepare_datasets(folder,1/3,unet,augment)
+    train_set,_,_ = qim3d.utils.prepare_datasets(folder,unet,augment,val_fraction=1/3,
+                                                 train_folder="train",test_folder="test")
 
     _, targ,_ = qim3d.utils.inference(train_set,unet)
 
@@ -94,7 +96,8 @@ def test_train_model():
     unet = qim3d.models.UNet(size = 'small')
     augment = qim3d.utils.Augmentation(transform_train=None)
     hyperparams = qim3d.models.Hyperparameters(unet,n_epochs=n_epochs)
-    train_set,val_set,test_set = qim3d.utils.prepare_datasets(folder,1/3,unet,augment)
+    train_set,val_set,test_set = qim3d.utils.prepare_datasets(folder,unet,augment,val_fraction=1/3,
+                                                              train_folder="train",test_folder="test")
     train_loader,val_loader,_ = qim3d.utils.prepare_dataloaders(train_set,val_set,test_set,
                                                                 batch_size = 1,num_workers = 1,
                                                                 pin_memory = False)

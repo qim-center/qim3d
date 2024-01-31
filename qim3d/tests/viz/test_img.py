@@ -30,7 +30,8 @@ def test_grid_pred():
 
     model = qim3d.models.UNet()
     augmentation = qim3d.utils.Augmentation()
-    train_set,_,_ = qim3d.utils.prepare_datasets(folder,0.1,model,augmentation)
+    train_set,_,_ = qim3d.utils.prepare_datasets(folder,model,augmentation,
+                                                 train_folder="train",test_folder="test")
 
     in_targ_pred = qim3d.utils.models.inference(train_set,model)
 

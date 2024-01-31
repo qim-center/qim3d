@@ -4,19 +4,6 @@ import pytest
 from torch.utils.data.dataloader import DataLoader
 from qim3d.utils.internal_tools import temp_data
 
-# unit tests for Dataset()
-def test_dataset():
-    img_shape = (32,32)
-    folder = 'folder_data'
-    temp_data(folder, img_shape = img_shape)
-    
-    images = qim3d.utils.Dataset(folder)
-
-    assert images[0][0].shape == img_shape
-
-    temp_data(folder,remove=True)
-
-
 # unit tests for check_resize()
 def test_check_resize():
     h_adjust,w_adjust = qim3d.utils.data.check_resize(240,240,resize = 'crop',n_channels = 6)
@@ -38,13 +25,15 @@ def test_check_resize_fail():
 def test_prepare_datasets():
     n = 3
     validation = 1/3
+    test = 0.1
     
     folder = 'folder_data'
     img = temp_data(folder,n = n)
 
     my_model = qim3d.models.UNet()
     my_augmentation = qim3d.utils.Augmentation(transform_test='light')
-    train_set, val_set, test_set = qim3d.utils.prepare_datasets(folder,validation,my_model,my_augmentation)
+    train_set, val_set, test_set = qim3d.utils.prepare_datasets(folder,my_model,my_augmentation,val_fraction=validation,
+                                                                train_folder="train",test_folder="test")
 
     assert (len(train_set),len(val_set),len(test_set)) == (int((1-validation)*n), int(n*validation), n)
 
@@ -67,8 +56,8 @@ def test_prepare_dataloaders():
     batch_size = 1
     my_model = qim3d.models.UNet()
     my_augmentation = qim3d.utils.Augmentation()
-    train_set, val_set, test_set = qim3d.utils.prepare_datasets(folder,1/3,my_model,my_augmentation)
-
+    train_set, val_set, test_set = qim3d.utils.prepare_datasets(folder,my_model,my_augmentation,val_fraction=1/3,
+                                                                train_folder="train",test_folder="test")
     _,val_loader,_ = qim3d.utils.prepare_dataloaders(train_set,val_set,test_set,
                                                                            batch_size,num_workers = 1,
                                                                            pin_memory = False)

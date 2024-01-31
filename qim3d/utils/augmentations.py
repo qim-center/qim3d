@@ -61,7 +61,9 @@ class Augmentation:
             level = self.transform_validation
         elif type=='test':
             level = self.transform_test
-
+        else:
+            level = type
+        
         # Check if one of standard augmentation levels
         if level not in [None,'light','moderate','heavy']:
             raise ValueError(f"Invalid transformation level: {level}. Please choose one of the following levels: None, 'light', 'moderate', 'heavy'.")
