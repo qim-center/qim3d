@@ -1,10 +1,13 @@
-import qim3d
-import tempfile
-import numpy as np
-import os
 import hashlib
-import pytest
+import os
 import re
+import tempfile
+
+import numpy as np
+import pytest
+
+import qim3d
+
 
 def test_image_exist():
     # Create random test image
@@ -220,6 +223,143 @@ def test_tiff_stack_slicing_dim():
             path2save = os.path.join(temp_dir,'dim'+str(dim))
             qim3d.io.save(path2save,test_image,basename='test',sliced_dim=dim)
             assert len(os.listdir(path2save))==test_image.shape[dim]
+
+def test_tiff_save_load():
+    # Create random test image
+    original_image = qim3d.examples.blobs_256x256
+
+    # Create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        image_path = os.path.join(temp_dir,"test_image.tif")
+
+        # Save to temporary directory
+        qim3d.io.save(image_path,original_image)
+
+        # Load from temporary directory
+        saved_image = qim3d.io.load(image_path)
+
+        # Get hashes
+        original_hash = calculate_image_hash(original_image)
+        saved_hash = calculate_image_hash(saved_image)
+
+        # Assert that original image is identical to saved_image
+        assert original_hash == saved_hash
+
+def test_vol_save_load():
+    # Create random test image
+    original_image = qim3d.examples.blobs_256x256x256
+
+    # Create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        image_path = os.path.join(temp_dir,"test_image.vol")
+
+        # Save to temporary directory
+        qim3d.io.save(image_path,original_image)
+
+        # Load from temporary directory
+        saved_image = qim3d.io.load(image_path)
+
+        # Get hashes
+        original_hash = calculate_image_hash(original_image)
+        saved_hash = calculate_image_hash(saved_image)
+
+        # Assert that original image is identical to saved_image
+        assert original_hash == saved_hash
+
+def test_pil_save_load():
+    # Create random test image
+    original_image = qim3d.examples.blobs_256x256
+
+    # Create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        image_path_png = os.path.join(temp_dir,"test_image.png")
+        image_path_jpg = os.path.join(temp_dir,"test_image.jpg")
+
+        # Save to temporary directory
+        qim3d.io.save(image_path_png,original_image)
+        qim3d.io.save(image_path_jpg,original_image, compression=True)
+
+        # Load from temporary directory
+        saved_image_png = qim3d.io.load(image_path_png)
+        saved_image_jpg = qim3d.io.load(image_path_jpg)
+
+        # Get hashes
+        original_hash = calculate_image_hash(original_image)
+        saved_png_hash = calculate_image_hash(saved_image_png)
+
+        # Assert that original image is identical to saved_image
+        assert original_hash == saved_png_hash
+        
+        # jpg is lossy so the hashes will not match, checks that the image is the same size and similar values
+        assert original_image.shape == saved_image_jpg.shape
+
+def test_nifti_save_load():
+    # Create random test image
+    original_image = qim3d.examples.blobs_256x256
+
+    # Create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        image_path = os.path.join(temp_dir,"test_image.nii")
+        image_path_compressed = os.path.join(temp_dir,"test_image_compressed.nii.gz")
+
+        # Save to temporary directory
+        qim3d.io.save(image_path,original_image)
+        qim3d.io.save(image_path_compressed,original_image, compression=True)
+
+        # Load from temporary directory
+        saved_image = qim3d.io.load(image_path)
+        saved_image_compressed = qim3d.io.load(image_path_compressed)
+
+        # Get hashes
+        original_hash = calculate_image_hash(original_image)
+        saved_hash = calculate_image_hash(saved_image)
+        saved_compressed_hash = calculate_image_hash(saved_image_compressed)
+
+        # Assert that original image is identical to saved_image
+        assert original_hash == saved_hash
+        assert original_hash == saved_compressed_hash
+
+        # Compute file sizes
+        file_size = os.path.getsize(image_path)
+        compressed_file_size = os.path.getsize(image_path_compressed)
+
+        # Assert that compressed file size is smaller than non-compressed file size
+        assert compressed_file_size < file_size
+
+
+def test_h5_save_load():
+    # Create random test image
+    original_image = qim3d.examples.blobs_256x256x256
+
+    # Create temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        image_path = os.path.join(temp_dir,"test_image.h5")
+        image_path_compressed = os.path.join(temp_dir,"test_image_compressed.nii.gz")
+
+        # Save to temporary directory
+        qim3d.io.save(image_path,original_image)
+        qim3d.io.save(image_path_compressed,original_image, compression=True)
+
+        # Load from temporary directory
+        saved_image = qim3d.io.load(image_path)
+        saved_image_compressed = qim3d.io.load(image_path_compressed)
+
+        # Get hashes
+        original_hash = calculate_image_hash(original_image)
+        saved_hash = calculate_image_hash(saved_image)
+        saved_compressed_hash = calculate_image_hash(saved_image_compressed)
+
+        # Assert that original image is identical to saved_image
+        # Assert that original image is identical to saved_image
+        assert original_hash == saved_hash
+        assert original_hash == saved_compressed_hash
+
+        # Compute file sizes
+        file_size = os.path.getsize(image_path)
+        compressed_file_size = os.path.getsize(image_path_compressed)
+
+        # Assert that compressed file size is smaller than non-compressed file size
+        assert compressed_file_size < file_size
 
 def calculate_image_hash(image): 
     image_bytes = image.tobytes()

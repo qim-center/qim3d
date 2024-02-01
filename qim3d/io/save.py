@@ -1,8 +1,13 @@
 """Provides functionality for saving data to various file formats."""
 
 import os
-import tifffile
+
+import h5py
+import nibabel as nib
 import numpy as np
+import PIL
+import tifffile
+
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 
@@ -90,6 +95,89 @@ class DataSaver:
 
             log.info(f"Total of {no_slices} files saved following the pattern '{pattern_string}'")
 
+    def save_nifti(self, path, data):
+        """ Save data to a NIfTI file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+        # Create header
+        header = nib.Nifti1Header()
+        header.set_data_dtype(data.dtype)
+
+        # Create NIfTI image object
+        img = nib.Nifti1Image(data, np.eye(4), header)
+        
+        # nib does automatically compress if filetype ends with .gz
+        if self.compression and not path.endswith(".gz"):
+            path += ".gz"
+            log.warning("File extension '.gz' is added since compression is enabled.")
+
+        if not self.compression and path.endswith(".gz"):
+            path = path[:-3]
+            log.warning("File extension '.gz' is ignored since compression is disabled.")
+
+        # Save image
+        nib.save(img, path)
+
+    def save_vol(self, path, data):
+        """ Save data to a VOL file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+        # No support for compression yet
+        if self.compression:
+            raise NotImplementedError("Saving compressed .vol files is not yet supported")
+
+        # Create custom .vgi metadata file
+        metadata = ""
+        metadata += "{volume1}\n" # .vgi organization 
+        metadata += "[file1]\n" # .vgi organization 
+        metadata += "Size = {} {} {}\n".format(data.shape[1], data.shape[2], data.shape[0]) # Swap axes to match .vol format
+        metadata += "Datatype = {}\n".format(str(data.dtype)) # Get datatype as string
+        metadata += "Name = {}.vol\n".format(path.rsplit('/', 1)[-1][:-4]) # Get filename without extension
+
+        # Save metadata
+        with open(path[:-4] + ".vgi", "w") as f:
+            f.write(metadata)
+
+        # Save data using numpy in binary format
+        data.tofile(path[:-4] + ".vol")
+
+    def save_h5(self, path, data):
+        """ Save data to a HDF5 file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+
+        with h5py.File(path, "w") as f:
+            f.create_dataset("dataset", data=data, compression="gzip" if self.compression else None)
+        
+    def save_PIL(self, path, data):
+        """ Save data to a PIL file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+        # No support for compression yet
+        if self.compression and path.endswith(".png"):
+            raise NotImplementedError("png does not support compression")
+        elif not self.compression and path.endswith((".jpeg",".jpg")):
+            raise NotImplementedError("jpeg does not support no compression")
+
+        # Convert to PIL image
+        img = PIL.Image.fromarray(data)
+
+        # Save image
+        img.save(path)
+
+        
     def save(self, path, data):
         """Save data to the given path.
 
@@ -154,6 +242,16 @@ class DataSaver:
 
                     if path.endswith((".tif", ".tiff")):
                         return self.save_tiff(path, data)
+                    elif path.endswith((".nii","nii.gz")):
+                        return self.save_nifti(path, data)
+                    elif path.endswith(("TXRM","XRM","TXM")):
+                        raise NotImplementedError("Saving TXRM files is not yet supported")
+                    elif path.endswith((".h5")):
+                        return self.save_h5(path, data)
+                    elif path.endswith((".vol",".vgi")):
+                        return self.save_vol(path, data)
+                    elif path.endswith((".jpeg",".jpg", ".png")):
+                        return self.save_PIL(path, data)
                     else:
                         raise ValueError("Unsupported file format")
                 # If there is no file extension in the path
