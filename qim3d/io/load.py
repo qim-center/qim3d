@@ -1,17 +1,19 @@
 """Provides functionality for loading data from various file formats."""
 
-import os
 import difflib
-import tifffile
+import os
+from pathlib import Path
+
 import h5py
 import nibabel as nib
 import numpy as np
-from pathlib import Path
+import tifffile
+from PIL import Image, UnidentifiedImageError
+
 import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 from qim3d.utils.system import Memory
-from PIL import Image, UnidentifiedImageError
 
 
 class DataLoader:
@@ -31,6 +33,7 @@ class DataLoader:
         load_h5(path): Load an HDF5 file from the specified path.
         load_tiff_stack(path): Load a stack of TIFF files from the specified path.
         load_txrm(path): Load a TXRM/TXM/XRM file from the specified path
+        load_vol(path): Load a VOL file from the specified path. Path should point to the .vgi metadata file
         load(path): Load a file or directory based on the given path
 
     Example:
@@ -293,6 +296,106 @@ class DataLoader:
         """
         return np.array(Image.open(path))
 
+    def _load_vgi_metadata(self, path):
+        """ Helper functions that loads metadata from a VGI file
+
+        Args:
+            path (str): The path to the VGI file.
+        
+        returns:
+            dict: The loaded metadata.
+        """
+        meta_data = {}
+        current_section = meta_data
+        section_stack = [meta_data]
+
+        should_indent = True
+
+        with open(path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                # {NAME} is start of a new object, so should indent
+                if line.startswith('{') and line.endswith('}'):
+                    section_name = line[1:-1]
+                    current_section[section_name] = {}
+                    section_stack.append(current_section)
+                    current_section = current_section[section_name]
+
+                    should_indent = True
+                # [NAME] is start of a section, so should not indent
+                elif line.startswith('[') and line.endswith(']'):
+                    section_name = line[1:-1]
+
+                    if not should_indent:
+                        if len(section_stack) > 1:
+                            current_section = section_stack.pop()
+
+                    current_section[section_name] = {}
+                    section_stack.append(current_section)
+                    current_section = current_section[section_name]
+
+                    should_indent = False
+                # = is a key value pair
+                elif '=' in line:
+                    key, value = line.split('=', 1)
+                    current_section[key.strip()] = value.strip()
+                elif line == '':
+                    if len(section_stack) > 1:
+                        current_section = section_stack.pop()
+
+        return meta_data
+
+    def load_vol(self, path):
+        """ Load a VOL filed based on the VGI metadata file
+
+        Args:
+            path (str): The path to the VGI file.
+        
+        Raises:
+            ValueError: If path points to a .vol file and not a .vgi file
+        
+        returns:
+            numpy.ndarray, numpy.memmap or tuple: The loaded volume.
+                If 'self.return_metadata' is True, returns a tuple (volume, metadata).
+        """
+        # makes sure path point to .VGI metadata file and not the .VOL file
+        if path.endswith(".vol") and os.path.isfile(path.replace(".vol",".vgi")):
+            path = path.replace(".vol",".vgi")
+            log.warning("Corrected path to .vgi metadata file from .vol file")
+        elif path.endswith(".vol") and not os.path.isfile(path.replace(".vol",".vgi")):
+            raise ValueError(f"Unsupported file format, should point to .vgi metadata file assumed to be in same folder as .vol file: {path}")
+
+        meta_data = self._load_vgi_metadata(path)
+
+        # Extracts relevant information from the metadata
+        file_name =  meta_data['volume1']["file1"]["Name"]
+        path = path.rsplit('/', 1)[0]  # Remove characters after the last "/" to be replaced with .vol filename
+        vol_path = os.path.join(path, file_name) # .vol and .vgi files are assumed to be in the same directory
+        dims = meta_data['volume1']['file1']['Size']
+        dims = [int(n) for n in dims.split() if n.isdigit()]
+        
+        dt = meta_data['volume1']['file1']['Datatype']
+        match dt:
+            case 'float':
+                dt = np.float32
+            case 'uint8':
+                dt = np.uint8
+            case 'unsigned integer':
+                dt = np.uint16
+            case _:
+                raise ValueError(f"Unsupported data type: {dt}")
+        
+        if self.virtual_stack:
+            vol = np.memmap(vol_path, dtype=dt, mode='r', shape=(dims[2], dims[0], dims[1]))
+        else:
+            vol = np.fromfile(vol_path, dtype=dt, count=np.prod(dims))
+            vol = np.reshape(vol, (dims[2], dims[0], dims[1]))
+
+        if self.return_metadata:
+            return vol, meta_data
+        else:
+            return vol
+
     def load(self, path):
         """
         Load a file or directory based on the given path.
@@ -327,6 +430,8 @@ class DataLoader:
                 return self.load_txrm(path)
             elif path.endswith((".nii",".nii.gz")):
                 return self.load_nifti(path)
+            elif path.endswith((".vol",".vgi")):
+                return self.load_vol(path)
             else:
                 try:
                     return self.load_pil(path)
