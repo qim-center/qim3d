@@ -1,11 +1,14 @@
 """ Provides a collection of visualization functions."""
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib import colormaps
-import torch
 import numpy as np
-from qim3d.io.logger import log
+import torch
+from matplotlib import colormaps
+from matplotlib.colors import LinearSegmentedColormap
+
 import qim3d.io
+from qim3d.io.logger import log
+from qim3d.utils.connected_components import ConnectedComponents
+
 
 def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5, show = False):
     """Displays an overview grid of images, labels, and masks (if they exist).
@@ -293,6 +296,44 @@ def slice_viz(input, position = None, n_slices = 5, cmap = "viridis", axis = Fal
         ax.set_title(f'Slice {height[col]}', fontsize=6*img_height)
         if not axis:
             ax.axis('off')
+    
+    if show:
+        plt.show()
+    plt.close()
+
+    return fig
+
+def plot_connected_components(connected_components: ConnectedComponents, show=False):
+    """ Plots the connected components in 3D.
+
+    Args:
+        connected_components (ConnectedComponents): The connected components class from the qim3d.utils.connected_components module.
+        show (bool, optional): If matplotlib should show the plot. Defaults to False.
+
+    Returns:
+        matplotlib.pyplot: the 3D plot of the connected components.
+    """
+    # Begin plotting
+    fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
+
+    # Define default color theme
+    colors = plt.cm.tab10(np.linspace(0, 1, connected_components.num_connected_components + 1))
+
+    # Plot each component with a different color
+    for label_num in range(1, connected_components.num_connected_components + 1):
+        # Find the voxels that belong to the current component
+        component_voxels = connected_components.get_connected_component(label_num)
+        
+        # Plot each voxel of the component
+        for voxel in zip(*component_voxels.nonzero()):
+            x, y, z = voxel
+            ax.bar3d(x, y, z, 1, 1, 1, color=colors[label_num], shade=True, alpha=0.5)
+
+    # Set labels and titles if necessary
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
+    ax.set_title('3D Visualization of Connected Components')
     
     if show:
         plt.show()

@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.ndimage import label
 
+# TODO: implement find_objects and get_bounding_boxes methods
 
 class ConnectedComponents:
     def __init__(self, connected_components, num_connected_components):
@@ -44,15 +45,14 @@ class ConnectedComponents:
         Returns:
             np.ndarray: The connected component as a binary mask.
         """
-        assert 1 <= index <= self._num_connected_components, "Index out of range."
-
-        if index:
-            return self._connected_components == index
+        if index is None:
+            return self.connected_components == np.random.randint(1, self.num_connected_components + 1)
         else:
-            return self._connected_components == np.random.randint(1, self._num_connected_components + 1)
+            assert 1 <= index <= self.num_connected_components, "Index out of range."
+            return self.connected_components == index
 
 
-def get_3d_connected_components(image, connectivity=1):
+def get_3d_connected_components(image):
     """Get the connected components of a 3D binary image.
 
     Args:
@@ -62,5 +62,5 @@ def get_3d_connected_components(image, connectivity=1):
     Returns:
         class: Returns class object of the connected components.
     """
-    connected_components, num_connected_components = label(image, connectivity)
+    connected_components, num_connected_components = label(image)
     return ConnectedComponents(connected_components, num_connected_components)
