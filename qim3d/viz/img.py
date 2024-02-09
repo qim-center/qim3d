@@ -308,7 +308,6 @@ def plot_connected_components(connected_components: ConnectedComponents, **kwarg
 
     Args:
         connected_components (ConnectedComponents): The connected components class from the qim3d.utils.connected_components module.
-        show (bool, optional): If matplotlib should show the plot. Defaults to False.
         **kwargs: Additional keyword arguments to pass to qim3d.viz.img.slice_viz.
 
     Returns:
