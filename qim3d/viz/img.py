@@ -303,40 +303,16 @@ def slice_viz(input, position = None, n_slices = 5, cmap = "viridis", axis = Fal
 
     return fig
 
-def plot_connected_components(connected_components: ConnectedComponents, show=False):
-    """ Plots the connected components in 3D.
+def plot_connected_components(connected_components: ConnectedComponents, **kwargs):
+    """ Plots connected components from the ConnectedComponents class as 2d slices.
 
     Args:
         connected_components (ConnectedComponents): The connected components class from the qim3d.utils.connected_components module.
         show (bool, optional): If matplotlib should show the plot. Defaults to False.
+        **kwargs: Additional keyword arguments to pass to qim3d.viz.img.slice_viz.
 
     Returns:
         matplotlib.pyplot: the 3D plot of the connected components.
     """
-    # Begin plotting
-    fig, ax = plt.subplots(subplot_kw=dict(projection='3d'))
-
-    # Define default color theme
-    colors = plt.cm.tab10(np.linspace(0, 1, connected_components.num_connected_components + 1))
-
-    # Plot each component with a different color
-    for label_num in range(1, connected_components.num_connected_components + 1):
-        # Find the voxels that belong to the current component
-        component_voxels = connected_components.get_connected_component(label_num)
-        
-        # Plot each voxel of the component
-        for voxel in zip(*component_voxels.nonzero()):
-            x, y, z = voxel
-            ax.bar3d(x, y, z, 1, 1, 1, color=colors[label_num], shade=True, alpha=0.5)
-
-    # Set labels and titles if necessary
-    ax.set_xlabel('X axis')
-    ax.set_ylabel('Y axis')
-    ax.set_zlabel('Z axis')
-    ax.set_title('3D Visualization of Connected Components')
-    
-    if show:
-        plt.show()
-    plt.close()
-
+    fig = slice_viz(connected_components.connected_components, **kwargs)
     return fig

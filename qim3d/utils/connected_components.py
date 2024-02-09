@@ -1,7 +1,7 @@
 import numpy as np
-from scipy.ndimage import label
+import torch
+from scipy.ndimage import find_objects, label
 
-# TODO: implement find_objects and get_bounding_boxes methods
 
 class ConnectedComponents:
     def __init__(self, connected_components, num_connected_components):
@@ -36,7 +36,7 @@ class ConnectedComponents:
         return self._num_connected_components
 
     def get_connected_component(self, index=None):
-        """ 
+        """
         Get the connected component with the given index, if index is None selects a random component.
 
         Args:
@@ -46,21 +46,44 @@ class ConnectedComponents:
             np.ndarray: The connected component as a binary mask.
         """
         if index is None:
-            return self.connected_components == np.random.randint(1, self.num_connected_components + 1)
+            return self.connected_components == np.random.randint(
+                1, self.num_connected_components + 1
+            )
         else:
             assert 1 <= index <= self.num_connected_components, "Index out of range."
             return self.connected_components == index
 
+    def get_bounding_box(self, index=None):
+        """Get the bounding boxes of the connected components.
 
-def get_3d_connected_components(image):
+        Args:
+            index (int, optional): The index of the connected component. If none selects all components.
+
+        Returns:
+            list: A list of bounding boxes.
+        """
+
+        if index:
+            assert 1 <= index <= self.num_connected_components, "Index out of range."
+            return find_objects(self.connected_components == index)
+        else:
+            return find_objects(self.connected_components)
+
+
+def get_3d_connected_components(image: np.ndarray | torch.Tensor):
     """Get the connected components of a 3D binary image.
 
     Args:
-        image (np.ndarray): The 3D binary image.
-        connectivity (int, optional): The connectivity of the connected components. Defaults to 1.
+        image (np.ndarray | torch.Tensor): An array-like object to be labeled. Any non-zero values in `input` are
+            counted as features and zero values are considered the background.
 
     Returns:
         class: Returns class object of the connected components.
     """
+    if image.ndim != 3:
+        raise ValueError(
+            f"Given array is not a volume! Current dimension: {image.ndim}"
+        )
+
     connected_components, num_connected_components = label(image)
     return ConnectedComponents(connected_components, num_connected_components)
