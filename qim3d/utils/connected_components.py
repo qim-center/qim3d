@@ -88,10 +88,5 @@ def get_3d_connected_components(image: np.ndarray | torch.Tensor):
     Returns:
         class: Returns class object of the connected components.
     """
-    if image.ndim != 3:
-        raise ValueError(
-            f"Given array is not a volume! Current dimension: {image.ndim}"
-        )
-
     connected_components, num_connected_components = label(image)
     return ConnectedComponents(connected_components, num_connected_components)
