@@ -7,6 +7,11 @@ from pathlib import Path
 import h5py
 import nibabel as nib
 import numpy as np
+import olefile
+import struct
+import re
+import dask.array as da
+from pathlib import Path
 import tifffile
 from PIL import Image, UnidentifiedImageError
 
@@ -14,7 +19,6 @@ import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 from qim3d.utils.system import Memory
-
 
 class DataLoader:
     """Utility class for loading data from different file formats.
@@ -217,16 +221,17 @@ class DataLoader:
         log.info("Loaded shape: %s", vol.shape)
 
         return vol
-
+        
     def load_txrm(self, path):
         """Load a TXRM/XRM/TXM file from the specified path.
 
         Args:
-            path (str): The path to the TXRM/XRM/TXM file.
+            path (str): The path to the TXRM/TXM file.
 
         Returns:
-            numpy.ndarray or tuple: The loaded volume.
-                If 'self.return_metadata' is True, returns a tuple (volume, metadata).
+            numpy.ndarray, dask.array.core.Array or tuple: The loaded volume.
+                If 'virtual_stack' is True, returns a dask.array.core.Array object.
+                If 'return_metadata' is True, returns a tuple (volume, metadata).
 
         Raises:
             ValueError: If the dxchange library is not installed
@@ -239,17 +244,40 @@ class DataLoader:
                 "The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html"
             )
 
-        vol, metadata = dxchange.read_txrm(path)
-        vol = (
-            vol.squeeze()
-        )  # In case of an XRM file, the third redundant dimension is removed
-
-        log.info("Loaded shape: %s", vol.shape)
-
         if self.virtual_stack:
-            raise NotImplementedError(
-                "Using virtual stack for TXRM files is not implemented yet"
-            )
+            if not path.endswith('.txm'):
+                log.warning("Virtual stack is only thoroughly tested for reconstructed volumes in TXM format and is thus not guaranteed to load TXRM and XRM files correctly")
+            
+            # Get metadata
+            ole = olefile.OleFileIO(path)
+            metadata = dxchange.reader.read_ole_metadata(ole)
+
+            # Compute data offsets in bytes for each slice
+            offsets = _get_ole_offsets(ole)
+
+            if len(offsets)!=metadata['number_of_images']:
+                raise ValueError(f'Metadata is erroneous: number of images {metadata["number_of_images"]} is different from number of data offsets {len(offsets)}') 
+
+            slices = []
+            for _,offset in offsets.items():
+                slices.append(
+                    np.memmap(
+                        path,
+                        dtype=dxchange.reader._get_ole_data_type(metadata).newbyteorder('<'),
+                        mode='r',
+                        offset=offset,
+                        shape = (1,metadata['image_height'],metadata['image_width'])
+                        )
+                    )
+            
+            vol = da.concatenate(slices,axis=0)
+            log.warning('Virtual stack volume will be returned as a dask array. To load certain slices into memory, use normal indexing followed by the compute() method, e.g. vol[:,0,:].compute()')
+
+        else:
+            vol, metadata = dxchange.read_txrm(path)
+            vol = (
+                vol.squeeze()
+            )  # In case of an XRM file, the third redundant dimension is removed
 
         if self.return_metadata:
             return vol, metadata
@@ -465,6 +493,22 @@ def _get_h5_dataset_keys(f):
     keys = []
     f.visit(lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None)
     return keys
+
+def _get_ole_offsets(ole):
+    slice_offset = {}
+    for stream in ole.listdir():
+        if stream[0].startswith('ImageData'):
+            sid = ole._find(stream)
+            direntry = ole.direntries[sid]
+            sect_start = direntry.isectStart
+            offset = ole.sectorsize * (sect_start+1)
+            slice_offset[f'{stream[0]}/{stream[1]}']=offset
+
+    # sort dictionary after natural sorting (https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/)
+    sorted_keys = sorted(slice_offset.keys(),key=lambda string_: [int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)])
+    slice_offset_sorted = {key: slice_offset[key] for key in sorted_keys}
+
+    return slice_offset_sorted
 
 
 def load(
