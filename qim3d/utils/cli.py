@@ -13,23 +13,39 @@ def main():
     gui_parser.add_argument('--annotation-tool', action='store_true', help='Run annotation tool.')
     gui_parser.add_argument('--local-thickness', action='store_true', help='Run local thickness tool.')
     gui_parser.add_argument('--host', default='0.0.0.0', help='Desired host.')
+    gui_parser.add_argument('--platform', action='store_true', help='Use QIM platform address')
+
 
     args = parser.parse_args()
 
     if args.subcommand == 'gui':
         arghost = args.host
         if args.data_explorer:
-            
-            data_explorer.run_interface(arghost)
+            if args.platform:
+                data_explorer.run_interface(arghost)
+            else:
+                interface = data_explorer.Interface()
+                interface.launch()
+
 
         elif args.iso3d:
-            iso3d.run_interface(arghost)
+            if args.platform:
+                iso3d.run_interface(arghost)
+            else:
+                interface = iso3d.Interface()
+                interface.launch()            
         
         elif args.annotation_tool:
-            annotation_tool.run_interface(arghost)
-        
+            if args.platform:
+                annotation_tool.run_interface(arghost)
+            else:
+                interface = annotation_tool.Interface()
+                interface.launch()        
         elif args.local_thickness:
-            local_thickness.run_interface(arghost)
-
+            if args.platform:
+                local_thickness.run_interface(arghost)
+            else:
+                interface = local_thickness.Interface()
+                interface.launch()
 if __name__ == '__main__':
     main()

@@ -71,7 +71,7 @@ class Interface:
         session.zpos = zpos
         return session
 
-    def launch(self, img=None):
+    def launch(self, img=None,**kwargs):
         # Show header
         if self.show_header:
             internal_tools.gradio_header(self.title, self.port)
@@ -90,6 +90,7 @@ class Interface:
             quiet=quiet,
             height=self.height,
             width=self.width,
+            **kwargs
         )
 
         return
