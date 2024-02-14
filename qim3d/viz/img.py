@@ -1,4 +1,6 @@
-""" Provides a collection of visualization functions."""
+""" 
+Provides a collection of visualization functions.
+"""
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import colormaps
@@ -25,18 +27,21 @@ def grid_overview(data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha
     Raises:
         ValueError: If the data elements are not tuples.
 
-    Notes:
-        - If the image data is RGB, the color map is ignored and the user is informed.
-        - The number of displayed images is limited to the minimum between `num_images`
-            and the length of the data.
-        - The grid layout and dimensions vary based on the presence of a mask.
 
     Returns:
         fig (matplotlib.figure.Figure): The figure with an overview of the images and their labels.   
 
     Example:
+        ```python
         data = [(image1, label1, mask1), (image2, label2, mask2)]
         grid_overview(data, num_images=5, cmap_im='viridis', cmap_segm='hot', alpha=0.8)
+        ```
+
+    Notes:
+        - If the image data is RGB, the color map is ignored and the user is informed.
+        - The number of displayed images is limited to the minimum between `num_images`
+            and the length of the data.
+        - The grid layout and dimensions vary based on the presence of a mask.
     """
 
     # Check if data has a mask

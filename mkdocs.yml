@@ -1,0 +1,66 @@
+site_name: qim3d documentation
+site_url: https://platform.qim.dk/qim3d/
+site_author: Qim3d contributors
+site_description: Documentation for the Qim3d python library
+repo_url: https://lab.compute.dtu.dk/QIM/tools/qim3d
+repo_name: Source code at Gitlab
+
+
+nav:
+  - 📦 qim3d: index.md
+  - 📥 Input & Output: io.md
+  - 📊 Visualization: viz.md
+  - 🔧 Utils: utils.md
+  - 🖥️ GUIs: gui.md
+  - 🧠 ML Models: models.md
+  - 📋 Release history: releases.md
+
+theme:
+  language: en 
+  name: material
+  nav_position: top
+  logo: assets/qim3d-icon.svg
+  favicon: assets/qim3d-icon.svg
+  features: 
+    - navigation.tabs
+    # - navigation.expand
+    # - navigation.instant
+    - toc.integrate
+    - toc.follow
+    - search.suggest
+    # - content.tabs.link
+    # - content.code.annotation
+    - content.code.copy
+
+  palette:
+    primary: white
+    accent: orange
+
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/x-twitter 
+      link: https://twitter.com/QIMCenter
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences 
+
+plugins: 
+    - tags
+    - search 
+    - mkdocstrings:
+        handlers:
+          python:
+            options:    
+              show_root_heading: true
+              show_source: true
+              show_root_full_path: true
+              show_object_full_path: true
+              show_symbol_type_heading: true
+              show_symbol_type_toc: true
+              separate_signature: true
