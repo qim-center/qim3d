@@ -22,7 +22,7 @@ class Downloader:
         [folder_name_n] (str): folder class with the name of the n-th folder in the QIM data repository.
 
     Example:
-        dl = Downloader()
+        dl = qim3d.io.Downloader()
         # Downloads and Loads (optional) image:
         img = dl.Corals.Coral2_DOWNSAMPLED(load = True)
     """
