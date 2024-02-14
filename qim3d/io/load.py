@@ -1,4 +1,14 @@
-"""Provides functionality for loading data from various file formats."""
+"""
+Provides functionality for loading data from various file formats.
+
+
+Example:
+    ```
+    import qim3d
+    data = qim3d.io.load("image.tif")
+    ```
+
+"""
 
 import difflib
 import os

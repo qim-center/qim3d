@@ -1,0 +1,44 @@
+.md-search__form{
+    border-radius: 8px;
+}
+
+.md-search__form:hover{
+  background-color: #f0f0f0 !important;
+}
+
+.md-search__inner{
+  border-radius: 0px !important;
+}
+
+.md-nav__item .md-nav__link--active, .md-nav__item .md-nav__link--active code {
+  color: orange}
+
+.md-typeset a {
+    color: orange;
+    word-break: break-word;
+}
+
+.md-nav__link {
+  font-size: 1.0em;
+}
+
+.md-nav:first-child {
+  font-size: 2.0em;
+}
+
+code {
+  border-radius: 6px !important;
+}
+
+.md-tabs__list li:last-child {
+  margin-left: auto;
+}
+
+
+.md-header__source {
+  text-align: right;
+}
+
+.md-header__title {
+  margin-left: 0px !important;
+}
