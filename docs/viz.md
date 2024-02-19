@@ -12,7 +12,7 @@ import qim3d
         members:
             - grid_overview
             - grid_pred
-            - slice_viz
+            - slices
 
 
 

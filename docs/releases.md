@@ -31,7 +31,7 @@ Includes new develoments toward the usability of the library, as well as its int
     - For the local thicknes GUI, now it is possible to pass and receive numpy arrays instead of using the upload functionality.
 - Improved data loader
     - Now the extensions `tif`, `h5` and `txm` are supported.
-- Added `qim3d.viz.slice_viz` for easy slice visualization.
+- Added `qim3d.viz.slices` for easy slice visualization.
 - U-net model creation
     - Model availabe from `qim3d.models.UNet`
     - Data augmentation class at `qim3d.utils.Augmentation`

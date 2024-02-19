@@ -31,7 +31,7 @@ vol = qim3d.io.load("path/to/file.tif", virtual_stack=True)
 ```
 
 ### Visualize data
-You can easily check slices from your volume using `slice_viz`
+You can easily check slices from your volume using `slices`
 
 ```python
 import qim3d
@@ -39,13 +39,13 @@ import qim3d
 img = qim3d.examples.fly_150x256x256
 
 # By default shows the middle slice
-qim3d.viz.slice_viz(img)
+qim3d.viz.slices(img)
 
 # Or we can specifly positions
-qim3d.viz.slice_viz(img, position=[0,32,128])
+qim3d.viz.slices(img, position=[0,32,128])
 
 # Parameters for size and colormap are also possible
-qim3d.viz.slice_viz(img, img_width=6, img_height=6, cmap="inferno")
+qim3d.viz.slices(img, img_width=6, img_height=6, cmap="inferno")
 
 ```
 
