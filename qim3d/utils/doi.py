@@ -56,13 +56,6 @@ def get_bibtex(doi):
 
     return _log_and_get_text(doi, header)
 
-
-def get_reference(doi):
-    """Generates basic reference from doi"""
-    header = {"Accept": "text/bibliography"}
-    return _log_and_get_text(doi, header)
-
-
 def cusom_header(doi, header):
     """Allows a custom header to be passed
 
@@ -80,4 +73,26 @@ def get_metadata(doi):
     response = _make_request(doi, header)
 
     metadata = json.loads(response.text)
+
     return metadata
+
+def get_reference(doi):
+    """Generates a metadata dictionary from doi and use it to build a reference string"""
+
+    metadata = get_metadata(doi)
+    reference_string = build_reference_string(metadata)
+
+    return reference_string
+
+def build_reference_string(metadata):
+    """Generates a reference string from metadata"""
+    authors = ", ".join([f"{author['family']} {author['given']}" for author in metadata['author']])
+    year = metadata['issued']['date-parts'][0][0]
+    title = metadata['title']
+    publisher = metadata['publisher']
+    url = metadata['URL']
+    doi = metadata['DOI']
+
+    reference_string = f"{authors} ({year}). {title}. {publisher} ({url}). DOI: {doi}"
+
+    return reference_string
