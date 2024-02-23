@@ -1,5 +1,24 @@
-"""Provides functionality for saving data to various file formats."""
+"""
+Provides functionality for loading data from various file formats.
 
+
+Example:
+    ```python
+    import qim3d
+    img = qim3d.examples.fly_150x256x256
+    
+    qim3d.io.save("img.tif", img)
+    ```
+
+    Volumes can also be saved with one file per slice:
+    ```python
+    import qim3d
+    img = qim3d.examples.fly_150x256x256
+    
+    qim3d.io.save("slices", img, basename="fly-slices", sliced_dim=0)
+    ```
+
+"""
 import os
 
 import h5py

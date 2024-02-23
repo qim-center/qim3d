@@ -1,4 +1,5 @@
-"""Implementing the UNet model class and Hyperparameters class."""
+"""UNet model and Hyperparameters class."""
+
 from monai.networks.nets import UNet as monai_UNet
 from monai.losses import FocalLoss, DiceLoss, DiceCELoss
 
@@ -27,7 +28,9 @@ class UNet(nn.Module):
         ValueError: If `size` is not one of 'small', 'medium', or 'large'.
 
     Example:
+        ```python
         model = UNet(size='large')
+        ```
     """
     def __init__(self, size = 'medium',
                  dropout = 0,
@@ -101,16 +104,15 @@ class Hyperparameters:
         ValueError: If `optimizer` is not one of 'Adam', 'SGD', 'RMSprop'.
 
     Example:
-        # Create hyperparameters instance
+        ```
         hyperparams = Hyperparameters(model=my_model, n_epochs=20, learning_rate=0.001)
 
-        # Get the hyperparameters
-        params_dict = hyperparams()
-        
-        # Access the optimizer and criterion
+        params_dict = hyperparams() # Get the hyperparameters
+
         optimizer = params_dict['optimizer']
         criterion = params_dict['criterion']
         n_epochs  = params_dict['n_epochs']
+        ```
     """
     def __init__(self,
                  model,

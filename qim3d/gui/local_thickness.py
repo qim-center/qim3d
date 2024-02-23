@@ -1,3 +1,38 @@
+"""
+!!! quote "Reference"
+    Dahl, V. A., & Dahl, A. B. (2023, June). Fast Local Thickness. 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW). 
+    <https://doi.org/10.1109/cvprw59228.2023.00456>
+
+    ```bibtex
+    @inproceedings{Dahl_2023, title={Fast Local Thickness}, 
+    url={http://dx.doi.org/10.1109/CVPRW59228.2023.00456}, 
+    DOI={10.1109/cvprw59228.2023.00456}, 
+    booktitle={2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)}, 
+    publisher={IEEE}, 
+    author={Dahl, Vedrana Andersen and Dahl, Anders Bjorholm}, 
+    year={2023}, 
+    month=jun }
+
+    ```
+
+
+The GUI can be launched directly from the command line:
+
+```bash
+qim3d gui --local-thickness
+```
+
+Or launched from a python script
+
+```python
+import qim3d
+
+app = qim3d.gui.local_thickness.Interface()
+app.launch()
+```
+
+"""
+
 import gradio as gr
 import numpy as np
 import os

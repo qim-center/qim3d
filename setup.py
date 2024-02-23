@@ -9,13 +9,13 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="qim3d",
-    version="0.3.1",
+    version="0.3.2",
     author="Felipe Delestro",
     author_email="fima@dtu.dk",
     description="QIM tools and user interfaces",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://lab.compute.dtu.dk/QIM/tools/qim3d",
+    url="https://platform.qim.dk/qim3d",
     packages=find_packages(),
     include_package_data=True,
     entry_points = {
@@ -55,6 +55,10 @@ setup(
         "torchvision>=0.15.2",
         "torchinfo>=1.8.0",
         "tqdm>=4.65.0",
-        "nibabel>=5.2.0"
+        "nibabel>=5.2.0",
+        "dask>=2023.6.0",
+        "k3d>=2.16.1",
+        "olefile>=0.46",
+        "psutil>=5.9.0"
     ],
 )
