@@ -3,17 +3,18 @@ site_url: https://platform.qim.dk/qim3d/
 site_author: Qim3d contributors
 site_description: Documentation for the Qim3d python library
 repo_url: https://lab.compute.dtu.dk/QIM/tools/qim3d
-repo_name: Source code at Gitlab
+repo_name: Gitlab
 
 
 nav:
-  - 📦 qim3d: index.md
-  - 📥 Input & Output: io.md
-  - 📊 Visualization: viz.md
-  - 🔧 Utils: utils.md
-  - 🖥️ GUIs: gui.md
-  - 🧠 ML Models: models.md
-  - 📋 Release history: releases.md
+  - qim3d: index.md
+  - Input & Output: io.md
+  - Visualization: viz.md
+  - Utils: utils.md
+  - GUIs: gui.md
+  - ML Models: models.md
+  - CLI: cli.md
+  - Release history: releases.md
 
 theme:
   language: en 
@@ -23,6 +24,7 @@ theme:
   favicon: assets/qim3d-icon.svg
   features: 
     - navigation.tabs
+    - navigation.sections
     # - navigation.expand
     # - navigation.instant
     - toc.integrate
@@ -31,6 +33,8 @@ theme:
     # - content.tabs.link
     # - content.code.annotation
     - content.code.copy
+    - content.code.annotate
+    - header.autohide
 
   palette:
     primary: white
@@ -48,7 +52,19 @@ extra:
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
-  - pymdownx.superfences 
+      line_spans: __span
+      pygments_lang_class: true
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 plugins: 
     - tags

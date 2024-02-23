@@ -1,3 +1,21 @@
+"""
+The GUI can be launched directly from the command line:
+
+```bash
+qim3d gui --iso3d
+```
+
+Or launched from a python script
+
+```python
+import qim3d
+
+app = qim3d.gui.iso3d.Interface()
+app.launch()
+```
+
+"""
+
 import gradio as gr
 import numpy as np
 import os

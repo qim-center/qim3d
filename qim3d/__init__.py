@@ -6,4 +6,6 @@ import qim3d.models as models
 import qim3d.processing as processing
 import logging
 
+__version__ = '0.3.2'
+
 examples = io.ImgExamples()

@@ -1,5 +1,10 @@
 """
 Volumetric visualization using K3D
+
+!!! quote "Reference"
+    Volumetric visualization uses K3D:
+    [Github page](https://github.com/K3D-tools/K3D-jupyter)
+
 """
 
 import k3d
@@ -22,7 +27,7 @@ def vol(img, show=True, save=False):
     Examples:
         ```python
         import qim3d
-        vol = qim3d.examples.fly_150x256x256
+        vol = qim3d.examples.bone_128x128x128
 
         # shows the volume inline
         qim3d.viz.vol(vol) 

@@ -1,18 +1,36 @@
+---
+icon: fontawesome/solid/images
+---
+
 # Data visualization
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent non dolor non justo pharetra elementum porttitor at quam. Duis quam ligula, consequat vitae dolor non, facilisis tincidunt justo. Aliquam congue ex ac nibh tristique, et fringilla odio hendrerit. Cras sit amet dui mauris. Curabitur vitae nibh ut dui luctus cursus at id orci. Proin quam lacus, finibus in porttitor sed, ultrices vel ante. Phasellus ut rhoncus diam. Vestibulum vel ultricies orci, ut vehicula libero. Sed bibendum velit sed volutpat maximus. Maecenas non euismod ipsum. Donec eu tempor lorem. Donec lectus turpis, interdum eget commodo sed, euismod id sapien. Fusce malesuada tortor est.
+The `qim3d`libray aims to provide easy ways to explore and get insights from volumetric data. 
 
-Example:
-```python
-import qim3d
-```
+!!! Example
+    ```python
+    import qim3d
 
+    img = qim3d.examples.shell_225x128x128
+    qim3d.viz.slices(img, n_slices=15)
+    ```
+
+    ![Grid of slices](assets/screenshots/viz-slices.png)
+
+
+!!! Example
+    ```python
+    import qim3d
+
+    vol = qim3d.examples.bone_128x128x128
+    qim3d.viz.vol(vol) 
+    ```
+    ![viz k3d](assets/screenshots/viz-k3d.png)
 
 ::: qim3d.viz.img
     options:
         members:
-            - grid_overview
-            - grid_pred
             - slices
 
-
-
+::: qim3d.viz.k3d
+    options:
+        members:
+            - vol

@@ -1,4 +1,4 @@
-"Class for downloading larger images from the QIM Data Repository"
+"Manages downloads and access to data"
 
 import os
 import urllib.request
@@ -16,15 +16,15 @@ class Downloader:
     """Class for downloading large data files available on the QIM data repository.
 
     Attributes:
-        [folder_name_1] (str): folder class with the name of the first folder in the QIM data repository.
-        [folder_name_2] (str): folder class with the name of the second folder in the QIM data repository.
-        ...
-        [folder_name_n] (str): folder class with the name of the n-th folder in the QIM data repository.
+        [folder_name] (str): folder class with the name of the folder in [https://data.qim.dk/data-repository/](https://data.qim.dk/data-repository/)
 
     Example:
+        ```python
+        import qim3d
+        
         dl = qim3d.io.Downloader()
-        # Downloads and Loads (optional) image:
         img = dl.Corals.Coral2_DOWNSAMPLED(load = True)
+        ```
     """
 
     def __init__(self):

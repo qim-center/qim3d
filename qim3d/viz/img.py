@@ -259,9 +259,13 @@ def slices(
         ValueError: If the `position` keyword argument is not a integer, list of integers or one of the following strings: "start", "mid" or "end".
 
     Example:
-        vol_path = '/my_vol_path/my_vol.tif'
-        vol = qim3d.io.load(vol_path)
-        slices(vol, axis = 1, position = 'mid', n_slices = 3, cmap = 'viridis', img_height = 4, img_width = 4, show = True, show_position = True, interpolation = None)
+        ```python
+        import qim3d
+
+        img = qim3d.examples.shell_225x128x128
+        qim3d.viz.slices(img, n_slices=15)
+        ```
+
     """
 
     # Numpy array or Torch tensor input

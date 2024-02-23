@@ -1,29 +1,40 @@
-# Release history
-Here you can fin details about the version history of `qim3d`
+---
+icon: fontawesome/solid/bookmark
+---
 
-## v0.3.1 (February 1, 2024)
+# Release History
 
-- Save functionality for all file formats
+Below, you'll find details about the version history of `qim3d`.
 
-### Just for tests
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent non dolor non justo pharetra elementum porttitor at quam. Duis quam ligula, consequat vitae dolor non, facilisis tincidunt justo. Aliquam congue ex ac nibh tristique, et fringilla odio hendrerit. Cras sit amet dui mauris. Curabitur vitae nibh ut dui luctus cursus at id orci. Proin quam lacus, finibus in porttitor sed, ultrices vel ante. Phasellus ut rhoncus diam. Vestibulum vel ultricies orci, ut vehicula libero. Sed bibendum velit sed volutpat maximus. Maecenas non euismod ipsum. Donec eu tempor lorem. Donec lectus turpis, interdum eget commodo sed, euismod id sapien. Fusce malesuada tortor est.
-
+As the library is still in its early development stages, there may be breaking changes before `v1.0` without prior deprecation warnings. Therefore, it's advisable to review the release history for more information if you encounter any issues.
 
 
-## v0.3.0 (January 23, 2024)
+### v0.3.2 (23/02/2024)
 
-- Introduction of qim3d CLI
+This version focus on the increased usability of the `qim3d` library
+
+- Online documentation available at [https://platform.qim.dk/qim3d](https://platform.qim.dk/qim3d)
+- Virtual stacks also available for `txm` files
+- Updated GUI launch pipeline
+- New functionalities for `qim3d.vix.slices`
+- Introduction of `qim3d.processing.filters` 🎉 
+- Introduction of `qim3d.viz.k3d` 🎉 
+
+### v0.3.1 (01/02/2024)
+
+Release expanding the IO functionalities
+
+- Support for loading `vol` `nii` and `bigtiff` files
+- Data loader now supports `virtual_stack`
+- Save functionality for all file formats except `txm`
+
+### v0.3.0 (23/01/2024)
+- Introduction of qim3d CLI 🎉 
+- Introduction of memory utils 🎉 
 - Data Explorer GUI
+- Save functionality for `tif` files
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent non dolor non justo pharetra elementum porttitor at quam. Duis quam ligula, consequat vitae dolor non, facilisis tincidunt justo. Aliquam congue ex ac nibh tristique, et fringilla odio hendrerit. Cras sit amet dui mauris. Curabitur vitae nibh ut dui luctus cursus at id orci. Proin quam lacus, finibus in porttitor sed, ultrices vel ante. Phasellus ut rhoncus diam. Vestibulum vel ultricies orci, ut vehicula libero. Sed bibendum velit sed volutpat maximus. Maecenas non euismod ipsum. Donec eu tempor lorem. Donec lectus turpis, interdum eget commodo sed, euismod id sapien. Fusce malesuada tortor est.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent non dolor non justo pharetra elementum porttitor at quam. Duis quam ligula, consequat vitae dolor non, facilisis tincidunt justo. Aliquam congue ex ac nibh tristique, et fringilla odio hendrerit. Cras sit amet dui mauris. Curabitur vitae nibh ut dui luctus cursus at id orci. Proin quam lacus, finibus in porttitor sed, ultrices vel ante. Phasellus ut rhoncus diam. Vestibulum vel ultricies orci, ut vehicula libero. Sed bibendum velit sed volutpat maximus. Maecenas non euismod ipsum. Donec eu tempor lorem. Donec lectus turpis, interdum eget commodo sed, euismod id sapien. Fusce malesuada tortor est.
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent non dolor non justo pharetra elementum porttitor at quam. Duis quam ligula, consequat vitae dolor non, facilisis tincidunt justo. Aliquam congue ex ac nibh tristique, et fringilla odio hendrerit. Cras sit amet dui mauris. Curabitur vitae nibh ut dui luctus cursus at id orci. Proin quam lacus, finibus in porttitor sed, ultrices vel ante. Phasellus ut rhoncus diam. Vestibulum vel ultricies orci, ut vehicula libero. Sed bibendum velit sed volutpat maximus. Maecenas non euismod ipsum. Donec eu tempor lorem. Donec lectus turpis, interdum eget commodo sed, euismod id sapien. Fusce malesuada tortor est.
-
-
-## v0.2.0 (Sept 18, 2023)
+### v0.2.0 (18/09/2023)
 
 Includes new develoments toward the usability of the library, as well as its integration with the QIM platform.
 
@@ -39,7 +50,7 @@ Includes new develoments toward the usability of the library, as well as its int
 - Image examples accessible from `qim3d.examples`
 
 
-## v0.1.3 (May 17, 2023)
+### v0.1.3 (17/05/2023)
 
 First stable release.
 
