@@ -1,5 +1,5 @@
 /* Override for dark mode */
-.dark{
+.dark {
   --name: default;
   --primary-50: #fff7ed;
   --primary-100: #ffedd5;
@@ -73,9 +73,9 @@
   --link-text-color-hover: var(--secondary-700);
   --link-text-color-visited: var(--secondary-500);
   --body-text-color-subdued: var(--neutral-400);
-  --shadow-drop: rgba(0,0,0,0.05) 0px 1px 2px 0px;
+  --shadow-drop: rgba(0, 0, 0, 0.05) 0px 1px 2px 0px;
   --shadow-drop-lg: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-inset: rgba(0,0,0,0.05) 0px 2px 4px 0px inset;
+  --shadow-inset: rgba(0, 0, 0, 0.05) 0px 2px 4px 0px inset;
   --shadow-spread: 3px;
   --block-background-fill: var(--background-fill-primary);
   --block-border-color: var(--border-color-primary);
@@ -203,6 +203,7 @@
   --button-small-text-weight: 400;
   --button-transition: none;
 }
+
 /* Up here is the override for dark mode */
 /* Now comes our custom CSS */
 
@@ -228,9 +229,10 @@ h2 {
   white-space: pre !important;
 }
 
-.no-border{
+.no-border {
   border-width: 0px !important;
 }
+
 /* Hides Gradio footer */
 footer {
   visibility: hidden;
@@ -341,9 +343,9 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* Buttons */
-.btn-html{
+.btn-html {
   position: sticky;
-  display:flex;
+  display: flex;
   justify-content: center;
   background: white !important;
   border-color: #6c757d !important;
@@ -372,7 +374,7 @@ input[type="range"]::-webkit-slider-thumb {
   text-align: left !important;
 }
 
-.btn-spinner::after{
+.btn-spinner::after {
   content: "";
   position: absolute;
   width: 16px;
@@ -547,7 +549,7 @@ div.svelte-1frtwj3 {
 
 .w-64 {
   width: 64px !important;
-  min-width: 64px !important; 
+  min-width: 64px !important;
 
 }
 
@@ -558,7 +560,7 @@ div.svelte-1frtwj3 {
 
 .w-36 {
   width: 36px !important;
-  min-width: 36px !important; 
+  min-width: 36px !important;
 
 }
 
@@ -569,7 +571,7 @@ div.svelte-1frtwj3 {
 
 .w-32 {
   width: 32px !important;
-  min-width: 32px !important; 
+  min-width: 32px !important;
 
 }
 
@@ -579,7 +581,7 @@ div.svelte-1frtwj3 {
 
 .w-16 {
   width: 16px !important;
-  min-width: 16px !important; 
+  min-width: 16px !important;
 }
 
 .h-0 {
@@ -590,33 +592,124 @@ div.svelte-1frtwj3 {
   width: 0px !important;
 }
 
-.options{
+.options {
   border: 1px solid #bababa !important;
   box-shadow: 0px 0px 8px rgba(0, 0, 0, 0.15) !important;
 
 }
 
-.mt-32{
+.mt-32 {
   margin-top: 32px;
 }
 
-.mt-48{
+.mt-48 {
   margin-top: 48px;
 }
 
-.mt-64{
+.mt-64 {
   margin-top: 64px;
 }
 
-.mt-128{
+.mt-128 {
   margin-top: 128px;
 }
 
-.hide-overflow{
+.hide-overflow {
   overflow: hidden !important;
 }
 
 
-.wrap.default{
+.wrap.default {
   visibility: hidden !important;
+}
+
+
+/* Annotation tool CSS */
+
+.annotation-tool .layer-wrap {
+  display: none !important;
+}
+
+.annotation-tool button[title="Image button"] {
+  display: none !important;
+}
+
+.annotation-tool:not(.no-img) button[title="Upload button"] {
+  display: none !important;
+}
+
+.annotation-tool button[title="Clear canvas"] {
+  display: none !important;
+}
+
+.annotation-tool button[title="Color button"] {
+  color: var(--block-label-text-color) !important;
+  margin-inline-end: 32px !important;
+}
+
+.annotation-tool button[title="Color button"]::after {
+  content: "Select mask";
+}
+
+.annotation-tool button[title="Size button"] {
+  color: var(--block-label-text-color) !important;
+}
+
+
+.annotation-tool button[title="Size button"]::after {
+  content: "Brush size";
+}
+
+
+.annotation-tool .row-wrap {
+  justify-content: flex-start !important;
+}
+
+.annotation-tool .controls-wrap .small {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.annotation-tool .controls-wrap {
+  top: 0px !important;
+  left: 0px !important;
+}
+
+.annotation-tool .controls-wrap .padded {
+  padding: 8px !important;
+  border: 0px !important;
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.annotation-tool .stage-wrap {
+  margin-top: 0px !important;
+  margin-bottom: 16px !important;
+}
+
+.annotation-tool .svelte-b3dw9m {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.annotation-tool .bottom {
+  bottom: 8px !important;
+  left: 0px !important;
+  position: absolute !important;
+}
+
+.annotation-tool .download {
+  min-width: 4rem !important;
+  width: 10%;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.annotation-tool .stage-wrap canvas {
+  border: 0px !important;
+  max-width: 512px !important;
+  max-height: 512px !important;
+  height: 512px !important;
+  width: fit-content !important;
+
 }
