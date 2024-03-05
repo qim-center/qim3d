@@ -1,4 +1,5 @@
 import tifffile
+import tempfile
 import os
 import time
 import getpass
@@ -16,8 +17,7 @@ class Session:
         self.masks_rgb = None
         self.mask_names = {0: "red", 1: "green", 2: "blue"}
         self.temp_files = []
-        self.gradio_temp = None
-        self.username = getpass.getuser()
+        self.temp_dir = None
 
 
 class Interface:
@@ -27,6 +27,7 @@ class Interface:
         self.height = 768
         self.interface = None
         self.username = getpass.getuser()
+        self.temp_dir = os.path.join(tempfile.gettempdir(), f"qim-{self.username}")
 
         # CSS path
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -34,9 +35,8 @@ class Interface:
 
     def launch(self, img=None, **kwargs):
         # Create gradio interfaces
-
+        # img = "/tmp/qim-fima/2dimage.png"
         self.interface = self.create_interface(img)
-        self.gradio_temp = self.interface.GRADIO_CACHE
 
         # Set gradio verbose level
         if self.verbose:
@@ -55,12 +55,11 @@ class Interface:
 
     def get_result(self):
         # Get the temporary files from gradio
-        base = os.path.join(self.gradio_temp, "qim3d", self.username)
         temp_path_list = []
-        for filename in os.listdir(base):
+        for filename in os.listdir(self.temp_dir):
             if "mask" in str(filename):
                 # Get the list of the temporary files
-                temp_path_list.append(os.path.join(base, filename))
+                temp_path_list.append(os.path.join(self.temp_dir, filename))
 
         # Make dictionary of maks
         masks = {}
@@ -81,7 +80,7 @@ class Interface:
         else:
             custom_css = "annotation-tool no-img"
 
-        with gr.Blocks(css=self.css_path) as gradio_interface:
+        with gr.Blocks(css=self.css_path, title=self.title) as gradio_interface:
 
             brush = gr.Brush(
                 colors=[
@@ -126,13 +125,13 @@ class Interface:
                             elem_classes=custom_css,
                         )
 
-            temp_path = gr.Textbox(value=gradio_interface.GRADIO_CACHE, visible=False)
+            temp_dir = gr.Textbox(value=self.temp_dir, visible=False)
             session = gr.State([])
             inputs = [img_editor]
             operations = Operations()
             # fmt: off
             btn_update.click(
-                fn=operations.start_session, inputs=[img_editor,temp_path] , outputs=session).then(
+                fn=operations.start_session, inputs=[img_editor,temp_dir] , outputs=session).then(
                 fn=operations.preview, inputs=session, outputs=overlay_img).then(
                 fn=self.set_visible, inputs=None, outputs=overlay_img).then(
                 fn=operations.separate_masks, inputs=session, outputs=[session, masks_download]).then(
@@ -147,17 +146,15 @@ class Operations:
     def start_session(self, *args):
         session = Session()
         session.img_editor = args[0]
-        session.gradio_temp = args[1]
+        session.temp_dir = args[1]
 
-        # Clean temp files
-        base = os.path.join(session.gradio_temp, "qim3d", session.username)
-
+        # Clean up old files
         try:
-            files = os.listdir(base)
+            files = os.listdir(session.temp_dir)
             for filename in files:
                 # Check if "mask" is in the filename
                 if "mask" in filename:
-                    file_path = os.path.join(base, filename)
+                    file_path = os.path.join(session.temp_dir, filename)
                     os.remove(file_path)
 
         except FileNotFoundError:
@@ -235,10 +232,9 @@ class Operations:
             if np.sum(mask) > 0:
                 mask_list.append(mask)
                 filename = f"mask_{session.mask_names[idx]}.tif"
-                base = os.path.join(session.gradio_temp, "qim3d", session.username)
-                if not os.path.exists(base):
-                    os.makedirs(base)
-                filepath = os.path.join(base, filename)
+                if not os.path.exists(session.temp_dir):
+                    os.makedirs(session.temp_dir)
+                filepath = os.path.join(session.temp_dir, filename)
                 files_list.append(filepath)
 
                 save(filepath, mask, replace=True)

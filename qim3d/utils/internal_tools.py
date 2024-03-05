@@ -79,7 +79,7 @@ def get_local_ip():
     try:
         # doesn't even have to be reachable
         _socket.connect(("192.255.255.255", 1))
-        ip_address = _socket.getsockname()[0]
+        ip_address = _socket.getsockname()
     except socket.error:
         ip_address = "127.0.0.1"
     finally:
@@ -279,7 +279,6 @@ def run_gradio_app(gradio_interface, host = "0.0.0.0"):
     else:
         raise Exception("Port not specified from QIM API")
     
-    print(port_dict)
     gradio_header(gradio_interface.title, port)
 
     # Create FastAPI with mounted gradio interface
