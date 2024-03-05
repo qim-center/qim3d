@@ -78,7 +78,7 @@ def test_sequential_filter_pipeline():
     maximum_filter = Maximum(size=3)
 
     # Testing the sequential pipeline
-    sequential_pipeline = Sequential(gaussian_filter, median_filter, maximum_filter)
+    sequential_pipeline = Pipeline(gaussian_filter, median_filter, maximum_filter)
     filtered_image_pipeline = sequential_pipeline(input_image)
 
     # Testing the equivalence to maximum(median(gaussian(input,**kwargs),**kwargs),**kwargs)
@@ -98,11 +98,11 @@ def test_sequential_filter_appending():
     maximum_filter = Maximum(size=3)
 
     # Sequential pipeline with filter initialized at the beginning
-    sequential_pipeline_initial = Sequential(gaussian_filter, median_filter, maximum_filter)
+    sequential_pipeline_initial = Pipeline(gaussian_filter, median_filter, maximum_filter)
     filtered_image_initial = sequential_pipeline_initial(input_image)
 
     # Sequential pipeline with filter appended
-    sequential_pipeline_appended = Sequential(gaussian_filter, median_filter)
+    sequential_pipeline_appended = Pipeline(gaussian_filter, median_filter)
     sequential_pipeline_appended.append(maximum_filter)
     filtered_image_appended = sequential_pipeline_appended(input_image)
 
@@ -124,4 +124,4 @@ def test_assertion_error_not_filterbase_subclass():
 
     # Use pytest.raises to catch the AssertionError
     with pytest.raises(AssertionError, match=re.escape(message)):
-        sequential_pipeline = Sequential(invalid_filter)
+        sequential_pipeline = Pipeline(invalid_filter)
