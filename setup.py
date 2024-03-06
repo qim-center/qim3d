@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="qim3d",
-    version="0.3.2",
+    version="0.3.3",
     author="Felipe Delestro",
     author_email="fima@dtu.dk",
     description="QIM tools and user interfaces",
@@ -56,6 +56,7 @@ setup(
         "torchinfo>=1.8.0",
         "tqdm>=4.65.0",
         "nibabel>=5.2.0",
+        "ipywidgets>=8.1.2",
         "dask>=2023.6.0",
         "k3d>=2.16.1",
         "olefile>=0.46",

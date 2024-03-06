@@ -1,17 +1,15 @@
 """ 
 Provides a collection of visualization functions.
 """
-
+import math
 from typing import List, Optional, Union
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import colormaps
 import torch
 import numpy as np
+import ipywidgets as widgets
 from qim3d.io.logger import log
-import math
-import qim3d.io
-import os
 
 
 def grid_overview(
@@ -308,7 +306,6 @@ def slices(
             'Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".'
         )
 
-
     # Make grid
     nrows = math.ceil(n_slices / max_cols)
     ncols = min(n_slices, max_cols)
@@ -389,3 +386,123 @@ def _get_slice_range(position: int, n_slices: int, n_total):
         slice_idxs = np.arange(n_total - n_slices, n_total)
 
     return slice_idxs
+
+
+def slicer(
+    vol: Union[np.ndarray, torch.Tensor],
+    axis: int = 0,
+    cmap: str = "viridis",
+    img_height: int = 3,
+    img_width: int = 3,
+    show_position: bool = False,
+    interpolation: Optional[str] = None,
+) -> widgets.interactive:
+    """Interactive widget for visualizing slices of a 3D volume.
+
+    Args:
+        vol (np.ndarray or torch.Tensor): The 3D volume to be sliced.
+        axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
+        cmap (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        img_height(int, optional): Height of the figure. Defaults to 3.
+        img_width(int, optional): Width of the figure. Defaults to 3.
+        show_position (bool, optional): If True, displays the position of the slices. Defaults to False.
+        interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
+
+    Returns:
+        slicer_obj (widgets.interactive): The interactive widget for visualizing slices of a 3D volume.
+
+    Example:
+        vol_path = '/my_vol_path/my_vol.tif'
+        vol = qim3d.io.load(vol_path)
+        slicer(vol, axis = 1)
+    """
+
+    # Create the interactive widget
+    def _slicer(position):
+        fig = slices(
+            vol,
+            axis=axis,
+            cmap=cmap,
+            img_height=img_height,
+            img_width=img_width,
+            show_position=show_position,
+            interpolation=interpolation,
+            position=position,
+            n_slices=1,
+            show=True,
+        )
+        return fig
+
+    position_slider = widgets.IntSlider(
+        value=vol.shape[axis] // 2,
+        min=0,
+        max=vol.shape[axis] - 1,
+        description="Slice",
+        continuous_update=True,
+    )
+    slicer_obj = widgets.interactive(_slicer, position=position_slider)
+    slicer_obj.layout = widgets.Layout(align_items="flex-start")
+
+    return slicer_obj
+
+
+def orthogonal(
+    vol: Union[np.ndarray, torch.Tensor],
+    cmap: str = "viridis",
+    img_height: int = 3,
+    img_width: int = 3,
+    show_position: bool = False,
+    interpolation: Optional[str] = None,
+):
+    """Interactive widget for visualizing orthogonal slices of a 3D volume.
+
+    Args:
+        vol (np.ndarray or torch.Tensor): The 3D volume to be sliced.
+        cmap (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        img_height(int, optional): Height of the figure.
+        img_width(int, optional): Width of the figure.
+        show_position (bool, optional): If True, displays the position of the slices. Defaults to False.
+        interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
+
+    Returns:
+        orthogonal_obj (widgets.HBox): The interactive widget for visualizing orthogonal slices of a 3D volume.
+
+    Example:
+        vol_path = '/my_vol_path/my_vol.tif'
+        vol = qim3d.io.load(vol_path)
+        orthogonal(vol)
+    """
+
+    z_slicer = slicer(
+        vol,
+        axis=0,
+        cmap=cmap,
+        img_height=img_height,
+        img_width=img_width,
+        show_position=show_position,
+        interpolation=interpolation,
+    )
+    y_slicer = slicer(
+        vol,
+        axis=1,
+        cmap=cmap,
+        img_height=img_height,
+        img_width=img_width,
+        show_position=show_position,
+        interpolation=interpolation,
+    )
+    x_slicer = slicer(
+        vol,
+        axis=2,
+        cmap=cmap,
+        img_height=img_height,
+        img_width=img_width,
+        show_position=show_position,
+        interpolation=interpolation,
+    )
+
+    z_slicer.children[0].description = "Z"
+    y_slicer.children[0].description = "Y"
+    x_slicer.children[0].description = "X"
+
+    return widgets.HBox([z_slicer, y_slicer, x_slicer])
