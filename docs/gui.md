@@ -1,7 +1,3 @@
----
-icon: fontawesome/solid/window-maximize
----
-
 # Graphical User Interfaces
 
 The `qim3d` library provides a set of custom made GUIs that ease the interaction with the available tools.
@@ -21,6 +17,7 @@ The `qim3d` library provides a set of custom made GUIs that ease the interaction
 
 In general, the GUIs can be launched directly from the command line. 
 For details see [here](cli.md#qim3d-gui).
+
 ::: qim3d.gui.data_explorer
     options:
         members: False
@@ -35,3 +32,7 @@ For details see [here](cli.md#qim3d-gui).
     options:
         members: False
 ![Iso3d GUI](assets/screenshots/GUI-iso3d.png)
+
+::: qim3d.gui.annotation_tool
+    options:
+        members: False

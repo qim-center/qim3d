@@ -13,10 +13,10 @@ import outputformat as ouf
 
 
 class Downloader:
-    """Class for downloading large data files available on the QIM data repository.
+    """Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/data-repository/).
 
     Attributes:
-        [folder_name] (str): folder class with the name of the folder in [https://data.qim.dk/data-repository/](https://data.qim.dk/data-repository/)
+        [folder_name] (str): folder class with the name of the folder in https://data.qim.dk/data-repository/
 
     Example:
         ```python

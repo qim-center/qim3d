@@ -546,11 +546,17 @@ def load(
 
     Returns:
         numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple: The loaded volume.
-            If 'virtual_stack' is True, returns numpy.memmap, h5py._hl.dataset.Dataset or nibabel.arrayproxy.ArrayProxy depending on file format
-            If 'return_metadata' is True and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns a tuple (volume, metadata).
+
+        If 'virtual_stack' is True, returns numpy.memmap, h5py._hl.dataset.Dataset or nibabel.arrayproxy.ArrayProxy depending on file format
+        
+        If 'return_metadata' is True and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns a tuple (volume, metadata).
 
     Example:
-        data = qim3d.io.load("image.tif", virtual_stack=True)
+        ```python
+        import qim3d
+
+        vol = qim3d.io.load("path/to/image.tif", virtual_stack=True)
+        ```
     """
 
     loader = DataLoader(

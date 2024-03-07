@@ -1,21 +1,23 @@
 """
-Provides functionality for loading data from various file formats.
+Provides functionality for saving data from various file formats.
 
 
 Example:
     ```python
     import qim3d
-    img = qim3d.examples.fly_150x256x256
     
-    qim3d.io.save("img.tif", img)
+    vol = qim3d.examples.fly_150x256x256
+    
+    qim3d.io.save("fly.tif", vol)
     ```
 
     Volumes can also be saved with one file per slice:
     ```python
     import qim3d
-    img = qim3d.examples.fly_150x256x256
+
+    vol = qim3d.examples.fly_150x256x256
     
-    qim3d.io.save("slices", img, basename="fly-slices", sliced_dim=0)
+    qim3d.io.save("slices", vol, basename="fly-slices", sliced_dim=0)
     ```
 
 """
@@ -305,8 +307,12 @@ def save(
         **kwargs: Additional keyword arguments to be passed to the DataSaver constructor
 
     Example:
-        image = qim3d.examples.blobs_256x256
-        qim3d.io.save("image.tif",image,compression=True)
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.blobs_256x256x256
+        qim3d.io.save("blobs.tif", vol)
+        ```
     """
 
     DataSaver(

@@ -1,13 +1,17 @@
----
-icon: fontawesome/solid/bookmark
----
-
 # Release History
+[![PyPI version](https://badge.fury.io/py/qim3d.svg)](https://badge.fury.io/py/qim3d)
+[![Downloads](https://static.pepy.tech/badge/qim3d)](https://pepy.tech/project/qim3d)
+
 
 Below, you'll find details about the version history of `qim3d`.
 
-As the library is still in its early development stages, there may be breaking changes before `v1.0` without prior deprecation warnings. Therefore, it's advisable to review the release history for more information if you encounter any issues.
+As the library is still in its early development stages, **there may be breaking changes** before `v1.0` without prior deprecation warnings. Therefore, it's advisable to review the release history for more information if you encounter any issues.
 
+And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
+
+### v0.3.3 (coming soon!)
+- Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
+- Introduction of `qim3d.gui.annotation_tool` 🎉
 
 ### v0.3.2 (23/02/2024)
 
