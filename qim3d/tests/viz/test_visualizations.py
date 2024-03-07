@@ -1,5 +1,7 @@
-import qim3d
 import pytest
+
+import qim3d
+
 
 #unit test for plot_metrics()
 def test_plot_metrics():

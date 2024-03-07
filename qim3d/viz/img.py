@@ -1,15 +1,19 @@
 """ 
 Provides a collection of visualization functions.
 """
+
 import math
 from typing import List, Optional, Union
 import matplotlib.pyplot as plt
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib import colormaps
-import torch
 import numpy as np
+import torch
+from matplotlib import colormaps
+from matplotlib.colors import LinearSegmentedColormap
+
+import qim3d.io
 import ipywidgets as widgets
 from qim3d.io.logger import log
+from qim3d.utils.cc import CC
 
 
 def grid_overview(
@@ -226,7 +230,7 @@ def slices(
     img_width: int = 2,
     show: bool = False,
     show_position: bool = True,
-    interpolation: Optional[str] = None,
+    interpolation: Optional[str] = "none",
 ) -> plt.Figure:
     """Displays one or several slices from a 3d volume.
 
@@ -512,3 +516,71 @@ def orthogonal(
     x_slicer.children[0].description = "X"
 
     return widgets.HBox([z_slicer, y_slicer, x_slicer])
+
+
+def plot_cc(
+    connected_components: CC,
+    component_indexs: list | tuple = None,
+    max_cc_to_plot=32,
+    overlay=None,
+    crop=False,
+    show=True,
+    **kwargs,
+) -> list[plt.Figure]:
+    """
+    Plot the connected components of an image.
+
+    Parameters:
+        connected_components (CC): The connected components object.
+        components (list | tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
+        max_cc_to_plot (int, optional): The maximum number of connected components to plot. Defaults to 32.
+        overlay (optional): Overlay image. Defaults to None.
+        crop (bool, optional): Whether to crop the overlay image. Defaults to False.
+        show (bool, optional): Whether to show the figure. Defaults to True.
+        **kwargs: Additional keyword arguments to pass to `qim3d.viz.slices`.
+
+    Returns:
+        figs (list[plt.Figure]): List of figures, if `show=False`.
+    """
+    figs = []
+    # if no components are given, plot the first max_cc_to_plot=32 components
+    if component_indexs is None:
+        if len(connected_components) > max_cc_to_plot:
+            log.warning(
+                f"More than {max_cc_to_plot} connected components found. Only the first {max_cc_to_plot} will be plotted. Change max_cc_to_plot to plot more components."
+            )
+        component_indexs = range(
+            1, min(max_cc_to_plot + 1, len(connected_components) + 1)
+        )
+
+    for component in component_indexs:
+        if overlay is not None:
+            assert (
+                overlay.shape == connected_components.shape
+            ), f"Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}."
+
+            # plots overlay masked to connected component
+            if crop:
+                # Crop the overlay image based on the bounding box of the component
+                bb = connected_components.get_bounding_box(component)[0]
+                cc = connected_components.get_cc(component, crop=True)
+                overlay_crop = overlay[bb]
+                # use cc as mask for overlay_crop, where all values in cc set to 0 should be masked out, cc contains integers
+                overlay_crop = np.where(cc == 0, 0, overlay_crop)
+                fig = slices(overlay_crop, show=show, **kwargs)
+            else:
+                cc = connected_components.get_cc(component, crop=False)
+                overlay_crop = np.where(cc == 0, 0, overlay)
+                fig = slices(overlay_crop, show=show, **kwargs)
+        else:
+            # Plot the connected component without overlay
+            fig = slices(
+                connected_components.get_cc(component, crop=crop), show=show, **kwargs
+            )
+
+        figs.append(fig)
+
+    if not show:
+        return figs
+
+    return
