@@ -11,6 +11,8 @@ build/
 # Development and editor files
 .vscode/
 .idea/
+.cache/
+.pytest_cache/
 *.swp
 *.swo
 *.pyc

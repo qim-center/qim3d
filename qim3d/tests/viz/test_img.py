@@ -3,8 +3,12 @@ import torch
 import numpy as np
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
+import pytest
+from torch import ones
+
 import qim3d
 from qim3d.utils.internal_tools import temp_data
+
 
 # unit tests for grid overview
 def test_grid_overview():
