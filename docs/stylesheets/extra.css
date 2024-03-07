@@ -1,21 +1,30 @@
+/* 
+qim3d colors:
+#ff9900
+#cd4d00
+#990000
+*/
+
+
 code {
   border-radius: 6px !important;
 }
 
 
-h1 {
+.md-content h1 {
   font-size: 2.5em !important;
 }
 
-h2 {
+.md-content h2 {
   margin-top: 5em !important;
   font-size: 2em !important;
 }
 
-h3 {
+
+.md-content h3 {
   margin-top: 2em !important;
   font-size: 1.5em !important;
-}
+} 
 
 .md-search__form {
   border-radius: 8px;
@@ -68,4 +77,23 @@ h3 {
 
 .md-main{
   margin-bottom: 256px;
+}
+
+.md-sidebar{
+  top:150px !important;
+}
+
+
+/* Colors for example box */
+
+.md-typeset .example>.admonition-title, .md-typeset .example>summary{
+  background-color: #ff990020
+}
+
+.md-typeset .example>.admonition-title:before, .md-typeset .example>summary:before {
+  background-color: #ff9900
+}
+
+.md-typeset .admonition.example, .md-typeset details.example {
+  border-color: #ff9900;
 }

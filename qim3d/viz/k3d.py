@@ -24,13 +24,20 @@ def vol(img, show=True, save=False):
     Returns:
         k3d.plot: If show is False, returns the K3D plot object.
 
-    Examples:
+    Example:
         ```python
         import qim3d
         vol = qim3d.examples.bone_128x128x128
 
         # shows the volume inline
         qim3d.viz.vol(vol) 
+
+        ```
+        
+    Example:
+        ```python
+        import qim3d
+        vol = qim3d.examples.bone_128x128x128
 
         # saves html plot to disk
         plot = qim3d.viz.vol(vol, show=False, save="plot.html")

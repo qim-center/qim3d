@@ -1,11 +1,13 @@
----
-icon: fontawesome/solid/keyboard
----
-
 # Command line interface
 The library also includes a command line interface for easy access to some functionalities, and the convenience of using qim3d directly from your terminal. 
 
 This offers quick interactions, making it ideal for tasks that require efficiency or when certain functionalities need to run on a server. 
+
+!!! Example
+    ```bash
+    qim3d gui --data-explorer
+    ```
+    ![CLI Data Explorer](assets/screenshots/CLI-data_explorer.gif)
 
 
 ## Graphical User Interfaces

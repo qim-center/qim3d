@@ -412,9 +412,12 @@ def slicer(
         slicer_obj (widgets.interactive): The interactive widget for visualizing slices of a 3D volume.
 
     Example:
-        vol_path = '/my_vol_path/my_vol.tif'
-        vol = qim3d.io.load(vol_path)
-        slicer(vol, axis = 1)
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.slicer(vol, cmap="magma")
+        ```
     """
 
     # Create the interactive widget
@@ -468,9 +471,12 @@ def orthogonal(
         orthogonal_obj (widgets.HBox): The interactive widget for visualizing orthogonal slices of a 3D volume.
 
     Example:
-        vol_path = '/my_vol_path/my_vol.tif'
-        vol = qim3d.io.load(vol_path)
-        orthogonal(vol)
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.orthogonal(vol)
+        ```
     """
 
     z_slicer = slicer(

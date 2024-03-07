@@ -1,7 +1,7 @@
 import numpy as np
 
 def overlay_rgb_images(background, foreground, alpha=0.5):
-    """Overlay multiple RGB foreground onto an RGB background image using alpha blending.
+    """Overlay a RGB foreground onto an RGB background using alpha blending.
 
     Args:
         background (numpy.ndarray): The background RGB image.

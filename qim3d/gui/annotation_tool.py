@@ -1,3 +1,20 @@
+"""
+The GUI can be launched directly from the command line:
+
+```bash
+qim3d gui --annotation-tool
+```
+
+Or launched from a python script
+
+```python
+import qim3d
+
+app = qim3d.gui.annotation_tool.Interface()
+app.launch()
+```
+"""
+
 import tifffile
 import tempfile
 import os

@@ -7,13 +7,16 @@ repo_name: Gitlab
 
 
 nav:
+   
   - qim3d: index.md
   - Input & Output: io.md
+  - Processing: processing.md
   - Visualization: viz.md
   - Utils: utils.md
   - GUIs: gui.md
   - ML Models: models.md
   - CLI: cli.md
+
   - Release history: releases.md
 
 theme:
@@ -24,11 +27,13 @@ theme:
   favicon: assets/qim3d-icon.svg
   features: 
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
-    # - navigation.expand
-    # - navigation.instant
+    - navigation.expand
+    - navigation.instant
+    # - navigation.tracking
     - toc.integrate
-    - toc.follow
+    # - toc.follow
     - search.suggest
     # - content.tabs.link
     # - content.code.annotation
