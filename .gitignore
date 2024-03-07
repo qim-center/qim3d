@@ -17,6 +17,7 @@ build/
 *.swo
 *.pyc
 *~
+*.html
 
 # Notebook checkpoints
 .ipynb_checkpoints/

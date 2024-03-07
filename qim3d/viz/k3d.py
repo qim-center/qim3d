@@ -10,47 +10,65 @@ Volumetric visualization using K3D
 import k3d
 import numpy as np
 
-def vol(img, show=True, save=False):
+
+def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, **kwargs):
     """
-    Volumetric visualization of a given volume.
+    Visualizes a 3D volume using volumetric rendering.
 
     Args:
         img (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
-        show (bool, optional): If True, displays the visualization. Defaults to True.
-        save (bool or str, optional): If True, saves the visualization as an HTML file. 
-            If a string is provided, it's interpreted as the file path where the HTML 
+        aspectmode (str, optional): Determines the proportions of the scene's axes. 
+            If "data", the axes are drawn in proportion with the axes' ranges. 
+            If "cube", the axes are drawn as a cube, regardless of the axes' ranges. 
+            Defaults to "data".
+        show (bool, optional): If True, displays the visualization inline. Defaults to True.
+        save (bool or str, optional): If True, saves the visualization as an HTML file.
+            If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
+        grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
+        **kwargs: Additional keyword arguments to be passed to the k3d.plot function.
 
     Returns:
         k3d.plot: If show is False, returns the K3D plot object.
 
-    Example:
+    Raises:
+        ValueError: If aspectmode is not "data" or "cube".
+
+    Examples:
+        Display a volume inline:
+
         ```python
         import qim3d
         vol = qim3d.examples.bone_128x128x128
-
-        # shows the volume inline
-        qim3d.viz.vol(vol) 
-
+        qim3d.viz.vol(vol)
         ```
-        
-    Example:
+
+        Save a plot to an HTML file:
+
         ```python
         import qim3d
         vol = qim3d.examples.bone_128x128x128
-
-        # saves html plot to disk
         plot = qim3d.viz.vol(vol, show=False, save="plot.html")
         ```
-
     """
-    plt_volume = k3d.volume(img.astype(np.float32))
-    plot = k3d.plot()
+
+    if aspectmode.lower() not in ["data", "cube"]:
+        raise ValueError("aspectmode should be either 'data' or 'cube'")
+
+    plt_volume = k3d.volume(
+        img.astype(np.float32),
+        bounds=(
+            [0, img.shape[0], 0, img.shape[1], 0, img.shape[2]]
+            if aspectmode.lower() == "data"
+            else None
+        ),
+    )
+    plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume
 
     if save:
         # Save html to disk
-        with open(str(save),'w', encoding="utf-8") as fp:
+        with open(str(save), "w", encoding="utf-8") as fp:
             fp.write(plot.get_snapshot())
 
     if show:
