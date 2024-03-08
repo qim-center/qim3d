@@ -9,6 +9,8 @@ from torch import ones
 import qim3d
 from qim3d.utils.internal_tools import temp_data
 
+import matplotlib.pyplot as plt
+import ipywidgets as widgets
 
 # unit tests for grid overview
 def test_grid_overview():
@@ -211,5 +213,33 @@ def test_orthogonal_slider_description():
     for idx,slicer in enumerate(orthogonal_obj.children):
         assert slicer.children[0].description == ['Z', 'Y', 'X'][idx]
 
+
+
+
+
+# unit tests for local thickness visualization
+def test_local_thickness_2d():
+    blobs = qim3d.examples.blobs_256x256
+    lt = qim3d.processing.local_thickness(blobs)
+    fig = qim3d.viz.local_thickness(blobs, lt)
+
+    # Assert that returned figure is a matplotlib figure
+    assert isinstance(fig, plt.Figure)
+
+def test_local_thickness_3d():
+    fly = qim3d.examples.fly_150x256x256
+    lt = qim3d.processing.local_thickness(fly)
+    obj = qim3d.viz.local_thickness(fly, lt)
+
+    # Assert that returned object is an interactive widget
+    assert isinstance(obj, widgets.interactive)
+
+def test_local_thickness_3d_max_projection():
+    fly = qim3d.examples.fly_150x256x256
+    lt = qim3d.processing.local_thickness(fly)
+    fig = qim3d.viz.local_thickness(fly, lt, max_projection=True)
+
+    # Assert that returned object is an interactive widget
+    assert isinstance(fig, plt.Figure)
 
 

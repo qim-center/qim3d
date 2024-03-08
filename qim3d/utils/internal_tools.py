@@ -79,7 +79,7 @@ def get_local_ip():
     try:
         # doesn't even have to be reachable
         _socket.connect(("192.255.255.255", 1))
-        ip_address = _socket.getsockname()
+        ip_address = _socket.getsockname()[0]
     except socket.error:
         ip_address = "127.0.0.1"
     finally:
