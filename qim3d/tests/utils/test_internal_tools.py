@@ -34,7 +34,7 @@ def test_get_local_ip():
             return False
 
     local_ip = qim3d.utils.internal_tools.get_local_ip()
-
+    
     assert validate_ip(local_ip) == True
 
 def test_stringify_path1():
