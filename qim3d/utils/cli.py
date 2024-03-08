@@ -1,7 +1,9 @@
 import argparse
-import qim3d
 import webbrowser
-from qim3d.gui import data_explorer, iso3d, annotation_tool, local_thickness
+
+import qim3d
+from qim3d.gui import annotation_tool, data_explorer, iso3d, local_thickness
+
 
 def main():
     parser = argparse.ArgumentParser(description='Qim3d command-line interface.')
@@ -16,6 +18,7 @@ def main():
     gui_parser.add_argument('--local-thickness', action='store_true', help='Run local thickness tool.')
     gui_parser.add_argument('--host', default='0.0.0.0', help='Desired host.')
     gui_parser.add_argument('--platform', action='store_true', help='Use QIM platform address')
+    gui_parser.add_argument('--no-browser', action='store_true', help='Do not launch browser.')
 
     # K3D 
     viz_parser = subparsers.add_parser('viz', help = 'Volumetric visualization.')
@@ -27,33 +30,32 @@ def main():
 
     if args.subcommand == 'gui':
         arghost = args.host
+        inbrowser = not args.no_browser # Should automatically open in browser
         if args.data_explorer:
             if args.platform:
                 data_explorer.run_interface(arghost)
             else:
                 interface = data_explorer.Interface()
-                interface.launch()
-
-
+                interface.launch(inbrowser=inbrowser)
         elif args.iso3d:
             if args.platform:
                 iso3d.run_interface(arghost)
             else:
                 interface = iso3d.Interface()
-                interface.launch()            
+                interface.launch(inbrowser=inbrowser)
         
         elif args.annotation_tool:
             if args.platform:
                 annotation_tool.run_interface(arghost)
             else:
                 interface = annotation_tool.Interface()
-                interface.launch()        
+                interface.launch(inbrowser=inbrowser)        
         elif args.local_thickness:
             if args.platform:
                 local_thickness.run_interface(arghost)
             else:
                 interface = local_thickness.Interface()
-                interface.launch()
+                interface.launch(inbrowser=inbrowser)
 
 
     if args.subcommand == "viz":
