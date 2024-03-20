@@ -39,9 +39,8 @@ The `qim3d`libray aims to provide easy ways to explore and get insights from vol
     vol = qim3d.examples.bone_128x128x128
     qim3d.viz.vol(vol) 
     ```
-    ![viz k3d](assets/screenshots/viz-k3d.png)
 
-
+    <iframe src="https://platform.qim.dk/k3d/fima-bone_128x128x128-20240221113459.html" width="100%" height="500" frameborder="0"></iframe>
 ::: qim3d.viz.img
     options:
         members:
