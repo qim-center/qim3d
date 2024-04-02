@@ -399,7 +399,7 @@ def slicer(
     img_height: int = 3,
     img_width: int = 3,
     show_position: bool = False,
-    interpolation: Optional[str] = None,
+    interpolation: Optional[str] = "none",
 ) -> widgets.interactive:
     """Interactive widget for visualizing slices of a 3D volume.
 
