@@ -12,3 +12,5 @@
             - append
 
 
+
+::: qim3d.processing.structure_tensor
