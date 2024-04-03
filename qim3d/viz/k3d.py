@@ -11,15 +11,15 @@ import k3d
 import numpy as np
 
 
-def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, **kwargs):
+def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, cmap=None, **kwargs):
     """
     Visualizes a 3D volume using volumetric rendering.
 
     Args:
         img (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
-        aspectmode (str, optional): Determines the proportions of the scene's axes. 
-            If "data", the axes are drawn in proportion with the axes' ranges. 
-            If "cube", the axes are drawn as a cube, regardless of the axes' ranges. 
+        aspectmode (str, optional): Determines the proportions of the scene's axes.
+            If "data", the axes are drawn in proportion with the axes' ranges.
+            If "cube", the axes are drawn as a cube, regardless of the axes' ranges.
             Defaults to "data".
         show (bool, optional): If True, displays the visualization inline. Defaults to True.
         save (bool or str, optional): If True, saves the visualization as an HTML file.
@@ -62,6 +62,7 @@ def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, **kwa
             if aspectmode.lower() == "data"
             else None
         ),
+        color_map=cmap,
     )
     plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume

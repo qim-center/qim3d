@@ -4,6 +4,8 @@ Provides a collection of visualization functions.
 
 import math
 from typing import List, Optional, Union, Tuple
+
+import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -11,9 +13,9 @@ from matplotlib import colormaps
 from matplotlib.colors import LinearSegmentedColormap
 
 import qim3d.io
-import ipywidgets as widgets
 from qim3d.io.logger import log
 from qim3d.utils.cc import CC
+from qim3d.viz.colormaps import objects
 
 
 def grid_overview(
@@ -231,6 +233,7 @@ def slices(
     show: bool = False,
     show_position: bool = True,
     interpolation: Optional[str] = "none",
+    **imshow_kwargs,
 ) -> plt.Figure:
     """Displays one or several slices from a 3d volume.
 
@@ -334,7 +337,7 @@ def slices(
             slice_idx = i * max_cols + j
             try:
                 slice_img = vol.take(slice_idxs[slice_idx], axis=axis)
-                ax.imshow(slice_img, cmap=cmap, interpolation=interpolation)
+                ax.imshow(slice_img, cmap=cmap, interpolation=interpolation, **imshow_kwargs)
 
                 if show_position:
                     ax.text(
@@ -400,6 +403,7 @@ def slicer(
     img_width: int = 3,
     show_position: bool = False,
     interpolation: Optional[str] = "none",
+    **imshow_kwargs,
 ) -> widgets.interactive:
     """Interactive widget for visualizing slices of a 3D volume.
 
@@ -437,6 +441,7 @@ def slicer(
             position=position,
             n_slices=1,
             show=True,
+            **imshow_kwargs,
         )
         return fig
 
@@ -535,14 +540,13 @@ def plot_cc(
         components (list | tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
         max_cc_to_plot (int, optional): The maximum number of connected components to plot. Defaults to 32.
         overlay (optional): Overlay image. Defaults to None.
-        crop (bool, optional): Whether to crop the overlay image. Defaults to False.
+        crop (bool, optional): Whether to crop the image to the cc. Defaults to False.
         show (bool, optional): Whether to show the figure. Defaults to True.
         **kwargs: Additional keyword arguments to pass to `qim3d.viz.slices`.
 
     Returns:
         figs (list[plt.Figure]): List of figures, if `show=False`.
     """
-    figs = []
     # if no components are given, plot the first max_cc_to_plot=32 components
     if component_indexs is None:
         if len(connected_components) > max_cc_to_plot:
@@ -552,12 +556,11 @@ def plot_cc(
         component_indexs = range(
             1, min(max_cc_to_plot + 1, len(connected_components) + 1)
         )
-
+        
+    figs = []
     for component in component_indexs:
         if overlay is not None:
-            assert (
-                overlay.shape == connected_components.shape
-            ), f"Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}."
+            assert (overlay.shape == connected_components.shape), f"Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}."
 
             # plots overlay masked to connected component
             if crop:
@@ -573,10 +576,12 @@ def plot_cc(
                 overlay_crop = np.where(cc == 0, 0, overlay)
                 fig = slices(overlay_crop, show=show, **kwargs)
         else:
+            # assigns discrete color map to each connected component if not given 
+            if "cmap" not in kwargs:
+                kwargs["cmap"] = qim3dCmap(len(component_indexs))
+        
             # Plot the connected component without overlay
-            fig = slices(
-                connected_components.get_cc(component, crop=crop), show=show, **kwargs
-            )
+            fig = slices(connected_components.get_cc(component, crop=crop), show=show, **kwargs)
 
         figs.append(fig)
 
