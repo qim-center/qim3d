@@ -15,19 +15,21 @@ app.launch()
 ```
 """
 
-import gradio as gr
-import numpy as np
-import os
-from qim3d.utils import internal_tools
-from qim3d.io import load
-from qim3d.io.logger import log
-import tifffile
-import outputformat as ouf
 import datetime
+import os
+
+import gradio as gr
 import matplotlib
 
 # matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import numpy as np
+import outputformat as ouf
+import tifffile
+
+from qim3d.io import load
+from qim3d.io.logger import log
+from qim3d.utils import internal_tools
 
 
 class Interface:
@@ -45,7 +47,6 @@ class Interface:
             "Z min projection",
             "Intensity histogram",
             "Data summary",
-
         ]
         # CSS path
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -118,7 +119,7 @@ class Interface:
                                 value="⟳", elem_classes="btn-html h-36"
                             )
                     explorer = gr.FileExplorer(
-                        glob="{*/,}{*.*}",
+                        ignore_glob="*/.*", # ignores hidden files
                         root_dir=os.getcwd(),
                         label=os.getcwd(),
                         render=True,
@@ -406,8 +407,10 @@ class Pipeline:
                 virtual_stack=session.virtual_stack,
                 dataset_name=session.dataset_name,
             )
+            if session.vol.ndim != 3:
+                raise ValueError("Invalid data shape should be 3 dimensional, not shape: ", session.vol.shape)
         except Exception as error_message:
-            raise ValueError(
+            raise gr.Error(
                 f"Failed to load the image: {error_message}"
             ) from error_message
 
