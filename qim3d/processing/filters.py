@@ -4,7 +4,18 @@ from typing import Union, Type
 import numpy as np
 from scipy import ndimage
 
-__all__ = ['Gaussian','Median','Maximum','Minimum','Pipeline','gaussian','median','maximum','minimum']
+__all__ = [
+    "Gaussian",
+    "Median",
+    "Maximum",
+    "Minimum",
+    "Pipeline",
+    "gaussian",
+    "median",
+    "maximum",
+    "minimum",
+]
+
 
 class FilterBase:
     def __init__(self, *args, **kwargs):
@@ -17,6 +28,7 @@ class FilterBase:
         """
         self.args = args
         self.kwargs = kwargs
+
 
 class Gaussian(FilterBase):
     def __call__(self, input):
@@ -31,6 +43,7 @@ class Gaussian(FilterBase):
         """
         return gaussian(input, *self.args, **self.kwargs)
 
+
 class Median(FilterBase):
     def __call__(self, input):
         """
@@ -43,6 +56,7 @@ class Median(FilterBase):
             The filtered image or volume.
         """
         return median(input, **self.kwargs)
+
 
 class Maximum(FilterBase):
     def __call__(self, input):
@@ -57,6 +71,7 @@ class Maximum(FilterBase):
         """
         return maximum(input, **self.kwargs)
 
+
 class Minimum(FilterBase):
     def __call__(self, input):
         """
@@ -69,6 +84,7 @@ class Minimum(FilterBase):
             The filtered image or volume.
         """
         return minimum(input, **self.kwargs)
+
 
 class Pipeline:
     def __init__(self, *args: Type[FilterBase]):
@@ -90,13 +106,17 @@ class Pipeline:
         Args:
             name: A string representing the name or identifier of the filter.
             fn: An instance of a FilterBase subclass.
-        
+
         Raises:
             AssertionError: If `fn` is not an instance of the FilterBase class.
         """
-        if not isinstance(fn,FilterBase):
-            filter_names = [subclass.__name__ for subclass in FilterBase.__subclasses__()]
-            raise AssertionError(f'filters should be instances of one of the following classes: {filter_names}')
+        if not isinstance(fn, FilterBase):
+            filter_names = [
+                subclass.__name__ for subclass in FilterBase.__subclasses__()
+            ]
+            raise AssertionError(
+                f"filters should be instances of one of the following classes: {filter_names}"
+            )
         self.filters[name] = fn
 
     def append(self, fn: Type[FilterBase]):
@@ -122,6 +142,7 @@ class Pipeline:
             input = fn(input)
         return input
 
+
 def gaussian(vol, *args, **kwargs):
     """
     Applies a Gaussian filter to the input volume using scipy.ndimage.gaussian_filter.
@@ -136,6 +157,7 @@ def gaussian(vol, *args, **kwargs):
     """
     return ndimage.gaussian_filter(vol, *args, **kwargs)
 
+
 def median(vol, **kwargs):
     """
     Applies a median filter to the input volume using scipy.ndimage.median_filter.
@@ -149,6 +171,7 @@ def median(vol, **kwargs):
     """
     return ndimage.median_filter(vol, **kwargs)
 
+
 def maximum(vol, **kwargs):
     """
     Applies a maximum filter to the input volume using scipy.ndimage.maximum_filter.
@@ -159,8 +182,9 @@ def maximum(vol, **kwargs):
 
     Returns:
         The filtered image or volume.
-    """    
+    """
     return ndimage.maximum_filter(vol, **kwargs)
+
 
 def minimum(vol, **kwargs):
     """
