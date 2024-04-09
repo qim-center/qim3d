@@ -42,6 +42,7 @@ setup(
         "h5py>=3.9.0",
         "localthickness>=0.1.2",
         "matplotlib>=3.8.0",
+        "pydicom>=2.4.4",
         "monai>=1.2.0",
         "numpy>=1.26.0",
         "outputformat>=0.1.3",

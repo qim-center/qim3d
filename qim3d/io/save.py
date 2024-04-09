@@ -21,13 +21,17 @@ Example:
     ```
 
 """
+import datetime
 import os
 
 import h5py
 import nibabel as nib
 import numpy as np
 import PIL
+import pydicom
 import tifffile
+from pydicom.dataset import FileDataset, FileMetaDataset
+from pydicom.uid import UID
 
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
@@ -179,6 +183,59 @@ class DataSaver:
         with h5py.File(path, "w") as f:
             f.create_dataset("dataset", data=data, compression="gzip" if self.compression else None)
         
+    def save_dicom(self, path, data):
+        """ Save data to a DICOM file to the given path.
+
+        Args:
+            path (str): The path to save file to
+            data (numpy.ndarray): The data to be saved
+        """
+        # based on https://pydicom.github.io/pydicom/stable/auto_examples/input_output/plot_write_dicom.html
+
+        # Populate required values for file meta information
+        file_meta = FileMetaDataset()
+        file_meta.MediaStorageSOPClassUID = UID('1.2.840.10008.5.1.4.1.1.2')
+        file_meta.MediaStorageSOPInstanceUID = UID("1.2.3")
+        file_meta.ImplementationClassUID = UID("1.2.3.4")
+
+        # Create the FileDataset instance (initially no data elements, but file_meta
+        # supplied)
+        ds = FileDataset(path, {},
+                        file_meta=file_meta, preamble=b"\0" * 128)
+
+        ds.PatientName = "Test^Firstname"
+        ds.PatientID = "123456"
+        ds.StudyInstanceUID = "1.2.3.4.5" 
+        ds.SamplesPerPixel = 1
+        ds.PixelRepresentation = 0
+        ds.BitsStored = 16
+        ds.BitsAllocated = 16
+        ds.PhotometricInterpretation = "MONOCHROME2"
+        ds.Rows = data.shape[1]
+        ds.Columns = data.shape[2]
+        ds.NumberOfFrames = data.shape[0]
+        # Set the transfer syntax
+        ds.is_little_endian = True
+        ds.is_implicit_VR = True
+
+        # Set creation date/time
+        dt = datetime.datetime.now()
+        ds.ContentDate = dt.strftime('%Y%m%d')
+        timeStr = dt.strftime('%H%M%S.%f')  # long format with micro seconds
+        ds.ContentTime = timeStr
+        # Needs to be here because of bug in pydicom
+        ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
+
+        # Reshape the data into a 1D array and convert to uint16
+        data_1d = data.ravel().astype(np.uint16)
+        # Convert the data to bytes
+        data_bytes = data_1d.tobytes()
+        # Add the data to the DICOM file
+        ds.PixelData = data_bytes
+
+        ds.save_as(path)
+        
+    
     def save_PIL(self, path, data):
         """ Save data to a PIL file to the given path.
 
@@ -271,6 +328,8 @@ class DataSaver:
                         return self.save_h5(path, data)
                     elif path.endswith((".vol",".vgi")):
                         return self.save_vol(path, data)
+                    elif path.endswith((".dcm",".DCM")):
+                        return self.save_dicom(path, data)
                     elif path.endswith((".jpeg",".jpg", ".png")):
                         return self.save_PIL(path, data)
                     else:
