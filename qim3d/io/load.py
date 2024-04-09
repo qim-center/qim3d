@@ -12,16 +12,16 @@ Example:
 
 import difflib
 import os
+import re
+import struct
 from pathlib import Path
 
+import dask.array as da
 import h5py
 import nibabel as nib
 import numpy as np
 import olefile
-import struct
-import re
-import dask.array as da
-from pathlib import Path
+import pydicom
 import tifffile
 from PIL import Image, UnidentifiedImageError
 
@@ -29,6 +29,7 @@ import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 from qim3d.utils.system import Memory
+
 
 class DataLoader:
     """Utility class for loading data from different file formats.
@@ -437,6 +438,39 @@ class DataLoader:
             return vol, meta_data
         else:
             return vol
+        
+    def load_dicom(self, path):
+        """ Load a DICOM file 
+
+        Args:
+            path (str): Path to file
+        """
+        dcm_data = pydicom.dcmread(path)
+        
+        if self.return_metadata:
+            return dcm_data.pixel_array, dcm_data
+        else:
+            return dcm_data.pixel_array
+    
+    def load_dicom_dir(self, path):
+        """ Load a directory of DICOM files into a numpy 3d array
+
+        Args:
+            path (str): Directory path
+        """ 
+        # loop over all .dcm files in the directory
+        files = [f for f in os.listdir(path) if f.endswith('.dcm')]
+        files.sort()
+        # dicom_list contains the dicom objects with metadata
+        dicom_list = [pydicom.dcmread(os.path.join(path, f)) for f in files]
+        # vol contains the pixel data
+        vol = np.stack([dicom.pixel_array for dicom in dicom_list], axis=0)
+        
+        if self.return_metadata:
+            return vol, dicom_list
+        else:
+            return vol
+        
 
     def load(self, path):
         """
@@ -474,6 +508,8 @@ class DataLoader:
                 return self.load_nifti(path)
             elif path.endswith((".vol",".vgi")):
                 return self.load_vol(path)
+            elif path.endswith((".dcm",".DCM")):
+                return self.load_dicom(path)
             else:
                 try:
                     return self.load_pil(path)
@@ -482,7 +518,11 @@ class DataLoader:
 
         # Load a directory
         elif os.path.isdir(path):
-            return self.load_tiff_stack(path)
+            # load dicom if directory contains dicom files else load tiff stack as default
+            if any([f.endswith('.dcm') for f in os.listdir(path)]):
+                return self.load_dicom_dir(path)
+            else:
+                return self.load_tiff_stack(path)
 
         # Fails
         else:
