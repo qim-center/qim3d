@@ -7,16 +7,16 @@ from urllib.parse import quote
 from tqdm import tqdm
 from pathlib import Path
 
-from qim3d.io.load import load
+from qim3d.io import load
 from qim3d.io.logger import log
 import outputformat as ouf
 
 
 class Downloader:
-    """Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/data-repository/).
+    """Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
 
     Attributes:
-        [folder_name] (str): folder class with the name of the folder in https://data.qim.dk/data-repository/
+        [folder_name] (str): folder class with the name of the folder in <https://data.qim.dk/>
 
     Example:
         ```python

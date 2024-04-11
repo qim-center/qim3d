@@ -12,6 +12,12 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 ### v0.3.3 (coming soon!)
 - Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
 - Introduction of `qim3d.gui.annotation_tool` 🎉
+- Introduction of `qim3d.processing.Blob` for blob detection 🎉
+- Introduction of `qim3d.processing.local_thickness` 🎉
+- Introduction of `qim3d.processing.structure_tensor` 🎉
+- Support for loading DICOM files with `qim3d.io.load`🎉
+- Introduction of `qim3d.processing.get_3d_cc` for 3D connected components and `qim3d.viz.plot_cc` for associated visualization 🎉
+- Introduction of `qim3d.viz.colormaps` for easy visualization of e.g. multi-label segmentation results 🎉
 
 ### v0.3.2 (23/02/2024)
 
@@ -20,9 +26,9 @@ This version focus on the increased usability of the `qim3d` library
 - Online documentation available at [https://platform.qim.dk/qim3d](https://platform.qim.dk/qim3d)
 - Virtual stacks also available for `txm` files
 - Updated GUI launch pipeline
-- New functionalities for `qim3d.vix.slices`
+- New functionalities for `qim3d.viz.slices`
 - Introduction of `qim3d.processing.filters` 🎉 
-- Introduction of `qim3d.viz.k3d` 🎉 
+- Introduction of `qim3d.viz.vol` 🎉 
 
 ### v0.3.1 (01/02/2024)
 

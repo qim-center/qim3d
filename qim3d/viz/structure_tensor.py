@@ -35,6 +35,21 @@ def vectors(
         ValueError: If the axis to slice along is not 0, 1, or 2.
         ValueError: If the slice index is not an integer or a float between 0 and 1.
 
+    Returns:
+        fig (Union[plt.Figure, widgets.interactive]): If `interactive` is True, returns an interactive widget. Otherwise, returns a matplotlib figure.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.NT_128x128x128
+        val, vec = qim3d.processing.structure_tensor(vol, visualize=True, axis=2)
+
+        # Visualize the structure tensor
+        qim3d.viz.vectors(vol, vec, axis=2, slice_idx=0.5, interactive=True)
+        ```
+        ![structure tensor](assets/screenshots/structure_tensor.gif)  
+
     """
 
     # Define Grid size limits

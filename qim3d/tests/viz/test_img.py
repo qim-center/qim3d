@@ -241,5 +241,3 @@ def test_local_thickness_3d_max_projection():
 
     # Assert that returned object is an interactive widget
     assert isinstance(fig, plt.Figure)
-
-
