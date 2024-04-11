@@ -21,3 +21,6 @@ build/
 
 # Notebook checkpoints
 .ipynb_checkpoints/
+
+# MacOS finder files
+*.DS_Store

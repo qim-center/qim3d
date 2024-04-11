@@ -18,6 +18,7 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 - Support for loading DICOM files with `qim3d.io.load`🎉
 - Introduction of `qim3d.processing.get_3d_cc` for 3D connected components and `qim3d.viz.plot_cc` for associated visualization 🎉
 - Introduction of `qim3d.viz.colormaps` for easy visualization of e.g. multi-label segmentation results 🎉
+- Introduction of `qim3d.processing.operations.background_removal` 🎉
 
 ### v0.3.2 (23/02/2024)
 
