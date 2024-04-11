@@ -16,13 +16,14 @@ def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
 
     Args:
         blobs (array-like): An array-like object of blobs, where each blob is represented
-            as a 4-tuple (p, r, c, radius). Usally the result of qim3d.processing.detection.Blob()
+            as a 4-tuple (p, r, c, radius). Usally the result of `qim3d.processing.Blob().detect()`
         vol (array-like): The 3D volume on which to plot the blobs.
-        z_slice (int, optional): The index of the slice to plot. If not provided, the middle slice is used.
+        alpha (float, optional): The transparency of the blobs. Defaults to 0.5.
+        color (str, optional): The color of the blobs. Defaults to "#ff9900".
         **kwargs: Arbitrary keyword arguments for the `slices` function.
 
     Returns:
-        matplotlib.figure.Figure: The resulting figure after adding the blobs to the slice.
+        slicer_obj (ipywidgets.interactive): An interactive widget for visualizing the blobs.
 
     """
 

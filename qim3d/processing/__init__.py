@@ -1,4 +1,5 @@
+from .local_thickness_ import local_thickness
+from .structure_tensor_ import structure_tensor
 from .filters import *
-from .local_thickness import local_thickness
-from .structure_tensor import structure_tensor
 from .detection import *
+from .cc import get_3d_cc

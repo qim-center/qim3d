@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from qim3d.utils.cc import get_3d_cc
+from qim3d.processing.cc import get_3d_cc
 
 
 @pytest.fixture(scope="module")

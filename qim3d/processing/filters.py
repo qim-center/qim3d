@@ -87,6 +87,37 @@ class Minimum(FilterBase):
 
 
 class Pipeline:
+    """
+    Example:
+        ```python
+        import qim3d
+        from qim3d.processing import Pipeline, Median, Gaussian, Maximum, Minimum
+
+        # Get data
+        vol = qim3d.examples.fly_150x256x256
+
+        # Show original
+        qim3d.viz.slices(vol, axis=0, show=True)
+
+        # Create filter pipeline
+        pipeline = Pipeline(
+            Median(size=5),
+            Gaussian(sigma=3)
+        )
+
+        # Append a third filter to the pipeline
+        pipeline.append(Maximum(size=3))
+
+        # Apply filter pipeline
+        vol_filtered = pipeline(vol)
+
+        # Show filtered
+        qim3d.viz.slices(vol_filtered, axis=0)
+        ```
+        ![original volume](assets/screenshots/filter_original.png)
+        ![filtered volume](assets/screenshots/filter_processed.png)
+            
+        """
     def __init__(self, *args: Type[FilterBase]):
         """
         Represents a sequence of image filters.
@@ -125,6 +156,20 @@ class Pipeline:
 
         Args:
             fn: An instance of a FilterBase subclass to be appended.
+        
+        Example:
+            ```python
+            import qim3d
+            from qim3d.processing import Pipeline, Maximum, Median
+
+            # Create filter pipeline
+            pipeline = Pipeline(
+                Maximum(size=3)
+            )
+
+            # Append a second filter to the pipeline
+            pipeline.append(Median(size=5))
+            ```
         """
         self._add_filter(str(len(self.filters)), fn)
 

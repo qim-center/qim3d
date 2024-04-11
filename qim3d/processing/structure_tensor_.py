@@ -18,17 +18,27 @@ def structure_tensor(
 
     Args:
         vol (np.ndarray): 3D NumPy array representing the volume.
-        sigma (float): A noise scale, structures smaller than sigma will be removed by smoothing.
-        rho (float): An integration scale giving the size over the neighborhood in which the orientation is to be analysed.
-        full: A flag indicating that all three eigenvalues should be returned. Default is False.
+        sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing.
+        rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed.
+        full (bool, optional): A flag indicating that all three eigenvalues should be returned. Default is False.
         visualize (bool, optional): Whether to visualize the structure tensor. Default is False.
-        **viz_kwargs: Additional keyword arguments for the visualization function. Only used if visualize=True.
+        **viz_kwargs: Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
+
     Raises:
         ValueError: If the input volume is not 3D.
 
     Returns:
         val: An array with shape `(3, *vol.shape)` containing the eigenvalues of the structure tensor.
         vec: An array with shape `(3, *vol.shape)` if `full` is `False`, otherwise `(3, 3, *vol.shape)` containing eigenvectors.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.NT_128x128x128
+        val, vec = qim3d.processing.structure_tensor(vol, visualize=True, axis=2)
+        ```
+        ![structure tensor](assets/screenshots/structure_tensor.gif)
 
     !!! quote "Reference"
         Jeppesen, N., et al. "Quantifying effects of manufacturing methods on fiber orientation in unidirectional composites using structure tensor analysis." Composites Part A: Applied Science and Manufacturing 149 (2021): 106541.

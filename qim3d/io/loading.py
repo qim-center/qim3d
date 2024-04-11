@@ -480,9 +480,11 @@ class DataLoader:
             path (str or os.PathLike): The path to the file or directory.
 
         Returns:
-            numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple: The loaded volume.
-                If 'self.virtual_stack' is True, returns numpy.memmap, h5py._hl.dataset.Dataset or nibabel.arrayproxy.ArrayProxy depending on file format
-                If 'self.return_metadata' is True and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns a tuple (volume, metadata).
+            vol (numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple): The loaded volume
+        
+                If `virtual_stack=True`, returns `numpy.memmap`, `h5py._hl.dataset.Dataset` or `nibabel.arrayproxy.ArrayProxy` depending on file format
+                If `return_metadata=True` and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns `tuple` (volume, metadata).
+
         Raises:
             ValueError: If the format is not supported
             ValueError: If the file or directory does not exist.
@@ -585,11 +587,10 @@ def load(
         to the DataLoader constructor.
 
     Returns:
-        numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple: The loaded volume.
-
-        If 'virtual_stack' is True, returns numpy.memmap, h5py._hl.dataset.Dataset or nibabel.arrayproxy.ArrayProxy depending on file format
-        
-        If 'return_metadata' is True and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns a tuple (volume, metadata).
+        vol (numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple): The loaded volume
+    
+            If `virtual_stack=True`, returns `numpy.memmap`, `h5py._hl.dataset.Dataset` or `nibabel.arrayproxy.ArrayProxy` depending on file format
+            If `return_metadata=True` and file format is either HDF5, NIfTI or TXRM/TXM/XRM, returns `tuple` (volume, metadata).
 
     Example:
         ```python
@@ -635,7 +636,30 @@ def load(
 
 
 class ImgExamples:
-    """Image examples"""
+    """Image examples
+
+    Attributes:
+        blobs_256x256 (numpy.ndarray): A 2D image of blobs.
+        blobs_256x256x256 (numpy.ndarray): A 3D volume of blobs.
+        bone_128x128x128 (numpy.ndarray): A 3D volume of bone.
+        cement_128x128x128 (numpy.ndarray): A 3D volume of cement.
+        fly_150x256x256 (numpy.ndarray): A 3D volume of a fly.
+        NT_10x200x100 (numpy.ndarray): A 3D volume of a neuron.
+        NT_128x128x128 (numpy.ndarray): A 3D volume of a neuron.
+        shell_225x128x128 (numpy.ndarray): A 3D volume of a shell.
+    
+    Tip:
+        Call `qim3d.examples.<name>` to access the image examples easily as this class is instantiated when importing `qim3d`
+    
+    Example:
+        ```python
+        import qim3d
+
+        data = qim3d.examples.blobs_256x256
+        ```
+
+
+    """
 
     def __init__(self):
         img_examples_path = Path(qim3d.__file__).parents[0] / "img_examples"
@@ -647,4 +671,4 @@ class ImgExamples:
 
         # Generate loader for each image found
         for idx, name in enumerate(img_names):
-            exec(f"self.{name} = qim3d.io.load(path = img_paths[idx])")
+            exec(f"self.{name} = load(path = img_paths[idx])")

@@ -15,7 +15,7 @@ def local_thickness(
     visualize=False,
     **viz_kwargs
 ) -> np.ndarray:
-    """Wrapper for the local thickness function from the localthickness package (https://github.com/vedranaa/local-thickness)
+    """Wrapper for the local thickness function from the [local thickness package](https://github.com/vedranaa/local-thickness)
 
     Args:
         image (np.ndarray): 2D or 3D NumPy array representing the image/volume.
@@ -26,11 +26,27 @@ def local_thickness(
         mask (np.ndarray, optional): binary mask of the same size of the image defining parts of the
             image to be included in the computation of the local thickness. Default is None.
         visualize (bool, optional): Whether to visualize the local thickness. Default is False.
-        **viz_kwargs: Additional keyword arguments for the visualization function. Only used if visualize=True.
+        **viz_kwargs: Additional keyword arguments passed to `qim3d.viz.local_thickness`. Only used if `visualize=True`.
 
     Returns:
         local_thickness (np.ndarray): 2D or 3D NumPy array representing the local thickness of the input image/volume.
+    
+    Example:
+        ```python
+        import qim3d
 
+        fly = qim3d.examples.fly_150x256x256 # 3D volume
+        lt_fly = qim3d.processing.local_thickness(fly, visualize=True, axis=0)
+        ```
+        ![local thickness 3d](assets/screenshots/local_thickness_3d.gif)
+
+        ```python
+        import qim3d
+
+        blobs = qim3d.examples.blobs_256x256 # 2D image
+        lt_blobs = qim3d.processing.local_thickness(blobs, visualize=True)
+        ```
+        ![local thickness 2d](assets/screenshots/local_thickness_2d.png)
 
     !!! quote "Reference"
         Dahl, V. A., & Dahl, A. B. (2023, June). Fast Local Thickness. 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW).

@@ -25,7 +25,7 @@ def objects(
         seed (int, optional): Seed for random number generator. Defaults to 19.
 
     Returns:
-        matplotlib.colors.LinearSegmentedColormap: Colormap for matplotlib
+        cmap (matplotlib.colors.LinearSegmentedColormap): Colormap for matplotlib
     """
     # Check style
     if style not in ("bright", "soft"):

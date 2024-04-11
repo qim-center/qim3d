@@ -6,6 +6,9 @@ __all__ = ["Blob"]
 
 
 class Blob:
+    """
+    Extract blobs from a volume using Difference of Gaussian (DoG) method
+    """
     def __init__(
         self,
         background="dark",
@@ -19,6 +22,7 @@ class Blob:
     ):
         """
         Initialize the blob detection object
+
         Args:
             background: 'dark' if background is darker than the blobs, 'bright' if background is lighter than the blobs
             min_sigma: The minimum standard deviation for Gaussian kernel
@@ -43,10 +47,37 @@ class Blob:
     def detect(self, vol):
         """
         Detect blobs in the volume
+
         Args:
             vol: The volume to detect blobs in
+
         Returns:
             blobs: The blobs found in the volume as (p, r, c, radius)
+
+        Example:
+            ```python
+            import qim3d
+
+            # Get data
+            vol = qim3d.examples.cement_128x128x128
+            vol_blurred = qim3d.processing.gaussian(vol, sigma=2)
+
+            # Initialize Blob detector
+            blob_detector = qim3d.processing.Blob(
+                min_sigma=1,
+                max_sigma=8,
+                threshold=0.001,
+                overlap=0.1,
+                background="bright"
+                )
+
+            # Detect blobs
+            blobs = blob_detector.detect(vol_blurred)
+
+            # Visualize results
+            qim3d.viz.circles(blobs,vol,alpha=0.8,color='blue')
+            ```
+            ![blob detection](assets/screenshots/blob_detection.gif)
         """
         self.vol_shape = vol.shape
         if self.background == "bright":
@@ -70,8 +101,32 @@ class Blob:
     def get_mask(self):
         '''
         Retrieve a binary volume with the blobs marked as True
+
         Returns:
             binary_volume: A binary volume with the blobs marked as True
+
+        Example:
+            ```python
+            import qim3d
+
+            # Get data
+            vol = qim3d.examples.cement_128x128x128
+            vol_blurred = qim3d.processing.gaussian(vol, sigma=2)
+
+            # Initialize Blob detector
+            blob_detector = qim3d.processing.Blob(
+                min_sigma=1,
+                max_sigma=8,
+                threshold=0.001,
+                overlap=0.1,
+                background="bright"
+                )
+
+            # Get mask and visualize
+            mask = blob_detector.get_mask()
+            qim3d.viz.slicer(mask)
+            ```
+            ![blob detection](assets/screenshots/blob_get_mask.gif)
         '''
         binary_volume = np.zeros(self.vol_shape, dtype=bool)
 

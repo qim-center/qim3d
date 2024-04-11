@@ -17,31 +17,33 @@ def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, cmap=
 
     Args:
         img (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
-        aspectmode (str, optional): Determines the proportions of the scene's axes.
-            If "data", the axes are drawn in proportion with the axes' ranges.
-            If "cube", the axes are drawn as a cube, regardless of the axes' ranges.
-            Defaults to "data".
+        aspectmode (str, optional): Determines the proportions of the scene's axes. Defaults to "data".
+
+            If `'data'`, the axes are drawn in proportion with the axes' ranges.
+            If `'cube'`, the axes are drawn as a cube, regardless of the axes' ranges.
         show (bool, optional): If True, displays the visualization inline. Defaults to True.
         save (bool or str, optional): If True, saves the visualization as an HTML file.
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
-        **kwargs: Additional keyword arguments to be passed to the k3d.plot function.
+        **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
-        k3d.plot: If show is False, returns the K3D plot object.
+        plot (k3d.plot): If `show=False`, returns the K3D plot object.
 
     Raises:
-        ValueError: If aspectmode is not "data" or "cube".
+        ValueError: If `aspectmode` is not `'data'` or `'cube'`.
 
-    Examples:
+    Example:
         Display a volume inline:
 
         ```python
         import qim3d
+
         vol = qim3d.examples.bone_128x128x128
-        qim3d.viz.vol(vol)
+        qim3d.viz.vol(vol) 
         ```
+        <iframe src="https://platform.qim.dk/k3d/fima-bone_128x128x128-20240221113459.html" width="100%" height="500" frameborder="0"></iframe>
 
         Save a plot to an HTML file:
 
@@ -50,6 +52,7 @@ def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, cmap=
         vol = qim3d.examples.bone_128x128x128
         plot = qim3d.viz.vol(vol, show=False, save="plot.html")
         ```
+        
     """
 
     if aspectmode.lower() not in ["data", "cube"]:
