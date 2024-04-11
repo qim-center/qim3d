@@ -1,8 +1,12 @@
 """Provides filter functions and classes for image processing"""
 
-from typing import Union, Type
+from typing import Type, Union
+
 import numpy as np
 from scipy import ndimage
+from skimage import morphology
+
+from qim3d.io.logger import log
 
 __all__ = [
     "Gaussian",
@@ -10,10 +14,12 @@ __all__ = [
     "Maximum",
     "Minimum",
     "Pipeline",
+    "Tophat",
     "gaussian",
     "median",
     "maximum",
     "minimum",
+    "tophat",
 ]
 
 
@@ -84,6 +90,19 @@ class Minimum(FilterBase):
             The filtered image or volume.
         """
         return minimum(input, **self.kwargs)
+
+class Tophat(FilterBase):
+    def __call__(self, input):
+        """
+        Applies a tophat filter to the input.
+
+        Args:
+            input: The input image or volume.
+
+        Returns:
+            The filtered image or volume.
+        """
+        return tophat(input, **self.kwargs)
 
 
 class Pipeline:
@@ -243,3 +262,28 @@ def minimum(vol, **kwargs):
         The filtered image or volume.
     """
     return ndimage.minimum_filter(vol, **kwargs)
+
+def tophat(vol, **kwargs):
+    """
+    Remove background from the volume
+    Args:
+        vol: The volume to remove background from
+        radius: The radius of the structuring element (default: 3)
+        background: color of the background, 'dark' or 'bright' (default: 'dark'). If 'bright', volume will be inverted.
+    Returns:
+        vol: The volume with background removed
+    """
+    radius = kwargs["radius"] if "radius" in kwargs else 3
+    background = kwargs["background"] if "background" in kwargs else "dark"
+    
+    if background == "bright":
+            log.info("Bright background selected, volume will be temporarily inverted when applying white_tophat")
+            vol = np.invert(vol)
+    
+    selem = morphology.ball(radius)
+    vol = vol - morphology.white_tophat(vol, selem)
+
+    if background == "bright":
+        vol = np.invert(vol)
+    
+    return vol
