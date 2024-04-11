@@ -9,7 +9,7 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
 
-### v0.3.3 (coming soon!)
+### v0.3.3 (11/04/2024)
 - Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
 - Introduction of `qim3d.gui.annotation_tool` 🎉
 - Introduction of `qim3d.processing.Blob` for blob detection 🎉
