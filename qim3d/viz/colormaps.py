@@ -1,5 +1,9 @@
+"""
+This module provides a collection of colormaps useful for 3D visualization.
+"""
+   
 import colorsys
-
+from typing import Union, Tuple
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
@@ -7,25 +11,37 @@ from qim3d.io.logger import log
 
 
 def objects(
-    nlabels,
-    style="bright",
-    first_color_background=True,
-    last_color_background=False,
-    background_color=(0.0, 0.0, 0.0),
-    seed=19,
-):
+    nlabels: int,
+    style: str = "bright",
+    first_color_background: bool = True,
+    last_color_background: bool = False,
+    background_color: Union[Tuple[float, float, float], str] = (0.0, 0.0, 0.0),
+    seed: int = 19,
+) -> LinearSegmentedColormap:
     """
     Creates a random colormap to be used together with matplotlib. Useful for segmentation tasks
 
     Args:
-        nlabels (int): Number of labels (size of colormap)
+        nlabels (int): Number of labels (size of colormap).
         style (str, optional): 'bright' for strong colors, 'soft' for pastel colors. Defaults to 'bright'.
-        first_color_background (bool, optional): Option to use first color as background. Defaults to True.
-        last_color_background (bool, optional): Option to use last color as background. Defaults to False.
+        first_color_background (bool, optional): If True, the first color is used as background. Defaults to True.
+        last_color_background (bool, optional): If True, the last color is used as background. Defaults to False.
+        background_color (tuple or str, optional): RGB tuple or string for background color. Can be "black" or "white". Defaults to (0.0, 0.0, 0.0).
         seed (int, optional): Seed for random number generator. Defaults to 19.
 
     Returns:
         cmap (matplotlib.colors.LinearSegmentedColormap): Colormap for matplotlib
+
+
+    Example:
+        ```python
+        import qim3d
+
+        cmap = qim3d.viz.colormaps.objects(nlabels=100, first_color_background=True, background_color="black")
+        display(cmap)
+        ```
+        ![colormap objects](assets/screenshots/viz-colormaps-objects.png)  
+
     """
     # Check style
     if style not in ("bright", "soft"):
