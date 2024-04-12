@@ -6,6 +6,7 @@ import colorsys
 from typing import Union, Tuple
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+from matplotlib import colormaps
 
 from qim3d.io.logger import log
 
@@ -104,8 +105,28 @@ def objects(
         randRGBcolors[-1] = background_color
 
     # Create colormap
-    objects_cmap = LinearSegmentedColormap.from_list(
-        "objects_cmap", randRGBcolors, N=nlabels
+    objects = LinearSegmentedColormap.from_list(
+        "objects", randRGBcolors, N=nlabels
     )
 
-    return objects_cmap
+    return objects
+
+
+
+qim = LinearSegmentedColormap.from_list('qim', 
+                                        [(0.6, 0.0, 0.0), #990000
+                                         (1.0, 0.6, 0.0), #ff9900
+                                         ])
+"""
+Defines colormap in QIM logo colors. Can be accessed as module attribute or easily by ```cmap = 'qim'```
+
+Example:
+    ```python
+
+    import qim3d
+
+    display(qim3d.viz.colormaps.qim)
+    ```
+    ![colormap objects](assets/screenshots/viz-colormaps-qim.png)
+"""
+colormaps.register(qim)
