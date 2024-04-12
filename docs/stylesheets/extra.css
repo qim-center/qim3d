@@ -97,3 +97,7 @@ code {
 .md-typeset .admonition.example, .md-typeset details.example {
   border-color: #ff9900;
 }
+
+.md-typeset .example>.admonition-title:after, .md-typeset .example>summary:after {
+  color: #ff9900;
+}
