@@ -1,8 +1,11 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+
+from qim3d.io.logger import log
+from qim3d.processing.cc import CC
 from qim3d.viz import slices
 from qim3d.viz.colormaps import objects as qim3dCmap
-from qim3d.processing.cc import CC
+
 
 def plot_cc(
     connected_components,
@@ -14,11 +17,11 @@ def plot_cc(
     **kwargs,
 ) -> list[plt.Figure]:
     """
-    Plot the connected components of an image.
+    Plots the connected components from a `qim3d.processing.cc.CC` object. If an overlay image is provided, the connected component will be masked to the overlay image.
 
     Parameters:
         connected_components (CC): The connected components object.
-        components (list | tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
+        component_indexs (list | tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
         max_cc_to_plot (int, optional): The maximum number of connected components to plot. Defaults to 32.
         overlay (optional): Overlay image. Defaults to None.
         crop (bool, optional): Whether to crop the image to the cc. Defaults to False.
@@ -27,6 +30,18 @@ def plot_cc(
 
     Returns:
         figs (list[plt.Figure]): List of figures, if `show=False`.
+
+    Example:
+        ```python
+        import qim3d
+        vol = qim3d.examples.cement_128x128x128[50:150]
+        vol_bin = vol<80
+        cc = qim3d.processing.get_3d_cc(vol_bin)
+        qim3d.viz.plot_cc(cc, crop=True, show=True, overlay=None, n_slices=5, component_indexs=[4,6,7])
+        qim3d.viz.plot_cc(cc, crop=True, show=True, overlay=vol, n_slices=5, component_indexs=[4,6,7])
+        ```
+        ![plot_cc_no_overlay](assets/screenshots/plot_cc_no_overlay.png)
+        ![plot_cc_overlay](assets/screenshots/plot_cc_overlay.png)
     """
     # if no components are given, plot the first max_cc_to_plot=32 components
     if component_indexs is None:

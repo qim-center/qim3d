@@ -72,7 +72,7 @@ class CC:
 
 
 def get_3d_cc(image: np.ndarray | torch.Tensor) -> CC:
-    """ Get the connected components of a 3D volume.
+    """ Returns an object (CC) containing the connected components of the input volume. Use plot_cc to visualize the connected components.
 
     Args:
         image (np.ndarray | torch.Tensor): An array-like object to be labeled. Any non-zero values in `input` are
@@ -80,8 +80,14 @@ def get_3d_cc(image: np.ndarray | torch.Tensor) -> CC:
 
     Returns:
         CC: A ConnectedComponents object containing the connected components and the number of connected components.
+
+    Example:
+        ```python
+        import qim3d
+        vol = qim3d.examples.cement_128x128x128[50:150]<60
+        cc = qim3d.processing.get_3d_cc(vol)
+        ```
     """
     connected_components, num_connected_components = label(image)
     log.info(f"Total number of connected components found: {num_connected_components}")
-    
     return CC(connected_components, num_connected_components)
