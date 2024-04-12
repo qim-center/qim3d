@@ -15,13 +15,16 @@ app.launch()
 ```
 """
 
-import tifffile
-import tempfile
-import os
-import time
 import getpass
-import numpy as np
+import os
+import tempfile
+import time
+
 import gradio as gr
+import numpy as np
+import tifffile
+from PIL import Image
+
 import qim3d.utils
 from qim3d.io import load, save
 from qim3d.io.logger import log
@@ -112,7 +115,8 @@ class Interface:
 
                 with gr.Column(scale=6):
                     img_editor = gr.ImageEditor(
-                        value=img,
+                        # ! Temporary fix for drawing at wrong location https://github.com/gradio-app/gradio/pull/7959
+                        value={"background": img, "layers": [Image.new("RGBA", img.shape, (0, 0, 0, 0))], "composite": None} if img is not None else None,
                         type="numpy",
                         image_mode="RGB",
                         brush=brush,
