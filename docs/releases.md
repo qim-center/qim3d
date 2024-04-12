@@ -12,6 +12,7 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 ### v0.3.4 (coming soon!)
 - Documentation for `qim3d.viz.plot_cc`
 - Fixed issue with Annotation tool and recent Gradio versions
+- New colormap: `qim3d.viz.colormaps.qim`, showcasing the Qim colors!
 
 ### v0.3.3 (11/04/2024)
 - Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
