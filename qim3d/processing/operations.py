@@ -1,5 +1,8 @@
 import numpy as np
 import qim3d.processing.filters as filters
+import scipy
+import skimage
+from qim3d.io.logger import log
 
 
 def remove_background(
@@ -49,3 +52,57 @@ def remove_background(
 
     # Apply the pipeline to the volume
     return pipeline(vol)
+
+def watershed(
+        bin_vol: np.ndarray
+) -> tuple[np.ndarray, int]:
+    """
+    Apply watershed segmentation to a binary volume.
+
+    Args:
+        bin_vol (np.ndarray): Binary volume to segment.
+    
+    Returns:
+        tuple[np.ndarray, int]: Labeled volume after segmentation, number of objects found.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.cement_128x128x128
+        binary = qim3d.processing.filters.gaussian(vol, 2)<60
+
+        qim3d.viz.slices(binary, axis=1)
+        ```
+        ![operations-watershed_before](assets/screenshots/operations-watershed_before.png)  
+
+        ```python
+        labeled_volume, num_labels = qim3d.processing.operations.watershed(binary)
+
+        cmap = qim3d.viz.colormaps.objects(num_labels)
+        qim3d.viz.slices(labeled_volume, axis = 1, cmap=cmap)
+        ```
+        ![operations-watershed_after](assets/screenshots/operations-watershed_after.png)  
+
+    """
+    # Compute distance transform of binary volume
+    distance= scipy.ndimage.distance_transform_edt(bin_vol)
+
+    # Find peak coordinates in distance transform
+    coords = skimage.feature.peak_local_max(distance, labels=bin_vol)
+
+    # Create a mask with peak coordinates
+    mask = np.zeros(distance.shape, dtype=bool)
+    mask[tuple(coords.T)] = True
+
+    # Label peaks
+    markers, _ = scipy.ndimage.label(mask)
+
+    # Apply watershed segmentation
+    labeled_volume = skimage.segmentation.watershed(-distance, markers=markers, mask=bin_vol)
+    
+    # Extract number of objects found
+    num_labels = len(np.unique(labeled_volume))-1
+    log.info(f"Total number of objects found: {num_labels}")
+
+    return labeled_volume, num_labels
