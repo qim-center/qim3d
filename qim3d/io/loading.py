@@ -458,11 +458,35 @@ class DataLoader:
         Args:
             path (str): Directory path
         """ 
-        # loop over all .dcm files in the directory
-        files = [f for f in os.listdir(path) if f.endswith('.dcm')]
-        files.sort()
+        if not self.contains:
+            raise ValueError(
+                "Please specify a part of the name that is common for the DICOM file stack with the argument 'contains'"
+            )
+
+        dicom_stack = [
+            file
+            for file in os.listdir(path)
+            if self.contains in file
+        ]
+        dicom_stack.sort()  # Ensure proper ordering
+
+        # Check that only one DICOM stack in the directory contains the provided string in its name
+        dicom_stack_only_letters = []
+        for filename in dicom_stack:
+            name = os.path.splitext(filename)[0]  # Remove file extension
+            dicom_stack_only_letters.append(
+                "".join(filter(str.isalpha, name))
+            )  # Remove everything else than letters from the name
+
+        # Get unique elements from tiff_stack_only_letters
+        unique_names = list(set(dicom_stack_only_letters))
+        if len(unique_names) > 1:
+            raise ValueError(
+                f"The provided part of the filename for the DICOM stack matches multiple DICOM stacks: {unique_names}.\nPlease provide a string that is unique for the DICOM stack that is intended to be loaded"
+            )
+
         # dicom_list contains the dicom objects with metadata
-        dicom_list = [pydicom.dcmread(os.path.join(path, f)) for f in files]
+        dicom_list = [pydicom.dcmread(os.path.join(path, f)) for f in dicom_stack]
         # vol contains the pixel data
         vol = np.stack([dicom.pixel_array for dicom in dicom_list], axis=0)
         
@@ -520,11 +544,11 @@ class DataLoader:
 
         # Load a directory
         elif os.path.isdir(path):
-            # load dicom if directory contains dicom files else load tiff stack as default
-            if any([f.endswith('.dcm') for f in os.listdir(path)]):
-                return self.load_dicom_dir(path)
-            else:
+            # load tiff stack if folder contains tiff files else load dicom directory
+            if any([f.endswith('.tif') or f.endswith('.tiff') for f in os.listdir(path)]):
                 return self.load_tiff_stack(path)
+            else:
+                return self.load_dicom_dir(path)
 
         # Fails
         else:
