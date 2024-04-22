@@ -14,6 +14,7 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 - Fixed issue with Annotation tool and recent Gradio versions
 - New colormap: `qim3d.viz.colormaps.qim`, showcasing the Qim colors!
 - Object separation using `qim3d.processing.operations.watershed`
+- The 'Data Explorer' GUI now can load image sequences also
 
 ### v0.3.3 (11/04/2024)
 - Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
