@@ -67,11 +67,13 @@ class DataLoader:
             return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5, TXRM/TXM/XRM and NIfTI files)
             contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks).
                 Default is None.
+            dim_order (tuple, optional): The order of the dimensions in the volume. Default is (2,1,0) which corresponds to (z,y,x)
         """
         self.virtual_stack = kwargs.get("virtual_stack", False)
         self.dataset_name = kwargs.get("dataset_name", None)
         self.return_metadata = kwargs.get("return_metadata", False)
         self.contains = kwargs.get("contains", None)
+        self.dim_order = kwargs.get("dim_order", (2,1,0))
 
     def load_tiff(self, path):
         """Load a TIFF file from the specified path.
@@ -428,11 +430,12 @@ class DataLoader:
             case _:
                 raise ValueError(f"Unsupported data type: {dt}")
         
+        dims_order = (dims[self.dim_order[0]], dims[self.dim_order[1]], dims[self.dim_order[2]])
         if self.virtual_stack:
-            vol = np.memmap(vol_path, dtype=dt, mode='r', shape=(dims[2], dims[0], dims[1]))
+            vol = np.memmap(vol_path, dtype=dt, mode='r', shape=dims_order)
         else:
             vol = np.fromfile(vol_path, dtype=dt, count=np.prod(dims))
-            vol = np.reshape(vol, (dims[2], dims[0], dims[1]))
+            vol = np.reshape(vol, dims_order)
 
         if self.return_metadata:
             return vol, meta_data
@@ -593,6 +596,7 @@ def load(
     dataset_name=None,
     return_metadata=False,
     contains=None,
+    dim_order=(2,1,0),
     **kwargs,
 ):
     """
@@ -607,6 +611,7 @@ def load(
         return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM/TXM/XRM files)
         contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks).
             Default is None.
+        dim_order (tuple, optional): The order of the dimensions in the volume for .vol files. Default is (2,1,0) which corresponds to (z,y,x)
         **kwargs: Additional keyword arguments to be passed
         to the DataLoader constructor.
 
@@ -629,6 +634,7 @@ def load(
         dataset_name=dataset_name,
         return_metadata=return_metadata,
         contains=contains,
+        dim_order=dim_order,
         **kwargs,
     )
 
