@@ -303,3 +303,45 @@ def get_css():
         css_content = file.read()
     
     return css_content
+
+
+def scale_to_float16(arr):
+    """
+    Scale a NumPy array to fit within the limits of the float16 data type.
+
+    Parameters:
+    - arr (numpy.ndarray): The input array to be scaled.
+
+    Returns:
+    - numpy.ndarray: The scaled array, with values adjusted to fit within the limits of float16 data type.
+
+    This function takes a NumPy array as input and checks if its maximum and minimum values
+    exceed the limits of the float16 data type. If necessary, it scales the positive and negative
+    parts of the array independently to fit within the range of float16.
+    """
+        
+    # Determine maximum and minimum values of the array
+    arr_max = np.max(arr)
+    arr_min = np.min(arr)
+    
+    # Check if scaling is necessary for positive and negative parts separately
+    if arr_max > np.finfo(np.float16).max:
+        pos_scaled_arr = np.interp(arr[arr >= 0], (0, arr_max), (0, np.finfo(np.float16).max))
+    else:
+        pos_scaled_arr = arr[arr >= 0].astype(np.float16)
+        
+    if arr_min < -np.finfo(np.float16).max:
+        neg_scaled_arr = np.interp(arr[arr < 0], (arr_min, 0), (-np.finfo(np.float16).max, 0))
+    else:
+        neg_scaled_arr = arr[arr < 0].astype(np.float16)
+    
+    # Combine the scaled positive and negative parts
+    scaled_arr = np.concatenate((neg_scaled_arr, pos_scaled_arr))
+
+    # Reshape the scaled array to match the original shape
+    scaled_arr = scaled_arr.reshape(arr.shape)
+    
+    # Convert the scaled array to float16 data type
+    scaled_arr = scaled_arr.astype(np.float16)
+    
+    return scaled_arr

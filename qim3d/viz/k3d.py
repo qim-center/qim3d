@@ -9,9 +9,10 @@ Volumetric visualization using K3D
 
 import k3d
 import numpy as np
+from qim3d.utils.internal_tools import scale_to_float16
 
 
-def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, cmap=None, **kwargs):
+def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, cmap=None, samples="auto", **kwargs):
     """
     Visualizes a 3D volume using volumetric rendering.
 
@@ -26,6 +27,9 @@ def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, cmap=
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
+        cmap (list, optional): The color map to be used for the volume rendering. Defaults to None.
+        samples (int, optional): The number of samples to be used for the volume rendering in k3d. Defaults to 512. 
+            Lower values will render faster but with lower quality.
         **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
@@ -54,20 +58,35 @@ def vol(img, aspectmode="data", show=True, save=False, grid_visible=False, cmap=
         ```
         
     """
+    pixel_count = img.shape[0] * img.shape[1] * img.shape[2]
+    # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
+    if samples == "auto":
+        y1,x1 = 256, 16777216 # 256 samples at res 256*256*256=16.777.216
+        y2,x2 = 32, 134217728 # 32 samples at res 512*512*512=134.217.728
+
+        # we fit linear function to the two points
+        a = (y1-y2)/(x1-x2)
+        b = y1 - a*x1
+
+        samples = int(min(max(a*pixel_count+b,32),512))
+    else:
+        samples = int(samples) # make sure it's an integer
+
 
     if aspectmode.lower() not in ["data", "cube"]:
         raise ValueError("aspectmode should be either 'data' or 'cube'")
 
     plt_volume = k3d.volume(
-        img.astype(np.float32),
+        scale_to_float16(img),
         bounds=(
             [0, img.shape[0], 0, img.shape[1], 0, img.shape[2]]
             if aspectmode.lower() == "data"
             else None
         ),
         color_map=cmap,
+        samples=samples,
     )
-    plot = k3d.plot(grid_visible=grid_visible, **kwargs)
+    plot = k3d.plot(grid_visible=grid_visible,**kwargs)
     plot += plt_volume
 
     if save:
