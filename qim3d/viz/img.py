@@ -15,7 +15,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from qim3d.io.logger import log
 
 
-
 def grid_overview(
     data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5, show=False
 ):
@@ -335,7 +334,9 @@ def slices(
             slice_idx = i * max_cols + j
             try:
                 slice_img = vol.take(slice_idxs[slice_idx], axis=axis)
-                ax.imshow(slice_img, cmap=cmap, interpolation=interpolation, **imshow_kwargs)
+                ax.imshow(
+                    slice_img, cmap=cmap, interpolation=interpolation, **imshow_kwargs
+                )
 
                 if show_position:
                     ax.text(
@@ -521,3 +522,32 @@ def orthogonal(
     x_slicer.children[0].description = "X"
 
     return widgets.HBox([z_slicer, y_slicer, x_slicer])
+
+
+def vol_masked(vol, vol_mask, viz_delta=128):
+    """
+    Applies masking to a volume based on a binary volume mask.
+
+    This function takes a volume array `vol` and a corresponding binary volume mask `vol_mask`.
+    It computes the masked volume where pixels outside the mask are set to the background value,
+    and pixels inside the mask are set to foreground.
+
+
+    Args:
+        vol (ndarray): The input volume as a NumPy array.
+        vol_mask (ndarray): The binary mask volume as a NumPy array with the same shape as `vol`.
+        viz_delta (int, optional): Value added to the volume before applying the mask to visualize masked regions.
+            Defaults to 128.
+
+    Returns:
+        ndarray: The masked volume with the same shape as `vol`, where pixels outside the mask are set
+            to the background value (negative).
+
+
+    """
+
+    background = (vol.astype("float") + viz_delta) * (1 - vol_mask) * -1
+    foreground = (vol.astype("float") + viz_delta) * vol_mask
+    vol_masked = background + foreground
+
+    return vol_masked

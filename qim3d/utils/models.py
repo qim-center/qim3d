@@ -1,5 +1,6 @@
 """ Tools performed with models."""
 import torch
+import numpy as np
 import matplotlib.pyplot as plt
 
 from torchinfo import summary
@@ -228,3 +229,37 @@ def inference(data,model):
         preds = preds.unsqueeze(0)
     
     return inputs,targets,preds
+
+
+def volume_inference(volume, model, threshold=0.5):
+    '''
+    Compute on the entire volume
+    Args:
+        volume (numpy.ndarray): A 3D numpy array representing the input volume.
+        model (torch.nn.Module): The trained network model used for inference.
+        threshold (float): The threshold value used to binarize the model predictions.
+    Returns:
+        numpy.ndarray: A 3D numpy array representing the model predictions for each slice of the input volume.
+    Raises:
+        ValueError: If the input volume is not a 3D numpy array.
+    '''
+    if len(volume.shape) != 3:
+        raise ValueError("Input volume must be a 3D numpy array")
+    
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model.to(device)
+    model.eval()
+
+    inference_vol = np.zeros_like(volume)
+
+    for idx in np.arange(len(volume)):
+        input_with_channel = np.expand_dims(volume[idx], axis=0)
+        input_tensor = torch.tensor(input_with_channel, dtype=torch.float32).to(device)
+        input_tensor = input_tensor.unsqueeze(0)
+        output = model(input_tensor) > threshold
+        output = output.cpu() if device == 'cuda' else output
+        output_detached = output.detach()
+        output_numpy = output_detached.numpy()[0, 0, :, :]
+        inference_vol[idx] = output_numpy
+
+    return inference_vol
