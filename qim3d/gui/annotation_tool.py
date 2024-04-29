@@ -48,6 +48,7 @@ class Interface:
         self.interface = None
         self.username = getpass.getuser()
         self.temp_dir = os.path.join(tempfile.gettempdir(), f"qim-{self.username}")
+        self.name_suffix = None
 
         # CSS path
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -77,7 +78,7 @@ class Interface:
         # Get the temporary files from gradio
         temp_path_list = []
         for filename in os.listdir(self.temp_dir):
-            if "mask" in str(filename):
+            if "mask" and self.name_suffix in str(filename):
                 # Get the list of the temporary files
                 temp_path_list.append(os.path.join(self.temp_dir, filename))
 
@@ -116,7 +117,15 @@ class Interface:
                 with gr.Column(scale=6):
                     img_editor = gr.ImageEditor(
                         # ! Temporary fix for drawing at wrong location https://github.com/gradio-app/gradio/pull/7959
-                        value={"background": img, "layers": [Image.new("RGBA", img.shape, (0, 0, 0, 0))], "composite": None} if img is not None else None,
+                        value=(
+                            {
+                                "background": img,
+                                "layers": [Image.new("RGBA", img.shape, (0, 0, 0, 0))],
+                                "composite": None,
+                            }
+                            if img is not None
+                            else None
+                        ),
                         type="numpy",
                         image_mode="RGB",
                         brush=brush,
@@ -147,12 +156,14 @@ class Interface:
                         )
 
             temp_dir = gr.Textbox(value=self.temp_dir, visible=False)
+            name_suffix = gr.Textbox(value=self.name_suffix, visible=False)
+
             session = gr.State([])
             inputs = [img_editor]
             operations = Operations()
             # fmt: off
             btn_update.click(
-                fn=operations.start_session, inputs=[img_editor,temp_dir] , outputs=session).then(
+                fn=operations.start_session, inputs=[img_editor,temp_dir, name_suffix] , outputs=session).then(
                 fn=operations.preview, inputs=session, outputs=overlay_img).then(
                 fn=self.set_visible, inputs=None, outputs=overlay_img).then(
                 fn=operations.separate_masks, inputs=session, outputs=[session, masks_download]).then(
@@ -168,13 +179,18 @@ class Operations:
         session = Session()
         session.img_editor = args[0]
         session.temp_dir = args[1]
+        session.mask_names = {
+            0: f"red{args[2]}",
+            1: f"green{args[2]}",
+            2: f"blue{args[2]}",
+        }
 
         # Clean up old files
         try:
             files = os.listdir(session.temp_dir)
             for filename in files:
                 # Check if "mask" is in the filename
-                if "mask" in filename:
+                if "mask" and args[2] in filename:
                     file_path = os.path.join(session.temp_dir, filename)
                     os.remove(file_path)
 
