@@ -1,21 +1,24 @@
 """ Provides a collection of internal utility functions."""
 
-import socket
+import getpass
 import hashlib
-import outputformat as ouf
-import matplotlib.pyplot as plt
-import matplotlib
-import numpy as np
 import os
 import shutil
-import requests
-import getpass
-from PIL import Image
+import socket
 from pathlib import Path
-from qim3d.io.logger import log
-from fastapi import FastAPI
+
 import gradio as gr
+import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import outputformat as ouf
+import requests
+from fastapi import FastAPI
+from PIL import Image
+from scipy.ndimage import zoom
 from uvicorn import run
+
+from qim3d.io.logger import log
 
 
 def mock_plot():
@@ -306,6 +309,29 @@ def get_css():
 
     return css_content
 
+def downscale_img(img, max_voxels=512**3):
+    """ Downscale image if total number of voxels exceeds 512³.
+
+    Args:
+        img (np.Array): Input image.
+        max_voxels (int, optional): Max number of voxels. Defaults to 512³=134217728.
+
+    Returns:
+        np.Array: Downscaled image if total number of voxels exceeds 512³.
+    """
+
+    # Calculate total number of pixels in the image
+    total_voxels = np.prod(img.shape)
+
+    # If total pixels is less than or equal to 512³, return original image
+    if total_voxels <= max_voxels:
+        return img
+
+    # Calculate zoom factor
+    zoom_factor = (max_voxels / total_voxels) ** (1/3)
+
+    # Downscale image
+    return zoom(img, zoom_factor)
 
 def scale_to_float16(arr: np.ndarray):
     """
