@@ -179,6 +179,18 @@ def sizeof(num, suffix="B"):
         num /= 1024.0
     return f"{num:.1f} Y{suffix}"
 
+def get_file_size(filename:str) -> int:
+    """
+    Args:
+    -----
+        filename (str): Specifies full path to file
+
+    Returns:
+    ---------
+        size (int): size of file in bytes
+    """
+
+    return os.path.getsize(filename)
 
 def is_server_running(ip, port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
