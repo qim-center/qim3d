@@ -16,6 +16,7 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 - Object separation using `qim3d.processing.operations.watershed`
 - Added option to pass `dim_order` to `vol/vgi` files
 - The 'Data Explorer' GUI now can load image sequences also
+- Warning in case user tries to load a file larger than available memory
 
 ### v0.3.3 (11/04/2024)
 - Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
