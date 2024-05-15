@@ -3,6 +3,8 @@ import webbrowser
 
 import qim3d
 from qim3d.gui import annotation_tool, data_explorer, iso3d, local_thickness
+from qim3d.io.loading import DataLoader
+from qim3d.utils import image_preview
 
 
 def main():
@@ -25,6 +27,14 @@ def main():
     viz_parser.add_argument('--source', default=False, help='Path to the image file')
     viz_parser.add_argument('--destination', default='k3d.html', help='Path to save html file.')
     viz_parser.add_argument('--no-browser', action='store_true', help='Do not launch browser.')
+
+    # Preview
+    preview_parser = subparsers.add_parser('preview', help= 'Preview of the image in CLI')
+    preview_parser.add_argument('filename',type = str, metavar = 'FILENAME', help = 'Path to image that will be displayed')
+    preview_parser.add_argument('--slice',type = int, metavar ='S', default = None, help = 'Specifies which slice of the image will be displayed.\nDefaults to middle slice. If number exceeds number of slices, last slice will be displayed.' )
+    preview_parser.add_argument('--axis', type = int, metavar = 'AX', default=0, help = 'Specifies from which axis will be the slice taken. Defaults to 0.')
+    preview_parser.add_argument('--resolution',type = int, metavar = 'RES', default = 80, help = 'Resolution of displayed image. Defaults to 80.')
+    preview_parser.add_argument('--absolute_values', action='store_false', help = 'By default set the maximum value to be 255 so the contrast is strong. This turns it off.')
 
     args = parser.parse_args()
 
@@ -75,6 +85,10 @@ def main():
         if not args.no_browser:
             print("Opening in default browser...")
             webbrowser.open_new_tab(args.destination)
+
+    if args.subcommand == 'preview':
+        image = DataLoader().load(args.filename)
+        image_preview(image, image_width = args.resolution, axis =  args.axis, slice = args.slice, relative_intensity= args.absolute_values)
         
 if __name__ == '__main__':
     main()

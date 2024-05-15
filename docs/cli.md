@@ -146,3 +146,47 @@ Or an specific path for destination can be used. We can also choose to not open 
 
     This writes to disk the `my_plot.html` file.
 
+## File preview
+Command line interface, which allows users to preview 3D structers or 2D images directly in command line.
+###  `qim3d preview <filename>`
+| Arguments | Description |
+| --------- | ----------- |
+| `--axis` | Specifies from which axis the slice will be taken. If the object is 2D image, then this is ignored. Defaults to 0.|
+| `--slice` | Specifies which slice will be displayed. If the number exceeds number of slices, the last one is taken. Defaults to the middle slice.|
+| `--resolution` | How many characters will be used to display the image in command line. Defaults to 80.|
+| `--absolute_values` |If values are low the image might be just black square. By default maximum value is set to 255. This flag turns this behaviour off.|
+
+!!! Example
+    ```
+    qim3d preview blobs_256x256x256.tif 
+    ```
+
+    ![CLI k3d](assets/preview/default.png){ width="512" }
+
+!!! Example
+    ```
+    qim3d preview blobs_256x256x256.tif --resolution 30
+    ```
+
+    ![CLI k3d](assets/preview/res30.png){ width="512" }
+
+!!! Example
+    ```
+    qim3d preview blobs_256x256x256.tif --resolution 50 --axis 1
+    ```
+
+    ![CLI k3d](assets/preview/axis1.png){ width="512" }
+
+!!! Example
+    ```
+    qim3d preview blobs_256x256x256.tif --resolution 50 --axis 2 --slice 0
+    ```
+
+    ![CLI k3d](assets/preview/relativeIntensity.png){ width="512" }
+
+!!! Example
+    ```
+    qim3d preview qim_logo.png --resolution 40
+    ```
+
+    ![CLI k3d](assets/preview/qimLogo.png){ width="512" }
