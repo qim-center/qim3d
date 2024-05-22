@@ -36,7 +36,7 @@ def set_simple_output():
     formatter = logging.Formatter("%(message)s")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger = logging.getLogger("qim3d")
+    logger = logging.getLogger()
     logger.handlers = []
     logger.addHandler(handler)
 
@@ -132,5 +132,5 @@ def level(log_level):
 
 # create the logger
 log = logging.getLogger("qim3d")
-# set_simple_output() #TODO: This used to work, but now it gives duplicated messages. Need to be investigated.
-set_level_warning()
+set_simple_output() #TODO: This used to work, but now it gives duplicated messages. Need to be investigated.
+#set_level_warning()

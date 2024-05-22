@@ -16,6 +16,8 @@ from qim3d.utils.internal_tools import downscale_img, scale_to_float16
 
 def vol(
     img,
+    vmin=None,
+    vmax=None,
     aspectmode="data",
     show=True,
     save=False,
@@ -80,7 +82,7 @@ def vol(
         a = (y1 - y2) / (x1 - x2)
         b = y1 - a * x1
 
-        samples = int(min(max(a * pixel_count + b, 32), 512))
+        samples = int(min(max(a * pixel_count + b, 64), 512))
     else:
         samples = int(samples)  # make sure it's an integer
 
@@ -97,15 +99,23 @@ def vol(
             f"Downsampled image for visualization. From {original_shape} to {new_shape}"
         )
 
+    # Set color ranges
+    color_range = [np.min(img), np.max(img)]
+    if vmin:
+        color_range[0] = vmin
+    if vmax:
+        color_range[1] = vmax
+
     plt_volume = k3d.volume(
         scale_to_float16(img),
         bounds=(
-            [0, img.shape[0], 0, img.shape[1], 0, img.shape[2]]
+            [0, img.shape[2], 0, img.shape[1], 0, img.shape[0]]
             if aspectmode.lower() == "data"
             else None
         ),
         color_map=cmap,
         samples=samples,
+        color_range=color_range,
     )
     plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume

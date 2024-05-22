@@ -11,6 +11,7 @@ import numpy as np
 import torch
 from matplotlib import colormaps
 from matplotlib.colors import LinearSegmentedColormap
+import dask.array as da
 
 from qim3d.io.logger import log
 
@@ -271,14 +272,17 @@ def slices(
     """
 
     # Numpy array or Torch tensor input
-    if not isinstance(vol, (np.ndarray, torch.Tensor)):
-        raise ValueError("Input must be a numpy.ndarray or torch.Tensor")
+    if not isinstance(vol, (np.ndarray, torch.Tensor, da.core.Array)):
+        raise ValueError("Data type not supported")
 
     if vol.ndim < 3:
         raise ValueError(
             "The provided object is not a volume as it has less than 3 dimensions."
         )
 
+    if isinstance(vol, da.core.Array):
+        vol = vol.compute()
+        
     # Ensure axis is a valid choice
     if not (0 <= axis < vol.ndim):
         raise ValueError(
@@ -324,9 +328,11 @@ def slices(
     if nrows == 1:
         axs = [axs]  # Convert to a list for uniformity
 
-    # Convert Torch tensor to NumPy array in order to use the numpy.take method
+    # Convert to NumPy array in order to use the numpy.take method
     if isinstance(vol, torch.Tensor):
         vol = vol.numpy()
+    elif isinstance(vol, da.core.Array):
+        vol = vol.compute()
 
     # Run through each ax of the grid
     for i, ax_row in enumerate(axs):
