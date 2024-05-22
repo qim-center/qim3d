@@ -9,7 +9,7 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
 
-### v0.3.4 (coming soon!)
+### v0.3.4 (22/05/2024)
 - Documentation for `qim3d.viz.plot_cc`
 - Fixed issue with Annotation tool and recent Gradio versions
 - New colormap: `qim3d.viz.colormaps.qim`, showcasing the Qim colors!
@@ -18,6 +18,8 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 - The 'Data Explorer' GUI now can load image sequences also
 - Warning in case user tries to load a file larger than available memory
 - Objects colormap now can enforce a `min_dist` between neighbor colors
+- It is possible to load a directory with a sequence of PIL images
+- Aspect ratio issue for k3d fixed
 
 ### v0.3.3 (11/04/2024)
 - Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
