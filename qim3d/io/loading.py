@@ -13,9 +13,9 @@ Example:
 import difflib
 import os
 import re
-import struct
 from pathlib import Path
 
+import dask
 import dask.array as da
 import h5py
 import nibabel as nib
@@ -23,21 +23,15 @@ import numpy as np
 import olefile
 import pydicom
 import tifffile
-
-# Dask
-import dask_image
-import dask
 from dask import delayed
-import dask.array as da
-
-dask.config.set(scheduler="processes")  # Dask parallel goes brrrrr
-
 from PIL import Image, UnidentifiedImageError
 
 import qim3d
 from qim3d.io.logger import log
-from qim3d.utils.internal_tools import sizeof, stringify_path, get_file_size
+from qim3d.utils.internal_tools import get_file_size, sizeof, stringify_path
 from qim3d.utils.system import Memory
+
+dask.config.set(scheduler="processes")  # Dask parallel goes brrrrr
 
 
 class DataLoader:
