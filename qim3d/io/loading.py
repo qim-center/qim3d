@@ -17,7 +17,6 @@ import struct
 from pathlib import Path
 
 import dask.array as da
-import dask_image.imread
 import h5py
 import nibabel as nib
 import numpy as np
