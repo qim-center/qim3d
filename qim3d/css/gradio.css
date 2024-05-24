@@ -58,14 +58,17 @@
   --font: 'Source Sans Pro', 'ui-sans-serif', 'system-ui', sans-serif;
   --font-mono: 'IBM Plex Mono', 'ui-monospace', 'Consolas', monospace;
   --body-background-fill: var(--background-fill-primary);
-  --body-text-color: var(--neutral-300); /*Headers*/
+  --body-text-color: var(--neutral-300);
+  /*Headers*/
   --body-text-size: var(--text-md);
   --body-text-weight: 400;
   --embed-radius: var(--radius-lg);
   --color-accent: var(--primary-500);
   --color-accent-soft: var(--primary-50);
-  --background-fill-primary: var(--neutral-900); /*File explorer background*/
-  --background-fill-secondary: var(--neutral-500); /*Dropdown hover*/
+  --background-fill-primary: var(--neutral-900);
+  /*File explorer background*/
+  --background-fill-secondary: var(--neutral-500);
+  /*Dropdown hover*/
   --border-color-accent: var(--primary-300);
   --border-color-primary: var(--neutral-200);
   --link-text-color: var(--secondary-600);
@@ -87,7 +90,8 @@
   --block-label-border-color: var(--border-color-primary);
   --block-label-border-width: 1px;
   --block-label-shadow: var(--block-shadow);
-  --block-label-text-color: var(--neutral-50); /*the small labels in corners*/
+  --block-label-text-color: var(--neutral-50);
+  /*the small labels in corners*/
   --block-label-margin: 0;
   --block-label-padding: var(--spacing-sm) var(--spacing-lg);
   --block-label-radius: calc(var(--radius-lg) - 1px) 0 calc(var(--radius-lg) - 1px) 0;
@@ -125,8 +129,10 @@
   --checkbox-border-color-selected: var(--secondary-600);
   --checkbox-border-radius: var(--radius-sm);
   --checkbox-border-width: var(--input-border-width);
-  --checkbox-label-background-fill: var(--background-fill-primary);/*linear-gradient(to top, var(--neutral-50), white);*/
-  --checkbox-label-background-fill-hover: var(--neutral-500);/*linear-gradient(to top, var(--neutral-100), white);*/
+  --checkbox-label-background-fill: var(--background-fill-primary);
+  /*linear-gradient(to top, var(--neutral-50), white);*/
+  --checkbox-label-background-fill-hover: var(--neutral-500);
+  /*linear-gradient(to top, var(--neutral-100), white);*/
   --checkbox-label-background-fill-selected: var(--checkbox-label-background-fill);
   --checkbox-label-border-color: var(--border-color-primary);
   --checkbox-label-border-color-hover: var(--checkbox-label-border-color);
@@ -626,15 +632,16 @@ div.svelte-1frtwj3 {
 
 /* Annotation tool CSS */
 
-.annotation-tool .layer-wrap {
-  display: none !important;
+.no-interpolation {
+  image-rendering: pixelated !important;
 }
 
-.annotation-tool button[title="Image button"] {
-  display: none !important;
+.annotation-tool {
+  image-rendering: pixelated !important;
 }
 
-.annotation-tool:not(.no-img) button[title="Upload button"] {
+
+.annotation-tool:not(.no-img) .source-wrap {
   display: none !important;
 }
 
@@ -642,37 +649,22 @@ div.svelte-1frtwj3 {
   display: none !important;
 }
 
-.annotation-tool button[title="Color button"] {
-  color: var(--block-label-text-color) !important;
-  margin-inline-end: 32px !important;
-}
-
-.annotation-tool button[title="Color button"]::after {
-  content: "Select mask";
-}
-
-.annotation-tool button[title="Size button"] {
-  color: var(--block-label-text-color) !important;
-}
-
-
-.annotation-tool button[title="Size button"]::after {
-  content: "Brush size";
-}
-
-
+/* For backward and forward buttons in Annotation tool CSS */
 .annotation-tool .row-wrap {
-  justify-content: flex-start !important;
+  justify-content: center !important;
+}
+
+.annotation-tool .controls-wrap {
+  justify-content: center !important;
+
+  top: -8px !important;
+  left: 0px !important;
+
 }
 
 .annotation-tool .controls-wrap .small {
   width: 20px !important;
   height: 20px !important;
-}
-
-.annotation-tool .controls-wrap {
-  top: 0px !important;
-  left: 0px !important;
 }
 
 .annotation-tool .controls-wrap .padded {
@@ -681,23 +673,7 @@ div.svelte-1frtwj3 {
   background-color: rgba(255, 255, 255, 0.8);
 }
 
-.annotation-tool .stage-wrap {
-  margin-top: 0px !important;
-  margin-bottom: 16px !important;
-}
-
-.annotation-tool .svelte-b3dw9m {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-.annotation-tool .bottom {
-  bottom: 8px !important;
-  left: 0px !important;
-  position: absolute !important;
-}
-
+/*controls gr.File in Annotation tool CSS */
 .annotation-tool .download {
   min-width: 4rem !important;
   width: 10%;
@@ -706,10 +682,6 @@ div.svelte-1frtwj3 {
 }
 
 .annotation-tool .stage-wrap canvas {
-  border: 0px !important;
-  max-width: 512px !important;
-  max-height: 512px !important;
-  height: 512px !important;
-  width: fit-content !important;
-
+  min-width: 512px !important;
+  max-height: 100% !important;
 }

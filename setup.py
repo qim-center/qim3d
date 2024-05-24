@@ -38,7 +38,7 @@ setup(
     python_requires=">=3.10",
     install_requires=[
         "albumentations>=1.3.1",
-        "gradio>=4.22.0",
+        "gradio>=4.27.0",
         "h5py>=3.9.0",
         "localthickness>=0.1.2",
         "matplotlib>=3.8.0",
