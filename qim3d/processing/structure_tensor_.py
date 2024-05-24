@@ -16,6 +16,13 @@ def structure_tensor(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Wrapper for the 3D structure tensor implementation from the [structure_tensor package](https://github.com/Skielex/structure-tensor/)
 
+    
+    The structure tensor algorithm is a method for analyzing the orientation of fiber-like structures in 3D images. 
+    The core of the algorithm involves computing a 3-by-3 matrix at each point in a volume, capturing the local orientation. This matrix, known as the structure tensor, is derived from the gradients of the image intensities and integrates neighborhood information using Gaussian kernels. 
+    
+    The implementation here used allows for fast and efficient computation using GPU-based processing, making it suitable for large datasets. 
+    This efficiency is particularly advantageous for high-resolution imaging techniques like X-ray computed microtomography (μCT). 
+    
     Args:
         vol (np.ndarray): 3D NumPy array representing the volume.
         sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing.
@@ -40,6 +47,13 @@ def structure_tensor(
         ```
         ![structure tensor](assets/screenshots/structure_tensor.gif)
 
+
+    !!! info "Runtime and memory usage of the structure tensor method for different volume sizes"
+        ![structure tensor estimate time and mem](assets/screenshots/Structure_tensor_time_mem_estimation.png)
+        
+        Performance computed on Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHz.
+                
+
     !!! quote "Reference"
         Jeppesen, N., et al. "Quantifying effects of manufacturing methods on fiber orientation in unidirectional composites using structure tensor analysis." Composites Part A: Applied Science and Manufacturing 149 (2021): 106541.
         <https://doi.org/10.1016/j.compositesa.2021.106541>
@@ -58,6 +72,7 @@ def structure_tensor(
         }
 
         ```
+
     """
 
     if vol.ndim != 3:
