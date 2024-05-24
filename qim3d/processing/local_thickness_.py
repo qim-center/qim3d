@@ -17,6 +17,13 @@ def local_thickness(
 ) -> np.ndarray:
     """Wrapper for the local thickness function from the [local thickness package](https://github.com/vedranaa/local-thickness)
 
+    The "Fast Local Thickness" by Vedrana Andersen Dahl and Anders Bjorholm Dahl from the Technical University of Denmark is a efficient algorithm for computing local thickness in 2D and 3D images. 
+    Their method significantly reduces computation time compared to traditional algorithms by utilizing iterative dilation with small structuring elements, rather than the large ones typically used. 
+    This approach allows the local thickness to be determined much faster, making it feasible for high-resolution volumetric data that are common in contemporary 3D microscopy. 
+    
+    Testing against conventional methods and other Python-based tools like PoreSpy shows that the new algorithm is both accurate and faster, offering significant improvements in processing time for large datasets.
+
+
     Args:
         image (np.ndarray): 2D or 3D NumPy array representing the image/volume.
             If binary, it will be passed directly to the local thickness function.
@@ -30,7 +37,7 @@ def local_thickness(
 
     Returns:
         local_thickness (np.ndarray): 2D or 3D NumPy array representing the local thickness of the input image/volume.
-    
+
     Example:
         ```python
         import qim3d
@@ -48,6 +55,11 @@ def local_thickness(
         ```
         ![local thickness 2d](assets/screenshots/local_thickness_2d.png)
 
+    !!! info "Runtime and memory usage of the local thickness method for different volume sizes"
+        ![local thickness estimate time and mem](assets/screenshots/Local_thickness_time_mem_estimation.png)
+
+        Performance computed on Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHz.
+
     !!! quote "Reference"
         Dahl, V. A., & Dahl, A. B. (2023, June). Fast Local Thickness. 2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW).
         <https://doi.org/10.1109/cvprw59228.2023.00456>
@@ -63,6 +75,9 @@ def local_thickness(
         month=jun }
 
         ```
+
+
+
     """
 
     # Check if input is binary
