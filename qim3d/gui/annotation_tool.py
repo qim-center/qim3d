@@ -116,7 +116,6 @@ class Interface:
 
                 with gr.Column(scale=6):
                     img_editor = gr.ImageEditor(
-                        # ! Temporary fix for drawing at wrong location https://github.com/gradio-app/gradio/pull/7959
                         value=(
                             {
                                 "background": img,
@@ -133,20 +132,16 @@ class Interface:
                         interactive=True,
                         show_download_button=True,
                         container=False,
-                        transforms=[""],
+                        transforms=["crop"],
                         elem_classes=custom_css,
+                        layers=False,
                     )
 
                 with gr.Column(scale=1, min_width=256):
 
                     with gr.Row():
-                        btn_update = gr.Button(
-                            value="Update", elem_classes="btn btn-html btn-run"
-                        )
-
-                    with gr.Row():
                         overlay_img = gr.Image(
-                            show_download_button=False, show_label=False, visible=False
+                            show_download_button=False, show_label=False, visible=False, elem_classes="no-interpolation"
                         )
                     with gr.Row():
                         masks_download = gr.File(
@@ -159,10 +154,9 @@ class Interface:
             name_suffix = gr.Textbox(value=self.name_suffix, visible=False)
 
             session = gr.State([])
-            inputs = [img_editor]
             operations = Operations()
             # fmt: off
-            btn_update.click(
+            img_editor.change(
                 fn=operations.start_session, inputs=[img_editor,temp_dir, name_suffix] , outputs=session).then(
                 fn=operations.preview, inputs=session, outputs=overlay_img).then(
                 fn=self.set_visible, inputs=None, outputs=overlay_img).then(
