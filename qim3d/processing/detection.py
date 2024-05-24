@@ -122,6 +122,10 @@ class Blob:
                 background="bright"
                 )
 
+                
+            # Detect blobs
+            blobs = blob_detector.detect(vol_blurred)
+
             # Get mask and visualize
             mask = blob_detector.get_mask()
             qim3d.viz.slicer(mask)

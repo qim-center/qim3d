@@ -23,7 +23,7 @@ class Downloader:
         import qim3d
         
         dl = qim3d.io.Downloader()
-        img = dl.Corals.Coral2_DOWNSAMPLED(load = True)
+        img = dl.Corals.Coral2_DOWNSAMPLED(load_file = True)
         ```
     """
 
