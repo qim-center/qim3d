@@ -9,6 +9,10 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
 
+### v0.3.5 (27/05/2024)
+- Added runtime and memory usage in the documentation
+- Introduction of `qim3d.utils.generate_volume` 🎉
+
 ### v0.3.4 (22/05/2024)
 - Documentation for `qim3d.viz.plot_cc`
 - Fixed issue with Annotation tool and recent Gradio versions
