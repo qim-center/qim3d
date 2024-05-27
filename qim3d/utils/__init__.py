@@ -2,7 +2,7 @@
 from . import doi, internal_tools
 from .augmentations import Augmentation
 from .data import Dataset, prepare_dataloaders, prepare_datasets
-from .img import overlay_rgb_images
+from .img import generate_volume, overlay_rgb_images
 from .models import inference, model_summary, train_model
-from .system import Memory
 from .preview import image_preview
+from .system import Memory
