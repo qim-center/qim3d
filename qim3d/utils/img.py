@@ -61,7 +61,7 @@ def generate_volume(
     threshold=0.5,
     dtype="uint8",
 ):
-     """
+    """
     Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling and gamma correction.
 
     Args:
@@ -86,7 +86,7 @@ def generate_volume(
         vol = qim3d.utils.generate_volume()
         qim3d.viz.slices(vol, vmin=0, vmax=255)
     """
-     
+
     if not isinstance(final_shape, tuple) or len(final_shape) != 3:
         raise ValueError("Size must be a tuple")
     if not np.issubdtype(dtype, np.number):
@@ -109,9 +109,9 @@ def generate_volume(
                 ) / np.sqrt(3 * ((base_shape[0] / 2) ** 2))
                 # Generate Perlin noise and adjust the values based on the distance from the center
                 # This creates a spherical shape with noise
-                volume[i][j][k] = (1 + pnoise3(i * noise_scale, j * noise_scale, k * noise_scale)) * (
-                    1 - dist
-                )
+                volume[i][j][k] = (
+                    1 + pnoise3(i * noise_scale, j * noise_scale, k * noise_scale)
+                ) * (1 - dist)
 
     # Normalize
     volume = (volume - np.min(volume)) / (np.max(volume) - np.min(volume))
