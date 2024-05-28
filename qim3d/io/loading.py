@@ -602,6 +602,27 @@ class DataLoader:
             return vol, dicom_list
         else:
             return vol
+        
+
+    def load_zarr(self, path: str):
+        """ Loads a Zarr array from disk.
+
+        Args:
+            path (str): The path to the Zarr array on disk.
+
+        Returns:
+            dask.array | numpy.ndarray: The dask array loaded from disk.
+                if 'self.virtual_stack' is True, returns a dask array object, else returns a numpy.ndarray object.
+        """
+
+        # Opens the Zarr array
+        vol = da.from_zarr(path)
+
+        # If virtual stack is disabled, return the computed array (np.ndarray)
+        if not self.virtual_stack:
+            vol = vol.compute()
+
+        return vol
 
     def check_file_size(self, filename: str):
         """
@@ -674,6 +695,8 @@ class DataLoader:
                 return self.load_vol(path)
             elif path.endswith((".dcm", ".DCM")):
                 return self.load_dicom(path)
+            elif path.endswith(".zarr"):
+                return self.load_zarr(path)
             else:
                 try:
                     return self.load_pil(path)
