@@ -695,8 +695,6 @@ class DataLoader:
                 return self.load_vol(path)
             elif path.endswith((".dcm", ".DCM")):
                 return self.load_dicom(path)
-            elif path.endswith(".zarr"):
-                return self.load_zarr(path)
             else:
                 try:
                     return self.load_pil(path)
@@ -713,6 +711,8 @@ class DataLoader:
 
             elif any([f.endswith(self.PIL_extensions) for f in os.listdir(path)]):
                 return self.load_PIL_stack(path)
+            elif path.endswith(".zarr"):
+                return self.load_zarr(path)
             else:
                 return self.load_dicom_dir(path)
 
