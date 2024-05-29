@@ -11,6 +11,6 @@ from . import models
 from . import processing
 
 
-__version__ = "0.3.2"
+__version__ = "0.3.5"
 examples = io.ImgExamples()
 io.logger.set_level_info()
