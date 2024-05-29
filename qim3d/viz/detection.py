@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
-from qim3d.viz import slices
 from qim3d.io.logger import log
 import numpy as np
 import ipywidgets as widgets
 from IPython.display import clear_output, display
-
+import qim3d
 
 def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
     """
@@ -29,7 +28,7 @@ def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
 
     def _slicer(z_slice):
         clear_output(wait=True)
-        fig = slices(
+        fig = qim3d.viz.slices(
             vol,
             n_slices=1,
             position=z_slice,

@@ -16,3 +16,4 @@ Here, we provide functionalities designed specifically for 3D image analysis and
         members:
             - remove_background
             - watershed
+            - edge_fade

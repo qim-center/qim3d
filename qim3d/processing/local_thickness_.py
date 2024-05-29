@@ -5,8 +5,8 @@ import numpy as np
 from typing import Optional
 from skimage.filters import threshold_otsu
 from qim3d.io.logger import log
-from qim3d.viz import local_thickness as viz_local_thickness
-
+#from qim3d.viz import local_thickness as viz_local_thickness
+import qim3d
 
 def local_thickness(
     image: np.ndarray,
@@ -96,6 +96,6 @@ def local_thickness(
 
     # Visualize the local thickness if requested
     if visualize:
-        display(viz_local_thickness(image, local_thickness, **viz_kwargs))
+        display(qim3d.viz.local_thickness(image, local_thickness, **viz_kwargs))
 
     return local_thickness
