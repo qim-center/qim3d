@@ -31,7 +31,7 @@ from qim3d.io.logger import log
 from qim3d.utils.internal_tools import get_file_size, sizeof, stringify_path
 from qim3d.utils.system import Memory
 
-dask.config.set(scheduler="processes")  # Dask parallel goes brrrrr
+dask.config.set(scheduler="processes") 
 
 
 class DataLoader:

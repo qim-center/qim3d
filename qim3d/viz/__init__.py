@@ -1,4 +1,3 @@
-#from .colormaps import objects
 from . import colormaps
 from .cc import plot_cc
 from .detection import circles

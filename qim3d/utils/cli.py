@@ -1,10 +1,11 @@
 import argparse
 import webbrowser
 
-import qim3d
 from qim3d.gui import annotation_tool, data_explorer, iso3d, local_thickness
 from qim3d.io.loading import DataLoader
 from qim3d.utils import image_preview
+from qim3d import __version__ as version
+import qim3d
 
 
 def main():
@@ -150,7 +151,7 @@ def main():
             "--- Welcome to qim3d command-line interface ---\n"
             "qim3d is a Python package for 3D image processing and visualization.\n"
             "For more information, please visit: https://platform.qim.dk/qim3d/\n"
-            f"Current version of qim3d: {qim3d.__version__}\n"
+            f"Current version of qim3d: {version}\n"
             " \n"
             "The qim3d command-line interface provides the following subcommands:\n"
             "- gui: Graphical User Interfaces\n"
