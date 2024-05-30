@@ -1,6 +1,9 @@
+from itertools import product
+
 import numpy as np
 import tifffile as tiff
 import zarr
+from tqdm import tqdm
 
 
 def convert_tif_to_zarr(tif_path, zarr_path, chunks=(64, 64, 64)):
@@ -16,7 +19,13 @@ def convert_tif_to_zarr(tif_path, zarr_path, chunks=(64, 64, 64)):
     """
     vol = tiff.memmap(tif_path)
     z = zarr.open(zarr_path, mode='w', shape=vol.shape, chunks=chunks, dtype=vol.dtype)
-    z[:] = vol[:]
+    chunk_shape = tuple((s + c - 1) // c for s, c in zip(z.shape, z.chunks))
+    for chunk_indices in tqdm(product(*[range(n) for n in chunk_shape]), total=np.prod(chunk_shape)):
+        slices = tuple(slice(c * i, min(c * (i + 1), s))
+                    for s, c, i in zip(z.shape, z.chunks, chunk_indices))
+        temp_data = vol[slices]
+        # The assignment takes 99% of the cpu-time
+        z.blocks[chunk_indices] = temp_data
 
     return z
 
