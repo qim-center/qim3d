@@ -10,8 +10,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import colormaps
 from skimage import color
 
-from qim3d.io.logger import log
-
 def rearrange_colors(randRGBcolors_old, min_dist = 0.5):
     # Create new list for re-arranged colors
     randRGBcolors_new = [randRGBcolors_old.pop(0)]
