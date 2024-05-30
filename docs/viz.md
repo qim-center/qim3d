@@ -12,7 +12,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - vectors
             - plot_cc
             - colormaps
-            - interactive_edge_fade
+            - interactive_fade_mask
             
 ::: qim3d.viz.colormaps
     options:

@@ -562,19 +562,19 @@ def vol_masked(vol, vol_mask, viz_delta=128):
 def interactive_fade_mask(vol: np.ndarray, axis: int = 0):
     """ Interactive widget for visualizing the effect of edge fading on a 3D volume.
 
+    This can be used to select the best parameters before applying the mask.
+
     Args:
         vol (np.ndarray): The volume to apply edge fading to.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
 
-    Returns:
-        np.ndarray: The volume with edge fading applied.
-
     Example:
         ```python
         import qim3d
-        qim3d.viz.img.interactive_edge_fade(vol, geometric='cylindrical', axis=0) 
+        vol = qim3d.examples.cement_128x128x128
+        qim3d.viz.interactive_fade_mask(vol) 
         ```
-        ![operations-edge_fade_before](assets/screenshots/interactive_edge_fading.png)  
+        ![operations-edge_fade_before](assets/screenshots/viz-fade_mask.gif)  
 
     """
 

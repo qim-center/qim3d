@@ -17,3 +17,4 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - remove_background
             - watershed
             - edge_fade
+            - fade_mask

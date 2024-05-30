@@ -9,9 +9,17 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
 
+### v0.3.6 (30/05/2024)
+- Refactoring for performance improvement
+- Welcome message for the CLI
+- Introduction of `qim3d.processing.fade_mask` 🎉
+
+
 ### v0.3.5 (27/05/2024)
 - Added runtime and memory usage in the documentation
 - Introduction of `qim3d.utils.generate_volume` 🎉
+- Introduction of `preview` CLI 🎉
+
 
 ### v0.3.4 (22/05/2024)
 - Documentation for `qim3d.viz.plot_cc`
