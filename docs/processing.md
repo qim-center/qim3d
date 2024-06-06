@@ -5,11 +5,16 @@ Here, we provide functionalities designed specifically for 3D image analysis and
 ::: qim3d.processing
     options:
         members:
+            - test_blob_detection
+            - blob_detection
             - structure_tensor
             - local_thickness
             - get_3d_cc
-            - Pipeline
-            - Blob
+            - gaussian
+            - median
+            - maximum
+            - minimum
+            - tophat
 
 ::: qim3d.processing.operations
     options:
@@ -18,3 +23,7 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - watershed
             - edge_fade
             - fade_mask
+::: qim3d.processing
+    options:
+        members:
+        - Pipeline
