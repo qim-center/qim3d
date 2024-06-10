@@ -96,8 +96,7 @@ def main():
         image_preview(image, image_width = args.resolution, axis =  args.axis, slice = args.slice, relative_intensity= args.absolute_values)
 
     if args.subcommand == 'convert':
-        convert = qim3d.io.Convert()
-        convert.convert(args.input_path, args.output_path)
+        qim3d.io.convert(args.input_path, args.output_path)
         
 if __name__ == '__main__':
     main()
