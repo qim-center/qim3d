@@ -29,14 +29,14 @@ class Convert:
 
         if os.path.isfile(input_path):  
             match input_ext, output_ext:
-                case (".tif", ".zarr"):
+                case (".tif", ".zarr")  | (".tiff", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
         # Load a directory
         elif os.path.isdir(input_path):
             match input_ext, output_ext:
-                case (".zarr", ".tif"):
+                case (".zarr", ".tif") | (".zarr", ".tiff"):
                     return self.convert_zarr_to_tif(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
