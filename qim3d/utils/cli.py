@@ -36,6 +36,11 @@ def main():
     preview_parser.add_argument('--resolution',type = int, metavar = 'RES', default = 80, help = 'Resolution of displayed image. Defaults to 80.')
     preview_parser.add_argument('--absolute_values', action='store_false', help = 'By default set the maximum value to be 255 so the contrast is strong. This turns it off.')
 
+    # File Convert
+    preview_parser = subparsers.add_parser('convert', help= 'Convert files to different formats without loading the entire file into memory')
+    preview_parser.add_argument('input_path',type = str, metavar = 'Input path', help = 'Path to image that will be converted')
+    preview_parser.add_argument('output_path',type = str, metavar = 'Output path', help = 'Path to save converted image')
+
     args = parser.parse_args()
 
     if args.subcommand == 'gui':
@@ -89,6 +94,10 @@ def main():
     if args.subcommand == 'preview':
         image = DataLoader().load(args.filename)
         image_preview(image, image_width = args.resolution, axis =  args.axis, slice = args.slice, relative_intensity= args.absolute_values)
+
+    if args.subcommand == 'convert':
+        convert = qim3d.io.Convert()
+        convert.convert(args.input_path, args.output_path)
         
 if __name__ == '__main__':
     main()
