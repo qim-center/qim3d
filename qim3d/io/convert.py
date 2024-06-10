@@ -23,21 +23,23 @@ class Convert:
     def convert(self, input_path, output_path):
         # Stringify path in case it is not already a string
         input_path = stringify_path(input_path)
+        input_ext = os.path.splitext(input_path)[1]
+        output_ext = os.path.splitext(output_path)[1]
         output_path = stringify_path(output_path)
 
-        if os.path.isfile(input_path):
-            input_ext = os.path.splitext(input_path)[1]
-            output_ext = os.path.splitext(output_path)[1]
+        if os.path.isfile(input_path):  
             match input_ext, output_ext:
                 case (".tif", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
-                case (".zarr", ".tif"):
-                    return self.convert_zarr_to_tif(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
         # Load a directory
         elif os.path.isdir(input_path):
-            raise ValueError("Unsupported file format")
+            match input_ext, output_ext:
+                case (".zarr", ".tif"):
+                    return self.convert_zarr_to_tif(input_path, output_path)
+                case _:
+                    raise ValueError("Unsupported file format")
         # Fail
         else:
             # Find the closest matching path to warn the user
