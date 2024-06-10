@@ -23,13 +23,14 @@ class Convert:
     def convert(self, input_path, output_path):
         # Stringify path in case it is not already a string
         input_path = stringify_path(input_path)
+        output_path = stringify_path(output_path)
 
-        if os.path.isfile(input_path) and os.path.isfile(output_path):
-            match input_path, output_path:
+        if os.path.isfile(input_path):
+            input_ext = os.path.splitext(input_path)[1]
+            output_ext = os.path.splitext(output_path)[1]
+            match input_ext, output_ext:
                 case (".tif", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
-                case (".npy", ".zarr"):
-                    return self.convert_npy_to_zarr(input_path, output_path, shape=(64, 64, 64))
                 case (".zarr", ".tif"):
                     return self.convert_zarr_to_tif(input_path, output_path)
                 case _:
@@ -72,23 +73,6 @@ class Convert:
             temp_data = vol[slices]
             # The assignment takes 99% of the cpu-time
             z.blocks[chunk_indices] = temp_data
-
-        return z
-
-    def convert_npy_to_zarr(self, npy_path, zarr_path, shape, dtype=np.float32, chunks=(64, 64, 64)):
-        """ Convert a numpy file to a zarr file
-
-        Args:
-            npy_path (str): path to the numpy file
-            zarr_path (str): path to the zarr file
-            chunks (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
-
-        Returns:
-            zarr.core.Array: zarr array containing the data from the numpy file
-        """
-        vol = np.memmap(npy_path, dtype=dtype, mode='r', shape=shape)
-        z = zarr.open(zarr_path, mode='w', shape=vol.shape, chunks=chunks, dtype=vol.dtype)
-        z[:] = vol[:]
 
         return z
 
