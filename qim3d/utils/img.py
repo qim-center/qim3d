@@ -82,9 +82,18 @@ def generate_volume(
         ValueError: If `dtype` is not a valid numpy number type.
 
     Example:
+        ```python
         import qim3d
-        vol = qim3d.utils.generate_volume()
-        qim3d.viz.slices(vol, vmin=0, vmax=255)
+        vol = qim3d.utils.generate_volume(noise_scale=0.05, threshold=0.4)
+        qim3d.viz.slices(vol, vmin=0, vmax=255, n_slices=15)
+        ```
+        ![generate_volume](assets/screenshots/generate_volume.png)
+
+        ```python
+        qim3d.viz.vol(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_volume.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
 
     if not isinstance(final_shape, tuple) or len(final_shape) != 3:

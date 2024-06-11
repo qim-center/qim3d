@@ -266,8 +266,8 @@ def slices(
         ```python
         import qim3d
 
-        img = qim3d.examples.shell_225x128x128
-        qim3d.viz.slices(img, n_slices=15)
+        vol = qim3d.examples.shell_225x128x128
+        qim3d.viz.slices(vol, n_slices=15)
         ```
         ![Grid of slices](assets/screenshots/viz-slices.png)
     """
