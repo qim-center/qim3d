@@ -749,6 +749,16 @@ def load(
     """
     Load data from the specified file or directory.
 
+    Supported formats:
+
+    - `Tiff` (including file stacks)
+    - `HDF5`
+    - `TXRM`/`TXM`/`XRM`
+    - `NIfTI`
+    - `PIL` (including file stacks)
+    - `VOL`/`VGI`
+    - `DICOM`
+
     Args:
         path (str or os.PathLike): The path to the file or directory.
         virtual_stack (bool, optional): Specifies whether to use virtual
@@ -833,14 +843,17 @@ class ImgExamples:
         shell_225x128x128 (numpy.ndarray): A 3D volume of a shell.
 
     Tip:
-        Call `qim3d.examples.<name>` to access the image examples easily as this class is instantiated when importing `qim3d`
+        Simply call `qim3d.examples.<name>` to access the image examples.
 
     Example:
         ```python
         import qim3d
 
-        data = qim3d.examples.blobs_256x256
+        vol = qim3d.examples.shell_225x128x128
+        qim3d.viz.slices(vol, n_slices=15)
         ```
+        ![Grid of slices](assets/screenshots/viz-slices.png)
+
 
 
     """

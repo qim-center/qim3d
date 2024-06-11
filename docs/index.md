@@ -131,8 +131,21 @@ You can find us at Gitlab:
 [https://lab.compute.dtu.dk/QIM/tools/qim3d](https://lab.compute.dtu.dk/QIM/tools/qim3d
 )
 
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](https://lab.compute.dtu.dk/QIM/tools/qim3d/-/blob/main/LICENSE).
 
+### Contributors
+
+Below is a list of contributors to the project, arranged in chronological order of their first commit to the repository:
+
+| Author                    |   Commits | First commit |
+|:--------------------------|----------:|-------------:|
+| Felipe Delestro           |       170 | 2023-05-12   |
+| Stefan Engelmann Jensen   |        29 | 2023-06-29   |
+| Oskar Kristoffersen       |        15 | 2023-07-05   |
+| Christian Kento Rasmussen |        19 | 2024-02-01   |
+| Alessia Saccardo          |         7 | 2024-02-19   |
+| David Grundfest           |         4 | 2024-04-12   |
+| Anna Bøgevang Ekner       |         3 | 2024-04-18   |
 
 ## Support
 

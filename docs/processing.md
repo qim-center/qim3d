@@ -16,6 +16,11 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - minimum
             - tophat
 
+::: qim3d.processing.Pipeline
+    options:
+        members:
+            - append
+
 ::: qim3d.processing.operations
     options:
         members:
@@ -23,7 +28,3 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - watershed
             - edge_fade
             - fade_mask
-::: qim3d.processing
-    options:
-        members:
-        - Pipeline
