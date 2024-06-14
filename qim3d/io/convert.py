@@ -50,7 +50,7 @@ class Convert:
                 case (".zarr", ".nii"):
                     return self.convert_zarr_to_nifti(input_path, output_path)
                 case (".zarr", ".nii.gz"):
-                    return self.convert_zarr_to_nifti(input_path, output_path, compress=True)
+                    return self.convert_zarr_to_nifti(input_path, output_path, compression=True)
                 case _:
                     raise ValueError("Unsupported file format")
         # Fail
@@ -139,7 +139,7 @@ class Convert:
 
         return z
 
-    def convert_zarr_to_nifti(self, zarr_path, nifti_path, compress=False):
+    def convert_zarr_to_nifti(self, zarr_path, nifti_path, compression=False):
         """Convert a zarr file to a nifti file
 
         Args:
@@ -150,7 +150,7 @@ class Convert:
             None
         """
         z = zarr.open(zarr_path)
-        save(nifti_path, z, compress=compress)
+        save(nifti_path, z, compression=compression)
         
 
 def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)):
