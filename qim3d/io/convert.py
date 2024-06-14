@@ -31,12 +31,16 @@ class Convert:
             match input_ext, output_ext:
                 case (".tif", ".zarr") | (".tiff", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
+                case (".nii", ".zarr"):
+                    return self.convert_nifti_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
         # Load a directory
         elif os.path.isdir(input_path):
             match input_ext, output_ext:
                 case (".zarr", ".tif") | (".zarr", ".tiff"):
+                    return self.convert_zarr_to_tif(input_path, output_path)
+                case (".zarr", ".nii"):
                     return self.convert_zarr_to_tif(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
@@ -126,6 +130,18 @@ class Convert:
 
         return z
 
+    def convert_zarr_to_nifti(self, zarr_path, nifti_path):
+        """Convert a zarr file to a nifti file
+
+        Args:
+            zarr_path (str): path to the zarr file
+            nifti_path (str): path to the nifti file
+
+        Returns:
+            None
+        """
+        z = zarr.open(zarr_path)
+        nib.save(nib.Nifti1Image(z, np.eye(4)), nifti_path)
 
 def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)):
     """Convert a file to another format without loading the entire file into memory
