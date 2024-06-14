@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
-from qim3d.viz import slices
 from qim3d.io.logger import log
 import numpy as np
 import ipywidgets as widgets
 from IPython.display import clear_output, display
-
+import qim3d
 
 def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
     """
@@ -16,7 +15,7 @@ def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
 
     Args:
         blobs (array-like): An array-like object of blobs, where each blob is represented
-            as a 4-tuple (p, r, c, radius). Usally the result of `qim3d.processing.Blob().detect()`
+            as a 4-tuple (p, r, c, radius). Usually the result of `qim3d.processing.blob_detection(vol)`
         vol (array-like): The 3D volume on which to plot the blobs.
         alpha (float, optional): The transparency of the blobs. Defaults to 0.5.
         color (str, optional): The color of the blobs. Defaults to "#ff9900".
@@ -29,7 +28,7 @@ def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
 
     def _slicer(z_slice):
         clear_output(wait=True)
-        fig = slices(
+        fig = qim3d.viz.slices(
             vol,
             n_slices=1,
             position=z_slice,

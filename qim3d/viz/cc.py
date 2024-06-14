@@ -3,9 +3,8 @@ import numpy as np
 
 from qim3d.io.logger import log
 from qim3d.processing.cc import CC
-from qim3d.viz import slices
 from qim3d.viz.colormaps import objects as qim3dCmap
-
+import qim3d
 
 def plot_cc(
     connected_components,
@@ -66,18 +65,18 @@ def plot_cc(
                 overlay_crop = overlay[bb]
                 # use cc as mask for overlay_crop, where all values in cc set to 0 should be masked out, cc contains integers
                 overlay_crop = np.where(cc == 0, 0, overlay_crop)
-                fig = slices(overlay_crop, show=show, **kwargs)
+                fig = qim3d.viz.slices(overlay_crop, show=show, **kwargs)
             else:
                 cc = connected_components.get_cc(component, crop=False)
                 overlay_crop = np.where(cc == 0, 0, overlay)
-                fig = slices(overlay_crop, show=show, **kwargs)
+                fig = qim3d.viz.slices(overlay_crop, show=show, **kwargs)
         else:
             # assigns discrete color map to each connected component if not given 
             if "cmap" not in kwargs:
                 kwargs["cmap"] = qim3dCmap(len(component_indexs))
         
             # Plot the connected component without overlay
-            fig = slices(connected_components.get_cc(component, crop=crop), show=show, **kwargs)
+            fig = qim3d.viz.slices(connected_components.get_cc(component, crop=crop), show=show, **kwargs)
 
         figs.append(fig)
 

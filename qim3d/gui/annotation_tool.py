@@ -10,9 +10,14 @@ Or launched from a python script
 ```python
 import qim3d
 
-app = qim3d.gui.annotation_tool.Interface()
-app.launch()
+vol = qim3d.examples.NT_128x128x128
+annotation_tool = qim3d.gui.annotation_tool.Interface()
+
+# We can directly pass the image we loaded to the interface
+app = annotation_tool.launch(vol[0])
 ```
+![gui-annotation_tool](assets/screenshots/gui-annotation_tool.gif)
+
 """
 
 import getpass

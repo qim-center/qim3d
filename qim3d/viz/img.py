@@ -5,14 +5,15 @@ Provides a collection of visualization functions.
 import math
 from typing import List, Optional, Union
 
+import dask.array as da
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from matplotlib import colormaps
 from matplotlib.colors import LinearSegmentedColormap
-import dask.array as da
 
+import qim3d
 from qim3d.io.logger import log
 
 
@@ -265,8 +266,8 @@ def slices(
         ```python
         import qim3d
 
-        img = qim3d.examples.shell_225x128x128
-        qim3d.viz.slices(img, n_slices=15)
+        vol = qim3d.examples.shell_225x128x128
+        qim3d.viz.slices(vol, n_slices=15)
         ```
         ![Grid of slices](assets/screenshots/viz-slices.png)
     """
@@ -557,3 +558,83 @@ def vol_masked(vol, vol_mask, viz_delta=128):
     vol_masked = background + foreground
 
     return vol_masked
+
+def interactive_fade_mask(vol: np.ndarray, axis: int = 0):
+    """ Interactive widget for visualizing the effect of edge fading on a 3D volume.
+
+    This can be used to select the best parameters before applying the mask.
+
+    Args:
+        vol (np.ndarray): The volume to apply edge fading to.
+        axis (int, optional): The axis along which to apply the fading. Defaults to 0.
+
+    Example:
+        ```python
+        import qim3d
+        vol = qim3d.examples.cement_128x128x128
+        qim3d.viz.interactive_fade_mask(vol) 
+        ```
+        ![operations-edge_fade_before](assets/screenshots/viz-fade_mask.gif)  
+
+    """
+
+    # Create the interactive widget
+    def _slicer(position, decay_rate, ratio, geometry, invert):
+        fig, axes = plt.subplots(1, 3, figsize=(9, 3))
+
+        axes[0].imshow(vol[position, :, :], cmap='viridis')
+        axes[0].set_title('Original')
+        axes[0].axis('off')
+
+        mask = qim3d.processing.operations.fade_mask(np.ones_like(vol), decay_rate=decay_rate, ratio=ratio, geometry=geometry, axis=axis, invert=invert)
+        axes[1].imshow(mask[position, :, :], cmap='viridis')
+        axes[1].set_title('Mask')
+        axes[1].axis('off')
+
+        masked_vol = qim3d.processing.operations.fade_mask(vol, decay_rate=decay_rate, ratio=ratio,  geometry=geometry, axis=axis, invert=invert)
+        axes[2].imshow(masked_vol[position, :, :], cmap='viridis')
+        axes[2].set_title('Masked')
+        axes[2].axis('off')
+
+        return fig
+    
+    shape_dropdown = widgets.Dropdown(
+        options=['sphere', 'cilinder'],
+        value='sphere',  # default value
+        description='Geometry',
+    )
+
+    position_slider = widgets.IntSlider(
+        value=vol.shape[0] // 2,
+        min=0,
+        max=vol.shape[0] - 1,
+        description="Slice",
+        continuous_update=False,
+    )
+    decay_rate_slider = widgets.FloatSlider(
+        value=10,
+        min=1,
+        max=50,
+        step=1.0,
+        description="Decay Rate",
+        continuous_update=False,
+    )
+    ratio_slider = widgets.FloatSlider(
+        value=0.5,
+        min=0.1,
+        max=1,
+        step=0.01, 
+        description="Ratio",
+        continuous_update=False,
+    )
+
+    # Create the Checkbox widget
+    invert_checkbox = widgets.Checkbox(
+        value=False,  # default value
+        description='Invert'
+    )
+
+    slicer_obj = widgets.interactive(_slicer, position=position_slider, decay_rate=decay_rate_slider, ratio=ratio_slider, geometry=shape_dropdown, invert=invert_checkbox)
+    slicer_obj.layout = widgets.Layout(align_items="flex-start")
+
+    return slicer_obj

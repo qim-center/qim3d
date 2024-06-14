@@ -265,11 +265,13 @@ def minimum(vol, **kwargs):
 
 def tophat(vol, **kwargs):
     """
-    Remove background from the volume
+    Remove background from the volume.
+
     Args:
         vol: The volume to remove background from
         radius: The radius of the structuring element (default: 3)
         background: color of the background, 'dark' or 'bright' (default: 'dark'). If 'bright', volume will be inverted.
+    
     Returns:
         vol: The volume with background removed
     """

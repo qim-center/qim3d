@@ -62,6 +62,7 @@ markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
+  - tables
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.details
@@ -84,5 +85,5 @@ plugins:
               show_root_full_path: true
               show_object_full_path: true
               show_symbol_type_heading: true
-              show_symbol_type_toc: true
+              show_symbol_type_toc: false
               separate_signature: true

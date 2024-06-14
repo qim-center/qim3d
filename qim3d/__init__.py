@@ -1,14 +1,27 @@
+"""qim3d: A Python package for 3D image processing and visualization.
+
+The qim3d library is designed to make it easier to work with 3D imaging data in Python. 
+It offers a range of features, including data loading and manipulation,
+ image processing and filtering, visualization of 3D data, and analysis of imaging results.
+
+Documentation available at https://platform.qim.dk/qim3d/
+
+"""
+
+__version__ = "0.3.6"
+
 import logging
 
 logging.basicConfig(level=logging.ERROR)
 
-from qim3d import io
-from qim3d import gui
-from qim3d import viz
-from qim3d import utils
-from qim3d import models
-from qim3d import processing
+from . import io
+from . import gui
+from . import viz
+from . import utils
+from . import processing
 
-__version__ = "0.3.2"
+# Commenting out models because it takes too long to import
+# from . import models
+
 examples = io.ImgExamples()
 io.logger.set_level_info()

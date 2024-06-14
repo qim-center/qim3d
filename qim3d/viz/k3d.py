@@ -25,6 +25,7 @@ def vol(
     cmap=None,
     samples="auto",
     max_voxels=412**3,
+    data_type="scaled_float16",
     **kwargs,
 ):
     """
@@ -72,6 +73,7 @@ def vol(
         ```
 
     """
+
     pixel_count = img.shape[0] * img.shape[1] * img.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
     if samples == "auto":
@@ -88,16 +90,27 @@ def vol(
 
     if aspectmode.lower() not in ["data", "cube"]:
         raise ValueError("aspectmode should be either 'data' or 'cube'")
-
     # check if image should be downsampled for visualization
     original_shape = img.shape
     img = downscale_img(img, max_voxels=max_voxels)
+
     new_shape = img.shape
 
     if original_shape != new_shape:
         log.warning(
             f"Downsampled image for visualization. From {original_shape} to {new_shape}"
         )
+
+    # Scale the image to float16 if needed
+    if save:
+        # When saving, we need float64
+        img = img.astype(np.float64)
+    else:
+
+        if data_type == "scaled_float16":
+            img = scale_to_float16(img)
+        else:
+            img = img.astype(data_type)
 
     # Set color ranges
     color_range = [np.min(img), np.max(img)]
@@ -106,8 +119,9 @@ def vol(
     if vmax:
         color_range[1] = vmax
 
+    # Create the volume plot
     plt_volume = k3d.volume(
-        scale_to_float16(img),
+        img,
         bounds=(
             [0, img.shape[2], 0, img.shape[1], 0, img.shape[0]]
             if aspectmode.lower() == "data"
@@ -119,7 +133,6 @@ def vol(
     )
     plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume
-
     if save:
         # Save html to disk
         with open(str(save), "w", encoding="utf-8") as fp:
