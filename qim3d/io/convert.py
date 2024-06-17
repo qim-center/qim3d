@@ -184,13 +184,14 @@ class Convert:
         save(nifti_path, z, compression=compression)
 
 
-def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)):
+def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64), base_name: str = None):
     """Convert a file to another format without loading the entire file into memory
 
     Args:
         input_path (str): path to the input file
         output_path (str): path to the output file
         chunk_shape (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
+        base_name (str, optional): base name for the tiff stack. Defaults to None.
     """
-    converter = Convert(chunk_shape=chunk_shape)
+    converter = Convert(chunk_shape=chunk_shape,base_name=base_name)
     converter.convert(input_path, output_path)
