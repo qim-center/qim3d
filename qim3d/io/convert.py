@@ -22,6 +22,7 @@ class Convert:
         """
         self.chunk_shape = kwargs.get("chunk_shape", (64, 64, 64))
         self.base_name = kwargs.get("base_name", None)
+        self.contains = kwargs.get("contains", None)
 
     def convert(self, input_path, output_path):
         def get_file_extension(file_path):
@@ -37,7 +38,10 @@ class Convert:
         output_ext = get_file_extension(output_path)
         output_path = stringify_path(output_path)
 
-        if os.path.isfile(input_path) and os.path.isfile(output_path):
+        print("sdf", os.path.isdir(input_path) , input_ext, output_ext)
+
+
+        if os.path.isfile(input_path) and output_ext:
             match input_ext, output_ext:
                 case (".tif", ".zarr") | (".tiff", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
@@ -45,11 +49,6 @@ class Convert:
                     return self.convert_nifti_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
-        elif os.path.isfile(input_path) and os.path.isdir(output_path):
-            if input_ext == ".zarr" and not output_ext:
-                return self.convert_zarr_to_tiff_stack(input_path, output_path)
-            else:
-                raise ValueError("Unsupported file format")
         # Load a directory
         elif os.path.isdir(input_path):
             match input_ext, output_ext:
@@ -59,13 +58,14 @@ class Convert:
                     return self.convert_zarr_to_nifti(input_path, output_path)
                 case (".zarr", ".nii.gz"):
                     return self.convert_zarr_to_nifti(input_path, output_path, compression=True)
+                case (".zarr", ""):
+                    print("1")
+                    self.convert_zarr_to_tiff_stack(input_path, output_path)
+                case ("", ".zarr"):
+                    print("2")
+                    return self.convert_tiff_stack_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
-        elif os.path.isdir(input_path) and os.path.isfile(output_path):
-            if not input_ext and output_ext == ".zarr":
-                return self.convert_tiff_stack_to_zarr(input_path, output_path)
-            else:
-                raise ValueError("Unsupported file format")
         # Fail
         else:
             # Find the closest matching path to warn the user
@@ -75,7 +75,7 @@ class Convert:
             similar_paths = difflib.get_close_matches(input_path, valid_paths)
             if similar_paths:
                 suggestion = similar_paths[0]  # Get the closest match
-                message = f"Invalid path. Did you mean '{suggestion}'?"
+                message = f"Invalid path '{input_path}'. Did you mean '{suggestion}'?"
                 raise ValueError(repr(message))
             else:
                 raise ValueError("Invalid path")
@@ -141,7 +141,7 @@ class Convert:
             zarr.core.Array: zarr array containing the data from the tiff stack
         """
         # ! tiff stack memmap is stored as slices on disk and not as a single file, making assignments to blocks slow.
-        vol = load(tiff_stack_path, virtual_stack=True)
+        vol = load(tiff_stack_path, virtual_stack=True, contains=self.contains)
         return self._save_zarr(zarr_path, vol)
 
     def convert_zarr_to_tiff_stack(self, zarr_path, tiff_stack_path):
@@ -184,7 +184,11 @@ class Convert:
         save(nifti_path, z, compression=compression)
 
 
-def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64), base_name: str = None):
+def convert(input_path: str, 
+            output_path: str, 
+            chunk_shape: tuple = (64, 64, 64), 
+            base_name: str = None, 
+            contains: str = None):
     """Convert a file to another format without loading the entire file into memory
 
     Args:
@@ -193,5 +197,7 @@ def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)
         chunk_shape (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
         base_name (str, optional): base name for the tiff stack. Defaults to None.
     """
-    converter = Convert(chunk_shape=chunk_shape,base_name=base_name)
+    converter = Convert(chunk_shape=chunk_shape,
+                        base_name=base_name, 
+                        contains=contains)
     converter.convert(input_path, output_path)

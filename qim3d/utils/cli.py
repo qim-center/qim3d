@@ -84,8 +84,9 @@ def main():
     preview_parser = subparsers.add_parser('convert', help= 'Convert files to different formats without loading the entire file into memory')
     preview_parser.add_argument('input_path',type = str, metavar = 'Input path', help = 'Path to image that will be converted')
     preview_parser.add_argument('output_path',type = str, metavar = 'Output path', help = 'Path to save converted image')
-    preview_parser.add_argument('chunk_shape',type = tuple, metavar = 'Chunk shape', help = 'Chunk size for the zarr file', default = (64,64,64))
-    preview_parser.add_argument('base_name',type = str, metavar = 'Base name', help = 'Base name for the zarr file', default = None)
+    preview_parser.add_argument('--chunk_shape',type = tuple, metavar = 'Chunk shape', help = 'Chunk size for the zarr file', default = (64,64,64))
+    preview_parser.add_argument('--base_name',type = str, metavar = 'Base name', help = 'Base name for the zarr file', default = None)
+    preview_parser.add_argument('--contains',type = str, metavar = 'Contains', help = 'Part of the name that is common for the TIFF file stack', default = None)
 
     args = parser.parse_args()
 
@@ -144,7 +145,14 @@ def main():
             slice=args.slice,
             relative_intensity=args.absolute_values,
         )
-
+        
+    elif args.subcommand == 'convert':
+        qim3d.io.convert(args.input_path, 
+                         args.output_path, 
+                         args.chunk_shape, 
+                         args.base_name, 
+                         args.contains)
+        
     elif args.subcommand is None:
         welcome_text = (
             "\n"
@@ -172,8 +180,7 @@ def main():
         parser.print_help()
         print("\n")
 
-    elif args.subcommand == 'convert':
-        qim3d.io.convert(args.input_path, args.output_path, args.chunk_shape, args.base_name)
+    
 
 
 if __name__ == "__main__":

@@ -34,9 +34,11 @@ import tifffile
 import zarr
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
+from tqdm import tqdm
 
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
+
 
 
 class DataSaver:
@@ -111,7 +113,7 @@ class DataSaver:
             idx = [slice(None)] * data.ndim
 
             # Iterate through each slice and save
-            for i in range(no_slices):
+            for i in tqdm(range(no_slices)):
                 idx[self.sliced_dim] = i
                 sliced = data[tuple(idx)]
                 filename = self.basename + str(i).zfill(zfill_val) + extension
