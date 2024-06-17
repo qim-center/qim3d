@@ -5,7 +5,14 @@ from qim3d.gui import annotation_tool, data_explorer, iso3d, local_thickness
 from qim3d.io.loading import DataLoader
 from qim3d.utils import image_preview
 from qim3d import __version__ as version
+import outputformat as ouf
 import qim3d
+
+QIM_TITLE = ouf.rainbow(
+    f"\n         _          _____     __ \n  ____ _(_)___ ___ |__  /____/ / \n / __ `/ / __ `__ \ /_ </ __  /  \n/ /_/ / / / / / / /__/ / /_/ /   \n\__, /_/_/ /_/ /_/____/\__,_/    \n  /_/                 v{version}\n\n",
+    return_str=True,
+    cmap="hot",
+)
 
 
 def main():
@@ -139,29 +146,14 @@ def main():
         )
 
     elif args.subcommand is None:
+        print(QIM_TITLE)
         welcome_text = (
-            "\n"
-            "         _          _____     __ \n"
-            "  ____ _(_)___ ___ |__  /____/ / \n"
-            " / __ `/ / __ `__ \ /_ </ __  /  \n"
-            "/ /_/ / / / / / / /__/ / /_/ /   \n"
-            "\__, /_/_/ /_/ /_/____/\__,_/    \n"
-            "  /_/                            \n"
-            "\n"
-            "--- Welcome to qim3d command-line interface ---\n"
-            "qim3d is a Python package for 3D image processing and visualization.\n"
-            "For more information, please visit: https://platform.qim.dk/qim3d/\n"
-            f"Current version of qim3d: {version}\n"
-            " \n"
-            "The qim3d command-line interface provides the following subcommands:\n"
-            "- gui: Graphical User Interfaces\n"
-            "- viz: Volumetric visualizations of volumes\n"
-            "- preview: Preview of an volume directly in the terminal\n"
+            "\nqim3d is a Python package for 3D image processing and visualization.\n"
+            f"For more information, please visit {ouf.c('https://platform.qim.dk/qim3d/', color='orange', return_str=True)}\n"
             " \n"
             "For more information on each subcommand, type 'qim3d <subcommand> --help'.\n"
         )
         print(welcome_text)
-        print("--- Help page for qim3d command-line interface shown below ---\n")
         parser.print_help()
         print("\n")
 

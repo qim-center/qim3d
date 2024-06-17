@@ -2,7 +2,6 @@
 
 from typing import Tuple
 import numpy as np
-import structure_tensor as st 
 from qim3d.viz.structure_tensor import vectors
 
 
@@ -74,6 +73,7 @@ def structure_tensor(
         ```
 
     """
+    import structure_tensor as st 
 
     if vol.ndim != 3:
         raise ValueError("The input volume must be 3D")

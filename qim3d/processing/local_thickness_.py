@@ -1,12 +1,10 @@
 """Wrapper for the local thickness function from the localthickness package including visualization functions."""
 
-import localthickness as lt
 import numpy as np
 from typing import Optional
-from skimage.filters import threshold_otsu
 from qim3d.io.logger import log
-#from qim3d.viz import local_thickness as viz_local_thickness
 import qim3d
+
 
 def local_thickness(
     image: np.ndarray,
@@ -17,10 +15,10 @@ def local_thickness(
 ) -> np.ndarray:
     """Wrapper for the local thickness function from the [local thickness package](https://github.com/vedranaa/local-thickness)
 
-    The "Fast Local Thickness" by Vedrana Andersen Dahl and Anders Bjorholm Dahl from the Technical University of Denmark is a efficient algorithm for computing local thickness in 2D and 3D images. 
-    Their method significantly reduces computation time compared to traditional algorithms by utilizing iterative dilation with small structuring elements, rather than the large ones typically used. 
-    This approach allows the local thickness to be determined much faster, making it feasible for high-resolution volumetric data that are common in contemporary 3D microscopy. 
-    
+    The "Fast Local Thickness" by Vedrana Andersen Dahl and Anders Bjorholm Dahl from the Technical University of Denmark is a efficient algorithm for computing local thickness in 2D and 3D images.
+    Their method significantly reduces computation time compared to traditional algorithms by utilizing iterative dilation with small structuring elements, rather than the large ones typically used.
+    This approach allows the local thickness to be determined much faster, making it feasible for high-resolution volumetric data that are common in contemporary 3D microscopy.
+
     Testing against conventional methods and other Python-based tools like PoreSpy shows that the new algorithm is both accurate and faster, offering significant improvements in processing time for large datasets.
 
 
@@ -79,6 +77,8 @@ def local_thickness(
 
 
     """
+    import localthickness as lt
+    from skimage.filters import threshold_otsu
 
     # Check if input is binary
     if np.unique(image).size > 2:

@@ -1,16 +1,16 @@
 """
 This module provides a collection of colormaps useful for 3D visualization.
 """
-   
+
 import colorsys
 from typing import Union, Tuple
 import numpy as np
 import math
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import colormaps
-from skimage import color
 
-def rearrange_colors(randRGBcolors_old, min_dist = 0.5):
+
+def rearrange_colors(randRGBcolors_old, min_dist=0.5):
     # Create new list for re-arranged colors
     randRGBcolors_new = [randRGBcolors_old.pop(0)]
 
@@ -31,6 +31,7 @@ def rearrange_colors(randRGBcolors_old, min_dist = 0.5):
             randRGBcolors_new.append(randRGBcolors_old.pop(0))
 
     return randRGBcolors_new
+
 
 def objects(
     nlabels: int,
@@ -66,12 +67,12 @@ def objects(
         cmap_earth = qim3d.viz.colormaps.objects(nlabels=100, style = 'earth', first_color_background=True, background_color="black", min_dist=0.8)
         cmap_ocean = qim3d.viz.colormaps.objects(nlabels=100, style = 'ocean', first_color_background=True, background_color="black", min_dist=0.9)
 
-        display(cmap_bright) 
+        display(cmap_bright)
         display(cmap_soft)
         display(cmap_earth)
         display(cmap_ocean)
         ```
-        ![colormap objects](assets/screenshots/viz-colormaps-objects-all.png)  
+        ![colormap objects](assets/screenshots/viz-colormaps-objects-all.png)
 
         ```python
         import qim3d
@@ -83,14 +84,16 @@ def objects(
         cmap = qim3d.viz.colormaps.objects(num_labels, style = 'bright')
         qim3d.viz.slicer(labeled_volume, axis = 1, cmap=cmap)
         ```
-        ![colormap objects](assets/screenshots/viz-colormaps-objects.gif) 
-    
+        ![colormap objects](assets/screenshots/viz-colormaps-objects.gif)
+
     Tip:
-        The `min_dist` parameter can be used to control the distance between neighboring colors. 
-        ![colormap objects mind_dist](assets/screenshots/viz-colormaps-min_dist.gif) 
-    
+        The `min_dist` parameter can be used to control the distance between neighboring colors.
+        ![colormap objects mind_dist](assets/screenshots/viz-colormaps-min_dist.gif)
+
 
     """
+    from skimage import color
+
     # Check style
     if style not in ("bright", "soft", "earth", "ocean"):
         raise ValueError(
@@ -148,9 +151,9 @@ def objects(
     if style == "earth":
         randLABColors = [
             (
-                rng.uniform(low=25, high=110),  
-                rng.uniform(low=-120, high=70),  
-                rng.uniform(low=-70, high=70),  
+                rng.uniform(low=25, high=110),
+                rng.uniform(low=-120, high=70),
+                rng.uniform(low=-70, high=70),
             )
             for i in range(nlabels)
         ]
@@ -158,17 +161,15 @@ def objects(
         # Convert LAB list to RGB
         randRGBcolors = []
         for LabColor in randLABColors:
-            randRGBcolors.append(
-                color.lab2rgb([[LabColor]])[0][0].tolist()
-            )
+            randRGBcolors.append(color.lab2rgb([[LabColor]])[0][0].tolist())
 
     # Generate color map for ocean colors, based on LAB
     if style == "ocean":
         randLABColors = [
             (
-                rng.uniform(low=0, high=110), 
-                rng.uniform(low=-128, high=160),  
-                rng.uniform(low=-128, high=0), 
+                rng.uniform(low=0, high=110),
+                rng.uniform(low=-128, high=160),
+                rng.uniform(low=-128, high=0),
             )
             for i in range(nlabels)
         ]
@@ -176,10 +177,8 @@ def objects(
         # Convert LAB list to RGB
         randRGBcolors = []
         for LabColor in randLABColors:
-            randRGBcolors.append(
-                color.lab2rgb([[LabColor]])[0][0].tolist()
-                )
-            
+            randRGBcolors.append(color.lab2rgb([[LabColor]])[0][0].tolist())
+
     # Re-arrange colors to have a minimum distance between neighboring colors
     randRGBcolors = rearrange_colors(randRGBcolors, min_dist)
 
@@ -191,16 +190,18 @@ def objects(
         randRGBcolors[-1] = background_color
 
     # Create colormap
-    objects = LinearSegmentedColormap.from_list(
-        "objects", randRGBcolors, N=nlabels
-    )
+    objects = LinearSegmentedColormap.from_list("objects", randRGBcolors, N=nlabels)
 
     return objects
 
-qim = LinearSegmentedColormap.from_list('qim', 
-                                        [(0.6, 0.0, 0.0), #990000
-                                         (1.0, 0.6, 0.0), #ff9900
-                                         ])
+
+qim = LinearSegmentedColormap.from_list(
+    "qim",
+    [
+        (0.6, 0.0, 0.0),  # 990000
+        (1.0, 0.6, 0.0),  # ff9900
+    ],
+)
 """
 Defines colormap in QIM logo colors. Can be accessed as module attribute or easily by ```cmap = 'qim'```
 

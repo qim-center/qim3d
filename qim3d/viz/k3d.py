@@ -7,9 +7,7 @@ Volumetric visualization using K3D
 
 """
 
-import k3d
 import numpy as np
-
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import downscale_img, scale_to_float16
 
@@ -73,6 +71,7 @@ def vol(
         ```
 
     """
+    import k3d
 
     pixel_count = img.shape[0] * img.shape[1] * img.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html

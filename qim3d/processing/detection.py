@@ -2,8 +2,6 @@
 
 import numpy as np
 from qim3d.io.logger import log
-from skimage.feature import blob_dog
-
 
 def blob_detection(
     vol: np.ndarray,
@@ -63,6 +61,7 @@ def blob_detection(
             ```
             ![blob detection](assets/screenshots/blob_get_mask.gif)
     """
+    from skimage.feature import blob_dog
 
     if background == "bright":
         log.info("Bright background selected, volume will be inverted.")

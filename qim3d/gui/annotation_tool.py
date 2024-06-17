@@ -23,16 +23,11 @@ app = annotation_tool.launch(vol[0])
 import getpass
 import os
 import tempfile
-import time
 
 import gradio as gr
 import numpy as np
-import tifffile
-from PIL import Image
-
 import qim3d.utils
 from qim3d.io import load, save
-from qim3d.io.logger import log
 
 
 class Session:
@@ -100,6 +95,7 @@ class Interface:
         return gr.update(visible=True)
 
     def create_interface(self, img=None):
+        from PIL import Image
 
         if img is not None:
             custom_css = "annotation-tool"

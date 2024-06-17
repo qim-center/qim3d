@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from scipy.ndimage import find_objects, label
-
 from qim3d.io.logger import log
 
 
