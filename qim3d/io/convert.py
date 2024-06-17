@@ -38,10 +38,7 @@ class Convert:
         output_ext = get_file_extension(output_path)
         output_path = stringify_path(output_path)
 
-        print("sdf", os.path.isdir(input_path) , input_ext, output_ext)
-
-
-        if os.path.isfile(input_path) and output_ext:
+        if os.path.isfile(input_path):
             match input_ext, output_ext:
                 case (".tif", ".zarr") | (".tiff", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
@@ -59,10 +56,8 @@ class Convert:
                 case (".zarr", ".nii.gz"):
                     return self.convert_zarr_to_nifti(input_path, output_path, compression=True)
                 case (".zarr", ""):
-                    print("1")
                     self.convert_zarr_to_tiff_stack(input_path, output_path)
                 case ("", ".zarr"):
-                    print("2")
                     return self.convert_tiff_stack_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
