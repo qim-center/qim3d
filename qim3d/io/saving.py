@@ -21,18 +21,12 @@ Example:
     ```
 
 """
+
 import datetime
 import os
-
-import h5py
-import nibabel as nib
 import numpy as np
 import PIL
-import pydicom
 import tifffile
-from pydicom.dataset import FileDataset, FileMetaDataset
-from pydicom.uid import UID
-
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 
@@ -116,24 +110,30 @@ class DataSaver:
                 filepath = os.path.join(path, filename)
                 self.save_tiff(filepath, sliced)
 
-            pattern_string = filepath[:-(len(extension)+zfill_val)] + "-"*zfill_val + extension
+            pattern_string = (
+                filepath[: -(len(extension) + zfill_val)] + "-" * zfill_val + extension
+            )
 
-            log.info(f"Total of {no_slices} files saved following the pattern '{pattern_string}'")
+            log.info(
+                f"Total of {no_slices} files saved following the pattern '{pattern_string}'"
+            )
 
     def save_nifti(self, path, data):
-        """ Save data to a NIfTI file to the given path.
+        """Save data to a NIfTI file to the given path.
 
         Args:
             path (str): The path to save file to
             data (numpy.ndarray): The data to be saved
         """
+        import nibabel as nib
+
         # Create header
         header = nib.Nifti1Header()
         header.set_data_dtype(data.dtype)
 
         # Create NIfTI image object
         img = nib.Nifti1Image(data, np.eye(4), header)
-        
+
         # nib does automatically compress if filetype ends with .gz
         if self.compression and not path.endswith(".gz"):
             path += ".gz"
@@ -141,13 +141,15 @@ class DataSaver:
 
         if not self.compression and path.endswith(".gz"):
             path = path[:-3]
-            log.warning("File extension '.gz' is ignored since compression is disabled.")
+            log.warning(
+                "File extension '.gz' is ignored since compression is disabled."
+            )
 
         # Save image
         nib.save(img, path)
 
     def save_vol(self, path, data):
-        """ Save data to a VOL file to the given path.
+        """Save data to a VOL file to the given path.
 
         Args:
             path (str): The path to save file to
@@ -155,15 +157,21 @@ class DataSaver:
         """
         # No support for compression yet
         if self.compression:
-            raise NotImplementedError("Saving compressed .vol files is not yet supported")
+            raise NotImplementedError(
+                "Saving compressed .vol files is not yet supported"
+            )
 
         # Create custom .vgi metadata file
         metadata = ""
-        metadata += "{volume1}\n" # .vgi organization 
-        metadata += "[file1]\n" # .vgi organization 
-        metadata += "Size = {} {} {}\n".format(data.shape[1], data.shape[2], data.shape[0]) # Swap axes to match .vol format
-        metadata += "Datatype = {}\n".format(str(data.dtype)) # Get datatype as string
-        metadata += "Name = {}.vol\n".format(path.rsplit('/', 1)[-1][:-4]) # Get filename without extension
+        metadata += "{volume1}\n"  # .vgi organization
+        metadata += "[file1]\n"  # .vgi organization
+        metadata += "Size = {} {} {}\n".format(
+            data.shape[1], data.shape[2], data.shape[0]
+        )  # Swap axes to match .vol format
+        metadata += "Datatype = {}\n".format(str(data.dtype))  # Get datatype as string
+        metadata += "Name = {}.vol\n".format(
+            path.rsplit("/", 1)[-1][:-4]
+        )  # Get filename without extension
 
         # Save metadata
         with open(path[:-4] + ".vgi", "w") as f:
@@ -173,39 +181,45 @@ class DataSaver:
         data.tofile(path[:-4] + ".vol")
 
     def save_h5(self, path, data):
-        """ Save data to a HDF5 file to the given path.
+        """Save data to a HDF5 file to the given path.
 
         Args:
             path (str): The path to save file to
             data (numpy.ndarray): The data to be saved
         """
+        import h5py
 
         with h5py.File(path, "w") as f:
-            f.create_dataset("dataset", data=data, compression="gzip" if self.compression else None)
-        
+            f.create_dataset(
+                "dataset", data=data, compression="gzip" if self.compression else None
+            )
+
     def save_dicom(self, path, data):
-        """ Save data to a DICOM file to the given path.
+        """Save data to a DICOM file to the given path.
 
         Args:
             path (str): The path to save file to
             data (numpy.ndarray): The data to be saved
         """
+        import pydicom
+        from pydicom.dataset import FileDataset, FileMetaDataset
+        from pydicom.uid import UID
+
         # based on https://pydicom.github.io/pydicom/stable/auto_examples/input_output/plot_write_dicom.html
 
         # Populate required values for file meta information
         file_meta = FileMetaDataset()
-        file_meta.MediaStorageSOPClassUID = UID('1.2.840.10008.5.1.4.1.1.2')
+        file_meta.MediaStorageSOPClassUID = UID("1.2.840.10008.5.1.4.1.1.2")
         file_meta.MediaStorageSOPInstanceUID = UID("1.2.3")
         file_meta.ImplementationClassUID = UID("1.2.3.4")
 
         # Create the FileDataset instance (initially no data elements, but file_meta
         # supplied)
-        ds = FileDataset(path, {},
-                        file_meta=file_meta, preamble=b"\0" * 128)
+        ds = FileDataset(path, {}, file_meta=file_meta, preamble=b"\0" * 128)
 
         ds.PatientName = "Test^Firstname"
         ds.PatientID = "123456"
-        ds.StudyInstanceUID = "1.2.3.4.5" 
+        ds.StudyInstanceUID = "1.2.3.4.5"
         ds.SamplesPerPixel = 1
         ds.PixelRepresentation = 0
         ds.BitsStored = 16
@@ -220,8 +234,8 @@ class DataSaver:
 
         # Set creation date/time
         dt = datetime.datetime.now()
-        ds.ContentDate = dt.strftime('%Y%m%d')
-        timeStr = dt.strftime('%H%M%S.%f')  # long format with micro seconds
+        ds.ContentDate = dt.strftime("%Y%m%d")
+        timeStr = dt.strftime("%H%M%S.%f")  # long format with micro seconds
         ds.ContentTime = timeStr
         # Needs to be here because of bug in pydicom
         ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
@@ -234,10 +248,9 @@ class DataSaver:
         ds.PixelData = data_bytes
 
         ds.save_as(path)
-        
-    
+
     def save_PIL(self, path, data):
-        """ Save data to a PIL file to the given path.
+        """Save data to a PIL file to the given path.
 
         Args:
             path (str): The path to save file to
@@ -246,7 +259,7 @@ class DataSaver:
         # No support for compression yet
         if self.compression and path.endswith(".png"):
             raise NotImplementedError("png does not support compression")
-        elif not self.compression and path.endswith((".jpeg",".jpg")):
+        elif not self.compression and path.endswith((".jpeg", ".jpg")):
             raise NotImplementedError("jpeg does not support no compression")
 
         # Convert to PIL image
@@ -255,7 +268,6 @@ class DataSaver:
         # Save image
         img.save(path)
 
-        
     def save(self, path, data):
         """Save data to the given path.
 
@@ -320,17 +332,19 @@ class DataSaver:
 
                     if path.endswith((".tif", ".tiff")):
                         return self.save_tiff(path, data)
-                    elif path.endswith((".nii","nii.gz")):
+                    elif path.endswith((".nii", "nii.gz")):
                         return self.save_nifti(path, data)
-                    elif path.endswith(("TXRM","XRM","TXM")):
-                        raise NotImplementedError("Saving TXRM files is not yet supported")
+                    elif path.endswith(("TXRM", "XRM", "TXM")):
+                        raise NotImplementedError(
+                            "Saving TXRM files is not yet supported"
+                        )
                     elif path.endswith((".h5")):
                         return self.save_h5(path, data)
-                    elif path.endswith((".vol",".vgi")):
+                    elif path.endswith((".vol", ".vgi")):
                         return self.save_vol(path, data)
-                    elif path.endswith((".dcm",".DCM")):
+                    elif path.endswith((".dcm", ".DCM")):
                         return self.save_dicom(path, data)
-                    elif path.endswith((".jpeg",".jpg", ".png")):
+                    elif path.endswith((".jpeg", ".jpg", ".png")):
                         return self.save_PIL(path, data)
                     else:
                         raise ValueError("Unsupported file format")

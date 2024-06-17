@@ -8,20 +8,14 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = "0.3.6"
-
-import logging
-
-logging.basicConfig(level=logging.ERROR)
+__version__ = "0.3.7"
 
 from . import io
 from . import gui
 from . import viz
 from . import utils
 from . import processing
-
-# Commenting out models because it takes too long to import
-# from . import models
+from . import models
 
 examples = io.ImgExamples()
 io.logger.set_level_info()

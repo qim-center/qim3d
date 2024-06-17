@@ -2,8 +2,6 @@
 from pathlib import Path
 from PIL import Image
 from qim3d.io.logger import log
-from torch.utils.data import DataLoader
-
 import torch
 import numpy as np
 
@@ -187,7 +185,8 @@ def prepare_dataloaders(train_set, val_set, test_set, batch_size, shuffle_train 
         num_workers (int, optional): Defines how many processes should be run in parallel.
         pin_memory (bool, optional): Loads the datasets as CUDA tensors.
     """
-    
+    from torch.utils.data import DataLoader
+
     train_loader = DataLoader(dataset=train_set, batch_size=batch_size, shuffle=shuffle_train, num_workers=num_workers, pin_memory=pin_memory)
     val_loader = DataLoader(dataset=val_set, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory)
     test_loader = DataLoader(dataset=test_set, batch_size=batch_size, num_workers=num_workers, pin_memory=pin_memory)

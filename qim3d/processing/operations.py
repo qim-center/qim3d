@@ -1,7 +1,4 @@
 import numpy as np
-import scipy
-import skimage
-
 import qim3d.processing.filters as filters
 from qim3d.io.logger import log
 
@@ -86,6 +83,9 @@ def watershed(
         ![operations-watershed_after](assets/screenshots/operations-watershed_after.png)  
 
     """
+    import skimage
+    import scipy
+
     # Compute distance transform of binary volume
     distance= scipy.ndimage.distance_transform_edt(bin_vol)
 

@@ -1,6 +1,4 @@
 """Class for choosing the level of data augmentations with albumentations"""
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
 
 class Augmentation:
     """
@@ -54,7 +52,9 @@ class Augmentation:
         Raises:
             ValueError: If `level` is neither None, light, moderate nor heavy.
         """
-        
+        import albumentations as A
+        from albumentations.pytorch import ToTensorV2
+
         # Check if one of standard augmentation levels
         if level not in [None,'light','moderate','heavy']:
             raise ValueError(f"Invalid transformation level: {level}. Please choose one of the following levels: None, 'light', 'moderate', 'heavy'.")

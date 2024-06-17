@@ -62,7 +62,7 @@ def test_slices_torch_tensor_input():
 
 def test_slices_wrong_input_format():
     input = 'not_a_volume'
-    with pytest.raises(ValueError, match = 'Input must be a numpy.ndarray or torch.Tensor'):
+    with pytest.raises(ValueError, match = 'Data type not supported'):
         qim3d.viz.slices(input)
 
 def test_slices_not_volume():

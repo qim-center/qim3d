@@ -17,11 +17,7 @@ from pathlib import Path
 
 import dask
 import dask.array as da
-import h5py
-import nibabel as nib
 import numpy as np
-import olefile
-import pydicom
 import tifffile
 from dask import delayed
 from PIL import Image, UnidentifiedImageError
@@ -122,6 +118,7 @@ class DataLoader:
             ValueError: If the dataset_name is not specified in case of multiple datasets in the HDF5 file
             ValueError: If no datasets are found in the file.
         """
+        import h5py
 
         # Read file
         f = h5py.File(path, "r")
@@ -256,6 +253,7 @@ class DataLoader:
         Raises:
             ValueError: If the dxchange library is not installed
         """
+        import olefile
 
         try:
             import dxchange
@@ -323,6 +321,7 @@ class DataLoader:
                 If 'self.virtual_stack' is True, returns a nibabel.arrayproxy.ArrayProxy object
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
         """
+        import nibabel as nib
 
         data = nib.load(path)
 
@@ -557,6 +556,8 @@ class DataLoader:
         Args:
             path (str): Path to file
         """
+        import pydicom
+
         dcm_data = pydicom.dcmread(path)
 
         if self.return_metadata:
@@ -570,6 +571,8 @@ class DataLoader:
         Args:
             path (str): Directory path
         """
+        import pydicom
+
         if not self.contains:
             raise ValueError(
                 "Please specify a part of the name that is common for the DICOM file stack with the argument 'contains'"
@@ -709,6 +712,8 @@ class DataLoader:
 
 
 def _get_h5_dataset_keys(f):
+    import h5py
+
     keys = []
     f.visit(lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None)
     return keys
