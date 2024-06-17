@@ -155,7 +155,7 @@ class Convert:
             None
         """
         z = zarr.open(zarr_path)
-        save(tiff_stack_path, z)
+        save(tiff_stack_path, z, basename=self.base_name)
 
     def convert_nifti_to_zarr(self, nifti_path, zarr_path):
         """Convert a nifti file to a zarr file
