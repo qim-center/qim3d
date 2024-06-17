@@ -21,6 +21,7 @@ class Convert:
             chunk_shape (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
         """
         self.chunk_shape = kwargs.get("chunk_shape", (64, 64, 64))
+        self.base_name = kwargs.get("base_name", None)
 
     def convert(self, input_path, output_path):
         def get_file_extension(file_path):
@@ -36,7 +37,7 @@ class Convert:
         output_ext = get_file_extension(output_path)
         output_path = stringify_path(output_path)
 
-        if os.path.isfile(input_path):
+        if os.path.isfile(input_path) and os.path.isfile(output_path):
             match input_ext, output_ext:
                 case (".tif", ".zarr") | (".tiff", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
@@ -44,6 +45,11 @@ class Convert:
                     return self.convert_nifti_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
+        elif os.path.isfile(input_path) and os.path.isdir(output_path):
+            if input_ext == ".zarr" and not output_ext:
+                return self.convert_zarr_to_tiff_stack(input_path, output_path)
+            else:
+                raise ValueError("Unsupported file format")
         # Load a directory
         elif os.path.isdir(input_path):
             match input_ext, output_ext:
@@ -55,6 +61,11 @@ class Convert:
                     return self.convert_zarr_to_nifti(input_path, output_path, compression=True)
                 case _:
                     raise ValueError("Unsupported file format")
+        elif os.path.isdir(input_path) and os.path.isfile(output_path):
+            if not input_ext and output_ext == ".zarr":
+                return self.convert_tiff_stack_to_zarr(input_path, output_path)
+            else:
+                raise ValueError("Unsupported file format")
         # Fail
         else:
             # Find the closest matching path to warn the user
