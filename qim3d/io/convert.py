@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from qim3d.utils.internal_tools import stringify_path
 from qim3d.io.saving import save
+from qim3d.io.loading import load
 
 
 class Convert:
@@ -24,10 +25,11 @@ class Convert:
     def convert(self, input_path, output_path):
         def get_file_extension(file_path):
             root, ext = os.path.splitext(file_path)
-            if ext in ['.gz', '.bz2', '.xz']:  # handle common compressed extensions
+            if ext in [".gz", ".bz2", ".xz"]:  # handle common compressed extensions
                 root, ext2 = os.path.splitext(root)
                 ext = ext2 + ext
             return ext
+
         # Stringify path in case it is not already a string
         input_path = stringify_path(input_path)
         input_ext = get_file_extension(input_path)
@@ -67,20 +69,13 @@ class Convert:
             else:
                 raise ValueError("Invalid path")
 
-    def convert_tif_to_zarr(self, tif_path, zarr_path):
-        """Convert a tiff file to a zarr file
-
-        Args:
-            tif_path (str): path to the tiff file
-            zarr_path (str): path to the zarr file
-            chunks (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
-
-        Returns:
-            zarr.core.Array: zarr array containing the data from the tiff file
-        """
-        vol = tiff.memmap(tif_path)
+    def _save_zarr(self, zarr_path, vol):
         z = zarr.open(
-            zarr_path, mode="w", shape=vol.shape, chunks=self.chunk_shape, dtype=vol.dtype
+            zarr_path,
+            mode="w",
+            shape=vol.shape,
+            chunks=self.chunk_shape,
+            dtype=vol.dtype,
         )
         chunk_shape = tuple((s + c - 1) // c for s, c in zip(z.shape, z.chunks))
         # ! Fastest way is z[:] = vol[:], but does not have a progress bar
@@ -96,6 +91,20 @@ class Convert:
             z.blocks[chunk_indices] = temp_data
 
         return z
+
+    def convert_tif_to_zarr(self, tif_path, zarr_path):
+        """Convert a tiff file to a zarr file
+
+        Args:
+            tif_path (str): path to the tiff file
+            zarr_path (str): path to the zarr file
+            chunks (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
+
+        Returns:
+            zarr.core.Array: zarr array containing the data from the tiff file
+        """
+        vol = tiff.memmap(tif_path)
+        return self._save_zarr(zarr_path, vol)
 
     def convert_zarr_to_tif(self, zarr_path, tif_path):
         """Convert a zarr file to a tiff file
@@ -110,6 +119,33 @@ class Convert:
         z = zarr.open(zarr_path)
         save(tif_path, z)
 
+    def convert_tiff_stack_to_zarr(self, tiff_stack_path, zarr_path):
+        """Convert a tiff stack to a zarr file
+
+        Args:
+            tiff_stack_path (str): path to the tiff stack
+            zarr_path (str): path to the zarr file
+
+        Returns:
+            zarr.core.Array: zarr array containing the data from the tiff stack
+        """
+        # ! tiff stack memmap is stored as slices on disk and not as a single file, making assignments to blocks slow.
+        vol = load(tiff_stack_path, virtual_stack=True)
+        return self._save_zarr(zarr_path, vol)
+
+    def convert_zarr_to_tiff_stack(self, zarr_path, tiff_stack_path):
+        """Convert a zarr file to a tiff stack
+
+        Args:
+            zarr_path (str): path to the zarr file
+            tiff_stack_path (str): path to the tiff stack
+
+        Returns:
+            None
+        """
+        z = zarr.open(zarr_path)
+        save(tiff_stack_path, z)
+
     def convert_nifti_to_zarr(self, nifti_path, zarr_path):
         """Convert a nifti file to a zarr file
 
@@ -121,23 +157,7 @@ class Convert:
             zarr.core.Array: zarr array containing the data from the nifti file
         """
         vol = nib.load(nifti_path).dataobj
-        z = zarr.open(
-            zarr_path, mode="w", shape=vol.shape, chunks=self.chunk_shape, dtype=vol.dtype
-        )
-        chunk_shape = tuple((s + c - 1) // c for s, c in zip(z.shape, z.chunks))
-        # ! Fastest way is z[:] = vol[:], but does not have a progress bar
-        for chunk_indices in tqdm(
-            product(*[range(n) for n in chunk_shape]), total=np.prod(chunk_shape)
-        ):
-            slices = tuple(
-                slice(c * i, min(c * (i + 1), s))
-                for s, c, i in zip(z.shape, z.chunks, chunk_indices)
-            )
-            temp_data = vol[slices]
-            # The assignment takes 99% of the cpu-time
-            z.blocks[chunk_indices] = temp_data
-
-        return z
+        return self._save_zarr(zarr_path, vol)
 
     def convert_zarr_to_nifti(self, zarr_path, nifti_path, compression=False):
         """Convert a zarr file to a nifti file
@@ -151,7 +171,7 @@ class Convert:
         """
         z = zarr.open(zarr_path)
         save(nifti_path, z, compression=compression)
-        
+
 
 def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)):
     """Convert a file to another format without loading the entire file into memory
