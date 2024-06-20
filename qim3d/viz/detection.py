@@ -5,6 +5,7 @@ import ipywidgets as widgets
 from IPython.display import clear_output, display
 import qim3d
 
+
 def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
     """
     Plots the blobs found on a slice of the volume.
@@ -32,10 +33,9 @@ def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
             vol,
             n_slices=1,
             position=z_slice,
-            img_height=3,
-            img_width=3,
             cmap="gray",
             show_position=False,
+            **kwargs
         )
         # Add circles from deteced blobs
         for detected in blobs:

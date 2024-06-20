@@ -8,14 +8,16 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = "0.3.7"
+__version__ = "0.3.8"
 
 from . import io
 from . import gui
 from . import viz
 from . import utils
 from . import processing
-from . import models
+
+# commented out to avoid torch import
+# from . import models
 
 examples = io.ImgExamples()
 io.logger.set_level_info()
