@@ -5,6 +5,7 @@ from matplotlib.gridspec import GridSpec
 import ipywidgets as widgets
 import logging as log
 
+
 def vectors(
     volume: np.ndarray,
     vec: np.ndarray,
@@ -48,7 +49,7 @@ def vectors(
         # Visualize the structure tensor
         qim3d.viz.vectors(vol, vec, axis=2, slice_idx=0.5, interactive=True)
         ```
-        ![structure tensor](assets/screenshots/structure_tensor.gif)  
+        ![structure tensor](assets/screenshots/structure_tensor.gif)
 
     """
 
@@ -120,10 +121,10 @@ def vectors(
         # Orientations histogram
         nbins = 36
         angles = np.arctan2(vectors_slice_y, vectors_slice_x)  # angles from 0 to pi
-        distribution, bin_edges = np.histogram(angles, bins=nbins, range=(0.0, np.pi))
+        distribution, bin_edges = np.histogram(angles, bins=nbins, range=(0, np.pi))
 
         # Find the bin with the maximum count
-        peak_bin_idx = np.argmax(distribution)
+        peak_bin_idx = np.argmax(abs(distribution))
         # Calculate the center of the peak bin
         peak_angle_rad = (bin_edges[peak_bin_idx] + bin_edges[peak_bin_idx + 1]) / 2
         # Convert the peak angle to degrees

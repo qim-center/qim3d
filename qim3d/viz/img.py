@@ -232,6 +232,7 @@ def slices(
     show: bool = False,
     show_position: bool = True,
     interpolation: Optional[str] = "none",
+    img_size = None,
     **imshow_kwargs,
 ) -> plt.Figure:
     """Displays one or several slices from a 3d volume.
@@ -271,6 +272,9 @@ def slices(
         ```
         ![Grid of slices](assets/screenshots/viz-slices.png)
     """
+    if img_size:
+        img_height = img_size
+        img_width = img_size
 
     # Numpy array or Torch tensor input
     if not isinstance(vol, (np.ndarray, torch.Tensor, da.core.Array)):
@@ -409,6 +413,7 @@ def slicer(
     img_width: int = 3,
     show_position: bool = False,
     interpolation: Optional[str] = "none",
+    img_size = None,
     **imshow_kwargs,
 ) -> widgets.interactive:
     """Interactive widget for visualizing slices of a 3D volume.
@@ -434,6 +439,10 @@ def slicer(
         ```
         ![viz slicer](assets/screenshots/viz-slicer.gif)
     """
+
+    if img_size:
+        img_height = img_size
+        img_width = img_size
 
     # Create the interactive widget
     def _slicer(position):
@@ -472,6 +481,7 @@ def orthogonal(
     img_width: int = 3,
     show_position: bool = False,
     interpolation: Optional[str] = None,
+    img_size = None,
 ):
     """Interactive widget for visualizing orthogonal slices of a 3D volume.
 
@@ -495,6 +505,10 @@ def orthogonal(
         ```
         ![viz orthogonal](assets/screenshots/viz-orthogonal.gif)
     """
+
+    if img_size:
+        img_height = img_size
+        img_width = img_size
 
     z_slicer = slicer(
         vol,
