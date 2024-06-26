@@ -24,9 +24,17 @@ Example:
 
 import datetime
 import os
+
+import dask.array as da
+import h5py
+import nibabel as nib
 import numpy as np
 import PIL
 import tifffile
+import zarr
+from pydicom.dataset import FileDataset, FileMetaDataset
+from pydicom.uid import UID
+
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import sizeof, stringify_path
 
@@ -249,6 +257,22 @@ class DataSaver:
 
         ds.save_as(path)
 
+    def save_to_zarr(self, path, data):
+        """ Saves a Dask array to a Zarr array on disk.
+
+        Args:
+            path (str): The path to the Zarr array on disk.
+            data (dask.array): The Dask array to be saved to disk.
+
+        Returns:
+            zarr.core.Array: The Zarr array saved on disk.
+        """
+        assert isinstance(data, da.Array), 'data must be a dask array'
+
+        # forces compute when saving to zarr
+        da.to_zarr(data, path, compute=True, overwrite=self.replace, compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2))
+        
+    
     def save_PIL(self, path, data):
         """Save data to a PIL file to the given path.
 
@@ -344,7 +368,9 @@ class DataSaver:
                         return self.save_vol(path, data)
                     elif path.endswith((".dcm", ".DCM")):
                         return self.save_dicom(path, data)
-                    elif path.endswith((".jpeg", ".jpg", ".png")):
+                    elif path.endswith((".zarr")):
+                        return self.save_to_zarr(path, data)
+                    elif path.endswith((".jpeg",".jpg", ".png")):
                         return self.save_PIL(path, data)
                     else:
                         raise ValueError("Unsupported file format")
