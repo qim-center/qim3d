@@ -351,7 +351,7 @@ input[type="range"]::-webkit-slider-thumb {
 /* Buttons */
 .btn-html {
   position: sticky;
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   background: white !important;
   border-color: #6c757d !important;
