@@ -22,8 +22,11 @@ import os
 from qim3d.utils import internal_tools
 from qim3d.io import DataLoader
 from qim3d.io.logger import log
+from .qim_theme import QimTheme
 import plotly.graph_objects as go
 from scipy import ndimage
+from pathlib import Path
+import qim3d
 
 
 class Interface:
@@ -53,9 +56,6 @@ class Interface:
             self.img_examples.append(
                 [os.path.join(current_dir, *examples_dir, example)]
             )
-
-        # CSS path
-        self.css_path = os.path.join(current_dir, "..", "css", "gradio.css")
 
     def clear(self):
         """Used to reset the plot with the clear button"""
@@ -210,10 +210,10 @@ class Interface:
         # as it otherwise is not deleted
         os.remove("iso3d.html")
 
-    def create_interface(self):
+    def create_interface(self, force_light_mode:bool = True):
         # Create gradio app
 
-        with gr.Blocks(css=self.css_path) as gradio_interface:
+        with gr.Blocks(theme = QimTheme(force_light_mode = force_light_mode), title = self.title) as gradio_interface:
             if self.show_header:
                 gr.Markdown(
                     """
@@ -229,7 +229,7 @@ class Interface:
                     with gr.Tab("Input"):
                         # File loader
                         gradio_file = gr.File(
-                            show_label=False, elem_classes="file-input h-128"
+                            show_label=False
                         )
                     with gr.Tab("Examples"):
                         gr.Examples(examples=self.img_examples, inputs=gradio_file)
@@ -238,11 +238,11 @@ class Interface:
                     with gr.Row():
                         with gr.Column(scale=3, min_width=64):
                             btn_run = gr.Button(
-                                value="Run 3D visualization", elem_classes="btn btn-run"
+                                value="Run 3D visualization", variant = "primary"
                             )
                         with gr.Column(scale=1, min_width=64):
                             btn_clear = gr.Button(
-                                value="Clear", elem_classes="btn btn-clear"
+                                value="Clear", variant = "stop"
                             )
 
                     with gr.Tab("Display"):
@@ -255,7 +255,6 @@ class Interface:
                             label="Display resolution",
                             info="Number of voxels for the largest dimension",
                             value=64,
-                            elem_classes="",
                         )
                         surface_count = gr.Slider(
                             2, 16, step=1, label="Total iso-surfaces", value=6
@@ -373,7 +372,6 @@ class Interface:
                         label="Download interactive plot",
                         show_label=True,
                         visible=False,
-                        elem_classes="w-256",
                     )
 
                 outputs = [volvizplot, plot_download]
@@ -399,13 +397,13 @@ class Interface:
     def make_visible(self):
         return gr.update(visible=True)
 
-    def launch(self, **kwargs):
+    def launch(self, force_light_mode:bool = True, **kwargs):
         # Show header
         if self.show_header:
             internal_tools.gradio_header(self.title, self.port)
 
         # Create gradio interface
-        self.interface = self.create_interface()
+        self.interface = self.create_interface(force_light_mode=force_light_mode)
 
         # Set gradio verbose level
         if self.verbose:
@@ -417,6 +415,7 @@ class Interface:
             quiet=quiet,
             height=self.height,
             width=self.width,
+            favicon_path = Path(qim3d.__file__).parents[0] / "gui/images/qim_platform-icon.svg",
             **kwargs,
         )
 

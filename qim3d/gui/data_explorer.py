@@ -27,10 +27,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import outputformat as ouf
 import tifffile
+from pathlib import Path
 
+import qim3d
 from qim3d.io import load
 from qim3d.io.logger import log
 from qim3d.utils import internal_tools
+from .qim_theme import QimTheme
 
 
 class Interface:
@@ -49,9 +52,6 @@ class Interface:
             "Intensity histogram",
             "Data summary",
         ]
-        # CSS path
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.css_path = os.path.join(current_dir, "..", "css", "gradio.css")
 
     def clear(self):
         """Used to reset outputs with the clear button"""
@@ -77,14 +77,12 @@ class Interface:
 
     def set_spinner(self, message):
         return gr.update(
-            elem_classes="btn btn-spinner",
             value=f"{message}",
             interactive=False,
         )
 
     def set_relaunch_button(self):
         return gr.update(
-            elem_classes="btn btn-run",
             value=f"Relaunch",
             interactive=True,
         )
@@ -98,8 +96,9 @@ class Interface:
                 update_list.append(gr.update(visible=False))
         return update_list
 
-    def create_interface(self):
-        with gr.Blocks(css=self.css_path) as gradio_interface:
+    def create_interface(self, force_light_mode:bool = True):
+        with gr.Blocks(theme = QimTheme(force_light_mode=force_light_mode), 
+                       title = self.title) as gradio_interface:
             gr.Markdown("# Data Explorer")
 
             # File selection and parameters
@@ -112,12 +111,11 @@ class Interface:
                                 max_lines=1,
                                 container=False,
                                 label="Base path",
-                                elem_classes="h-36",
                                 value=os.getcwd(),
                             )
                         with gr.Column(scale=1, min_width=36):
                             reload_base_path = gr.Button(
-                                value="⟳", elem_classes="btn-html h-36"
+                                value="⟳"
                             )
                     explorer = gr.FileExplorer(
                         ignore_glob="*/.*",  # ignores hidden files
@@ -126,7 +124,7 @@ class Interface:
                         render=True,
                         file_count="single",
                         interactive=True,
-                        elem_classes="h-320 hide-overflow",
+                        height = 320,
                     )
 
                 with gr.Column(scale=1):
@@ -180,22 +178,22 @@ class Interface:
                     )
                     with gr.Row():
                         btn_run = gr.Button(
-                            value="Load & Run", elem_classes="btn btn-html btn-run"
+                            value="Load & Run", variant = "primary",
                         )
 
             # Visualization and results
-            with gr.Row(elem_classes="mt-64"):
+            with gr.Row():
 
                 # Z Slicer
                 with gr.Column(visible=False) as result_z_slicer:
-                    zslice_plot = gr.Plot(label="Z slice", elem_classes="rounded")
+                    zslice_plot = gr.Plot(label="Z slice")
                     zpos = gr.Slider(
                         minimum=0, maximum=1, value=0.5, step=0.01, label="Z position"
                     )
 
                 # Y Slicer
                 with gr.Column(visible=False) as result_y_slicer:
-                    yslice_plot = gr.Plot(label="Y slice", elem_classes="rounded")
+                    yslice_plot = gr.Plot(label="Y slice")
 
                     ypos = gr.Slider(
                         minimum=0, maximum=1, value=0.5, step=0.01, label="Y position"
@@ -203,7 +201,7 @@ class Interface:
 
                 # X Slicer
                 with gr.Column(visible=False) as result_x_slicer:
-                    xslice_plot = gr.Plot(label="X slice", elem_classes="rounded")
+                    xslice_plot = gr.Plot(label="X slice")
 
                     xpos = gr.Slider(
                         minimum=0, maximum=1, value=0.5, step=0.01, label="X position"
@@ -211,13 +209,13 @@ class Interface:
                 # Z Max projection
                 with gr.Column(visible=False) as result_z_max_projection:
                     max_projection_plot = gr.Plot(
-                        label="Z max projection", elem_classes="rounded"
+                        label="Z max projection",
                     )
 
                 # Z Min projection
                 with gr.Column(visible=False) as result_z_min_projection:
                     min_projection_plot = gr.Plot(
-                        label="Z min projection", elem_classes="rounded"
+                        label="Z min projection",
                     )
 
                 # Intensity histogram
@@ -230,7 +228,7 @@ class Interface:
                         lines=24,
                         label=None,
                         show_label=False,
-                        elem_classes="monospace-box",
+
                         value="Data summary",
                     )
             ### Gradio objects lists
@@ -379,13 +377,13 @@ class Interface:
 
         return session, gr.update(label=f"X slice: {session.xslice}")
 
-    def launch(self, **kwargs):
+    def launch(self,force_light_mode:bool = True, **kwargs):
         # Show header
         if self.show_header:
             internal_tools.gradio_header(self.title, self.port)
 
-        # Create gradio interfaces
-        interface = self.create_interface()
+        # Create gradio interfaces 
+        interface = self.create_interface(force_light_mode=force_light_mode)
 
         # Set gradio verbose level
         if self.verbose:
@@ -397,6 +395,7 @@ class Interface:
             quiet=quiet,
             height=self.height,
             width=self.width,
+            favicon_path = Path(qim3d.__file__).parents[0] / "gui/images/qim_platform-icon.svg",
             **kwargs,
         )
 

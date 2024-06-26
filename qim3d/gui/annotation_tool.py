@@ -28,6 +28,10 @@ import gradio as gr
 import numpy as np
 import qim3d.utils
 from qim3d.io import load, save
+from qim3d.io.logger import log
+from .qim_theme import QimTheme
+from pathlib import Path
+import qim3d
 
 
 class Session:
@@ -50,14 +54,12 @@ class Interface:
         self.temp_dir = os.path.join(tempfile.gettempdir(), f"qim-{self.username}")
         self.name_suffix = None
 
-        # CSS path
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        self.css_path = os.path.join(current_dir, "..", "css", "gradio.css")
 
-    def launch(self, img=None, **kwargs):
+
+    def launch(self, img=None, force_light_mode:bool = True, **kwargs):
         # Create gradio interfaces
         # img = "/tmp/qim-fima/2dimage.png"
-        self.interface = self.create_interface(img)
+        self.interface = self.create_interface(img, force_light_mode=force_light_mode)
 
         # Set gradio verbose level
         if self.verbose:
@@ -69,6 +71,7 @@ class Interface:
             quiet=quiet,
             height=self.height,
             # width=self.width,
+            favicon_path = Path(qim3d.__file__).parents[0] / "gui/images/qim_platform-icon.svg",
             **kwargs,
         )
 
@@ -94,15 +97,9 @@ class Interface:
     def set_visible(self):
         return gr.update(visible=True)
 
-    def create_interface(self, img=None):
-        from PIL import Image
+    def create_interface(self, img=None, force_light_mode:bool = False):
 
-        if img is not None:
-            custom_css = "annotation-tool"
-        else:
-            custom_css = "annotation-tool no-img"
-
-        with gr.Blocks(css=self.css_path, title=self.title) as gradio_interface:
+        with gr.Blocks(theme = QimTheme(force_light_mode = force_light_mode), title=self.title) as gradio_interface:
 
             brush = gr.Brush(
                 colors=[
@@ -134,7 +131,6 @@ class Interface:
                         show_download_button=True,
                         container=False,
                         transforms=["crop"],
-                        elem_classes=custom_css,
                         layers=False,
                     )
 
@@ -142,13 +138,12 @@ class Interface:
 
                     with gr.Row():
                         overlay_img = gr.Image(
-                            show_download_button=False, show_label=False, visible=False, elem_classes="no-interpolation"
+                            show_download_button=False, show_label=False, visible=False,
                         )
                     with gr.Row():
                         masks_download = gr.File(
                             label="Download masks",
                             visible=False,
-                            elem_classes=custom_css,
                         )
 
             temp_dir = gr.Textbox(value=self.temp_dir, visible=False)

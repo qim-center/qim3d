@@ -97,26 +97,28 @@ def main():
                 data_explorer.run_interface(arghost)
             else:
                 interface = data_explorer.Interface()
-                interface.launch(inbrowser=inbrowser)
+                interface.launch(inbrowser=inbrowser, force_light_mode=False)
         elif args.iso3d:
             if args.platform:
                 iso3d.run_interface(arghost)
             else:
                 interface = iso3d.Interface()
-                interface.launch(inbrowser=inbrowser)
-
+                interface.launch(inbrowser=inbrowser, force_light_mode=False)
+        
         elif args.annotation_tool:
             if args.platform:
                 annotation_tool.run_interface(arghost)
             else:
                 interface = annotation_tool.Interface()
-                interface.launch(inbrowser=inbrowser)
+                interface.launch(inbrowser=inbrowser, force_light_mode=False)        
         elif args.local_thickness:
             if args.platform:
                 local_thickness.run_interface(arghost)
             else:
                 interface = local_thickness.Interface()
-                interface.launch(inbrowser=inbrowser)
+                interface.launch(inbrowser=inbrowser, force_light_mode=False)
+
+
     elif args.subcommand == "viz":
         if not args.source:
             print("Please specify a source file using the argument --source")

@@ -45,10 +45,13 @@ from scipy import ndimage
 import outputformat as ouf
 import plotly.graph_objects as go
 import localthickness as lt
-import matplotlib
+
 
 # matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from pathlib import Path
+import qim3d
+from .qim_theme import QimTheme
 
 
 class Interface:
@@ -75,8 +78,6 @@ class Interface:
                 [os.path.join(current_dir, *examples_dir, example)]
             )
 
-        # CSS path
-        self.css_path = os.path.join(current_dir, "..", "css", "gradio.css")
 
     def clear(self):
         """Used to reset the plot with the clear button"""
@@ -106,14 +107,14 @@ class Interface:
         session.zpos = zpos
         return session
 
-    def launch(self, img=None,**kwargs):
+    def launch(self, img=None, force_light_mode:bool = True, **kwargs):
         # Show header
         if self.show_header:
             internal_tools.gradio_header(self.title, self.port)
 
         # Create gradio interfaces
 
-        self.interface = self.create_interface(img=img)
+        self.interface = self.create_interface(img=img, force_light_mode=force_light_mode)
 
         # Set gradio verbose level
         if self.verbose:
@@ -125,6 +126,7 @@ class Interface:
             quiet=quiet,
             height=self.height,
             width=self.width,
+            favicon_path = Path(qim3d.__file__).parents[0] / "gui/images/qim_platform-icon.svg",
             **kwargs
         )
 
@@ -152,8 +154,8 @@ class Interface:
 
         return vol_lt
 
-    def create_interface(self, img=None):
-        with gr.Blocks(css=self.css_path) as gradio_interface:
+    def create_interface(self, img=None, force_light_mode:bool = True):
+        with gr.Blocks(theme = QimTheme(force_light_mode=force_light_mode), title = self.title) as gradio_interface:
             gr.Markdown(
                 "# 3D Local thickness \n Interface for _Fast local thickness in 3D and 2D_ (https://github.com/vedranaa/local-thickness)"
             )
@@ -166,7 +168,6 @@ class Interface:
                         with gr.Tab("Input"):
                             data = gr.File(
                                 show_label=False,
-                                elem_classes="file-input h-128",
                                 value=img,
                             )
                         with gr.Tab("Examples"):
@@ -228,10 +229,10 @@ class Interface:
                     with gr.Row():
                         with gr.Column(scale=3, min_width=64):
                             btn = gr.Button(
-                                "Run local thickness", elem_classes="btn btn-run"
+                                "Run local thickness", variant = "primary"
                             )
                         with gr.Column(scale=1, min_width=64):
-                            btn_clear = gr.Button("Clear", elem_classes="btn btn-clear")
+                            btn_clear = gr.Button("Clear", variant = "stop")
 
                     inputs = [
                         data,
@@ -250,21 +251,18 @@ class Interface:
                             show_label=True,
                             label="Original",
                             visible=True,
-                            elem_classes="plot",
                         )
 
                         binary_vol = gr.Plot(
                             show_label=True,
                             label="Binary",
                             visible=True,
-                            elem_classes="plot",
                         )
 
                         output_vol = gr.Plot(
                             show_label=True,
                             label="Local thickness",
                             visible=True,
-                            elem_classes="plot",
                         )
                     with gr.Row():
                         histogram = gr.Plot(
@@ -278,7 +276,6 @@ class Interface:
                             show_label=True,
                             label="Output file",
                             visible=False,
-                            elem_classes="",
                         )
 
             # Pipelines
@@ -316,7 +313,7 @@ class Interface:
                 fn=pipeline.input_viz, inputs=session, outputs=input_vol, show_progress=False).success(
                 fn=pipeline.binary_viz, inputs=session, outputs=binary_vol,show_progress=False).success(
                 fn=pipeline.output_viz, inputs=session, outputs=output_vol,show_progress=False)
-            # fmt: on
+                # fmt: on
 
         return gradio_interface
 
