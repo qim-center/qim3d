@@ -26,6 +26,7 @@ import qim3d
 from qim3d.io.logger import log
 from qim3d.utils.internal_tools import get_file_size, sizeof, stringify_path
 from qim3d.utils.system import Memory
+from qim3d.utils import ProgressBar
 
 dask.config.set(scheduler="processes") 
 
@@ -770,6 +771,7 @@ def load(
     dataset_name=None,
     return_metadata=False,
     contains=None,
+    progress_bar:bool = True,
     force_load: bool = False,
     dim_order=(2, 1, 0),
     **kwargs,
@@ -796,6 +798,7 @@ def load(
         return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM/TXM/XRM files)
         contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks).
             Default is None.
+        progress_bar (bool, optional): Displays tqdm progress bar. Useful for large files. So far works only for linux. Default is False.
         force_load (bool, optional): If the file size exceeds available memory, a MemoryError is raised.
             If force_load is True, the error is changed to warning and the loader tries to load it anyway. Default is False.
         dim_order (tuple, optional): The order of the dimensions in the volume for .vol files. Default is (2,1,0) which corresponds to (z,y,x)
@@ -829,7 +832,11 @@ def load(
         **kwargs,
     )
 
-    data = loader.load(path)
+    if progress_bar and os.name == 'posix':
+        with ProgressBar(path):
+            data = loader.load(path)
+    else:
+        data = loader.load(path)
 
     def log_memory_info(data):
         mem = Memory()
