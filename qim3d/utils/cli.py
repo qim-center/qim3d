@@ -1,12 +1,12 @@
 import argparse
 import webbrowser
+import outputformat as ouf
 
 from qim3d.gui import annotation_tool, data_explorer, iso3d, local_thickness
 from qim3d.io.loading import DataLoader
 from qim3d.utils import image_preview
 from qim3d import __version__ as version
-import outputformat as ouf
-import qim3d
+import qim3d.io
 
 QIM_TITLE = ouf.rainbow(
     f"\n         _          _____     __ \n  ____ _(_)___ ___ |__  /____/ / \n / __ `/ / __ `__ \ /_ </ __  /  \n/ /_/ / / / / / / /__/ / /_/ /   \n\__, /_/_/ /_/ /_/____/\__,_/    \n  /_/                 v{version}\n\n",
@@ -14,6 +14,9 @@ QIM_TITLE = ouf.rainbow(
     cmap="hot",
 )
 
+def parse_tuple(arg):
+    # Remove parentheses if they are included and split by comma
+    return tuple(map(int, arg.strip('()').split(',')))
 
 def main():
     parser = argparse.ArgumentParser(description="Qim3d command-line interface.")
@@ -87,6 +90,30 @@ def main():
         help="By default set the maximum value to be 255 so the contrast is strong. This turns it off.",
     )
 
+    # File Convert
+    convert_parser = subparsers.add_parser(
+        "convert",
+        help="Convert files to different formats without loading the entire file into memory",
+    )
+    convert_parser.add_argument(
+        "input_path",
+        type=str,
+        metavar="Input path",
+        help="Path to image that will be converted",
+    )
+    convert_parser.add_argument(
+        "output_path",
+        type=str,
+        metavar="Output path",
+        help="Path to save converted image",
+    )
+    convert_parser.add_argument(
+        "--chunks",
+        type=parse_tuple,
+        metavar="Chunk shape",
+        default=(64,64,64),
+        help="Chunk size for the zarr file. Defaults to (64, 64, 64).",
+    )
     args = parser.parse_args()
 
     if args.subcommand == "gui":
@@ -104,20 +131,19 @@ def main():
             else:
                 interface = iso3d.Interface()
                 interface.launch(inbrowser=inbrowser, force_light_mode=False)
-        
+
         elif args.annotation_tool:
             if args.platform:
                 annotation_tool.run_interface(arghost)
             else:
                 interface = annotation_tool.Interface()
-                interface.launch(inbrowser=inbrowser, force_light_mode=False)        
+                interface.launch(inbrowser=inbrowser, force_light_mode=False)
         elif args.local_thickness:
             if args.platform:
                 local_thickness.run_interface(arghost)
             else:
                 interface = local_thickness.Interface()
                 interface.launch(inbrowser=inbrowser, force_light_mode=False)
-
 
     elif args.subcommand == "viz":
         if not args.source:
@@ -139,6 +165,7 @@ def main():
 
     elif args.subcommand == "preview":
         image = DataLoader().load(args.filename)
+
         image_preview(
             image,
             image_width=args.resolution,
@@ -146,6 +173,9 @@ def main():
             slice=args.slice,
             relative_intensity=args.absolute_values,
         )
+
+    elif args.subcommand == "convert":
+        qim3d.io.convert(args.input_path, args.output_path, chunk_shape=args.chunks)
 
     elif args.subcommand is None:
         print(QIM_TITLE)

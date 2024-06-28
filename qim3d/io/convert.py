@@ -20,6 +20,7 @@ class Convert:
         """
         self.chunk_shape = kwargs.get("chunk_shape", (64, 64, 64))
 
+
     def convert(self, input_path, output_path):
         # Stringify path in case it is not already a string
         input_path = stringify_path(input_path)
@@ -30,7 +31,7 @@ class Convert:
         if os.path.isfile(input_path):  
             match input_ext, output_ext:
                 case (".tif", ".zarr")  | (".tiff", ".zarr"):
-                    return self.convert_tif_to_zarr(input_path, output_path)
+                    return self.convert_tif_to_zarr(input_path, output_path, chunks=self.chunk_shape)
                 case _:
                     raise ValueError("Unsupported file format")
         # Load a directory
