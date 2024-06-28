@@ -189,6 +189,9 @@ def main():
         parser.print_help()
         print("\n")
 
+    elif args.subcommand == 'convert':
+        qim3d.io.convert(args.input_path, args.output_path)
+
 
 if __name__ == "__main__":
     main()
