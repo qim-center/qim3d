@@ -897,5 +897,5 @@ class ImgExamples:
         img_examples_path = Path(qim3d.__file__).parents[0] / "img_examples"
         img_paths = list(img_examples_path.glob("*.tif"))
 
-        update_dict = {path.stem: load(path) for path in img_paths}
+        update_dict = {path.stem: load(path, progress_bar = False) for path in img_paths}
         self.__dict__.update(update_dict)
