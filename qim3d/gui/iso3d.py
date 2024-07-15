@@ -25,7 +25,7 @@ from scipy import ndimage
 from qim3d.io import load
 from qim3d.io.logger import log
 
-from .interface import InterfaceWithExamples
+from qim3d.gui.interface import InterfaceWithExamples
 
 
 #TODO img in launch should be self.img

@@ -42,7 +42,7 @@ import tifffile
 import localthickness as lt
 
 from qim3d.io import load
-from .interface import InterfaceWithExamples
+from qim3d.gui.interface import InterfaceWithExamples
 
 
 class Interface(InterfaceWithExamples):

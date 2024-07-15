@@ -28,7 +28,7 @@ from qim3d.io import load
 from qim3d.io.logger import log
 from qim3d.utils import internal_tools
 
-from .interface import BaseInterface
+from qim3d.gui.interface import BaseInterface
 
 
 class Interface(BaseInterface):

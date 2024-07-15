@@ -30,22 +30,20 @@ from PIL import Image
 
 from qim3d.io import load, save
 from qim3d.utils import overlay_rgb_images
-from .interface import BaseInterface
+from qim3d.gui.interface import BaseInterface
 
-#TODO: img in launch should be self.img
+# TODO: img in launch should be self.img
+
 
 class Interface(BaseInterface):
-    def __init__(self, 
-                 name_suffix:str = "",
-                 verbose: bool = False,
-                 img = None):
-        super().__init__(title = "Annotation Tool", 
-                         height = 768, 
-                         width = "100%", 
-                         verbose = verbose,
-                         custom_css="annotation_tool.css"
-                        )
-
+    def __init__(self, name_suffix: str = "", verbose: bool = False, img=None):
+        super().__init__(
+            title="Annotation Tool",
+            height=768,
+            width="100%",
+            verbose=verbose,
+            custom_css="annotation_tool.css",
+        )
 
         self.username = getpass.getuser()
         self.temp_dir = os.path.join(tempfile.gettempdir(), f"qim-{self.username}")
@@ -56,7 +54,7 @@ class Interface(BaseInterface):
         self.img_editor = None
         self.masks_rgb = None
         self.temp_files = []
-    
+
     def get_result(self):
         # Get the temporary files from gradio
         temp_path_list = []
@@ -73,7 +71,7 @@ class Interface(BaseInterface):
             masks[mask_name] = load(temp_file)
 
         return masks
-    
+
     def clear_files(self):
         """
         Should be moved up to __init__ function, but given how is this interface implemented in some files
@@ -128,19 +126,21 @@ class Interface(BaseInterface):
                 self.temp_files.append(filepath)
 
         return files_list
-    
+
     def define_interface(self, **kwargs):
         brush = gr.Brush(
-                colors=[
-                    "rgb(255,50,100)",
-                    "rgb(50,250,100)",
-                    "rgb(50,100,255)",
-                ],
-                color_mode="fixed",
-                default_size=10,
-            )
+            colors=[
+                "rgb(255,50,100)",
+                "rgb(50,250,100)",
+                "rgb(50,100,255)",
+            ],
+            color_mode="fixed",
+            default_size=10,
+        )
         with gr.Row():
-            with gr.Column(scale=6, ):
+            with gr.Column(
+                scale=6,
+            ):
                 img_editor = gr.ImageEditor(
                     value=(
                         {
@@ -166,12 +166,12 @@ class Interface(BaseInterface):
 
                 with gr.Row():
                     overlay_img = gr.Image(
-                        show_download_button=False, show_label=False, visible=False,
+                        show_download_button=False,
+                        show_label=False,
+                        visible=False,
                     )
                 with gr.Row():
-                    masks_download = gr.File(
-                        label="Download masks", visible=False
-                    )
+                    masks_download = gr.File(label="Download masks", visible=False)
 
         # fmt: off
         img_editor.change(
@@ -180,6 +180,3 @@ class Interface(BaseInterface):
             fn = self.set_visible, inputs = None, outputs = overlay_img).then(                  # Makes the preview visible
             fn = self.cerate_download_list, inputs = img_editor, outputs = masks_download).then(# Separates the color mask and put them into file list
             fn = self.set_visible, inputs = None, outputs = masks_download)                     # Displays the download file list
-
-
-
