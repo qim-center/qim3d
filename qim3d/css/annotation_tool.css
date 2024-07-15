@@ -1,0 +1,12 @@
+/* When we created the annotation tool, gradio.ImageEditor did not work as it was supposed to. There was an argument height, width which 
+applied to the wrapper around it. Argument canvas_size worked only if you did not upload any image. If you did the canvas would resize
+itself to the size of the image. This way we set the width. If you only set the parameter 'width' insted of 'min-width', it doesn'ŧ work.
+Canceling set max-heigth (the important is necessary) will allow the canvas to be as high as needed according to the picture.*/
+canvas{
+    min-width: 600px;
+    max-height: none !important; /* The '!important' has to be here*/
+}
+
+
+
+

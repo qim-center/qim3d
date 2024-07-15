@@ -119,31 +119,25 @@ def main():
     if args.subcommand == "gui":
         arghost = args.host
         inbrowser = not args.no_browser  # Should automatically open in browser
+        
+        interface = None
         if args.data_explorer:
-            if args.platform:
-                data_explorer.run_interface(arghost)
-            else:
-                interface = data_explorer.Interface()
-                interface.launch(inbrowser=inbrowser, force_light_mode=False)
+            interface_class = data_explorer.Interface
         elif args.iso3d:
-            if args.platform:
-                iso3d.run_interface(arghost)
-            else:
-                interface = iso3d.Interface()
-                interface.launch(inbrowser=inbrowser, force_light_mode=False)
-
+            interface_class = iso3d.Interface
         elif args.annotation_tool:
-            if args.platform:
-                annotation_tool.run_interface(arghost)
-            else:
-                interface = annotation_tool.Interface()
-                interface.launch(inbrowser=inbrowser, force_light_mode=False)
+            interface_class = annotation_tool.Interface
         elif args.local_thickness:
-            if args.platform:
-                local_thickness.run_interface(arghost)
-            else:
-                interface = local_thickness.Interface()
-                interface.launch(inbrowser=inbrowser, force_light_mode=False)
+            interface_class = local_thickness.Interface
+        else:
+            print("Please select a tool by choosing one of the following flags:\n\t--data-explorer\n\t--iso3d\n\t--annotation-tool\n\t--local-thickness")
+            return
+        interface = interface_class() # called here if we add another arguments to initialize
+
+        if args.platform:
+            interface.run_interface(host = arghost)
+        else:
+            interface.launch(inbrowser = inbrowser, force_light_mode = False)
 
     elif args.subcommand == "viz":
         if not args.source:

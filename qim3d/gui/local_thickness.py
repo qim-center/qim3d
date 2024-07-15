@@ -32,105 +32,34 @@ app.launch()
 ```
 
 """
-
-import gradio as gr
-import numpy as np
 import os
-from qim3d.utils import internal_tools
-from qim3d.io import DataLoader
-from qim3d.io.logger import log
-import tifffile
-import plotly.express as px
-from scipy import ndimage
-import outputformat as ouf
-import plotly.graph_objects as go
-import localthickness as lt
-
 
 # matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from pathlib import Path
-import qim3d
-from .qim_theme import QimTheme
+import gradio as gr
+import numpy as np
+import tifffile
+import localthickness as lt
+
+from qim3d.io import load
+from .interface import InterfaceWithExamples
 
 
-class Interface:
-    def __init__(self):
-        self.show_header = False
-        self.verbose = False
-        self.title = "Local thickness"
-        self.plot_height = 768
-        self.height = 1024
-        self.width = 960
+class Interface(InterfaceWithExamples):
+    def __init__(self,
+                 img = None,
+                 verbose:bool = False,
+                 plot_height:int = 768,
+                 figsize:int = 6): 
+        
+        super().__init__(title = "Local thickness",
+                       height = 1024,
+                       width = 960,
+                       verbose = verbose)
 
-        # Data examples
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        examples_dir = ["..", "img_examples"]
-        examples = [
-            "blobs_256x256x256.tif",
-            "cement_128x128x128.tif",
-            "bone_128x128x128.tif",
-            "NT_10x200x100.tif",
-        ]
-        self.img_examples = []
-        for example in examples:
-            self.img_examples.append(
-                [os.path.join(current_dir, *examples_dir, example)]
-            )
-
-
-    def clear(self):
-        """Used to reset the plot with the clear button"""
-        return None
-
-    def make_visible(self):
-        return gr.update(visible=True)
-
-    def start_session(self, *args):
-        session = Session()
-        session.verbose = self.verbose
-        session.interface = "gradio"
-
-        # Get the args passed by gradio
-        session.data = args[0]
-        session.lt_scale = args[1]
-        session.threshold = args[2]
-        session.dark_objects = args[3]
-        session.nbins = args[4]
-        session.zpos = args[5]
-        session.cmap_originals = args[6]
-        session.cmap_lt = args[7]
-
-        return session
-
-    def update_session_zpos(self, session, zpos):
-        session.zpos = zpos
-        return session
-
-    def launch(self, img=None, force_light_mode:bool = True, **kwargs):
-        # Show header
-        if self.show_header:
-            internal_tools.gradio_header(self.title, self.port)
-
-        # Create gradio interfaces
-
-        self.interface = self.create_interface(img=img, force_light_mode=force_light_mode)
-
-        # Set gradio verbose level
-        if self.verbose:
-            quiet = False
-        else:
-            quiet = True
-
-        self.interface.launch(
-            quiet=quiet,
-            height=self.height,
-            width=self.width,
-            favicon_path = Path(qim3d.__file__).parents[0] / "gui/images/qim_platform-icon.svg",
-            **kwargs
-        )
-
-        return
+        self.plot_height = plot_height
+        self.figsize = figsize
+        self.img = img
 
     def get_result(self):
         # Get the temporary files from gradio
@@ -150,223 +79,195 @@ class Interface:
         file_idx = np.argmax(creation_time_list)
 
         # Load the temporary file
-        vol_lt = DataLoader().load(temp_path_list[file_idx])
+        vol_lt = load(temp_path_list[file_idx])
 
         return vol_lt
 
-    def create_interface(self, img=None, force_light_mode:bool = True):
-        with gr.Blocks(theme = QimTheme(force_light_mode=force_light_mode), title = self.title) as gradio_interface:
-            gr.Markdown(
-                "# 3D Local thickness \n Interface for _Fast local thickness in 3D and 2D_ (https://github.com/vedranaa/local-thickness)"
-            )
+    def define_interface(self):
+        gr.Markdown(
+        "Interface for _Fast local thickness in 3D and 2D_ (https://github.com/vedranaa/local-thickness)"
+        )
 
-            with gr.Row():
-                with gr.Column(scale=1, min_width=320):
-                    if img is not None:
-                        data = gr.State(value=img)
-                    else:
-                        with gr.Tab("Input"):
-                            data = gr.File(
-                                show_label=False,
-                                value=img,
-                            )
-                        with gr.Tab("Examples"):
-                            gr.Examples(examples=self.img_examples, inputs=data)
+        with gr.Row():
+            with gr.Column(scale=1, min_width=320):
+                if self.img is not None:
+                    data = gr.State(value=self.img)
+                else:
+                    with gr.Tab("Input"):
+                        data = gr.File(
+                            show_label=False,
+                            value=self.img,
+                        )
+                    with gr.Tab("Examples"):
+                        gr.Examples(examples=self.img_examples, inputs=data)
+
+                with gr.Row():
+                    zpos = gr.Slider(
+                        minimum=0,
+                        maximum=1,
+                        value=0.5,
+                        step=0.01,
+                        label="Z position",
+                        info="Local thickness is calculated in 3D, this slider controls the visualization only.",
+                    )
+
+                with gr.Tab("Parameters"):
+                    gr.Markdown(
+                        "It is possible to scale down the image before processing. Lower values will make the algorithm run faster, but decreases the accuracy of results."
+                    )
+                    lt_scale = gr.Slider(
+                        0.1, 1.0, label="Scale", value=0.5, step=0.1
+                    )
 
                     with gr.Row():
-                        zpos = gr.Slider(
-                            minimum=0,
-                            maximum=1,
+                        threshold = gr.Slider(
+                            0.0,
+                            1.0,
                             value=0.5,
-                            step=0.01,
-                            label="Z position",
-                            info="Local thickness is calculated in 3D, this slider controls the visualization only.",
+                            step=0.05,
+                            label="Threshold",
+                            info="Local thickness uses a binary image, so a threshold value is needed.",
                         )
 
-                    with gr.Tab("Parameters"):
-                        gr.Markdown(
-                            "It is possible to scale down the image before processing. Lower values will make the algorithm run faster, but decreases the accuracy of results."
+                    dark_objects = gr.Checkbox(
+                        value=False,
+                        label="Dark objects",
+                        info="Inverts the image before thresholding. Use in case your foreground is darker than the background.",
+                    )
+
+                with gr.Tab("Display options"):
+                    cmap_original = gr.Dropdown(
+                        value="viridis",
+                        choices=plt.colormaps(),
+                        label="Colormap - input",
+                        interactive=True,
+                    )
+                    cmap_lt = gr.Dropdown(
+                        value="magma",
+                        choices=plt.colormaps(),
+                        label="Colormap - local thickness",
+                        interactive=True,
+                    )
+
+                    nbins = gr.Slider(
+                        5, 50, value=25, step=1, label="Histogram bins"
+                    )
+
+                # Run button
+                with gr.Row():
+                    with gr.Column(scale=3, min_width=64):
+                        btn = gr.Button(
+                            "Run local thickness", variant = "primary"
                         )
-                        lt_scale = gr.Slider(
-                            0.1, 1.0, label="Scale", value=0.5, step=0.1
-                        )
+                    with gr.Column(scale=1, min_width=64):
+                        btn_clear = gr.Button("Clear", variant = "stop")
 
-                        with gr.Row():
-                            threshold = gr.Slider(
-                                0.0,
-                                1.0,
-                                value=0.5,
-                                step=0.05,
-                                label="Threshold",
-                                info="Local thickness uses a binary image, so a threshold value is needed.",
-                            )
+                
+            with gr.Column(scale=4):
+                with gr.Row():
+                    input_vol = gr.Plot(
+                        show_label=True,
+                        label="Original",
+                        visible=True,
+                    )
 
-                        dark_objects = gr.Checkbox(
-                            value=False,
-                            label="Dark objects",
-                            info="Inverts the image before trhesholding. Use in case your foreground is darker than the background.",
-                        )
+                    binary_vol = gr.Plot(
+                        show_label=True,
+                        label="Binary",
+                        visible=True,
+                    )
 
-                    with gr.Tab("Display options"):
-                        cmap_original = gr.Dropdown(
-                            value="viridis",
-                            choices=plt.colormaps(),
-                            label="Colormap - input",
-                            interactive=True,
-                        )
-                        cmap_lt = gr.Dropdown(
-                            value="magma",
-                            choices=plt.colormaps(),
-                            label="Colormap - local thickness",
-                            interactive=True,
-                        )
-
-                        nbins = gr.Slider(
-                            5, 50, value=25, step=1, label="Histogram bins"
-                        )
-
-                    # Run button
-                    with gr.Row():
-                        with gr.Column(scale=3, min_width=64):
-                            btn = gr.Button(
-                                "Run local thickness", variant = "primary"
-                            )
-                        with gr.Column(scale=1, min_width=64):
-                            btn_clear = gr.Button("Clear", variant = "stop")
-
-                    inputs = [
-                        data,
-                        lt_scale,
-                        threshold,
-                        dark_objects,
-                        nbins,
-                        zpos,
-                        cmap_original,
-                        cmap_lt,
-                    ]
-
-                with gr.Column(scale=4):
-                    with gr.Row():
-                        input_vol = gr.Plot(
-                            show_label=True,
-                            label="Original",
-                            visible=True,
-                        )
-
-                        binary_vol = gr.Plot(
-                            show_label=True,
-                            label="Binary",
-                            visible=True,
-                        )
-
-                        output_vol = gr.Plot(
-                            show_label=True,
-                            label="Local thickness",
-                            visible=True,
-                        )
-                    with gr.Row():
-                        histogram = gr.Plot(
-                            show_label=True,
-                            label="Thickness histogram",
-                            visible=True,
-                        )
-                    with gr.Row():
-                        lt_output = gr.File(
-                            interactive=False,
-                            show_label=True,
-                            label="Output file",
-                            visible=False,
-                        )
-
-            # Pipelines
-            pipeline = Pipeline()
-            pipeline.verbose = self.verbose
-
-            # Session
-            session = gr.State([])
-
-            # Ouput gradio objects
-            outputs = [input_vol, output_vol, binary_vol, histogram, lt_output]
-
-            # Clear button
-            for gr_obj in outputs:
-                btn_clear.click(fn=self.clear, inputs=None, outputs=gr_obj)
-
-            # Run button
-            # fmt: off
-            btn.click(
-                fn=self.start_session, inputs=inputs, outputs=session).success(
-                fn=pipeline.process_input, inputs=session, outputs=session).success(
-                fn=pipeline.input_viz, inputs=session, outputs=input_vol).success(
-                fn=pipeline.make_binary, inputs=session, outputs=session).success(
-                fn=pipeline.binary_viz, inputs=session, outputs=binary_vol).success(
-                fn=pipeline.compute_localthickness, inputs=session, outputs=session).success(
-                fn=pipeline.output_viz, inputs=session, outputs=output_vol).success(
-                fn=pipeline.thickness_histogram, inputs=session, outputs=histogram).success(
-                fn=pipeline.save_lt, inputs=session, outputs=lt_output).success(
-                fn=pipeline.remove_unused_file).success(
-                fn=self.make_visible, inputs=None, outputs=lt_output)
+                    output_vol = gr.Plot(
+                        show_label=True,
+                        label="Local thickness",
+                        visible=True,
+                    )
+                with gr.Row():
+                    histogram = gr.Plot(
+                        show_label=True,
+                        label="Thickness histogram",
+                        visible=True,
+                    )
+                with gr.Row():
+                    lt_output = gr.File(
+                        interactive=False,
+                        show_label=True,
+                        label="Output file",
+                        visible=False,
+                    )
 
 
-            zpos.change(
-                fn=self.update_session_zpos, inputs=[session, zpos], outputs=session, show_progress=False).success(
-                fn=pipeline.input_viz, inputs=session, outputs=input_vol, show_progress=False).success(
-                fn=pipeline.binary_viz, inputs=session, outputs=binary_vol,show_progress=False).success(
-                fn=pipeline.output_viz, inputs=session, outputs=output_vol,show_progress=False)
-                # fmt: on
+        # Run button
+        # fmt: off
+        viz_input = lambda zpos, cmap: self.show_slice(self.vol, zpos, self.vmin, self.vmax, cmap)
+        viz_binary = lambda zpos, cmap: self.show_slice(self.vol_binary, zpos, None, None, cmap)
+        viz_output = lambda zpos, cmap: self.show_slice(self.vol_thickness, zpos, self.vmin_lt, self.vmax_lt, cmap)
 
-        return gradio_interface
+        btn.click(
+            fn=self.process_input, inputs = [data, dark_objects], outputs = []).success(
+            fn=viz_input, inputs = [zpos, cmap_original], outputs = input_vol).success(
+            fn=self.make_binary, inputs = threshold, outputs = []).success(
+            fn=viz_binary, inputs = [zpos, cmap_original], outputs = binary_vol).success(
+            fn=self.compute_localthickness, inputs = lt_scale, outputs = []).success(
+            fn=viz_output, inputs = [zpos, cmap_lt], outputs = output_vol).success(
+            fn=self.thickness_histogram, inputs = nbins, outputs = histogram).success(
+            fn=self.save_lt, inputs = [], outputs = lt_output).success(
+            fn=self.remove_unused_file).success(
+            fn=self.set_visible, inputs= [], outputs=lt_output)
 
+        # Clear button
+        outputs = [input_vol, output_vol, binary_vol, histogram, lt_output]
+        for gr_obj in outputs:
+            btn_clear.click(fn=self.clear, inputs=None, outputs=gr_obj)
 
-class Session:
-    def __init__(self):
-        self.interface = None
-        self.verbose = None
-        self.show_ticks = False
-        self.show_axis = True
-
-        # Args from gradio
-        self.data = None
-        self.lt_scale = None
-        self.threshold = 0.5
-        self.dark_objects = False
-        self.flip_z = True
-        self.nbins = 25
-        self.reversescale = False
-
-        # From pipeline
-        self.vol = None
-        self.vol_binary = None
-        self.vol_thickness = None
-        self.zpos = 0
-        self.vmin = None
-        self.vmax = None
-        self.vmin_lt = None
-        self.vmax_lt = None
+        btn_clear.click(fn = self.set_invisible, inputs = [], outputs = lt_output)
 
 
-class Pipeline:
-    def __init__(self):
-        self.figsize = 6
+        # Event listeners
+        zpos.change(
+            fn=viz_input, inputs = [zpos, cmap_original], outputs=input_vol, show_progress=False).success(
+            fn=viz_binary, inputs = [zpos, cmap_original], outputs=binary_vol, show_progress=False).success(
+            fn=viz_output, inputs = [zpos, cmap_lt], outputs=output_vol, show_progress=False)
+        
+        cmap_original.change(
+            fn=viz_input, inputs = [zpos, cmap_original],outputs=input_vol, show_progress=False).success(
+            fn=viz_binary, inputs = [zpos, cmap_original], outputs=binary_vol, show_progress=False)
+        
+        cmap_lt.change(
+            fn=viz_output, inputs = [zpos, cmap_lt], outputs=output_vol, show_progress=False
+        )
 
-    def process_input(self, session):
+        nbins.change(
+            fn = self.thickness_histogram, inputs = nbins, outputs = histogram
+        )
+            # fmt: on
+
+    #######################################################
+    #
+    #       PIPELINE
+    #
+    #######################################################
+
+    def process_input(self, data, dark_objects):
         # Load volume
         try:
-            session.vol = DataLoader().load(session.data.name)
-        except:
-            session.vol = session.data
+            self.vol = load(data.name)
+            assert self.vol.ndim == 3
+        except AttributeError:
+            self.vol = data
+        except AssertionError:
+            raise gr.Error(F"File has to be 3D structure. Your structure has {self.vol.ndim} dimension{'' if self.vol.ndim == 1 else 's'}")
 
-        if session.dark_objects:
-            session.vol = np.invert(session.vol)
+        if dark_objects:
+            self.vol = np.invert(self.vol)
 
         # Get min and max values for visualization
-        session.vmin = np.min(session.vol)
-        session.vmax = np.max(session.vol)
+        self.vmin = np.min(self.vol)
+        self.vmax = np.max(self.vol)
 
-        return session
-
-    def show_slice(self, vol, z_idx, vmin=None, vmax=None, cmap="viridis"):
+    def show_slice(self, vol, zpos, vmin=None, vmax=None, cmap="viridis"):
         plt.close()
+        z_idx = int(zpos * (vol.shape[0] - 1))
         fig, ax = plt.subplots(figsize=(self.figsize, self.figsize))
 
         ax.imshow(vol[z_idx], interpolation="nearest", cmap=cmap, vmin=vmin, vmax=vmax)
@@ -377,60 +278,24 @@ class Pipeline:
 
         return fig
 
-    def input_viz(self, session):
-        # Generate input visualization
-        z_idx = int(session.zpos * (session.vol.shape[0] - 1))
-        fig = self.show_slice(
-            vol=session.vol,
-            z_idx=z_idx,
-            cmap=session.cmap_originals,
-            vmin=session.vmin,
-            vmax=session.vmax,
-        )
-        return fig
-
-    def make_binary(self, session):
+    def make_binary(self, threshold):
         # Make a binary volume
         # Nothing fancy, but we could add new features here
-        session.vol_binary = session.vol > (session.threshold * np.max(session.vol))
-
-        return session
-
-    def binary_viz(self, session):
-        # Generate input visualization
-        z_idx = int(session.zpos * (session.vol_binary.shape[0] - 1))
-        fig = self.show_slice(
-            vol=session.vol_binary, z_idx=z_idx, cmap=session.cmap_originals
-        )
-        return fig
-
-    def compute_localthickness(self, session):
-        session.vol_thickness = lt.local_thickness(session.vol_binary, session.lt_scale)
+        self.vol_binary = self.vol > (threshold * np.max(self.vol))
+    
+    def compute_localthickness(self, lt_scale):
+        self.vol_thickness = lt.local_thickness(self.vol_binary, lt_scale)
 
         # Valus for visualization
-        session.vmin_lt = np.min(session.vol_thickness)
-        session.vmax_lt = np.max(session.vol_thickness)
+        self.vmin_lt = np.min(self.vol_thickness)
+        self.vmax_lt = np.max(self.vol_thickness)
 
-        return session
-
-    def output_viz(self, session):
-        # Generate input visualization
-        z_idx = int(session.zpos * (session.vol_thickness.shape[0] - 1))
-        fig = self.show_slice(
-            vol=session.vol_thickness,
-            z_idx=z_idx,
-            cmap=session.cmap_lt,
-            vmin=session.vmin_lt,
-            vmax=session.vmax_lt,
-        )
-        return fig
-
-    def thickness_histogram(self, session):
+    def thickness_histogram(self, nbins):
         # Ignore zero thickness
-        non_zero_values = session.vol_thickness[session.vol_thickness > 0]
+        non_zero_values = self.vol_thickness[self.vol_thickness > 0]
 
         # Calculate histogram
-        vol_hist, bin_edges = np.histogram(non_zero_values, session.nbins)
+        vol_hist, bin_edges = np.histogram(non_zero_values, nbins)
 
         fig, ax = plt.subplots(figsize=(6, 4))
 
@@ -447,10 +312,10 @@ class Pipeline:
 
         return fig
 
-    def save_lt(self, session):
+    def save_lt(self):
         filename = "localthickness.tif"
         # Save output image in a temp space
-        tifffile.imwrite(filename, session.vol_thickness)
+        tifffile.imwrite(filename, self.vol_thickness)
 
         return filename
     
@@ -458,11 +323,6 @@ class Pipeline:
         # Remove localthickness.tif file from working directory
         # as it otherwise is not deleted
         os.remove('localthickness.tif')
-
-def run_interface(host = "0.0.0.0"):
-    gradio_interface = Interface().create_interface()
-    internal_tools.run_gradio_app(gradio_interface,host)
-
+    
 if __name__ == "__main__":
-    # Creates interface
-    run_interface()
+    Interface().run_interface()
