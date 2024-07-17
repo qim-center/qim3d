@@ -9,11 +9,12 @@ def structure_tensor(
     vol: np.ndarray,
     sigma: float = 1.0,
     rho: float = 6.0,
+    base_noise: bool = True,
     full: bool = False,
-    visualize=False,
+    visualize = False,
     **viz_kwargs
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Wrapper for the 3D structure tensor implementation from the [structure_tensor package](https://github.com/Skielex/structure-tensor/)
+    """Wrapper for the 3D structure tensor implementation from the [structure_tensor package](https://github.com/Skielex/structure-tensor/).
 
     
     The structure tensor algorithm is a method for analyzing the orientation of fiber-like structures in 3D images. 
@@ -26,6 +27,7 @@ def structure_tensor(
         vol (np.ndarray): 3D NumPy array representing the volume.
         sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing.
         rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed.
+        base_noise (bool, optional): A flag indicating whether to add a small noise to the volume. Default is True.
         full (bool, optional): A flag indicating that all three eigenvalues should be returned. Default is False.
         visualize (bool, optional): Whether to visualize the structure tensor. Default is False.
         **viz_kwargs: Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
@@ -42,9 +44,9 @@ def structure_tensor(
         import qim3d
 
         vol = qim3d.examples.NT_128x128x128
-        val, vec = qim3d.processing.structure_tensor(vol, visualize=True, axis=2)
+        val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 2)
         ```
-        ![structure tensor](assets/screenshots/structure_tensor.gif)
+        ![structure tensor](assets/screenshots/structure_tensor_visualization.gif)
 
 
     !!! info "Runtime and memory usage of the structure tensor method for different volume sizes"
@@ -81,9 +83,21 @@ def structure_tensor(
     # Ensure volume is a float
     if vol.dtype != np.float32 and vol.dtype != np.float64:
         vol = vol.astype(np.float32)
-        
 
-    s_vol = st.structure_tensor_3d(vol, sigma, rho)
+    if base_noise:
+        # Add small noise to the volume
+        # FIXME: This is a temporary solution to avoid uniform regions with constant values 
+        # in the volume, which lead to numerical issues in the structure tensor computation
+        vol_noisy = vol + np.random.default_rng(seed = 0).uniform(0, 1e-10, size=vol.shape)
+        
+        # Compute the structure tensor (of volume with noise)
+        s_vol = st.structure_tensor_3d(vol_noisy, sigma, rho)
+
+    else:
+        # Compute the structure tensor (of volume without noise)
+        s_vol = st.structure_tensor_3d(vol, sigma, rho)
+
+    # Compute the eigenvalues and eigenvectors of the structure tensor
     val, vec = st.eig_special_3d(s_vol, full=full)
 
     if visualize:
