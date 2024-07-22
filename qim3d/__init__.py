@@ -15,6 +15,7 @@ from . import gui
 from . import viz
 from . import utils
 from . import processing
+from . import generate
 
 # commented out to avoid torch import
 # from . import models

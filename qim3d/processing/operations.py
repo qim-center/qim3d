@@ -112,22 +112,22 @@ def fade_mask(
     vol: np.ndarray,
     decay_rate: float = 10,
     ratio: float = 0.5,
-    geometry: str = "sphere",
-    invert=False,
+    geometry: str = "spherical",
+    invert: bool = False,
     axis: int = 0,
-    ):
+    ) -> np.ndarray:
     """
     Apply edge fading to a volume.
 
     Args:
         vol (np.ndarray): The volume to apply edge fading to.
         decay_rate (float, optional): The decay rate of the fading. Defaults to 10.
-        ratio (float, optional): The ratio of the volume to fade. Defaults to 0.
+        ratio (float, optional): The ratio of the volume to fade. Defaults to 0.5.
         geometric (str, optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
     
     Returns:
-        np.ndarray: The volume with edge fading applied.
+        vol_faded (np.ndarray): The volume with edge fading applied.
 
     Example:
         ```python
@@ -157,9 +157,9 @@ def fade_mask(
     center = np.array([(s - 1) / 2 for s in shape])
     
     # Calculate the distance of each point from the center
-    if geometry == "sphere":
+    if geometry == "spherical":
         distance = np.linalg.norm([z - center[0], y - center[1], x - center[2]], axis=0)
-    elif geometry == "cilinder":
+    elif geometry == "cylindrical":
         distance_list = np.array([z - center[0], y - center[1], x - center[2]])
         # remove the axis along which the fading is not applied
         distance_list = np.delete(distance_list, axis, axis=0)
@@ -185,3 +185,55 @@ def fade_mask(
     vol_faded = vol * fade_array
 
     return vol_faded
+
+def overlay_rgb_images(
+    background: np.ndarray, 
+    foreground: np.ndarray, 
+    alpha: float = 0.5
+    ) -> np.ndarray:
+    """
+    Overlay an RGB foreground onto an RGB background using alpha blending.
+
+    Args:
+        background (numpy.ndarray): The background RGB image.
+        foreground (numpy.ndarray): The foreground RGB image (usually masks).
+        alpha (float, optional): The alpha value for blending. Defaults to 0.5.
+
+    Returns:
+        composite (numpy.ndarray): The composite RGB image with overlaid foreground.
+
+    Raises:
+        ValueError: If input images have different shapes.
+
+    Note:
+        - The function performs alpha blending to overlay the foreground onto the background.
+        - It ensures that the background and foreground have the same shape before blending.
+        - It calculates the maximum projection of the foreground and blends them onto the background.
+        - Brightness outside the foreground is adjusted to maintain consistency with the background.
+    """
+
+    # Igonore alpha in case its there
+    background = background[..., :3]
+    foreground = foreground[..., :3]
+
+    # Ensure both images have the same shape
+    if background.shape != foreground.shape:
+        raise ValueError("Input images must have the same shape")
+
+    # Perform alpha blending
+    foreground_max_projection = np.amax(foreground, axis=2)
+    foreground_max_projection = np.stack((foreground_max_projection,) * 3, axis=-1)
+
+    # Normalize if we have something
+    if np.max(foreground_max_projection) > 0:
+        foreground_max_projection = foreground_max_projection / np.max(
+            foreground_max_projection
+        )
+
+    composite = background * (1 - alpha) + foreground * alpha
+    composite = np.clip(composite, 0, 255).astype("uint8")
+
+    # Adjust brightness outside foreground
+    composite = composite + (background * (1 - alpha)) * (1 - foreground_max_projection)
+
+    return composite.astype("uint8")

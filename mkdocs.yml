@@ -10,6 +10,7 @@ nav:
    
   - qim3d: index.md
   - Input & Output: io.md
+  - Data Generation: generate.md
   - Processing: processing.md
   - Visualization: viz.md
   - Utils: utils.md

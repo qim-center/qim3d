@@ -1,10 +1,16 @@
 import numpy as np
 from typing import Optional, Union, Tuple
 import matplotlib.pyplot as plt
-import structure_tensor as st 
 from matplotlib.gridspec import GridSpec
 import ipywidgets as widgets
-import logging as log
+import logging
+
+previous_logging_level = logging.getLogger().getEffectiveLevel()
+logging.getLogger().setLevel(logging.CRITICAL)
+import structure_tensor as st
+
+logging.getLogger().setLevel(previous_logging_level)
+
 
 def vectors(
     volume: np.ndarray,
@@ -41,7 +47,7 @@ def vectors(
         fig (Union[plt.Figure, widgets.interactive]): If `interactive` is True, returns an interactive widget. Otherwise, returns a matplotlib figure.
 
     Note:
-        The orientation of the vectors is visualized using an HSV color map, where the saturation corresponds to the vector component 
+        The orientation of the vectors is visualized using an HSV color map, where the saturation corresponds to the vector component
         of the slicing direction (i.e. z-component when choosing visualization along `axis = 0`). Hence, if an orientation in the volume
         is orthogonal to the slicing direction, the corresponding color of the visualization will be gray.
 
@@ -105,13 +111,17 @@ def vectors(
 
         else:
             raise ValueError("Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.")
-        
+
         # Create three subplots
         fig, ax = plt.subplots(1, 3, figsize=figsize, layout="constrained")
 
-        blend_hue_saturation = lambda hue, sat : hue * (1 - sat) + 0.5 * sat # Function for blending hue and saturation
-        blend_slice_colors = lambda slice, colors : 0.5 * (slice + colors) # Function for blending image slice with orientation colors
-        
+        blend_hue_saturation = (
+            lambda hue, sat: hue * (1 - sat) + 0.5 * sat
+        )  # Function for blending hue and saturation
+        blend_slice_colors = lambda slice, colors: 0.5 * (
+            slice + colors
+        )  # Function for blending image slice with orientation colors
+
         # ----- Subplot 1: Image slice with orientation vectors ----- #
         # Create meshgrid with the correct dimensions
         xmesh, ymesh = np.mgrid[0 : data_slice.shape[0], 0 : data_slice.shape[1]]
@@ -120,18 +130,24 @@ def vectors(
         g = slice(grid_size // 2, None, grid_size)
 
         # Angles from 0 to pi
-        angles_quiver = np.mod(np.arctan2(vectors_slice_y[g, g], vectors_slice_x[g, g]), np.pi) 
+        angles_quiver = np.mod(
+            np.arctan2(vectors_slice_y[g, g], vectors_slice_x[g, g]), np.pi
+        )
 
         # Calculate z-component (saturation)
-        saturation_quiver = (vectors_slice_z[g, g]**2)[:, :, np.newaxis] 
+        saturation_quiver = (vectors_slice_z[g, g] ** 2)[:, :, np.newaxis]
 
         # Calculate hue
         hue_quiver = plt.cm.hsv(angles_quiver / np.pi)
 
         # Blend hue and saturation
         rgba_quiver = blend_hue_saturation(hue_quiver, saturation_quiver)
-        rgba_quiver = np.clip(rgba_quiver, 0, 1) # Ensure rgba values are values within [0, 1]
-        rgba_quiver_flat = rgba_quiver.reshape((rgba_quiver.shape[0]*rgba_quiver.shape[1], 4)) # Flatten array for quiver plot
+        rgba_quiver = np.clip(
+            rgba_quiver, 0, 1
+        )  # Ensure rgba values are values within [0, 1]
+        rgba_quiver_flat = rgba_quiver.reshape(
+            (rgba_quiver.shape[0] * rgba_quiver.shape[1], 4)
+        )  # Flatten array for quiver plot
 
         # Plot vectors
         ax[0].quiver(
@@ -151,35 +167,49 @@ def vectors(
             angles="xy",
         )
 
-        ax[0].imshow(data_slice, cmap = plt.cm.gray)
-        ax[0].set_title(f"Orientation vectors (slice {slice_idx})" if not interactive else "Orientation vectors")
+        ax[0].imshow(data_slice, cmap=plt.cm.gray)
+        ax[0].set_title(
+            f"Orientation vectors (slice {slice_idx})"
+            if not interactive
+            else "Orientation vectors"
+        )
         ax[0].set_axis_off()
 
         # ----- Subplot 2: Orientation histogram ----- #
         nbins = 36
 
         # Angles from 0 to pi
-        angles = np.mod(np.arctan2(vectors_slice_y, vectors_slice_x), np.pi) 
+        angles = np.mod(np.arctan2(vectors_slice_y, vectors_slice_x), np.pi)
 
-        # Orientation histogram over angles 
+        # Orientation histogram over angles
         distribution, bin_edges = np.histogram(angles, bins=nbins, range=(0.0, np.pi))
 
         # Half circle (180 deg)
-        bin_centers = (np.arange(nbins) + 0.5) * np.pi / nbins 
+        bin_centers = (np.arange(nbins) + 0.5) * np.pi / nbins
 
         # Calculate z-component (saturation) for each bin
         bins = np.digitize(angles.ravel(), bin_edges)
-        saturation_bin = np.array([np.mean((vectors_slice_z**2).ravel()[bins == i]) \
-                                    if np.sum(bins == i) > 0 else 0 for i in range(1, len(bin_edges))])
+        saturation_bin = np.array(
+            [
+                (
+                    np.mean((vectors_slice_z**2).ravel()[bins == i])
+                    if np.sum(bins == i) > 0
+                    else 0
+                )
+                for i in range(1, len(bin_edges))
+            ]
+        )
 
         # Calculate hue for each bin
         hue_bin = plt.cm.hsv(bin_centers / np.pi)
 
         # Blend hue and saturation
         rgba_bin = hue_bin.copy()
-        rgba_bin[:, :3] = blend_hue_saturation(hue_bin[:, :3], saturation_bin[:, np.newaxis]) 
+        rgba_bin[:, :3] = blend_hue_saturation(
+            hue_bin[:, :3], saturation_bin[:, np.newaxis]
+        )
 
-        ax[1].bar(bin_centers, distribution, width=np.pi/nbins, color=rgba_bin)
+        ax[1].bar(bin_centers, distribution, width=np.pi / nbins, color=rgba_bin)
         ax[1].set_xlabel("Angle [radians]")
         ax[1].set_xlim([0, np.pi])
         ax[1].set_aspect(np.pi / ax[1].get_ylim()[1])
@@ -194,16 +224,22 @@ def vectors(
         saturation = (vectors_slice_z**2)[:, :, np.newaxis]
 
         # Calculate hue
-        hue = plt.cm.hsv(angles / np.pi) 
+        hue = plt.cm.hsv(angles / np.pi)
 
         # Blend hue and saturation
         rgba = blend_hue_saturation(hue, saturation)
 
-        # Grayscale image slice blended with orientation colors 
-        data_slice_orientation_colored = (blend_slice_colors(plt.cm.gray(data_slice), rgba) * 255).astype('uint8')
+        # Grayscale image slice blended with orientation colors
+        data_slice_orientation_colored = (
+            blend_slice_colors(plt.cm.gray(data_slice), rgba) * 255
+        ).astype("uint8")
 
         ax[2].imshow(data_slice_orientation_colored)
-        ax[2].set_title(f"Colored orientations (slice {slice_idx})" if not interactive else "Colored orientations")
+        ax[2].set_title(
+            f"Colored orientations (slice {slice_idx})"
+            if not interactive
+            else "Colored orientations"
+        )
         ax[2].set_axis_off()
 
         if show:
@@ -267,6 +303,6 @@ def vectors(
             display(widget_obj)
 
         return widget_obj
-    
+
     else:
         return _structure_tensor(volume, vec, axis, slice_idx, grid_size, figsize, show)
