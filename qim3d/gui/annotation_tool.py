@@ -29,7 +29,7 @@ import numpy as np
 from PIL import Image
 
 from qim3d.io import load, save
-from qim3d.utils import overlay_rgb_images
+from qim3d.processing.operations import overlay_rgb_images
 from qim3d.gui.interface import BaseInterface
 
 # TODO: img in launch should be self.img

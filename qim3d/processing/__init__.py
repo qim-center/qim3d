@@ -1,5 +1,3 @@
-"Testing docstring"
-
 from .local_thickness_ import local_thickness
 from .structure_tensor_ import structure_tensor
 from .detection import blob_detection
