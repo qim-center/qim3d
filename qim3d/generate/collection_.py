@@ -171,8 +171,8 @@ def collection(
 
 
     Returns:
-        synthetic_collection (numpy.ndarray): 3D volume of the generated collection of synthetic blobs with specified parameters.
-        CC (object): A ConnectedComponents object containing the connected components and the number of connected components found in the collection.
+        synthetic_collection (numpy.ndarray): 3D volume of the generated collection of synthetic objects with specified parameters.
+        labels (numpy.ndarray): Array with labels for each voxel, same shape as synthetic_collection.
 
     Raises:
         TypeError: If `collection_shape` is not 3D.
