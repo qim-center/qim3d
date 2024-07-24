@@ -8,7 +8,7 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = "0.3.8"
+__version__ = "0.3.9"
 
 from . import io
 from . import gui
