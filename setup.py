@@ -9,7 +9,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="qim3d",
-    version="0.3.8",
+    version="0.3.9",
     author="Felipe Delestro",
     author_email="fima@dtu.dk",
     description="QIM tools and user interfaces",
@@ -63,6 +63,7 @@ setup(
         "olefile>=0.46",
         "psutil>=5.9.0",
         "structure-tensor>=0.2.1",
-        "noise>=1.2.2"
+        "noise>=1.2.2",
+        "zarr>=2.18.2",
     ],
 )
