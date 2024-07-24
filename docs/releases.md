@@ -9,6 +9,9 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
 
+### v0.3.8 (20/06/2024)
+- Minor refactoring and bug fixes
+
 ### v0.3.7 (17/06/2024)
 - Performance improvements when importing 
 - Refactoring for blob detection
