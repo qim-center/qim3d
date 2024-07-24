@@ -9,22 +9,33 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
 
+### v0.3.9 (24/07/2024)
+- Loading and saving for Zarr files
+- File convertion using the CLI, including Zarr
+- Refactoring for the GUIs
+- Color visualization for structure tensor ![Color visualization for structure tensor](assets/screenshots/releases/qim3d-structure_tensor_with_colors.gif)
+- Refactoring for synthetic data generation, from `utils` to `generate`
+- Introduction of `qim3d.generate.collection` 🎉 ![Introduction of `qim3d.generate.collection`](assets/screenshots/releases/qim3d-generate_collection.gif)
+
 ### v0.3.8 (20/06/2024)
 - Minor refactoring and bug fixes
 
 ### v0.3.7 (17/06/2024)
 - Performance improvements when importing 
-- Refactoring for blob detection
+- Refactoring for blob detection ![Refactoring for blob detection](assets/screenshots/releases/qim3d-blob_detection_refactoring.gif)
+
 
 ### v0.3.6 (30/05/2024)
 - Refactoring for performance improvement
 - Welcome message for the CLI
-- Introduction of `qim3d.processing.fade_mask` 🎉
+- Introduction of `qim3d.processing.fade_mask` 🎉 ![Introduction of `qim3d.processing.fade_mask`](assets/screenshots/releases/qim3d-fade_viz.gif)
+
 
 
 ### v0.3.5 (27/05/2024)
 - Added runtime and memory usage in the documentation
-- Introduction of `qim3d.utils.generate_volume` 🎉
+- Introduction of `qim3d.utils.generate_volume` 🎉 ![Introduction of `qim3d.utils.generate_volume`](assets/screenshots/releases/qim3d-synthetic_volume.gif)
+- CLI refactoring, adding welcome message to the user ![CLI refactoring](assets/screenshots/releases/qim3d-CLI_welcome_message.png)
 - Introduction of `preview` CLI 🎉
 
 
