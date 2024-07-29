@@ -8,7 +8,7 @@ import tifffile as tiff
 import zarr
 from tqdm import tqdm
 
-from qim3d.utils.internal_tools import stringify_path
+from qim3d.utils.misc import stringify_path
 from qim3d.io.saving import save
 
 

@@ -25,8 +25,8 @@ import numpy as np
 import outputformat as ouf
 
 from qim3d.io import load
-from qim3d.io.logger import log
-from qim3d.utils import internal_tools
+from qim3d.utils.logger import log
+from qim3d.utils import misc
 
 from qim3d.gui.interface import BaseInterface
 
@@ -550,7 +550,7 @@ class Interface(BaseInterface):
     def show_data_summary(self):
         summary_dict = {
             "Last modified": datetime.datetime.fromtimestamp(os.path.getmtime(self.file_path)).strftime("%Y-%m-%d %H:%M"),
-            "File size": internal_tools.sizeof(os.path.getsize(self.file_path)),
+            "File size": misc.sizeof(os.path.getsize(self.file_path)),
             "Z-size": str(self.vol.shape[self.axis_dict["Z"]]),
             "Y-size": str(self.vol.shape[self.axis_dict["Y"]]),
             "X-size": str(self.vol.shape[self.axis_dict["X"]]),

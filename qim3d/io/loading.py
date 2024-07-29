@@ -23,8 +23,8 @@ from dask import delayed
 from PIL import Image, UnidentifiedImageError
 
 import qim3d
-from qim3d.io.logger import log
-from qim3d.utils.internal_tools import get_file_size, sizeof, stringify_path
+from qim3d.utils.logger import log
+from qim3d.utils.misc import get_file_size, sizeof, stringify_path
 from qim3d.utils.system import Memory
 from qim3d.utils import ProgressBar
 
@@ -723,10 +723,8 @@ class DataLoader:
         # Fails
         else:
             # Find the closest matching path to warn the user
-            parent_dir = os.path.dirname(path) or "."
-            parent_files = os.listdir(parent_dir) if os.path.isdir(parent_dir) else ""
-            valid_paths = [os.path.join(parent_dir, file) for file in parent_files]
-            similar_paths = difflib.get_close_matches(path, valid_paths)
+            similar_paths = qim3d.utils.misc.find_similar_paths(path)
+
             if similar_paths:
                 suggestion = similar_paths[0]  # Get the closest match
                 message = f"Invalid path. Did you mean '{suggestion}'?"
@@ -863,39 +861,3 @@ def load(
 
     return data
 
-
-class ImgExamples:
-    """Image examples
-
-    Attributes:
-        blobs_256x256 (numpy.ndarray): A 2D image of blobs.
-        blobs_256x256x256 (numpy.ndarray): A 3D volume of blobs.
-        bone_128x128x128 (numpy.ndarray): A 3D volume of bone.
-        cement_128x128x128 (numpy.ndarray): A 3D volume of cement.
-        fly_150x256x256 (numpy.ndarray): A 3D volume of a fly.
-        NT_10x200x100 (numpy.ndarray): A 3D volume of a neuron.
-        NT_128x128x128 (numpy.ndarray): A 3D volume of a neuron.
-        shell_225x128x128 (numpy.ndarray): A 3D volume of a shell.
-
-    Tip:
-        Simply call `qim3d.examples.<name>` to access the image examples.
-
-    Example:
-        ```python
-        import qim3d
-
-        vol = qim3d.examples.shell_225x128x128
-        qim3d.viz.slices(vol, n_slices=15)
-        ```
-        ![Grid of slices](assets/screenshots/viz-slices.png)
-
-
-
-    """
-
-    def __init__(self):
-        img_examples_path = Path(qim3d.__file__).parents[0] / "img_examples"
-        img_paths = list(img_examples_path.glob("*.tif"))
-
-        update_dict = {path.stem: load(path, progress_bar = False) for path in img_paths}
-        self.__dict__.update(update_dict)

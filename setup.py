@@ -1,18 +1,26 @@
 import os
-
+import re
 from setuptools import find_packages, setup
 
 # Read the contents of your README file
 with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
 
+# Read the version from the __init__.py file
+def read_version():
+    with open(os.path.join("qim3d", "__init__.py"), "r", encoding="utf-8") as f:
+        version_file = f.read()
+    version_match = re.search(r'^__version__ = ["\']([^"\']*)["\']', version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
 
 setup(
     name="qim3d",
-    version="0.3.9",
+    version=read_version(),
     author="Felipe Delestro",
     author_email="fima@dtu.dk",
-    description="QIM tools and user interfaces",
+    description="QIM tools and user interfaces for volumetric imaging",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://platform.qim.dk/qim3d",
@@ -20,7 +28,7 @@ setup(
     include_package_data=True,
     entry_points = {
         'console_scripts': [
-            'qim3d=qim3d.utils.cli:main'
+            'qim3d=qim3d.cli:main'
         ]
     },
     classifiers=[
@@ -37,13 +45,11 @@ setup(
     ],
     python_requires=">=3.10",
     install_requires=[
-        "albumentations>=1.3.1",
         "gradio>=4.27.0",
         "h5py>=3.9.0",
         "localthickness>=0.1.2",
         "matplotlib>=3.8.0",
         "pydicom>=2.4.4",
-        "monai>=1.2.0",
         "numpy>=1.26.0",
         "outputformat>=0.1.3",
         "Pillow>=10.0.1",
@@ -52,9 +58,6 @@ setup(
         "seaborn>=0.12.2",
         "setuptools>=68.0.0",
         "tifffile>=2023.4.12",
-        "torch>=2.0.1",
-        "torchvision>=0.15.2",
-        "torchinfo>=1.8.0",
         "tqdm>=4.65.0",
         "nibabel>=5.2.0",
         "ipywidgets>=8.1.2",
@@ -65,5 +68,15 @@ setup(
         "structure-tensor>=0.2.1",
         "noise>=1.2.2",
         "zarr>=2.18.2",
+        "scikit-image>=0.24.0"
     ],
+    extras_require={
+    "deep-learning": [
+        "albumentations>=1.3.1",
+        "torch>=2.0.1",
+        "torchvision>=0.15.2",
+        "torchinfo>=1.8.0",
+        "monai>=1.2.0",
+    ]
+}
 )

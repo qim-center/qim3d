@@ -1,7 +1,6 @@
 import numpy as np
-import torch
 from scipy.ndimage import find_objects, label
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 
 
 class CC:
@@ -70,11 +69,11 @@ class CC:
             return find_objects(self._connected_components)
 
 
-def get_3d_cc(image: np.ndarray | torch.Tensor) -> CC:
+def get_3d_cc(image: np.ndarray) -> CC:
     """ Returns an object (CC) containing the connected components of the input volume. Use plot_cc to visualize the connected components.
 
     Args:
-        image (np.ndarray | torch.Tensor): An array-like object to be labeled. Any non-zero values in `input` are
+        image (np.ndarray): An array-like object to be labeled. Any non-zero values in `input` are
             counted as features and zero values are considered the background.
 
     Returns:

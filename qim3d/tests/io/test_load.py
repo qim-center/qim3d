@@ -5,33 +5,36 @@ import os
 import pytest
 import re
 
-# Load blobs volume into memory
-vol = qim3d.examples.blobs_256x256
+# Load volume into memory
+vol = qim3d.examples.bone_128x128x128
 
-# Ceate memory map to blobs 
-blobs_path = Path(qim3d.__file__).parents[0] / "img_examples" / "blobs_256x256.tif"
-vol_memmap = qim3d.io.load(blobs_path,virtual_stack=True)
+# Ceate memory map to blobs
+volume_path = Path(qim3d.__file__).parents[0] / "examples" / "bone_128x128x128.tif"
+vol_memmap = qim3d.io.load(volume_path, virtual_stack=True)
+
 
 def test_load_shape():
-    assert vol.shape == vol_memmap.shape == (256,256)
-    
+    assert vol.shape == vol_memmap.shape == (128, 128, 128)
+
+
 def test_load_type():
-    assert isinstance(vol,np.ndarray)
+    assert isinstance(vol, np.ndarray)
+
 
 def test_load_type_memmap():
-    assert isinstance(vol_memmap,np.memmap)
+    assert isinstance(vol_memmap, np.memmap)
+
 
 def test_invalid_path():
-    invalid_path = os.path.join('this','path','doesnt','exist.tif')
+    invalid_path = os.path.join("this", "path", "doesnt", "exist.tif")
 
-    with pytest.raises(ValueError,match='Invalid path'):
+    with pytest.raises(FileNotFoundError):
         qim3d.io.load(invalid_path)
+
 
 def test_did_you_mean():
     # Remove last two characters from the path
-    blobs_path_misspelled = str(blobs_path)[:-2]
+    path_misspelled = str(volume_path)[:-2]
 
-    message = f"Invalid path. Did you mean '{blobs_path}'?"
-
-    with pytest.raises(ValueError,match=re.escape(repr(message))):
-        qim3d.io.load(blobs_path_misspelled)
+    with pytest.raises(FileNotFoundError, match=re.escape(repr(str(volume_path)))):
+        qim3d.io.load(path_misspelled)

@@ -35,8 +35,8 @@ import zarr
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
 
-from qim3d.io.logger import log
-from qim3d.utils.internal_tools import sizeof, stringify_path
+from qim3d.utils.logger import log
+from qim3d.utils.misc import sizeof, stringify_path
 
 
 class DataSaver:

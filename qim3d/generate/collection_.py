@@ -1,11 +1,9 @@
 import numpy as np
 import scipy.ndimage
 from tqdm.notebook import tqdm
-from skimage.filters import threshold_li
 
-from qim3d.generate import blob as generate_blob
-from qim3d.processing import get_3d_cc
-from qim3d.io.logger import log
+import qim3d.generate
+from qim3d.utils.logger import log
 
 
 def random_placement(
@@ -192,7 +190,7 @@ def collection(
         num_objects = 15
         synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
 
-        # Visualize synthetic collection                                                        
+        # Visualize synthetic collection
         qim3d.viz.vol(synthetic_collection)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default.html" width="100%" height="500" frameborder="0"></iframe>
@@ -214,7 +212,7 @@ def collection(
         ```python
         import qim3d
 
-        # Generate synthetic collection of dense blobs 
+        # Generate synthetic collection of dense blobs
         synthetic_collection, labels = qim3d.generate.collection(
                                     min_high_value = 255,
                                     max_high_value = 255,
@@ -225,12 +223,12 @@ def collection(
                                     min_gamma = 0.02,
                                     max_gamma = 0.02)
 
-        # Visualize synthetic collection                                                        
+        # Visualize synthetic collection
         qim3d.viz.vol(synthetic_collection)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense.html" width="100%" height="500" frameborder="0"></iframe>
 
-        
+
 
     Example:
         ```python
@@ -252,7 +250,7 @@ def collection(
                                     max_gamma = 0.03
                                     )
 
-        # Visualize synthetic collection                                                        
+        # Visualize synthetic collection
         qim3d.viz.vol(synthetic_collection)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tubular.html" width="100%" height="500" frameborder="0"></iframe>
@@ -271,7 +269,7 @@ def collection(
 
     if len(min_shape) != len(max_shape):
         raise ValueError("Object shapes must be tuples of the same length")
-    
+
     # if not isinstance(blob_shapes, list) or \
     #     len(blob_shapes) != 2 or len(blob_shapes[0]) != 3 or len(blob_shapes[1]) != 3:
     #     raise TypeError("Blob shapes must be a list of two tuples with three dimensions (z, y, x)")
@@ -320,7 +318,7 @@ def collection(
         log.debug(f"- Threshold: {threshold:.3f}")
 
         # Generate synthetic blob
-        blob = generate_blob(
+        blob = qim3d.generate.blob(
             base_shape=blob_shape,
             final_shape=tuple(l * r for l, r in zip(blob_shape, object_shape_zoom)),
             noise_scale=noise_scale,

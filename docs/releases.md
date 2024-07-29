@@ -9,7 +9,16 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that you have the latest features!
 
+### v0.4.0 (29/07/2024)
+
+- Refactored imports to use lazy loading
+- Namespace `utils` reserved for internal tools only
+- All deep-learning related functions moved to `models`
+- Running `pip install qim3d` does not install DL requirements. For those, use `pip install qim3d['deep-learning']` 
+
+
 ### v0.3.9 (24/07/2024)
+
 - Loading and saving for Zarr files
 - File convertion using the CLI, including Zarr
 - Refactoring for the GUIs
@@ -18,14 +27,17 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 - Introduction of `qim3d.generate.collection` 🎉 ![Introduction of `qim3d.generate.collection`](assets/screenshots/releases/qim3d-generate_collection.gif)
 
 ### v0.3.8 (20/06/2024)
+
 - Minor refactoring and bug fixes
 
 ### v0.3.7 (17/06/2024)
+
 - Performance improvements when importing 
 - Refactoring for blob detection ![Refactoring for blob detection](assets/screenshots/releases/qim3d-blob_detection_refactoring.gif)
 
 
 ### v0.3.6 (30/05/2024)
+
 - Refactoring for performance improvement
 - Welcome message for the CLI
 - Introduction of `qim3d.processing.fade_mask` 🎉 ![Introduction of `qim3d.processing.fade_mask`](assets/screenshots/releases/qim3d-fade_viz.gif)
@@ -33,6 +45,7 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 
 
 ### v0.3.5 (27/05/2024)
+
 - Added runtime and memory usage in the documentation
 - Introduction of `qim3d.utils.generate_volume` 🎉 ![Introduction of `qim3d.utils.generate_volume`](assets/screenshots/releases/qim3d-synthetic_volume.gif)
 - CLI refactoring, adding welcome message to the user ![CLI refactoring](assets/screenshots/releases/qim3d-CLI_welcome_message.png)
@@ -40,6 +53,7 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 
 
 ### v0.3.4 (22/05/2024)
+
 - Documentation for `qim3d.viz.plot_cc`
 - Fixed issue with Annotation tool and recent Gradio versions
 - New colormap: `qim3d.viz.colormaps.qim`, showcasing the Qim colors!
@@ -52,6 +66,7 @@ And remember to keep your pip installation [up to date](/qim3d/#upgrade) so that
 - Aspect ratio issue for k3d fixed
 
 ### v0.3.3 (11/04/2024)
+
 - Introduction of `qim3d.viz.slicer` (and also `qim3d.viz.orthogonal` ) 🎉
 - Introduction of `qim3d.gui.annotation_tool` 🎉
 - Introduction of `qim3d.processing.Blob` for blob detection 🎉

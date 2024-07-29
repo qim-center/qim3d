@@ -25,7 +25,7 @@ def test_image_exist():
 
 def test_compression():
     # Get test image (should not be random in order for compression to function)
-    test_image = qim3d.examples.blobs_256x256
+    test_image = qim3d.examples.bone_128x128x128
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -66,7 +66,7 @@ def test_image_matching():
 
 def test_compressed_image_matching():
     # Get test image (should not be random in order for compression to function)
-    original_image = qim3d.examples.blobs_256x256
+    original_image = qim3d.examples.bone_128x128x128
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -226,7 +226,7 @@ def test_tiff_stack_slicing_dim():
 
 def test_tiff_save_load():
     # Create random test image
-    original_image = qim3d.examples.blobs_256x256
+    original_image = qim3d.examples.bone_128x128x128
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -247,7 +247,7 @@ def test_tiff_save_load():
 
 def test_vol_save_load():
     # Create random test image
-    original_image = qim3d.examples.blobs_256x256x256
+    original_image = qim3d.examples.bone_128x128x128
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -268,7 +268,7 @@ def test_vol_save_load():
 
 def test_pil_save_load():
     # Create random test image
-    original_image = qim3d.examples.blobs_256x256
+    original_image = qim3d.examples.bone_128x128x128[0]
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -295,7 +295,7 @@ def test_pil_save_load():
 
 def test_nifti_save_load():
     # Create random test image
-    original_image = qim3d.examples.blobs_256x256
+    original_image = qim3d.examples.bone_128x128x128
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -329,7 +329,7 @@ def test_nifti_save_load():
 
 def test_h5_save_load():
     # Create random test image
-    original_image = qim3d.examples.blobs_256x256x256
+    original_image = qim3d.examples.bone_128x128x128
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:

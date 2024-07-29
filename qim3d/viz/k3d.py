@@ -8,8 +8,8 @@ Volumetric visualization using K3D
 """
 
 import numpy as np
-from qim3d.io.logger import log
-from qim3d.utils.internal_tools import downscale_img, scale_to_float16
+from qim3d.utils.logger import log
+from qim3d.utils.misc import downscale_img, scale_to_float16
 
 
 def vol(

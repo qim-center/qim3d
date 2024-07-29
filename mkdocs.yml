@@ -13,7 +13,6 @@ nav:
   - Data Generation: generate.md
   - Processing: processing.md
   - Visualization: viz.md
-  - Utils: utils.md
   - GUIs: gui.md
   - ML Models: models.md
   - CLI: cli.md

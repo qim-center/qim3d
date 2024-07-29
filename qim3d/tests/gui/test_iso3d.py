@@ -27,7 +27,7 @@ def test_app_launch():
     check = 0
     server_running = False
     while check < max_checks and not server_running:
-        server_running = qim3d.utils.internal_tools.is_server_running(ip, port)
+        server_running = qim3d.tests.is_server_running(ip, port)
         time.sleep(1)
         check += 1
 

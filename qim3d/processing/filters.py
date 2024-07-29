@@ -6,7 +6,7 @@ import numpy as np
 from scipy import ndimage
 from skimage import morphology
 
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 
 __all__ = [
     "Gaussian",
