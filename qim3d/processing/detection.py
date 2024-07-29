@@ -1,7 +1,7 @@
 """ Blob detection using Difference of Gaussian (DoG) method """
 
 import numpy as np
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 
 def blob_detection(
     vol: np.ndarray,

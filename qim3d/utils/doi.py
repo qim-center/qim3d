@@ -1,7 +1,7 @@
 """ Deals with DOI for references """
 import json
 import requests
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 
 
 def _validate_response(response):

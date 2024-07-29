@@ -2,8 +2,8 @@
 import os
 import time
 import psutil
-from qim3d.utils.internal_tools import sizeof
-from qim3d.io.logger import log
+from qim3d.utils.misc import sizeof
+from qim3d.utils.logger import log
 import numpy as np
 
 

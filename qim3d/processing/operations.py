@@ -1,6 +1,6 @@
 import numpy as np
 import qim3d.processing.filters as filters
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 
 
 def remove_background(

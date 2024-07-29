@@ -2,7 +2,7 @@
 import os
 import subprocess
 import outputformat as ouf
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 from pathlib import Path
 
 

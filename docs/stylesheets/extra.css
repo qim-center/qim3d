@@ -101,3 +101,9 @@ code {
 .md-typeset .example>.admonition-title:after, .md-typeset .example>summary:after {
   color: #ff9900;
 }
+
+#playButton {
+  cursor: pointer;
+  margin-top: 0.05em;
+  vertical-align: middle;
+}

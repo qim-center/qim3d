@@ -1,10 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from qim3d.io.logger import log
-from qim3d.processing.cc import CC
-from qim3d.viz.colormaps import objects as qim3dCmap
-import qim3d
+from qim3d.utils.logger import log
+import qim3d.viz.colormaps
+
 
 def plot_cc(
     connected_components,
@@ -51,11 +50,13 @@ def plot_cc(
         component_indexs = range(
             1, min(max_cc_to_plot + 1, len(connected_components) + 1)
         )
-        
+
     figs = []
     for component in component_indexs:
         if overlay is not None:
-            assert (overlay.shape == connected_components.shape), f"Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}."
+            assert (
+                overlay.shape == connected_components.shape
+            ), f"Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}."
 
             # plots overlay masked to connected component
             if crop:
@@ -71,12 +72,14 @@ def plot_cc(
                 overlay_crop = np.where(cc == 0, 0, overlay)
                 fig = qim3d.viz.slices(overlay_crop, show=show, **kwargs)
         else:
-            # assigns discrete color map to each connected component if not given 
+            # assigns discrete color map to each connected component if not given
             if "cmap" not in kwargs:
-                kwargs["cmap"] = qim3dCmap(len(component_indexs))
-        
+                kwargs["cmap"] = qim3d.viz.colormaps.objects(len(component_indexs))
+
             # Plot the connected component without overlay
-            fig = qim3d.viz.slices(connected_components.get_cc(component, crop=crop), show=show, **kwargs)
+            fig = qim3d.viz.slices(
+                connected_components.get_cc(component, crop=crop), show=show, **kwargs
+            )
 
         figs.append(fig)
 

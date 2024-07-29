@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 import numpy as np
 import ipywidgets as widgets
 from IPython.display import clear_output, display

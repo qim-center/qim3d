@@ -9,4 +9,3 @@ Currently, it is possible to directly load `tiff`, `h5`, `nii`,`txm`, `vol` and 
             - load
             - save
             - Downloader
-            - ImgExamples

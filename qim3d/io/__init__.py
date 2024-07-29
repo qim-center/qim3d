@@ -1,6 +1,6 @@
-from .loading import DataLoader, load, ImgExamples
+from .loading import DataLoader, load
 from .downloader import Downloader
 from .saving import DataSaver, save 
 from .sync import Sync
 from .convert import convert
-from . import logger
+from ..utils import logger

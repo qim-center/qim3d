@@ -1,4 +1,4 @@
-from qim3d.io.logger import log
+from qim3d.utils.logger import log
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Optional, Union, Tuple
