@@ -81,35 +81,27 @@ Creating a `conda` environment is not required but recommended.
 
     [Miniconda](https://docs.anaconda.com/free/miniconda/index.html) is a free minimal installer for conda. 
 
-    Here are some quick command line instructions to help you set up the latest Miniconda installer promptly. For graphical installers (.exe and .pkg) and instructions on hash checking, please refer to [Installing Miniconda](https://docs.anaconda.com/free/miniconda/miniconda-install/).
+    Here are some quick instructions to help you set up the latest Miniconda installer for your system: 
 
     === "Windows"
-        These three commands quickly and quietly install the latest 64-bit version of the installer and then clean up after themselves. To install a different version or architecture of Miniconda for Windows, change the name of the `.exe` installer in the `curl` command.
 
-        ```bash
-        curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe -o miniconda.exe
-        start /wait "" miniconda.exe /S
-        del miniconda.exe
-        ```
-        After installing, open the “Anaconda Prompt (miniconda3)” program to use Miniconda3. For the Powershell version, use “Anaconda Powershell Prompt (miniconda3)”.
+        The easiest way to install Miniconda on Windows is through the graphical interface installer. Follow these steps:
+
+        1. Download the installer [here](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe).
+        2. Run the installer and follow the on-screen instructions.
+        3. When the installation finishes, open `Anaconda Prompt (miniconda3)` from the Start menu.
+        
     
     === "macOS"
-        These four commands quickly and quietly install the latest M1 macOS version of the installer and then clean up after themselves. To install a different version or architecture of Miniconda for macOS, change the name of the `.sh` installer in the `curl` command.
+ 
+        The easiest way to install Miniconda on macOS is through the graphical interface installer. Follow these steps:
 
-        ```bash
-        mkdir -p ~/miniconda3
-        curl https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -o ~/miniconda3/miniconda.sh
-        bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-        rm -rf ~/miniconda3/miniconda.sh
-        ```
+        1. Download the correct installer for your processor version. If you are unsure about your version, check [here](https://support.apple.com/en-us/116943).
+            - For Intel processors, download [x86](https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.pkg)
+            - For Apple Silicon (M1/M2/M3 etc) processors, download [arm64](https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.pkg)
 
-        After installing, initialize your newly-installed Miniconda. The following commands initialize for bash and zsh shells:
-
-        ```bash
-        ~/miniconda3/bin/conda init bash
-        ~/miniconda3/bin/conda init zsh
-        ```
-
+        2. Run the installer and follow the on-screen instructions.
+        
     === "Linux"
         These four commands quickly and quietly install the latest 64-bit version of the installer and then clean up after themselves. To install a different version or architecture of Miniconda for Linux, change the name of the `.sh` installer in the `wget` command.
 
@@ -126,7 +118,7 @@ Creating a `conda` environment is not required but recommended.
         ~/miniconda3/bin/conda init bash
         ~/miniconda3/bin/conda init zsh
         ```
-Once you have `conda` installed, create a new enviroment:
+Once you have `conda` installed, open your terminal and create a new enviroment:
 
     conda create -n qim3d python=3.11
 
@@ -134,25 +126,66 @@ After the environment is created, activate it by running:
 
     conda activate qim3d
 
+Remember, if you chose to create an environment to install `qim3d`, it needs to be activated each time before using the library.
+
 ### Install using `pip`
 
-The latest stable version can be simply installed using `pip`:
+The latest stable version can be simply installed using `pip`. Open your terminal and run:
 
     pip install qim3d
 
 !!! note
-    The base installation of `qim3d` does not include deep-learning dependencies by design, keeping the library lightweight for scenarios where these dependencies are unnecessary.
+    The base installation of `qim3d` does not include deep-learning dependencies, keeping the library lighter for scenarios where they are unnecessary. If you need to use deep-learning features, you can install the additional dependencies by running: **`pip install qim3d['deep-learning']`**
 
-    If you need to use deep-learning features, you can install the additional dependencies by running: `pip install qim3d['deep-learning']`
+### Troubleshooting
 
-## Troubleshooting
+Here are some solutions for commonly found issues during installation and usage of `qim3d`.
 
-### Get the latest version
+#### Failed building
+
+Some Windows users could face an build error during installation.
+
+??? Bug "ERROR: Failed building wheel for noise"
+    ```
+    Building wheels for collected packages: noise, outputformat, asciitree, ffmpy
+    Building wheel for noise (setup.py) ... error
+    error: subprocess-exited-with-error
+
+    × python setup.py bdist_wheel did not run successfully.
+    │ exit code: 1
+    ╰─> [14 lines of output]
+        running bdist_wheel
+        running build
+        running build_py
+        creating build
+        creating build\lib.win-amd64-cpython-311
+        creating build\lib.win-amd64-cpython-311\noise
+        copying perlin.py -> build\lib.win-amd64-cpython-311\noise
+        copying shader.py -> build\lib.win-amd64-cpython-311\noise
+        copying shader_noise.py -> build\lib.win-amd64-cpython-311\noise
+        copying test.py -> build\lib.win-amd64-cpython-311\noise
+        copying __init__.py -> build\lib.win-amd64-cpython-311\noise
+        running build_ext
+        building 'noise._simplex' extension
+        error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+        [end of output]
+
+    note: This error originates from a subprocess, and is likely not a problem with pip.
+    ERROR: Failed building wheel for noise
+    ```
+
+This issue occurs because the system lacks the necessary tools to compile the library requirements. To resolve this, follow these steps:
+
+- Go to the [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) page and click on "Download build tools."
+- Run the installer and ensure that `Desktop development with C++` is checked. ![Windows build tools](assets/screenshots/Troubleshooting-Windows_build_tools.png)
+- Reboot Windows
+- Activate your conda enviroment and run `pip install qim3d` again
+
+#### Get the latest version
 
 The library is under constant development, so make sure to keep your installation updated:
 
     pip install --upgrade qim3d
-
 
 ## Collaboration
 
