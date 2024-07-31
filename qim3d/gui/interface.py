@@ -114,14 +114,12 @@ class InterfaceWithExamples(BaseInterface):
 
     def _set_examples_list(self):
         examples = [
-            "blobs_256x256x256.tif",
             "fly_150x256x256.tif",
             "cement_128x128x128.tif",
-            "NT_10x200x100.tif",
             "NT_128x128x128.tif",
             "shell_225x128x128.tif",
             "bone_128x128x128.tif",
         ]
         self.img_examples = []
         for example in examples:
-            self.img_examples.append([path.join(self.qim_dir, "img_examples", example)])
+            self.img_examples.append([path.join(self.qim_dir, "examples", example)])
