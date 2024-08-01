@@ -1,6 +1,6 @@
 from pathlib import Path
 from abc import abstractmethod, ABC
-from os import path
+from os import path, listdir
 
 import gradio as gr
 
@@ -113,13 +113,7 @@ class InterfaceWithExamples(BaseInterface):
         self._set_examples_list()
 
     def _set_examples_list(self):
-        examples = [
-            "fly_150x256x256.tif",
-            "cement_128x128x128.tif",
-            "NT_128x128x128.tif",
-            "shell_225x128x128.tif",
-            "bone_128x128x128.tif",
-        ]
-        self.img_examples = []
-        for example in examples:
-            self.img_examples.append([path.join(self.qim_dir, "examples", example)])
+        valid_sufixes = (".tif", ".tiff", ".h5", ".nii", ".gz", ".dcm", ".DCM", ".vol", ".vgi", ".txrm", ".txm", ".xrm")
+        examples_folder = path.join(self.qim_dir, 'examples')
+        self.img_examples = [path.join(examples_folder, example) for example in listdir(examples_folder) if example.endswith(valid_sufixes)]
+
