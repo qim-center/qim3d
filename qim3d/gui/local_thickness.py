@@ -85,7 +85,7 @@ class Interface(InterfaceWithExamples):
 
     def define_interface(self):
         gr.Markdown(
-        "Interface for _Fast local thickness in 3D and 2D_ (https://github.com/vedranaa/local-thickness)"
+        "Interface for _Fast local thickness in 3D_ (https://github.com/vedranaa/local-thickness)"
         )
 
         with gr.Row():
