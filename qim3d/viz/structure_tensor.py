@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 import ipywidgets as widgets
 import logging
+from qim3d.utils.logger import log
+
 
 previous_logging_level = logging.getLogger().getEffectiveLevel()
 logging.getLogger().setLevel(logging.CRITICAL)

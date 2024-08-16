@@ -3,6 +3,7 @@
 from typing import Tuple
 import logging
 import numpy as np
+from qim3d.utils.logger import log
 
 
 def structure_tensor(
