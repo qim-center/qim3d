@@ -1,7 +1,7 @@
 """ Provides a collection of visualisation functions for the Layers2d class."""
 import matplotlib.pyplot as plt
 import numpy as np
-from qim3d.process import layers2d as l2d
+from qim3d.processing import layers2d as l2d
 
 def create_subplot_of_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
     '''
