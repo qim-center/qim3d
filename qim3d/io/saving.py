@@ -319,7 +319,15 @@ class DataSaver:
 
         # If path is an existing directory
         if isdir:
-            # If basename is provided
+            # Check if this is a Zarr directory
+            if ".zarr" in path:
+                if self.replace:
+                    return self.save_to_zarr(path, data)
+                if not self.replace:
+                    raise ValueError(
+                        "A Zarr directory with the provided path already exists. To replace it set 'replace=True'"
+                    )
+            # If basename is provided, user wants to save as tiff stack
             if self.basename:
                 # Save as tiff stack
                 return self.save_tiff_stack(path, data)
