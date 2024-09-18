@@ -1,14 +1,5 @@
 <<<<<<< HEAD
 """qim3d: A Python package for 3D image processing and visualization.
-=======
-import qim3d.io as io
-import qim3d.gui as gui
-import qim3d.viz as viz
-import qim3d.utils as utils
-import qim3d.models as models
-import qim3d.process as process
-import logging
->>>>>>> 1622d378193877cb85f53b1a05207088b3f3cf0a
 
 The qim3d library is designed to make it easier to work with 3D imaging data in Python. 
 It offers a range of features, including data loading and manipulation,
