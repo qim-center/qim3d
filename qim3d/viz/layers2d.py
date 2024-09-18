@@ -1,162 +1,143 @@
 """ Provides a collection of visualisation functions for the Layers2d class."""
+import io
+
 import matplotlib.pyplot as plt
 import numpy as np
-<<<<<<< HEAD
-from qim3d.processing import layers2d as l2d
-=======
-from qim3d.process import layers2d as l2d
->>>>>>> 1622d378193877cb85f53b1a05207088b3f3cf0a
 
-def create_subplot_of_2d_arrays(data, m_rows = 1, n_cols = 1, figsize = None):
-    '''
-    Creates a `m x n` grid subplot from a collection of 2D arrays.
-    
-    Args:
-        `data` (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
-        `m_rows` (int): The number of rows in the subplot grid.
-        `n_cols` (int): The number of columns in the subplot grid.
+from qim3d.processing import layers2d as l2d
+
+from PIL import Image
+def image_with_overlay(image:np.ndarray, overlay:np.ndarray, alpha:int|float|np.ndarray = 125) -> Image:
+    #TODO : also accepts Image type
+    # We want to accept as many different values as possible to make convenient for the user.
+    """
+    Takes image and puts a transparent segmentation mask on it.
+
+    Parameters:
+    -----------
+    Image: Can be grayscale or colorful, accepts all kinds of shapes, color has to be the last axis
+    Overlay: If has its own alpha channel, alpha argument is ignored. 
+    Alpha:  Can be ansolute value as int, relative vlaue as float or an array so different parts can differ with the transparency.
+
+    Returns:
+    ---------
+    Image: PIL.Image in the original size as the image array
 
     Raises:
-        ValueError: If the product of m_rows and n_cols is not equal to the number of 2d arrays in data.
+    --------
+    ValueError: If there is a missmatch of shapes or alpha has an invalid value.
+    """
+    def check_dtype(image:np.ndarray):
+        if image.dtype != np.uint8:
+            minimal = np.min(image)
+            if minimal < 0:
+                image = image + minimal
+            maximum = np.max(image)
+            if maximum > 255:
+                image = (image/maximum)*255
+            elif maximum <= 1:
+                image = image*255  
+            image = np.uint8(image)
+        return image
 
-    Notes:
-    - Subplots are organized in a m rows x n columns Grid.
-    - The total number of subplots is equal to the product of m_rows and n_cols.
+    image = check_dtype(image)
+    overlay = check_dtype(overlay)
     
-    Returns:
-        A tuple of (`fig`, `ax_list`), where fig is a matplotlib.pyplot.figure and ax_list is a list of matplotlib.pyplot.axes.
-    '''
-    total = m_rows * n_cols
+    if image.shape[0] != overlay.shape[0] or image.shape[1] != overlay.shape[1]:
+        raise ValueError(F"The first two dimensions of overlay image must match those of background image.\nYour background image: {image.shape}\nYour overlay image: {overlay.shape}")
     
-    if total != len(data):
-        raise ValueError("The product of m_rows and n_cols must be equal to the number of 2D arrays in data.\nCurrently, m_rows * n_cols = {}, while arrays in data = {}".format(m_rows * n_cols, len(data)))
     
-    pos_idx = range(1, total + 1)
-    
-    if figsize is None:
-        figsize = (m_rows * 10, n_cols * 10)
-    fig = plt.figure(figsize = figsize)
-    
-    ax_list = []
-    
-    for k in range(total):
-        ax_list.append(fig.add_subplot(m_rows, n_cols, pos_idx[k]))
-        ax_list[k].imshow(data[k], cmap = "gray")
-    
-    plt.tight_layout()
-    return fig, ax_list
+    if image.ndim == 3:
+        if image.shape[2] < 3:
+            image = np.repeat(image[:,:,:1], 3, -1)
+        elif image.shape[2] > 4:
+            image = image[:,:,:4]
 
-def create_plot_of_2d_array(data, figsize = (10, 10)):
-    '''
-    Creates a plot of a 2D array.
-    
-    Args:
-        `data` (list of 2D numpy.ndarray): A list of 2d numpy.ndarray.
-        `figsize` (tuple of int): The figure size.
-    Notes:
-        - If data is not a list, it is converted to a list.
-    Returns:
-        A tuple of (`fig`, `ax`), where fig is a matplotlib.pyplot.figure and ax is a matplotlib.pyplot.axes.
-    '''
-    if not isinstance(data, list):
-        data = [data]
-    
-    fig, ax_list = create_subplot_of_2d_arrays(data, figsize = figsize)
-    return fig, ax_list[0]
-    
-def merge_multiple_segmentations_2d(segmentations):
-    '''
-    Merges multiple segmentations of a 2D image into a single image.
-    
-    Args:
-        `segmenations` (list of numpy.ndarray): A list of 2D numpy.ndarray.
-    Returns:
-        A 2D numpy.ndarray representing the merged segmentations.
-    '''
-    if len(segmentations) == 0:
-        raise ValueError("Segmentations must contain at least one segmentation.")
-    if len(segmentations) == 1:
-        return segmentations[0]
+    elif image.ndim == 2:
+        image = np.repeat(image[..., None], 3, -1)
+
     else:
-        return np.sum(segmentations, axis = 0)
+        raise ValueError(F"Background image must have 2 or 3 dimensions. Yours have {image.ndim}")
+    
+    
+    
+    if isinstance(alpha, (float, int)):
+        if alpha<0:
+            raise ValueError(F"Alpha can not be negative. You passed {alpha}")
+        elif alpha<=1:
+            alpha = int(255*alpha)
+        elif alpha> 255:
+            alpha = 255
+        else:
+            alpha = int(alpha)
 
-def add_line_to_plot(axes, line, line_color = None):
-    '''
-    Adds a line to plot.
-    
-    Args:
-        `axes` (matplotlib.pyplot.axes): A matplotlib.pyplot.axes.
-        `line` (numpy.ndarray): A 1D numpy.ndarray.
-    
-    Notes:
-        - The line is added on top of to the plot.
-    '''
-    if line_color is None:
-        axes.plot(line)
-    else:
-        axes.plot(line, color = line_color)
-
-def add_lines_to_plot(axes, lines, line_colors = None):
-    '''
-    Adds multiple lines to plot.
-    
-    Args:
-        `axes` (matplotlib.pyplot.axes): A matplotlib.pyplot.axes.
-        `lines` (list of numpy.ndarray): A list of 1D numpy.ndarray.
-    
-    Notes:
-        - The lines are added on top of to the plot.
-    '''
-    if line_colors is None:
-        for line in lines:
-            axes.plot(line)
-    else:
-        for i in range(len(lines)):
-            axes.plot(lines[i], color = line_colors[i])
-
-import os
-from skimage.io import imread
-
-if __name__ == "__main__":
-    path = os.path.join(os.getcwd(), "qim3d", "img_examples", "slice_218x193.png")
-    data = imread(path).astype(np.int32)
-    
-    l2d_obj = l2d.Layers2d()
-    l2d_obj.prepare_update(
-        data = data, 
-        is_inverted=False,
-        delta=1,
-        min_margin=10,
-        n_layers=4,
-        ) 
-    l2d_obj.update()    
+    elif isinstance(alpha, np.ndarray):
+        if alpha.ndim == 3:
+            alpha = alpha[..., :1] # Making sure it is only one layer
+        elif alpha.ndim == 2:
+            alpha = alpha[..., None] # Making sure it has 3 dimensions
+        else:
+            raise ValueError(F"If alpha is numpy array, it must have 2 or 3 dimensions. Your have {alpha.ndim}")
         
-    # Show how create_plot_from_2d_arrays works:
-    fig1, ax1 = create_plot_of_2d_array(l2d_obj.get_data())
+        # We have not checked ndims of overlay
+        try:
+            if alpha.shape[0] != overlay.shape[0] or alpha.shape[1] != overlay.shape[1]:
+                raise ValueError(F"The first two dimensions of alpha must match those of overlay image.\nYour alpha: {alpha.shape}\nYour overlay: {overlay.shape}")
+        except IndexError:
+            raise ValueError(F"Overlay image must have 2 or 3 dimensions. Yours have {overlay.ndim}")
+        
+
+    if overlay.ndim == 3:
+        if overlay.shape[2] < 3:
+            overlay = np.repeat(overlay[..., :1], 4, -1)
+            if alpha is None:
+                raise ValueError("Alpha can not be None if overlay image doesn't have alpha channel")
+            overlay[..., 3] = alpha
+        elif overlay.shape[2] == 3:
+            if isinstance(alpha, int):
+                overlay = np.concatenate((overlay, np.full((overlay.shape[0], overlay.shape[1], 1,), alpha, dtype = np.uint8)), axis = -1)
+            elif isinstance(alpha, np.ndarray):
+                overlay = np.concatenate((overlay, alpha), axis = -1)
+
+        elif overlay.shape[2]>4:
+            raise ValueError(F"Overlay image can not have more than 4 channels. Yours have {overlay.shape[2]}")
+
+    elif overlay.ndim == 2:
+        overlay = np.repeat(overlay[..., None], 4, axis = -1)
+        overlay[..., 3] = alpha
+    else:
+        raise ValueError(F"Overlay image must have 2 or 3 dimensions. Yours have {overlay.ndim}")
     
-    data_lines = []
-    for i in range(len(l2d_obj.get_segmentation_lines())):
-        data_lines.append(l2d_obj.get_segmentation_lines()[i])
-    
-    # Show how add_line_to_plot works:
-    add_line_to_plot(ax1, data_lines[3])
-    
-    # Show how merge_multiple_segmentations_2d works:
-    data_seg = []
-    for i in range(len(l2d_obj.get_segmentations())):
-        data_seg.append(merge_multiple_segmentations_2d(l2d_obj.get_segmentations()[:i+1]))
-    
-    # Show how create_subplot_of_2d_arrays works:
-    fig2, ax_list = create_subplot_of_2d_arrays(
-            data_seg, 
-            m_rows = 1, 
-            n_cols = len(l2d_obj.get_segmentations())
-            # m_rows = len(l2d_obj.get_segmentations()), 
-            # n_cols = 1
-        )
-    
-    # Show how add_lines_to_plot works:
-    add_lines_to_plot(ax_list[1], data_lines[0:3])
-    
-    plt.show()
-    
+    background = Image.fromarray(image)
+    overlay = Image.fromarray(overlay)
+    background.paste(overlay, mask = overlay)
+    return background
+
+
+def image_with_lines(image:np.ndarray, lines: list, line_thickness:float|int) -> Image:
+    """
+    Plots the image and plots the lines on top of it. Then extracts it as PIL.Image and in the same size as the input image was.
+    Paramters:
+    -----------
+    image: Image on which we put the lines
+    lines: list of 1D arrays to be plotted on top of the image
+    line_thickness: how thick is the line supposed to be
+
+    Returns:
+    ----------
+    image_with_lines: 
+    """
+    fig, ax = plt.subplots()
+    ax.imshow(image, cmap = 'gray')
+    ax.axis('off')
+
+    for line in lines:
+        ax.plot(line, linewidth = line_thickness)
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    plt.close()
+
+    buf.seek(0)
+    return Image.open(buf).resize(size = image.squeeze().shape[::-1])
+

@@ -4,3 +4,4 @@ from .detection import blob_detection
 from .filters import *
 from .operations import *
 from .cc import get_3d_cc
+from .layers2d import segment_layers, get_lines
