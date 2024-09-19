@@ -22,7 +22,7 @@ def vol(
     grid_visible=False,
     cmap=None,
     samples="auto",
-    max_voxels=412**3,
+    max_voxels=512**3,
     data_type="scaled_float16",
     **kwargs,
 ):
@@ -97,7 +97,7 @@ def vol(
 
     if original_shape != new_shape:
         log.warning(
-            f"Downsampled image for visualization. From {original_shape} to {new_shape}"
+            f"Downsampled image for visualization, from {original_shape} to {new_shape}"
         )
 
     # Scale the image to float16 if needed

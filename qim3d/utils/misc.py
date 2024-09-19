@@ -223,7 +223,7 @@ def downscale_img(img, max_voxels=512**3):
     zoom_factor = (max_voxels / total_voxels) ** (1 / 3)
 
     # Downscale image
-    return zoom(img, zoom_factor)
+    return zoom(img, zoom_factor, order=0)
 
 
 def scale_to_float16(arr: np.ndarray):
