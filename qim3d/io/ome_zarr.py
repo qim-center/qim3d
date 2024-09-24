@@ -6,7 +6,13 @@ import os
 import numpy as np
 import zarr
 from ome_zarr.io import parse_url
-from ome_zarr.writer import write_image
+from ome_zarr.writer import (
+    write_image,
+    _create_mip,
+    write_multiscale,
+    CurrentFormat,
+    Format,
+)
 from ome_zarr.reader import Reader
 from ome_zarr import scale
 import math
@@ -44,8 +50,8 @@ def export_ome_zarr(
     """
     Export image data to OME-Zarr format with pyramidal downsampling.
 
-    Automatically calculates the number of downsampled scales such that the smallest scale fits within the specified `chunk_size`. 
-    
+    Automatically calculates the number of downsampled scales such that the smallest scale fits within the specified `chunk_size`.
+
     Args:
         path (str): The directory where the OME-Zarr data will be stored.
         data (np.ndarray): The image data to be exported.
@@ -100,32 +106,42 @@ def export_ome_zarr(
     os.mkdir(path)
     store = parse_url(path, mode="w").store
     root = zarr.group(store=store)
-    write_image(
-        image=data,
+
+    fmt = CurrentFormat()
+    log.info("Creating a multi-scale pyramid")
+    mip, axes = _create_mip(image=data, fmt=fmt, scaler=scaler, axes="zyx")
+
+    log.info("Writing data to disk")
+    write_multiscale(
+        mip,
         group=root,
-        axes="zyx",
-        storage_options=dict(chunks=(chunk_size, chunk_size, chunk_size)),
-        scaler=scaler,
+        fmt=fmt,
+        axes=axes,
+        name=None,
+        compute=False,
     )
+
+    log.info("All done!")
+    return
 
 
 def import_ome_zarr(path, scale=0, load=True):
     """
     Import image data from an OME-Zarr file.
 
-    This function reads OME-Zarr formatted volumetric image data and returns the specified scale. 
+    This function reads OME-Zarr formatted volumetric image data and returns the specified scale.
     The image data can be lazily loaded (as Dask arrays) or fully computed into memory.
 
     Args:
         path (str): The file path to the OME-Zarr data.
-        scale (int or str, optional): The scale level to load. 
-            If 'highest', loads the finest scale (scale 0). 
+        scale (int or str, optional): The scale level to load.
+            If 'highest', loads the finest scale (scale 0).
             If 'lowest', loads the coarsest scale (last available scale). Defaults to 0.
-        load (bool, optional): Whether to compute the selected scale into memory. 
+        load (bool, optional): Whether to compute the selected scale into memory.
             If False, returns a lazy Dask array. Defaults to True.
 
     Returns:
-        np.ndarray or dask.array.Array: The requested image data, either as a NumPy array if `load=True`, 
+        np.ndarray or dask.array.Array: The requested image data, either as a NumPy array if `load=True`,
         or a Dask array if `load=False`.
 
     Raises:
@@ -142,7 +158,7 @@ def import_ome_zarr(path, scale=0, load=True):
     """
 
     # read the image data
-    #store = parse_url(path, mode="r").store
+    # store = parse_url(path, mode="r").store
 
     reader = Reader(parse_url(path))
     nodes = list(reader())
@@ -160,7 +176,9 @@ def import_ome_zarr(path, scale=0, load=True):
         scale = len(dask_data) - 1
 
     if scale >= len(dask_data):
-        raise ValueError(f"Scale {scale} does not exist in the data. Please choose a scale between 0 and {len(dask_data)-1}.")
+        raise ValueError(
+            f"Scale {scale} does not exist in the data. Please choose a scale between 0 and {len(dask_data)-1}."
+        )
 
     log.info(f"\nLoading scale {scale} with shape {dask_data[scale].shape}")
 
