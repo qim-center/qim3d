@@ -13,12 +13,23 @@ from ome_zarr.writer import (
     CurrentFormat,
     Format,
 )
+from ome_zarr.scale import dask_resize
 from ome_zarr.reader import Reader
 from ome_zarr import scale
+
 import math
 import shutil
 from qim3d.utils.logger import log
 from scipy.ndimage import zoom
+from typing import Any, Callable, Iterator, List, Tuple, Union
+import dask.array as da
+from skimage.transform import (
+    resize,
+)
+
+
+ListOfArrayLike = Union[List[da.Array], List[np.ndarray]]
+ArrayLike = Union[da.Array, np.ndarray]
 
 
 class OMEScaler(
@@ -27,7 +38,7 @@ class OMEScaler(
     """Scaler in the style of OME-Zarr.
     This is needed because their current zoom implementation is broken."""
 
-    def __init__(self, order=0, downscale=2, max_layer=5, method="scaleZYX"):
+    def __init__(self, order=0, downscale=2, max_layer=5, method="scaleZYXdask"):
         self.order = order
         self.downscale = downscale
         self.max_layer = max_layer
@@ -39,13 +50,35 @@ class OMEScaler(
         log.info(f"- Scale 0: {rv[-1].shape}")
 
         for i in range(self.max_layer):
-            rv.append(zoom(base, zoom=1 / (self.downscale * (i + 1)), order=self.order))
+            downscale_ratio = (1 / self.downscale) ** (i + 1)
+            rv.append(zoom(base, zoom=downscale_ratio, order=self.order))
+            log.info(f"- Scale {i+1}: {rv[-1].shape}")
+        return list(rv)
+
+    def scaleZYXdask(self, base):
+        """Downsample using :func:`scipy.ndimage.zoom`."""
+        rv = [base]
+        log.info(f"- Scale 0: {rv[-1].shape}")
+
+        for i in range(self.max_layer):
+
+            scaled_shape = tuple(
+                base.shape[j] // (self.downscale ** (i + 1)) for j in range(3)
+            )
+            rv.append(dask_resize(base, scaled_shape, order=self.order))
+
             log.info(f"- Scale {i+1}: {rv[-1].shape}")
         return list(rv)
 
 
 def export_ome_zarr(
-    path, data, chunk_size=100, downsample_rate=2, order=0, replace=False
+    path,
+    data,
+    chunk_size=100,
+    downsample_rate=2,
+    order=0,
+    replace=False,
+    method="scaleZYX",
 ):
     """
     Export image data to OME-Zarr format with pyramidal downsampling.
@@ -94,12 +127,12 @@ def export_ome_zarr(
 
     # Get the number of scales
     min_dim = np.max(np.shape(data))
-    nscales = math.ceil(math.log(min_dim / chunk_size) / math.log(downsample_rate)) + 1
+    nscales = math.ceil(math.log(min_dim / chunk_size) / math.log(downsample_rate))
     log.info(f"Number of scales: {nscales + 1}")
 
     # Create scaler
     scaler = OMEScaler(
-        downscale=downsample_rate, max_layer=nscales, method="scaleZYX", order=order
+        downscale=downsample_rate, max_layer=nscales, method=method, order=order
     )
 
     # write the image data
@@ -118,7 +151,7 @@ def export_ome_zarr(
         fmt=fmt,
         axes=axes,
         name=None,
-        compute=False,
+        compute=True,
     )
 
     log.info("All done!")
