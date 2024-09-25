@@ -24,7 +24,6 @@ Example:
 
 import datetime
 import os
-
 import dask.array as da
 import h5py
 import nibabel as nib
@@ -269,16 +268,23 @@ class DataSaver:
             zarr.core.Array: The Zarr array saved on disk.
         """
 
-        # Old version that is using dask
+        if isinstance(data, da.Array):
+            # If the data is a Dask array, save using dask
+            if self.chunk_shape:
+                log.info("Rechunking data to shape %s", self.chunk_shape)
+                data = data.rechunk(self.chunk_shape)
+            log.info("Saving Dask array to Zarr array on disk")
+            da.to_zarr(data, path, overwrite=self.replace)
 
-        # assert isinstance(data, da.Array), 'data must be a dask array'
-
-        # # forces compute when saving to zarr
-        # da.to_zarr(data, path, compute=True, overwrite=self.replace, compressor=zarr.Blosc(cname='zstd', clevel=3, shuffle=2))
-        zarr_array = zarr.open(
-            path, mode="w", shape=data.shape, chunks=self.chunk_shape, dtype=data.dtype
-        )
-        zarr_array[:] = data
+        else:
+            zarr_array = zarr.open(
+                path,
+                mode="w",
+                shape=data.shape,
+                chunks=self.chunk_shape,
+                dtype=data.dtype,
+            )
+            zarr_array[:] = data
 
     def save_PIL(self, path, data):
         """Save data to a PIL file to the given path.
