@@ -9,6 +9,12 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#get-the-latest-version) so that you have the latest features!
 
+### v0.4.2 (30/09/2024)
+
+- Export and import is now possible in the OME-Zarr standard, including multi-scale datasets.
+- Filters now have the option to use Dask when available ![Filters with dask](assets/screenshots/releases/filters_with_dask.png)
+
+
 ### v0.4.1 (30/07/2024)
 
 - Fixed issue with example volumes not being loaded

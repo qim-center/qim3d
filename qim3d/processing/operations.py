@@ -8,7 +8,7 @@ def remove_background(
     median_filter_size: int = 2,
     min_object_radius: int = 3,
     background: str = "dark",
-    **median_kwargs
+    **median_kwargs,
 ) -> np.ndarray:
     """
     Remove background from a volume using a qim3d filters.
@@ -31,11 +31,11 @@ def remove_background(
         vol = qim3d.examples.cement_128x128x128
         qim3d.viz.slices(vol, vmin=0, vmax=255)
         ```
-        ![operations-remove_background_before](assets/screenshots/operations-remove_background_before.png)  
+        ![operations-remove_background_before](assets/screenshots/operations-remove_background_before.png)
 
         ```python
         vol_filtered  = qim3d.processing.operations.remove_background(vol,
-                                                              min_object_radius=3, 
+                                                              min_object_radius=3,
                                                               background="bright")
         qim3d.viz.slices(vol_filtered, vmin=0, vmax=255)
         ```
@@ -51,17 +51,22 @@ def remove_background(
     # Apply the pipeline to the volume
     return pipeline(vol)
 
-def watershed(
-        bin_vol: np.ndarray
-) -> tuple[np.ndarray, int]:
+
+def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, int]:
     """
     Apply watershed segmentation to a binary volume.
 
     Args:
-        bin_vol (np.ndarray): Binary volume to segment.
-    
+        bin_vol (np.ndarray): Binary volume to segment. The input should be a 3D binary image where non-zero elements 
+                              represent the objects to be segmented.
+        min_distance (int): Minimum number of pixels separating peaks in the distance transform. Peaks that are 
+                            too close will be merged, affecting the number of segmented objects. Default is 5.
+
     Returns:
-        tuple[np.ndarray, int]: Labeled volume after segmentation, number of objects found.
+        tuple[np.ndarray, int]: 
+            - Labeled volume (np.ndarray): A 3D array of the same shape as the input `bin_vol`, where each segmented object
+              is assigned a unique integer label.
+            - num_labels (int): The total number of unique objects found in the labeled volume.
 
     Example:
         ```python
@@ -72,7 +77,7 @@ def watershed(
 
         qim3d.viz.slices(binary, axis=1)
         ```
-        ![operations-watershed_before](assets/screenshots/operations-watershed_before.png)  
+        ![operations-watershed_before](assets/screenshots/operations-watershed_before.png)
 
         ```python
         labeled_volume, num_labels = qim3d.processing.operations.watershed(binary)
@@ -80,17 +85,19 @@ def watershed(
         cmap = qim3d.viz.colormaps.objects(num_labels)
         qim3d.viz.slices(labeled_volume, axis = 1, cmap=cmap)
         ```
-        ![operations-watershed_after](assets/screenshots/operations-watershed_after.png)  
+        ![operations-watershed_after](assets/screenshots/operations-watershed_after.png)
 
     """
     import skimage
     import scipy
 
     # Compute distance transform of binary volume
-    distance= scipy.ndimage.distance_transform_edt(bin_vol)
+    distance = scipy.ndimage.distance_transform_edt(bin_vol)
 
     # Find peak coordinates in distance transform
-    coords = skimage.feature.peak_local_max(distance, labels=bin_vol)
+    coords = skimage.feature.peak_local_max(
+        distance, min_distance=min_distance, labels=bin_vol
+    )
 
     # Create a mask with peak coordinates
     mask = np.zeros(distance.shape, dtype=bool)
@@ -100,13 +107,16 @@ def watershed(
     markers, _ = scipy.ndimage.label(mask)
 
     # Apply watershed segmentation
-    labeled_volume = skimage.segmentation.watershed(-distance, markers=markers, mask=bin_vol)
-    
+    labeled_volume = skimage.segmentation.watershed(
+        -distance, markers=markers, mask=bin_vol
+    )
+
     # Extract number of objects found
-    num_labels = len(np.unique(labeled_volume))-1
+    num_labels = len(np.unique(labeled_volume)) - 1
     log.info(f"Total number of objects found: {num_labels}")
 
     return labeled_volume, num_labels
+
 
 def fade_mask(
     vol: np.ndarray,
@@ -115,7 +125,7 @@ def fade_mask(
     geometry: str = "spherical",
     invert: bool = False,
     axis: int = 0,
-    ) -> np.ndarray:
+) -> np.ndarray:
     """
     Apply edge fading to a volume.
 
@@ -125,7 +135,7 @@ def fade_mask(
         ratio (float, optional): The ratio of the volume to fade. Defaults to 0.5.
         geometric (str, optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
-    
+
     Returns:
         vol_faded (np.ndarray): The volume with edge fading applied.
 
@@ -135,7 +145,7 @@ def fade_mask(
         qim3d.viz.vol(vol)
         ```
         Image before edge fading has visible artifacts from the support. Which obscures the object of interest.
-        ![operations-edge_fade_before](assets/screenshots/operations-edge_fade_before.png)  
+        ![operations-edge_fade_before](assets/screenshots/operations-edge_fade_before.png)
 
         ```python
         import qim3d
@@ -147,15 +157,17 @@ def fade_mask(
 
     """
     if 0 > axis or axis >= vol.ndim:
-        raise ValueError("Axis must be between 0 and the number of dimensions of the volume")
+        raise ValueError(
+            "Axis must be between 0 and the number of dimensions of the volume"
+        )
 
     # Generate the coordinates of each point in the array
     shape = vol.shape
     z, y, x = np.indices(shape)
-    
+
     # Calculate the center of the array
     center = np.array([(s - 1) / 2 for s in shape])
-    
+
     # Calculate the distance of each point from the center
     if geometry == "spherical":
         distance = np.linalg.norm([z - center[0], y - center[1], x - center[2]], axis=0)
@@ -166,31 +178,30 @@ def fade_mask(
         distance = np.linalg.norm(distance_list, axis=0)
     else:
         raise ValueError("geometric must be 'spherical' or 'cylindrical'")
-    
+
     # Normalize the distances so that they go from 0 at the center to 1 at the farthest point
     max_distance = np.linalg.norm(center)
-    normalized_distance = distance / (max_distance*ratio)
-    
+    normalized_distance = distance / (max_distance * ratio)
+
     # Apply the decay rate
-    faded_distance = normalized_distance ** decay_rate
-    
+    faded_distance = normalized_distance**decay_rate
+
     # Invert the distances to have 1 at the center and 0 at the edges
     fade_array = 1 - faded_distance
-    fade_array[fade_array<=0]=0
-    
+    fade_array[fade_array <= 0] = 0
+
     if invert:
-        fade_array = -(fade_array-1)
+        fade_array = -(fade_array - 1)
 
     # Apply the fading to the volume
     vol_faded = vol * fade_array
 
     return vol_faded
 
+
 def overlay_rgb_images(
-    background: np.ndarray, 
-    foreground: np.ndarray, 
-    alpha: float = 0.5
-    ) -> np.ndarray:
+    background: np.ndarray, foreground: np.ndarray, alpha: float = 0.5
+) -> np.ndarray:
     """
     Overlay an RGB foreground onto an RGB background using alpha blending.
 
