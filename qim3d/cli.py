@@ -32,6 +32,9 @@ def main():
     gui_parser.add_argument(
         "--local-thickness", action="store_true", help="Run local thickness tool."
     )
+    gui_parser.add_argument(
+        "--layers", action="store_true", help="Run Layers."
+    )
     gui_parser.add_argument("--host", default="0.0.0.0", help="Desired host.")
     gui_parser.add_argument(
         "--platform", action="store_true", help="Use QIM platform address"
@@ -127,6 +130,8 @@ def main():
             interface_class = qim3d.gui.annotation_tool.Interface
         elif args.local_thickness:
             interface_class = qim3d.gui.local_thickness.Interface
+        elif args.layers:
+            interface_class = qim3d.gui.layers2d.Interface
         else:
             print(
                 "Please select a tool by choosing one of the following flags:\n\t--data-explorer\n\t--iso3d\n\t--annotation-tool\n\t--local-thickness"

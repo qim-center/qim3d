@@ -14,6 +14,8 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - maximum
             - minimum
             - tophat
+            - get_lines
+            - segment_layers
 
 ::: qim3d.processing.Pipeline
     options:
