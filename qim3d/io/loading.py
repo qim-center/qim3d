@@ -27,6 +27,7 @@ from qim3d.utils.logger import log
 from qim3d.utils.misc import get_file_size, sizeof, stringify_path
 from qim3d.utils.system import Memory
 from qim3d.utils import ProgressBar
+import trimesh
 
 dask.config.set(scheduler="processes") 
 
@@ -861,3 +862,22 @@ def load(
 
     return data
 
+def load_mesh(filename):
+    """
+    Load a mesh from an .obj file using trimesh.
+
+    Args:
+        filename: The path to the .obj file.
+
+    Returns:
+        mesh: A trimesh object containing the mesh data (vertices and faces).
+
+    Example:
+        ```python
+        import qim3d
+
+        mesh = qim3d.io.load_mesh("path/to/mesh.obj")
+        ```
+    """
+    mesh = trimesh.load(filename)
+    return mesh

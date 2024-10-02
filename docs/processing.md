@@ -14,6 +14,7 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - maximum
             - minimum
             - tophat
+            - create_mesh
 
 ::: qim3d.processing.Pipeline
     options:

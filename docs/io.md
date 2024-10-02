@@ -7,7 +7,9 @@ Currently, it is possible to directly load `tiff`, `h5`, `nii`,`txm`, `vol` and 
     options:
         members:
             - load
+            - load_mesh
             - save
+            - save_mesh
             - Downloader
             - export_ome_zarr
             - import_ome_zarr

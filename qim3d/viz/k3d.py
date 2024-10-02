@@ -140,4 +140,85 @@ def vol(
     if show:
         plot.display()
     else:
+        return plot  
+
+
+def mesh(
+    verts,
+    faces,
+    wireframe=True,
+    flat_shading=True,
+    grid_visible=False,
+    show=True,
+    save=False,
+    **kwargs,
+):
+    """
+    Visualizes a 3D mesh using K3D.
+
+    Args:
+        verts (numpy.ndarray): A 2D array (Nx3) containing the vertices of the mesh.
+        faces (numpy.ndarray): A 2D array (Mx3) containing the indices of the mesh faces.
+        wireframe (bool, optional): If True, the mesh is rendered as a wireframe. Defaults to True.
+        flat_shading (bool, optional): If True, flat shading is applied to the mesh. Defaults to True.
+        grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
+        show (bool, optional): If True, displays the visualization inline. Defaults to True.
+        save (bool or str, optional): If True, saves the visualization as an HTML file.
+            If a string is provided, it's interpreted as the file path where the HTML
+            file will be saved. Defaults to False.
+        **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
+
+    Returns:
+        plot (k3d.plot): If `show=False`, returns the K3D plot object.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.blob(base_shape=(128,128,128),
+                                  final_shape=(128,128,128),
+                                  noise_scale=0.03,
+                                  order=1,
+                                  gamma=1,
+                                  max_value=255,
+                                  threshold=0.5,
+                                  dtype='uint8'
+                                  )
+        mesh = qim3d.processing.create_mesh(vol, step_size=3)
+        qim3d.viz.mesh(mesh.vertices, mesh.faces)
+        ```
+    """
+    import k3d
+
+    # Validate the inputs
+    if verts.shape[1] != 3:
+        raise ValueError("Vertices array must have shape (N, 3)")
+    if faces.shape[1] != 3:
+        raise ValueError("Faces array must have shape (M, 3)")
+    
+    # Ensure the correct data types and memory layout
+    verts = np.ascontiguousarray(verts.astype(np.float32))  # Cast and ensure C-contiguous layout
+    faces = np.ascontiguousarray(faces.astype(np.uint32))    # Cast and ensure C-contiguous layout
+
+
+    # Create the mesh plot
+    plt_mesh = k3d.mesh(
+        vertices=verts,
+        indices=faces,
+        wireframe=wireframe,
+        flat_shading=flat_shading,
+    )
+
+    # Create plot
+    plot = k3d.plot(grid_visible=grid_visible, **kwargs)
+    plot += plt_mesh
+
+    if save:
+        # Save html to disk
+        with open(str(save), "w", encoding="utf-8") as fp:
+            fp.write(plot.get_snapshot())
+
+    if show:
+        plot.display()
+    else:
         return plot
