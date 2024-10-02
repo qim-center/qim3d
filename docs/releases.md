@@ -9,6 +9,11 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#get-the-latest-version) so that you have the latest features!
 
+### v0.4.3 (02/10/2024)
+
+- Updated requirements
+- Introduction of mesh generation, visualization, saving and loading 🎉  ![Mesh generation](assets/screenshots/releases/mesh_generation.png)
+
 ### v0.4.2 (30/09/2024)
 
 - Export and import is now possible in the OME-Zarr standard, including multi-scale datasets.

@@ -70,7 +70,8 @@ setup(
         "zarr>=2.18.2",
         "ome_zarr>=0.9.0",
         "dask-image>=2024.5.3",
-        "scikit-image>=0.24.0"
+        "scikit-image>=0.24.0",
+        "trimesh>=4.4.9"
     ],
     extras_require={
     "deep-learning": [
