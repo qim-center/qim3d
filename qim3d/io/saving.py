@@ -33,6 +33,7 @@ import tifffile
 import zarr
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
+import trimesh
 
 from qim3d.utils.logger import log
 from qim3d.utils.misc import sizeof, stringify_path
@@ -450,3 +451,30 @@ def save(
         chunk_shape=chunk_shape,
         **kwargs,
     ).save(path, data)
+
+
+def save_mesh(filename, mesh):
+    """
+    Save a trimesh object to an .obj file.
+
+    Args:
+        filename: The name of the file to save the mesh.
+        mesh: A trimesh.Trimesh object representing the mesh.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.blob(base_shape=(32, 32, 32),
+                                  final_shape=(32, 32, 32),
+                                  noise_scale=0.05,
+                                  order=1,
+                                  gamma=1.0,
+                                  max_value=255,
+                                  threshold=0.5)
+        mesh = qim3d.processing.create_mesh(vol)
+        qim3d.io.save_mesh("mesh.obj", mesh)
+        ```
+    """
+    # Export the mesh to the specified filename
+    mesh.export(filename)

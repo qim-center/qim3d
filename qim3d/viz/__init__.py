@@ -7,7 +7,7 @@ from .explore import (
     slicer,
     slices,
 )
-from .k3d import vol
+from .k3d import vol, mesh
 from .local_thickness_ import local_thickness
 from .structure_tensor import vectors
 from .metrics import plot_metrics, grid_overview, grid_pred, vol_masked
