@@ -68,6 +68,8 @@ setup(
         "structure-tensor>=0.2.1",
         "noise>=1.2.2",
         "zarr>=2.18.2",
+        "ome_zarr>=0.9.0",
+        "dask-image>=2024.5.3",
         "scikit-image>=0.24.0"
     ],
     extras_require={
