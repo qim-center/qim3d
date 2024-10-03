@@ -95,32 +95,6 @@ class Interface(BaseInterface):
                     height = 230,
                 )
 
-                with gr.Row():
-                    with gr.Group():
-                        plot_type = gr.Radio(
-                            choices= (DEFAULT_PLOT_TYPE, 'Segmentation lines',),
-                            value = DEFAULT_PLOT_TYPE,
-                            interactive = True,
-                            show_label=False
-                        )
-                        alpha = gr.Slider(
-                            minimum=0,
-                            maximum = 1,
-                            step = 0.01,
-                            label = 'Alpha value',
-                            show_label=True,
-                            value = 0.5,
-                            visible = True,
-                            interactive=True)
-                        line_thickness = gr.Slider(
-                            minimum=0.1,
-                            maximum = 5,
-                            value = 2,
-                            label = 'Line thickness',
-                            show_label = True,
-                            visible = False,
-                            interactive = True
-                            )
                         
                 with gr.Group():
                     with gr.Row():
@@ -232,6 +206,37 @@ class Interface(BaseInterface):
                     x_check = gr.Checkbox(value = True, interactive=True, label = 'Show X slice')
                     y_check = gr.Checkbox(value = True, interactive=True, label = 'Show Y slice')
                     z_check = gr.Checkbox(value = True, interactive=True, label = 'Show Z slice')
+
+                with gr.Row():
+                    with gr.Group():
+                        plot_type = gr.Radio(
+                            choices= (DEFAULT_PLOT_TYPE, 'Segmentation lines',),
+                            value = DEFAULT_PLOT_TYPE,
+                            interactive = True,
+                            show_label=False
+                            )
+                        
+                        alpha = gr.Slider(
+                            minimum=0,
+                            maximum = 1,
+                            step = 0.01,
+                            label = 'Alpha value',
+                            show_label=True,
+                            value = 0.5,
+                            visible = True,
+                            interactive=True
+                            )
+                        
+                        line_thickness = gr.Slider(
+                            minimum=0.1,
+                            maximum = 5,
+                            value = 2,
+                            label = 'Line thickness',
+                            show_label = True,
+                            visible = False,
+                            interactive = True
+                            )
+
                 with gr.Row():
                     btn_run = gr.Button("Run Layers2D", variant = 'primary')
 
@@ -449,6 +454,7 @@ class Interface(BaseInterface):
                     seg = np.rot90(seg, k = 3)
                 # slice = 255 * (slice/np.max(slice))
                 return image_with_overlay(np.repeat(slice[..., None], 3, -1), seg, alpha) 
+                # return overlay_rgb_images(np.repeat(slice[..., None], 3, -1), seg, alpha)
             else:
                 lines = get_lines(seg)
                 if self.is_transposed(slicing_axis, segmenting_axis):
