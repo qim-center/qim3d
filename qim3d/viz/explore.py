@@ -20,6 +20,8 @@ def slices(
     n_slices: int = 5,
     max_cols: int = 5,
     cmap: str = "viridis",
+    vmin:float = None,
+    vmax:float = None,
     img_height: int = 2,
     img_width: int = 2,
     show: bool = False,
@@ -41,8 +43,10 @@ def slices(
         n_slices (int, optional): Defines how many slices the user wants to be displayed. Defaults to 5.
         max_cols (int, optional): The maximum number of columns to be plotted. Defaults to 5.
         cmap (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        img_height(int, optional): Height of the figure.
-        img_width(int, optional): Width of the figure.
+        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        img_height (int, optional): Height of the figure.
+        img_width (int, optional): Width of the figure.
         show (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
         show_position (bool, optional): If True, displays the position of the slices. Defaults to True.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
@@ -136,8 +140,13 @@ def slices(
             slice_idx = i * max_cols + j
             try:
                 slice_img = vol.take(slice_idxs[slice_idx], axis=axis)
+
+                # If vmin is higher than the highest value in the image ValueError is raised
+                # We don't want to override the values because next slices might be okay
+                new_vmin = None if (isinstance(vmin, (float, int)) and vmin > np.max(slice_img)) else vmin
+                new_vmax = None if (isinstance(vmax, (float, int)) and vmax < np.min(slice_img)) else vmax
                 ax.imshow(
-                    slice_img, cmap=cmap, interpolation=interpolation, **imshow_kwargs
+                    slice_img, cmap=cmap, interpolation=interpolation,vmin = new_vmin, vmax = new_vmax, **imshow_kwargs
                 )
 
                 if show_position:
@@ -200,6 +209,8 @@ def slicer(
     vol: np.ndarray,
     axis: int = 0,
     cmap: str = "viridis",
+    vmin:float = None,
+    vmax:float = None,
     img_height: int = 3,
     img_width: int = 3,
     show_position: bool = False,
@@ -213,6 +224,8 @@ def slicer(
         vol (np.ndarray): The 3D volume to be sliced.
         axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
         cmap (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         img_height (int, optional): Height of the figure. Defaults to 3.
         img_width (int, optional): Width of the figure. Defaults to 3.
         show_position (bool, optional): If True, displays the position of the slices. Defaults to False.
@@ -241,6 +254,8 @@ def slicer(
             vol,
             axis=axis,
             cmap=cmap,
+            vmin = vmin,
+            vmax = vmax,
             img_height=img_height,
             img_width=img_width,
             show_position=show_position,
@@ -268,6 +283,8 @@ def slicer(
 def orthogonal(
     vol: np.ndarray,
     cmap: str = "viridis",
+    vmin:float = None,
+    vmax:float = None,
     img_height: int = 3,
     img_width: int = 3,
     show_position: bool = False,
@@ -279,8 +296,10 @@ def orthogonal(
     Args:
         vol (np.ndarray): The 3D volume to be sliced.
         cmap (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        img_height(int, optional): Height of the figure.
-        img_width(int, optional): Width of the figure.
+        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        img_height (int, optional): Height of the figure.
+        img_width (int, optional): Width of the figure.
         show_position (bool, optional): If True, displays the position of the slices. Defaults to False.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
 
@@ -301,33 +320,21 @@ def orthogonal(
         img_height = img_size
         img_width = img_size
 
-    z_slicer = slicer(
+    get_slicer_for_axis = lambda axis: slicer(
         vol,
-        axis=0,
-        cmap=cmap,
-        img_height=img_height,
-        img_width=img_width,
-        show_position=show_position,
-        interpolation=interpolation,
-    )
-    y_slicer = slicer(
-        vol,
-        axis=1,
-        cmap=cmap,
-        img_height=img_height,
-        img_width=img_width,
-        show_position=show_position,
-        interpolation=interpolation,
-    )
-    x_slicer = slicer(
-        vol,
-        axis=2,
-        cmap=cmap,
-        img_height=img_height,
-        img_width=img_width,
-        show_position=show_position,
-        interpolation=interpolation,
-    )
+        axis = axis,
+        cmap = cmap,
+        vmin = vmin,
+        vmax = vmax,
+        img_height = img_height,
+        img_width = img_width,
+        show_position = show_position,
+        interpolation = interpolation,
+        )
+
+    z_slicer = get_slicer_for_axis(axis = 0)
+    y_slicer = get_slicer_for_axis(axis = 1)
+    x_slicer = get_slicer_for_axis(axis = 2)
 
     z_slicer.children[0].description = "Z"
     y_slicer.children[0].description = "Y"
@@ -336,7 +343,7 @@ def orthogonal(
     return widgets.HBox([z_slicer, y_slicer, x_slicer])
 
 
-def interactive_fade_mask(vol: np.ndarray, axis: int = 0):
+def interactive_fade_mask(vol: np.ndarray, axis: int = 0,cmap:str = 'viridis', vmin:float = None, vmax:float = None):
     """Interactive widget for visualizing the effect of edge fading on a 3D volume.
 
     This can be used to select the best parameters before applying the mask.
@@ -344,6 +351,9 @@ def interactive_fade_mask(vol: np.ndarray, axis: int = 0):
     Args:
         vol (np.ndarray): The volume to apply edge fading to.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
+        cmap (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
 
     Example:
         ```python
@@ -359,7 +369,13 @@ def interactive_fade_mask(vol: np.ndarray, axis: int = 0):
     def _slicer(position, decay_rate, ratio, geometry, invert):
         fig, axes = plt.subplots(1, 3, figsize=(9, 3))
 
-        axes[0].imshow(vol[position, :, :], cmap="viridis")
+        slice_img = vol[position, :, :]
+        # If vmin is higher than the highest value in the image ValueError is raised
+        # We don't want to override the values because next slices might be okay
+        new_vmin = None if (isinstance(vmin, (float, int)) and vmin > np.max(slice_img)) else vmin
+        new_vmax = None if (isinstance(vmax, (float, int)) and vmax < np.min(slice_img)) else vmax
+
+        axes[0].imshow(slice_img, cmap=cmap, vmin = new_vmin, vmax = new_vmax)
         axes[0].set_title("Original")
         axes[0].axis("off")
 
@@ -371,7 +387,7 @@ def interactive_fade_mask(vol: np.ndarray, axis: int = 0):
             axis=axis,
             invert=invert,
         )
-        axes[1].imshow(mask[position, :, :], cmap="viridis")
+        axes[1].imshow(mask[position, :, :], cmap=cmap)
         axes[1].set_title("Mask")
         axes[1].axis("off")
 
@@ -383,15 +399,20 @@ def interactive_fade_mask(vol: np.ndarray, axis: int = 0):
             axis=axis,
             invert=invert,
         )
-        axes[2].imshow(masked_vol[position, :, :], cmap="viridis")
+        # If vmin is higher than the highest value in the image ValueError is raised
+        # We don't want to override the values because next slices might be okay
+        slice_img = masked_vol[position, :, :]
+        new_vmin = None if (isinstance(vmin, (float, int)) and vmin > np.max(slice_img)) else vmin
+        new_vmax = None if (isinstance(vmax, (float, int)) and vmax < np.min(slice_img)) else vmax
+        axes[2].imshow(slice_img, cmap=cmap, vmin = new_vmin, vmax = new_vmax)
         axes[2].set_title("Masked")
         axes[2].axis("off")
 
         return fig
 
     shape_dropdown = widgets.Dropdown(
-        options=["sphere", "cilinder"],
-        value="sphere",  # default value
+        options=["spherical", "cylindrical"],
+        value="spherical",  # default value
         description="Geometry",
     )
 

@@ -12,6 +12,9 @@ def plot_cc(
     overlay=None,
     crop=False,
     show=True,
+    cmap:str = 'viridis',
+    vmin:float = None,
+    vmax:float = None,
     **kwargs,
 ) -> list[plt.Figure]:
     """
@@ -24,6 +27,9 @@ def plot_cc(
         overlay (optional): Overlay image. Defaults to None.
         crop (bool, optional): Whether to crop the image to the cc. Defaults to False.
         show (bool, optional): Whether to show the figure. Defaults to True.
+        cmap (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         **kwargs: Additional keyword arguments to pass to `qim3d.viz.slices`.
 
     Returns:
@@ -66,11 +72,10 @@ def plot_cc(
                 overlay_crop = overlay[bb]
                 # use cc as mask for overlay_crop, where all values in cc set to 0 should be masked out, cc contains integers
                 overlay_crop = np.where(cc == 0, 0, overlay_crop)
-                fig = qim3d.viz.slices(overlay_crop, show=show, **kwargs)
             else:
                 cc = connected_components.get_cc(component, crop=False)
                 overlay_crop = np.where(cc == 0, 0, overlay)
-                fig = qim3d.viz.slices(overlay_crop, show=show, **kwargs)
+            fig = qim3d.viz.slices(overlay_crop, show=show, cmap = cmap, vmin = vmin, vmax = vmax, **kwargs)
         else:
             # assigns discrete color map to each connected component if not given
             if "cmap" not in kwargs:

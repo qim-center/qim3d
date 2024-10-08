@@ -14,13 +14,13 @@ from qim3d.utils.misc import downscale_img, scale_to_float16
 
 def vol(
     img,
-    vmin=None,
-    vmax=None,
     aspectmode="data",
     show=True,
     save=False,
     grid_visible=False,
     cmap=None,
+    vmin=None,
+    vmax=None,
     samples="auto",
     max_voxels=512**3,
     data_type="scaled_float16",
@@ -41,8 +41,12 @@ def vol(
             file will be saved. Defaults to False.
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
         cmap (list, optional): The color map to be used for the volume rendering. Defaults to None.
+        vmin (float, optional): Together with vmax defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
         samples (int, optional): The number of samples to be used for the volume rendering in k3d. Defaults to 512.
             Lower values will render faster but with lower quality.
+        max_voxels (int, optional): Defaults to 512^3.
+        data_type (str, optional): Default to 'scaled_float16'.
         **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:

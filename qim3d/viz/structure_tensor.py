@@ -18,6 +18,9 @@ def vectors(
     volume: np.ndarray,
     vec: np.ndarray,
     axis: int = 0,
+    volume_cmap:str = 'grey',
+    vmin:float = None,
+    vmax:float = None,
     slice_idx: Optional[Union[int, float]] = None,
     grid_size: int = 10,
     interactive: bool = True,
@@ -31,6 +34,9 @@ def vectors(
         volume (np.ndarray): The 3D volume to be sliced.
         vec (np.ndarray): The eigenvectors of the structure tensor.
         axis (int, optional): The axis along which to visualize the orientation. Defaults to 0.
+        volume_cmap (str, optional): Defines colormap for display of the volume
+        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         slice_idx (int or float, optional): The initial slice to be visualized. The slice index
             can afterwards be changed. If value is an integer, it will be the index of the slice
             to be visualized. If value is a float between 0 and 1, it will be multiplied by the
@@ -169,7 +175,7 @@ def vectors(
             angles="xy",
         )
 
-        ax[0].imshow(data_slice, cmap=plt.cm.gray)
+        ax[0].imshow(data_slice, cmap = volume_cmap, vmin = vmin, vmax = vmax)
         ax[0].set_title(
             f"Orientation vectors (slice {slice_idx})"
             if not interactive
