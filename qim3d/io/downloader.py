@@ -16,15 +16,45 @@ class Downloader:
     """Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
 
     Attributes:
-        [folder_name] (str): folder class with the name of the folder in <https://data.qim.dk/>
+        folder_name (str): Folder class with the name of the folder in <https://data.qim.dk/>
+
+    Syntax for downloading and loading a file is `qim3d.io.Downloader().{folder_name}.{file_name}(load_file=True)`
+
+    ??? info "Overview of available data"
+        Below is a table of the available folders and files on the [QIM data repository](https://data.qim.dk/).
+
+        Folder name         | File name                                                                                                          | File size
+        ------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------
+        `Coal`              | `CoalBrikett` <br> `CoalBrikett_Zoom` <br> `CoalBrikettZoom_DOWNSAMPLED`                                           | 2.23 GB <br> 3.72 GB <br> 238 MB
+        `Corals`            | `Coral_1` <br> `Coral_2` <br> `Coral2_DOWNSAMPLED` <br> `MexCoral`                                                 | 2.26 GB <br> 2.38 GB <br> 162 MB <br> 2.23 GB
+        `Cowry_Shell`       | `Cowry_Shell` <br> `Cowry_DOWNSAMPLED`                                                                             | 1.82 GB <br> 116 MB
+        `Crab`              | `HerrmitCrab` <br> `OkinawaCrab`                                                                                   | 2.38 GB <br> 1.86 GB
+        `Deer_Mandible`     | `Animal_Mandible` <br> `DeerMandible_DOWNSAMPLED` <br>                                                             | 2.79 GB <br> 638 MB
+        `Foam`              | `Foam` <br> `Foam_DOWNSAMPLED` <br> `Foam_2` <br> `Foam_2_zoom`                                                    | 3.72 GB <br> 238 MB <br> 3.72 GB <br> 3.72 GB
+        `Hourglass`         | `Hourglass` <br> `Hourglass_4X_80kV_Air_9s_1_97um` <br> `Hourglass_longexp_rerun`                                  | 3.72 GB <br> 1.83 GB <br> 3.72 GB
+        `Kiwi`              | `Kiwi`                                                                                                             | 2.86 GB
+        `Loofah`            | `Loofah` <br> `Loofah_DOWNSAMPLED`                                                                                 | 2.23 GB <br> 143 MB
+        `Marine_Gastropods` | `MarineGatropod_1` <br> `MarineGastropod1_DOWNSAMPLED` <br> `MarineGatropod_2` <br> `MarineGastropod2_DOWNSAMPLED` | 2.23 GB <br> 143 MB <br> 2.60 GB <br> 166 MB
+        `Mussel`            | `ClosedMussel1` <br> `ClosedMussel1_DOWNSAMPLED`                                                                   | 2.23 GB <br> 143 MB
+        `Oak_Branch`        | `Oak_branch` <br> `OakBranch_DOWNSAMPLED`                                                                          | 2.38 GB <br> 152 MB
+        `Okinawa_Forams`    | `Okinawa_Foram_1` <br> `Okinawa_Foram_2`                                                                           | 1.84 GB <br> 1.84 GB
+        `Physalis`          | `Physalis` <br> `Physalis_DOWNSAMPLED`                                                                             | 3.72 GB <br> 238 MB
+        `Raspberry`         | `Raspberry2` <br> `Raspberry2_DOWNSAMPLED`                                                                         | 2.97 GB <br> 190 MB
+        `Rope`              | `FibreRope1` <br> `FibreRope1_DOWNSAMPLED`                                                                         | 1.82 GB <br> 686 MB
+        `Sea_Urchin`        | `SeaUrchin` <br> `Cordatum_Shell` <br> `Cordatum_Spine`                                                            | 2.60 GB <br> 1.85 GB <br> 183 MB
+        `Snail`             | `Escargot`                                                                                                         | 2.60 GB
+        `Sponge`            | `Sponge`                                                                                                           | 1.11 GB
 
     Example:
         ```python
         import qim3d
         
-        dl = qim3d.io.Downloader()
-        img = dl.Corals.Coral2_DOWNSAMPLED(load_file = True)
+        downloader = qim3d.io.Downloader()
+        data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
+
+        qim3d.viz.orthogonal(data, cmap = "magma")
         ```
+        ![cowry shell](assets/screenshots/cowry_shell_slicer.gif)
     """
 
     def __init__(self):
