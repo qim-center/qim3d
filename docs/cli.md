@@ -4,7 +4,7 @@ The library also includes a command line interface for easy access to some funct
 This offers quick interactions, making it ideal for tasks that require efficiency or when certain functionalities need to run on a server. 
 
 !!! Example
-    ```bash
+    ``` title="Command"
     qim3d gui --data-explorer
     ```
     ![CLI Data Explorer](assets/screenshots/CLI-data_explorer.gif)
@@ -38,7 +38,7 @@ This offers quick interactions, making it ideal for tasks that require efficienc
 
     Here's an example of how to open the [Data Explorer](gui.md#data_explorer)
 
-    ```
+    ``` title="Command"
     qim3d gui --data-explorer
     ```
     ``` title="Output"
@@ -54,7 +54,7 @@ This offers quick interactions, making it ideal for tasks that require efficienc
 
     Or for the local thickness GUI:
 
-    ```
+    ``` title="Command"
     qim3d gui --local-thickness --host 127.0.0.1 --platform
     ```
 
@@ -98,23 +98,47 @@ The command line interface also allows you to easily visualize data.
 
 ### `qim3d viz`
 !!! quote "Reference"
-    Volumetric visualization uses K3D:
-    [Github page](https://github.com/K3D-tools/K3D-jupyter)
+    Volumetric visualization uses [itk-vtk-viewer](https://kitware.github.io/itk-vtk-viewer/docs/index.html) and [K3D](https://github.com/K3D-tools/K3D-jupyter).
+
+You can launch volumetric visualizations directly from the command line. By default, it will launch the `itk-vtk-viewer`, but `k3d` can be selected by passing the argument `--method k3d`.
+
+!!! info
+    If `itk-vtk-viewer` is not installed, you will be prompted for automatic installation via the `qim3d` library.
+
+| Argument         | Description     |
+| ---------------- | --------------- |
+| `source`         | Path to the volume file or OME-Zarr store (any image format supported by `qim3d.io.load()`). |
+| `--method`       | Visualization method: `itk-vtk-viewer` (default) or `k3d`. |
+| `--destination`  | Custom `.html` file to be saved when using `k3d`. By default, `k3d.html` is saved. An file is aways saved when calling `k3d`. |
+| `--no-browser`   | Prevent the file from opening automatically when finished.|
 
 
-It is possible to launch the k3d visualization directly from the command line.
-
-| Arguments | Description |
-| --------- | ----------- |
-| `--source` | Path to the volume file (Any image format supported by `qim3d.io.load()`) |
-| `--destination` | Path to the `html` file to be saved. By default, `k3d.html` is saved where the command is run. |
-| `--no-browser` | Do not open the file when finished. |
-
-
-
-!!! Example
+!!! Example "Visualization of a OME-Zarr store"
+    ``` title="Command"
+    qim3d viz Okinawa_Foram_1.zarr/
     ```
-    qim3d viz --source blobs_256x256x256.tif
+
+    ``` title="Output"
+    itk-vtk-viewer
+    => Serving /home/fima/Notebooks/Qim3d on port 3000
+
+        enp0s31f6 => http://10.52.0.158:3000/
+        wlp0s20f3 => http://10.197.104.229:3000/
+
+    Serving directory '/home/fima/Notebooks/Qim3d'
+    http://localhost:8042/
+
+    Visualization url:
+    http://localhost:3000/?rotate=false&fileToLoad=http://localhost:8042/Okinawa_Foram_1.zarr
+    ```
+
+    A new tab in the default browser will be open with the visualization:
+
+    ![itk-vtk-viewer](assets/screenshots/itk-vtk-viewer.gif)
+
+!!! Example "Example using k3d"
+    ``` title="Command"
+    qim3d viz blobs_256x256x256.tif --method k3d
     ```
 
     ``` title="Output"
@@ -131,8 +155,8 @@ It is possible to launch the k3d visualization directly from the command line.
 
 Or an specific path for destination can be used. We can also choose to not open the browser:
 
-!!! Example
-    ```
+!!! Example "Example using k3d, saving html to custom path"
+    ``` title="Command"
     qim3d viz --source blobs_256x256x256.tif --destination my_plot.html --no-browser
     ```
     
@@ -148,7 +172,7 @@ Or an specific path for destination can be used. We can also choose to not open 
 
 ## File preview
 Command line interface, which allows users to preview 3D structers or 2D images directly in command line.
-###  `qim3d preview <filename>`
+###  `qim3d preview`
 | Arguments | Description |
 | --------- | ----------- |
 | `--axis` | Specifies from which axis the slice will be taken. If the object is 2D image, then this is ignored. Defaults to 0.|
@@ -157,35 +181,35 @@ Command line interface, which allows users to preview 3D structers or 2D images 
 | `--absolute_values` |If values are low the image might be just black square. By default maximum value is set to 255. This flag turns this behaviour off.|
 
 !!! Example
-    ```
+    ``` title="Command"
     qim3d preview blobs_256x256x256.tif 
     ```
 
     ![CLI k3d](assets/preview/default.png){ width="512" }
 
 !!! Example
-    ```
+    ``` title="Command"
     qim3d preview blobs_256x256x256.tif --resolution 30
     ```
 
     ![CLI k3d](assets/preview/res30.png){ width="512" }
 
 !!! Example
-    ```
+    ``` title="Command"
     qim3d preview blobs_256x256x256.tif --resolution 50 --axis 1
     ```
 
     ![CLI k3d](assets/preview/axis1.png){ width="512" }
 
 !!! Example
-    ```
+    ``` title="Command"
     qim3d preview blobs_256x256x256.tif --resolution 50 --axis 2 --slice 0
     ```
 
     ![CLI k3d](assets/preview/relativeIntensity.png){ width="512" }
 
 !!! Example
-    ```
+    ``` title="Command"
     qim3d preview qim_logo.png --resolution 40
     ```
 

@@ -1,7 +1,9 @@
 import argparse
 import webbrowser
+import platform
 import outputformat as ouf
 import qim3d
+import os
 
 QIM_TITLE = ouf.rainbow(
     f"\n         _          _____     __ \n  ____ _(_)___ ___ |__  /____/ / \n / __ `/ / __ `__ \ /_ </ __  /  \n/ /_/ / / / / / / /__/ / /_/ /   \n\__, /_/_/ /_/ /_/____/\__,_/    \n  /_/                 v{qim3d.__version__}\n\n",
@@ -42,7 +44,15 @@ def main():
 
     # Viz
     viz_parser = subparsers.add_parser("viz", help="Volumetric visualization.")
-    viz_parser.add_argument("filename", default=False, help="Path to the image file")
+    viz_parser.add_argument("source", help="Path to the image file")
+    viz_parser.add_argument(
+        "-m",
+        "--method",
+        type=str,
+        metavar="METHOD",
+        default="itk-vtk",
+        help="Which method is used to display file.",
+    )
     viz_parser.add_argument(
         "--destination", default="k3d.html", help="Path to save html file."
     )
@@ -142,19 +152,35 @@ def main():
             interface.launch(inbrowser=inbrowser, force_light_mode=False)
 
     elif args.subcommand == "viz":
-        # Load the data
-        print(f"Loading data from {args.filename}")
-        volume = qim3d.io.load(str(args.filename))
-        print(f"Done, volume shape: {volume.shape}")
 
-        # Make k3d plot
-        print("\nGenerating k3d plot...")
-        qim3d.viz.vol(volume, show=False, save=str(args.destination))
-        print(f"Done, plot available at <{args.destination}>")
+        if args.method == "itk-vtk":
+            try:
+                # We need the full path to the file for the viewer
+                current_dir = os.getcwd()
+                full_path = os.path.normpath(os.path.join(current_dir, args.source))
+                qim3d.viz.itk_vtk(full_path, open_browser=not args.no_browser)
 
-        if not args.no_browser:
-            print("Opening in default browser...")
-            webbrowser.open_new_tab(args.destination)
+            except qim3d.viz.NotInstalledError as err:
+                print(err)
+                message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let QIM3D install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want QIM3D to install itk-vtk-viewer now?"
+                print(message)
+                answer = input("[Y/n]:")
+                if answer in "Yy":
+                    qim3d.viz.Installer().install()
+                    qim3d.viz.itk_vtk(full_path)
+
+        elif args.method == "k3d":
+            volume = qim3d.io.load(str(args.source))
+            print("\nGenerating k3d plot...")
+            qim3d.viz.vol(volume, show=False, save=str(args.destination))
+            print(f"Done, plot available at <{args.destination}>")
+            if not args.no_browser:
+                print("Opening in default browser...")
+                webbrowser.open_new_tab(args.destination)
+        else:
+            raise NotImplementedError(
+                f"Method '{args.method}' is not valid. Try 'k3d' or default 'itk-vtk-viewer'"
+            )
 
     elif args.subcommand == "preview":
 
