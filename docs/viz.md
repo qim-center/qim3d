@@ -8,6 +8,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - slicer
             - orthogonal
             - vol
+            - itk_vtk
             - mesh
             - local_thickness
             - vectors

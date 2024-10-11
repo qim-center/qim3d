@@ -7,6 +7,7 @@ from .explore import (
     slicer,
     slices,
 )
+from .itk_vtk_viewer import itk_vtk, Installer, NotInstalledError
 from .k3d import vol, mesh
 from .local_thickness_ import local_thickness
 from .structure_tensor import vectors

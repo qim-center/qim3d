@@ -24,3 +24,6 @@ build/
 
 # MacOS finder files
 *.DS_Store
+
+# Installed itk-vtk-viewer files
+itk_vtk_viewer/

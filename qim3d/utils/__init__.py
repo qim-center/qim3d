@@ -13,3 +13,5 @@ from .misc import (
     downscale_img,
     scale_to_float16,
 )
+
+from .server import start_http_server
