@@ -6,18 +6,20 @@ Example:
     ```python
     import qim3d
     
-    vol = qim3d.examples.fly_150x256x256
+    # Generate synthetic blob
+    synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
     
-    qim3d.io.save("fly.tif", vol)
+    qim3d.io.save("fly.tif", synthetic_blob)
     ```
 
     Volumes can also be saved with one file per slice:
     ```python
     import qim3d
 
-    vol = qim3d.examples.fly_150x256x256
+    # Generate synthetic blob
+    synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
     
-    qim3d.io.save("slices", vol, basename="fly-slices", sliced_dim=0)
+    qim3d.io.save("slices", synthetic_blob, basename="fly-slices", sliced_dim=0)
     ```
 
 """
@@ -53,11 +55,6 @@ class DataSaver:
     Methods:
         save_tiff(path,data): Save data to a TIFF file to the given path.
         load(path,data): Save data to the given path.
-
-    Example:
-        image = qim3d.examples.blobs_256x256
-        saver = qim3d.io.DataSaver(compression=True)
-        saver.save_tiff("image.tif",image)
     """
 
     def __init__(self, **kwargs):
@@ -319,12 +316,6 @@ class DataSaver:
             ValueError: If the provided path does not exist and self.basename is not provided
             ValueError: If a file extension is not provided.
             ValueError: if a file with the specified path already exists and replace=False.
-
-        Example:
-            image = qim3d.examples.blobs_256x256
-            saver = qim3d.io.DataSaver(compression=True)
-            saver.save("image.tif",image)
-
         """
 
         path = stringify_path(path)
@@ -438,8 +429,20 @@ def save(
         ```python
         import qim3d
 
-        vol = qim3d.examples.blobs_256x256x256
-        qim3d.io.save("blobs.tif", vol)
+        # Generate synthetic blob
+        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+
+        qim3d.io.save("blob.tif", synthetic_blob, replace=True)
+        ```
+
+        Volumes can also be saved with one file per slice:
+        ```python
+        import qim3d
+
+        # Generate synthetic blob
+        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+
+        qim3d.io.save("slices", synthetic_blob, basename="blob-slices", sliced_dim=0)
         ```
     """
 

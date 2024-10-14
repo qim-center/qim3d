@@ -142,12 +142,20 @@ You can launch volumetric visualizations directly from the command line. By defa
     ```
 
     ``` title="Output"
-    Loading data from blobs_256x256x256.tif
-    Done, volume shape: (256, 256, 256)
+    Loading data from cement_128x128x128.tif
+    Loading: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2.02MB/2.02MB  [00:00<00:00, 936MB/s]
+    Volume using 2.0 MB of memory
+
+    System memory:
+    • Total.: 31.0 GB
+    • Used..: 18.8 GB (60.8%)
+    • Free..: 12.1 GB (39.2%)
+    Done, volume shape: (128, 128, 128)
 
     Generating k3d plot...
     Done, plot available at <k3d.html>
     Opening in default browser...
+
     ```
     And a new tab will be opened in the default browser with the interactive k3d plot:
 
@@ -155,17 +163,26 @@ You can launch volumetric visualizations directly from the command line. By defa
 
 Or an specific path for destination can be used. We can also choose to not open the browser:
 
-!!! Example "Example using k3d, saving html to custom path"
-    ``` title="Command"
-    qim3d viz --source blobs_256x256x256.tif --destination my_plot.html --no-browser
+!!! Example
+    ```
+    qim3d viz cement_128x128x128.tif --destination my_plot.html --no-browser
+
     ```
     
     ``` title="Output"
-    Loading data from blobs_256x256x256.tif
-    Done, volume shape: (256, 256, 256)
+    Loading data from cement_128x128x128.tif
+    Loading: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2.02MB/2.02MB  [00:00<00:00, 909MB/s]
+    Volume using 2.0 MB of memory
+
+    System memory:
+    • Total.: 31.0 GB
+    • Used..: 18.9 GB (61.1%)
+    • Free..: 12.0 GB (38.9%)
+    Done, volume shape: (128, 128, 128)
 
     Generating k3d plot...
     Done, plot available at <my_plot.html>
+
     ```
 
     This writes to disk the `my_plot.html` file.

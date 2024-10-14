@@ -73,7 +73,7 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
         import qim3d
 
         vol = qim3d.examples.cement_128x128x128
-        binary = qim3d.processing.filters.gaussian(vol, 2)<60
+        binary = qim3d.processing.filters.gaussian(vol, sigma = 2)<60
 
         qim3d.viz.slices(binary, axis=1)
         ```
@@ -83,7 +83,7 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
         labeled_volume, num_labels = qim3d.processing.operations.watershed(binary)
 
         cmap = qim3d.viz.colormaps.objects(num_labels)
-        qim3d.viz.slices(labeled_volume, axis = 1, cmap=cmap)
+        qim3d.viz.slices(labeled_volume, axis = 1, cmap = cmap)
         ```
         ![operations-watershed_after](assets/screenshots/operations-watershed_after.png)
 

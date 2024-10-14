@@ -48,8 +48,14 @@ def local_thickness(
         ```python
         import qim3d
 
-        blobs = qim3d.examples.blobs_256x256 # 2D image
-        lt_blobs = qim3d.processing.local_thickness(blobs, visualize=True)
+        # Generate synthetic collection of blobs
+        num_objects = 15
+        synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
+
+        # Extract one slice to show that localthickness works on 2D slices too
+        slice = synthetic_collection[:,:,50]
+        lt_blobs = qim3d.processing.local_thickness(slice, visualize=True)
+
         ```
         ![local thickness 2d](assets/screenshots/local_thickness_2d.png)
 

@@ -78,7 +78,7 @@ def objects(
         import qim3d
 
         vol = qim3d.examples.cement_128x128x128
-        binary = qim3d.processing.filters.gaussian(vol, 2) < 60
+        binary = qim3d.processing.filters.gaussian(vol, sigma = 2) < 60
         labeled_volume, num_labels = qim3d.processing.operations.watershed(binary)
 
         cmap = qim3d.viz.colormaps.objects(num_labels, style = 'bright')

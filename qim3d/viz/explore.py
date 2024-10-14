@@ -411,7 +411,7 @@ def interactive_fade_mask(vol: np.ndarray, axis: int = 0,cmap:str = 'viridis', v
         return fig
 
     shape_dropdown = widgets.Dropdown(
-        options=["spherical", "cylindrical"],
+        options=["spherical", "cylindrical"],  
         value="spherical",  # default value
         description="Geometry",
     )
