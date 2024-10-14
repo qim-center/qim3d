@@ -1,5 +1,4 @@
 from . import doi
-from .progress_bar import ProgressBar
 from .system import Memory
 
 from .misc import (
