@@ -26,7 +26,7 @@ import qim3d
 from qim3d.utils.logger import log
 from qim3d.utils.misc import get_file_size, sizeof, stringify_path
 from qim3d.utils.system import Memory
-from qim3d.utils import ProgressBar
+from qim3d.utils.progress_bar import FileLoadingProgressBar
 import trimesh
 
 dask.config.set(scheduler="processes") 
@@ -824,7 +824,7 @@ def load(
     )
 
     if progress_bar and os.name == 'posix':
-        with ProgressBar(path):
+        with FileLoadingProgressBar(path):
             data = loader.load(path)
     else:
         data = loader.load(path)

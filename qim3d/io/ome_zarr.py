@@ -3,8 +3,12 @@ Exporting data to different formats.
 """
 
 import os
+import math
+import shutil
+
 import numpy as np
 import zarr
+import tqdm
 from ome_zarr.io import parse_url
 from ome_zarr.writer import (
     write_image,
@@ -16,16 +20,16 @@ from ome_zarr.writer import (
 from ome_zarr.scale import dask_resize
 from ome_zarr.reader import Reader
 from ome_zarr import scale
-
-import math
-import shutil
-from qim3d.utils.logger import log
 from scipy.ndimage import zoom
 from typing import Any, Callable, Iterator, List, Tuple, Union
 import dask.array as da
 from skimage.transform import (
     resize,
 )
+
+from qim3d.utils.logger import log
+from qim3d.utils.progress_bar import OmeZarrExportProgressBar
+from qim3d.utils.ome_zarr import get_n_chunks
 
 
 ListOfArrayLike = Union[List[da.Array], List[np.ndarray]]
@@ -79,6 +83,8 @@ def export_ome_zarr(
     order=0,
     replace=False,
     method="scaleZYX",
+    progress_bar:bool = True,
+    progress_bar_repeat_time = "auto",
 ):
     """
     Export image data to OME-Zarr format with pyramidal downsampling.
@@ -92,7 +98,7 @@ def export_ome_zarr(
         downsample_rate (int, optional): Factor by which to downsample the data for each scale. Must be greater than 1. Defaults to 2.
         order (int, optional): Interpolation order to use when downsampling. Defaults to 0 (nearest-neighbor).
         replace (bool, optional): Whether to replace the existing directory if it already exists. Defaults to False.
-
+        progress_bar (bool, optional): Whether to display progress while writing data to disk. Defaults to True.
     Raises:
         ValueError: If the directory already exists and `replace` is False.
         ValueError: If `downsample_rate` is less than or equal to 1.
@@ -145,14 +151,23 @@ def export_ome_zarr(
     mip, axes = _create_mip(image=data, fmt=fmt, scaler=scaler, axes="zyx")
 
     log.info("Writing data to disk")
-    write_multiscale(
-        mip,
-        group=root,
-        fmt=fmt,
-        axes=axes,
-        name=None,
-        compute=True,
-    )
+    kwargs  = dict(
+            pyramid=mip,
+            group=root,
+            fmt=fmt,
+            axes=axes,
+            name=None,
+            compute=True,
+        )
+    if progress_bar:
+        n_chunks = get_n_chunks(
+            shapes = (scaled_data.shape for scaled_data in mip),
+            dtypes = (scaled_data.dtype for scaled_data in mip)
+            )
+        with OmeZarrExportProgressBar(path = path, n_chunks = n_chunks, reapeat_time=progress_bar_repeat_time):
+            write_multiscale(**kwargs)
+    else:
+        write_multiscale(**kwargs)
 
     log.info("All done!")
     return
