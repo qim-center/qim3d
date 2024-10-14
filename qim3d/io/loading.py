@@ -51,10 +51,6 @@ class DataLoader:
         load_txrm(path): Load a TXRM/TXM/XRM file from the specified path
         load_vol(path): Load a VOL file from the specified path. Path should point to the .vgi metadata file
         load(path): Load a file or directory based on the given path
-
-    Example:
-        loader = qim3d.io.DataLoader(virtual_stack=True)
-        data = loader.load_tiff("image.tif")
     """
 
     def __init__(self, **kwargs):
@@ -675,10 +671,6 @@ class DataLoader:
             ValueError: If the format is not supported
             ValueError: If the file or directory does not exist.
             MemoryError: If file size exceeds available memory and force_load is not set to True. In check_size function.
-
-        Example:
-            loader = qim3d.io.DataLoader()
-            data = loader.load("image.tif")
         """
 
         # Stringify path in case it is not already a string

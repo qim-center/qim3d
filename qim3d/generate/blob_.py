@@ -39,7 +39,7 @@ def blob(
         import qim3d
 
         # Generate synthetic blob
-        synthetic_blob = qim3d.generate.blob(noise_scale = 0.05)
+        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
 
         # Visualize slices
         qim3d.viz.slices(synthetic_blob, vmin = 0, vmax = 255, n_slices = 15)

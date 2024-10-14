@@ -2,6 +2,7 @@ import numpy as np
 from skimage import measure, filters
 import trimesh
 from typing import Tuple, Any
+from qim3d.utils.logger import log
 
 
 def create_mesh(
@@ -35,7 +36,7 @@ def create_mesh(
                                   threshold=0.5,
                                   dtype='uint8'
                                   )
-        mesh = qim3d.processing.create_mesh(vol step_size=3)
+        mesh = qim3d.processing.create_mesh(vol, step_size=3)
         qim3d.viz.mesh(mesh.vertices, mesh.faces)
         ```
 
@@ -46,7 +47,7 @@ def create_mesh(
     # Compute the threshold level if not provided
     if level is None:
         level = filters.threshold_otsu(volume)
-        print(f"Computed level using Otsu's method: {level}")
+        log.info(f"Computed level using Otsu's method: {level}")
 
     # Apply padding to the volume
     if padding is not None:
@@ -58,14 +59,12 @@ def create_mesh(
             mode="constant",
             constant_values=padding_value,
         )
-        print(f"Padded volume with {padding} to shape: {volume.shape}")
+        log.info(f"Padded volume with {padding} to shape: {volume.shape}")
 
     # Call skimage.measure.marching_cubes with user-provided kwargs
     verts, faces, normals, values = measure.marching_cubes(
         volume, level=level, step_size=step_size, **kwargs
     )
-
-    print(len(verts))
 
     # Create the Trimesh object
     mesh = trimesh.Trimesh(vertices=verts, faces=faces)
