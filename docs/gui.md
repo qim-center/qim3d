@@ -36,3 +36,7 @@ For details see [here](cli.md#qim3d-gui).
 ::: qim3d.gui.annotation_tool
     options:
         members: False
+
+::: qim3d.gui.layers2d
+    options:
+        members: False

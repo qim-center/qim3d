@@ -200,7 +200,7 @@ def fade_mask(
 
 
 def overlay_rgb_images(
-    background: np.ndarray, foreground: np.ndarray, alpha: float = 0.5
+    background: np.ndarray, foreground: np.ndarray, alpha: float = 0.5, hide_black:bool = True,
 ) -> np.ndarray:
     """
     Overlay an RGB foreground onto an RGB background using alpha blending.
@@ -209,6 +209,7 @@ def overlay_rgb_images(
         background (numpy.ndarray): The background RGB image.
         foreground (numpy.ndarray): The foreground RGB image (usually masks).
         alpha (float, optional): The alpha value for blending. Defaults to 0.5.
+        hide_black (bool, optional): If True, black pixels will have alpha value 0, so the black won't be visible. Used for segmentation where we don't care about background. Defaults to True.
 
     Returns:
         composite (numpy.ndarray): The composite RGB image with overlaid foreground.
@@ -218,18 +219,36 @@ def overlay_rgb_images(
 
     Note:
         - The function performs alpha blending to overlay the foreground onto the background.
-        - It ensures that the background and foreground have the same shape before blending.
+        - It ensures that the background and foreground have the same first two dimensions (image size matches).
+        - It can handle greyscale images, values from 0 to 1, raw values which are negative or bigger than 255.
         - It calculates the maximum projection of the foreground and blends them onto the background.
-        - Brightness outside the foreground is adjusted to maintain consistency with the background.
     """
 
-    # Igonore alpha in case its there
-    background = background[..., :3]
-    foreground = foreground[..., :3]
+    def to_uint8(image:np.ndarray):
+        if np.min(image) < 0:
+            image = image - np.min(image)
+
+        maxim = np.max(image)
+        if maxim > 255:
+            image = (image / maxim)*255
+        elif maxim <= 1:
+            image = image*255
+
+        if image.ndim == 2:
+            image = np.repeat(image[..., None], 3, -1)
+        elif image.ndim == 3:
+            image = image[..., :3] # Ignoring alpha channel
+        else:
+            raise ValueError(F'Input image can not have higher dimension than 3. Yours have {image.ndim}')
+        
+        return image.astype(np.uint8)
+        
+    background = to_uint8(background)
+    foreground = to_uint8(foreground)
 
     # Ensure both images have the same shape
     if background.shape != foreground.shape:
-        raise ValueError("Input images must have the same shape")
+        raise ValueError(F"Input images must have the same first two dimensions. But background is of shape {background.shape} and foreground is of shape {foreground.shape}")
 
     # Perform alpha blending
     foreground_max_projection = np.amax(foreground, axis=2)
@@ -240,11 +259,18 @@ def overlay_rgb_images(
         foreground_max_projection = foreground_max_projection / np.max(
             foreground_max_projection
         )
+    # Check alpha validity
+    if alpha < 0:
+        raise ValueError(F'Alpha has to be positive number. You used {alpha}')
+    elif alpha > 1:
+        alpha = 1
+    
+    # If the pixel is black, its alpha value is set to 0, so it has no effect on the image
+    if hide_black:
+        alpha = np.full((background.shape[0], background.shape[1],1), alpha)
+        alpha[np.apply_along_axis(lambda x: (x == [0,0,0]).all(), axis = 2, arr = foreground)] = 0
 
     composite = background * (1 - alpha) + foreground * alpha
     composite = np.clip(composite, 0, 255).astype("uint8")
-
-    # Adjust brightness outside foreground
-    composite = composite + (background * (1 - alpha)) * (1 - foreground_max_projection)
 
     return composite.astype("uint8")

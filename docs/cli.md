@@ -30,6 +30,8 @@ This offers quick interactions, making it ideal for tasks that require efficienc
 | `--data-explorer` | Starts the Data Explorer |
 | `--iso3d` | Starts the 3D Isosurfaces visualization |
 | `--local-thickness` | Starts the Local thickness tool |
+| `--anotation-tool` | Starts the annotation tool |
+| `--layers` | Starts the tool for segmenting layers |
 | `--host` | Desired host for the server. By default runs on `0.0.0.0`  |
 | `--platform` | Uses the Qim platform API for a unique path and port depending on the username |
 
