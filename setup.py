@@ -45,7 +45,7 @@ setup(
     ],
     python_requires=">=3.10",
     install_requires=[
-        "gradio>=4.27.0",
+        "gradio==4.44",
         "h5py>=3.9.0",
         "localthickness>=0.1.2",
         "matplotlib>=3.8.0",
@@ -57,7 +57,8 @@ setup(
         "scipy>=1.11.2",
         "seaborn>=0.12.2",
         "setuptools>=68.0.0",
-        "tifffile>=2023.4.12",
+        "tifffile==2023.8.12",
+        "imagecodecs==2023.7.10",
         "tqdm>=4.65.0",
         "nibabel>=5.2.0",
         "ipywidgets>=8.1.2",
