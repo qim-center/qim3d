@@ -13,3 +13,4 @@ from .local_thickness_ import local_thickness
 from .structure_tensor import vectors
 from .metrics import plot_metrics, grid_overview, grid_pred, vol_masked
 from .preview import image_preview
+from . import layers2d
