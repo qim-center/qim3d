@@ -72,7 +72,7 @@ class BaseInterface(ABC):
             height=self.height,
             width=self.width,
             favicon_path=Path(qim3d.__file__).parents[0]
-            / "../docs/assets/qim3d-icon.svg",
+            / "gui/assets/qim3d-icon.svg",
             **kwargs,
         )
 
