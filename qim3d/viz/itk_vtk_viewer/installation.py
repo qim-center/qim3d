@@ -128,7 +128,7 @@ class Installer:
             output = subprocess.run(command, shell = True, capture_output=True)
 
         def _windows():
-            subprocess.run(["powershell.exe", SOURCE_FNM, F"fnm use --fnm-dir {self.dir} --install-if-missing 22"])
+            subprocess.run(["powershell.exe",F'$env:XDG_DATA_HOME = "{self.dir}";', SOURCE_FNM, F"fnm use --fnm-dir {self.dir} --install-if-missing 22"])
             
         print(F'Installing node.js...')
         run_for_platform(linux_func = _linux, windows_func=_windows, macos_func=_linux)
