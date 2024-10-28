@@ -191,6 +191,7 @@ def mesh(
         mesh = qim3d.processing.create_mesh(vol, step_size=3)
         qim3d.viz.mesh(mesh.vertices, mesh.faces)
         ```
+        <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>
     """
     import k3d
 

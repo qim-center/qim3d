@@ -30,3 +30,10 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - watershed
             - fade_mask
             - overlay_rgb_images
+
+::: qim3d.processing.features
+    options:
+        members:
+            - area
+            - volume
+            - sphericity
