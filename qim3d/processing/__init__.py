@@ -6,3 +6,4 @@ from .operations import *
 from .cc import get_3d_cc
 from .layers2d import segment_layers, get_lines
 from .mesh import create_mesh
+from .features import volume, area, sphericity
