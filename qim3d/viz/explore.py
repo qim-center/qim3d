@@ -15,7 +15,7 @@ import matplotlib
 import numpy as np
 import zarr
 from qim3d.utils.logger import log
-
+import seaborn as sns
 
 import qim3d
 
@@ -775,3 +775,133 @@ def chunks(zarr_path: str, **kwargs):
 
     # Display the VBox
     display(final_layout)
+
+
+def histogram(
+    vol: np.ndarray,
+    bins: Union[int, str] = "auto",
+    slice_idx: Union[int, str] = None,
+    axis: int = 0,
+    kde: bool = True,
+    log_scale: bool = False,
+    despine: bool = True,
+    show_title: bool = True,
+    color="qim3d",
+    edgecolor=None,
+    figsize=(8, 4.5),
+    element="step",
+    return_fig=False,
+    show=True,
+    **sns_kwargs,
+):
+    """
+    Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
+    
+    Utilizes [seaborn.histplot](https://seaborn.pydata.org/generated/seaborn.histplot.html) for visualization.
+
+    Args:
+        vol (np.ndarray): A 3D NumPy array representing the volume to be visualized.
+        bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
+        axis (int, optional): Axis along which to take a slice. Default is 0.
+        slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
+                                               If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
+        kde (bool, optional): Whether to overlay a kernel density estimate. Default is True.
+        log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
+        despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
+        show_title (bool, optional): If True, displays a title with slice information. Default is True.
+        color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
+        edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
+        figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
+        element (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
+        return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
+        show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
+        **sns_kwargs: Additional keyword arguments for `seaborn.histplot`.
+
+    Returns:
+        Optional[matplotlib.figure.Figure]: If `return_fig` is True, returns the generated figure object. Otherwise, returns None.
+
+    Raises:
+        ValueError: If `axis` is not a valid axis index (0, 1, or 2).
+        ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol)
+        ```
+        ![viz histogram](assets/screenshots/viz-histogram-vol.png)
+
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol, bins=32, slice_idx="middle", axis=1, kde=False, log_scale=True)
+        ```
+        ![viz histogram](assets/screenshots/viz-histogram-slice.png)
+    """
+
+    if not (0 <= axis < vol.ndim):
+        raise ValueError(f"Axis must be an integer between 0 and {vol.ndim - 1}.")
+
+    if slice_idx == "middle":
+        slice_idx = vol.shape[axis] // 2
+
+    if slice_idx:
+        if 0 <= slice_idx < vol.shape[axis]:
+            img_slice = np.take(vol, indices=slice_idx, axis=axis)
+            data = img_slice.ravel()
+            title = f"Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {axis}"
+        else:
+            raise ValueError(
+                f"Slice index out of range. Must be between 0 and {vol.shape[axis] - 1}."
+            )
+    else:
+        data = vol.ravel()
+        title = f"Intensity histogram for whole volume {vol.shape}"
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if log_scale:
+        plt.yscale("log")
+
+    if color == "qim3d":
+        color = qim3d.viz.colormaps.qim(1.0)
+
+    sns.histplot(
+        data,
+        bins=bins,
+        kde=kde,
+        color=color,
+        element=element,
+        edgecolor=edgecolor,
+        **sns_kwargs,
+    )
+
+    if despine:
+        sns.despine(
+            fig=None,
+            ax=None,
+            top=True,
+            right=True,
+            left=False,
+            bottom=False,
+            offset={"left": 0, "bottom": 18},
+            trim=True,
+        )
+
+    plt.xlabel("Voxel Intensity")
+    plt.ylabel("Frequency")
+
+    if show_title:
+        plt.title(title, fontsize=10)
+
+    # Handle show and return
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+    if return_fig:
+        return fig
