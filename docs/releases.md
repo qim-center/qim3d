@@ -9,6 +9,14 @@ As the library is still in its early development stages, **there may be breaking
 
 And remember to keep your pip installation [up to date](/qim3d/#get-the-latest-version) so that you have the latest features!
 
+### v0.4.5 (21/11/2024)
+
+- Updated Layer surface segmentation GUI
+- Sphericity as feature from volumes
+- Colorbar for visualization functions
+- Chunk visualization tool
+- Histogram visualization
+
 ### v0.4.4 (11/10/2024)
 
 - Introduction of `itk-vtk-viewer` for OME-Zarr data visualization 🎉 ![itk-vtk-viewer](assets/screenshots/itk-vtk-viewer.gif)
