@@ -139,6 +139,7 @@ def collection(
     min_threshold: float = 0.5,
     max_threshold: float = 0.6,
     smooth_borders: bool = False,
+    object_shape: str = None,
     seed: int = 0,
     verbose: bool = False,
 ) -> tuple[np.ndarray, object]:
@@ -163,10 +164,10 @@ def collection(
         max_high_value (int, optional): Maximum maximum value for the volume intensity. Defaults to 255.
         min_threshold (float, optional): Minimum threshold value for clipping low intensity values. Defaults to 0.5.
         max_threshold (float, optional): Maximum threshold value for clipping low intensity values. Defaults to 0.6.
-        smooth_borders (bool, optional): Flag for smoothing blob borders to avoid straight edges in the objects. If True, the `min_threshold` and `max_threshold` parameters are ignored. Defaults to False.
+        smooth_borders (bool, optional): Flag for smoothing object borders to avoid straight edges in the objects. If True, the `min_threshold` and `max_threshold` parameters are ignored. Defaults to False.
+        object_shape (str, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
         seed (int, optional): Seed for reproducibility. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
-
 
     Returns:
         synthetic_collection (numpy.ndarray): 3D volume of the generated collection of synthetic objects with specified parameters.
@@ -174,19 +175,19 @@ def collection(
 
     Raises:
         TypeError: If `collection_shape` is not 3D.
-        ValueError: If blob parameters are invalid.
+        ValueError: If object parameters are invalid.
 
     Note:
         - The function places objects without overlap.
         - The function can either place objects at random positions in the collection (if `positions = None`) or at specific positions provided in the `positions` argument. If specific positions are provided, the number of blobs must match the number of positions (e.g. `num_objects = 2` with `positions = [(12, 8, 10), (24, 20, 18)]`).
-        - If not all `num_objects` can be placed, the function returns the `synthetic_collection` volume with as many blobs as possible in it, and logs an error.
-        - Labels for all objects are returned, even if they are not a sigle connected component.
+        - If not all `num_objects` can be placed, the function returns the `synthetic_collection` volume with as many objects as possible in it, and logs an error.
+        - Labels for all objects are returned, even if they are not a single connected component.
 
     Example:
         ```python
         import qim3d
 
-        # Generate synthetic collection of blobs
+        # Generate synthetic collection of objects
         num_objects = 15
         synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
 
@@ -207,12 +208,11 @@ def collection(
         ```
         ![synthetic_collection](assets/screenshots/synthetic_collection_default_labels.gif)
 
-
     Example:
         ```python
         import qim3d
 
-        # Generate synthetic collection of dense blobs
+        # Generate synthetic collection of dense objects
         synthetic_collection, labels = qim3d.generate.collection(
                                     min_high_value = 255,
                                     max_high_value = 255,
@@ -228,34 +228,66 @@ def collection(
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense.html" width="100%" height="500" frameborder="0"></iframe>
 
-
-
     Example:
         ```python
         import qim3d
 
-        # Generate synthetic collection of tubular structures
-        synthetic_collection, labels = qim3d.generate.collection(
-                                    num_objects=10,
-                                    collection_shape=(200,100,100),
-                                    min_shape = (190, 50, 50),
-                                    max_shape = (200, 60, 60),
-                                    object_shape_zoom = (1, 0.2, 0.2),
-                                    min_object_noise = 0.01,
-                                    max_object_noise = 0.02,
-                                    max_rotation_degrees=10,
-                                    min_threshold = 0.95,
-                                    max_threshold = 0.98,
-                                    min_gamma = 0.02,
-                                    max_gamma = 0.03
-                                    )
+        # Generate synthetic collection of cylindrical structures
+        vol, labels = qim3d.generate.collection(num_objects = 40,
+                                                collection_shape = (300, 150, 150),
+                                                min_shape = (280, 10, 10),
+                                                max_shape = (290, 15, 15),
+                                                min_object_noise = 0.08,
+                                                max_object_noise = 0.09,
+                                                max_rotation_degrees = 5,
+                                                min_threshold = 0.7,
+                                                max_threshold = 0.9,
+                                                min_gamma = 0.10,
+                                                max_gamma = 0.11,
+                                                object_shape = "cylinder"
+                                                )
 
         # Visualize synthetic collection
-        qim3d.viz.vol(synthetic_collection)
+        qim3d.viz.vol(vol)
+
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tubular.html" width="100%" height="500" frameborder="0"></iframe>
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_cylinder.html" width="100%" height="500" frameborder="0"></iframe>
+        
+        ```python
+        # Visualize slices
+        qim3d.viz.slices(vol, n_slices=15)
+        ```
+        ![synthetic_collection_cylinder](assets/screenshots/synthetic_collection_cylinder_slices.png)    
+        
+    Example:
+        ```python
+        import qim3d
 
+        # Generate synthetic collection of tubular (hollow) structures
+        vol, labels = qim3d.generate.collection(num_objects = 10,
+                                                collection_shape = (200, 200, 200),
+                                                min_shape = (180, 25, 25),
+                                                max_shape = (190, 35, 35),
+                                                min_object_noise = 0.02,
+                                                max_object_noise = 0.03,
+                                                max_rotation_degrees = 5,
+                                                min_threshold = 0.7,
+                                                max_threshold = 0.9,
+                                                min_gamma = 0.10,
+                                                max_gamma = 0.11,
+                                                object_shape = "tube"
+                                                )
 
+        # Visualize synthetic collection
+        qim3d.viz.vol(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tube.html" width="100%" height="500" frameborder="0"></iframe>
+        
+        ```python
+        # Visualize slices
+        qim3d.viz.slices(vol, n_slices=15, axis=1)
+        ```
+        ![synthetic_collection_tube](assets/screenshots/synthetic_collection_tube_slices.png)
     """
     if verbose:
         original_log_level = log.getEffectiveLevel()
@@ -269,10 +301,6 @@ def collection(
 
     if len(min_shape) != len(max_shape):
         raise ValueError("Object shapes must be tuples of the same length")
-
-    # if not isinstance(blob_shapes, list) or \
-    #     len(blob_shapes) != 2 or len(blob_shapes[0]) != 3 or len(blob_shapes[1]) != 3:
-    #     raise TypeError("Blob shapes must be a list of two tuples with three dimensions (z, y, x)")
 
     if (positions is not None) and (len(positions) != num_objects):
         raise ValueError(
@@ -301,6 +329,10 @@ def collection(
             )
         log.debug(f"- Blob shape: {blob_shape}")
 
+        # Scale object shape
+        final_shape = tuple(l * r for l, r in zip(blob_shape, object_shape_zoom))
+        final_shape = tuple(int(x) for x in final_shape) # NOTE: Added this 
+
         # Sample noise scale
         noise_scale = rng.uniform(low=min_object_noise, high=max_object_noise)
         log.debug(f"- Object noise scale: {noise_scale:.4f}")
@@ -317,15 +349,16 @@ def collection(
         threshold = rng.uniform(low=min_threshold, high=max_threshold)
         log.debug(f"- Threshold: {threshold:.3f}")
 
-        # Generate synthetic blob
+        # Generate synthetic object
         blob = qim3d.generate.blob(
             base_shape=blob_shape,
-            final_shape=tuple(l * r for l, r in zip(blob_shape, object_shape_zoom)),
+            final_shape=final_shape,
             noise_scale=noise_scale,
             gamma=gamma,
             max_value=max_value,
             threshold=threshold,
             smooth_borders=smooth_borders,
+            object_shape=object_shape,
         )
 
         # Rotate object
@@ -336,21 +369,21 @@ def collection(
             axes = rng.choice(rotation_axes)  # Sample the two axes to rotate around
             log.debug(f"- Rotation angle: {angle:.2f} at axes: {axes}")
 
-            blob = scipy.ndimage.rotate(blob, angle, axes, order=0)
+            blob = scipy.ndimage.rotate(blob, angle, axes, order=1)
 
         # Place synthetic object into the collection
-        # If positions are specified, place blob at one of the specified positions
+        # If positions are specified, place object at one of the specified positions
         collection_before = collection_array.copy()
         if positions:
             collection_array, placed, positions = specific_placement(
                 collection_array, blob, positions
             )
 
-        # Otherwise, place blob at a random available position
+        # Otherwise, place object at a random available position
         else:
             collection_array, placed = random_placement(collection_array, blob, rng)
 
-        # Break if blob could not be placed
+        # Break if object could not be placed
         if not placed:
             break
 
