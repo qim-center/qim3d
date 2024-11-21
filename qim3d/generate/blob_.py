@@ -76,7 +76,8 @@ def blob(
 
         ```python
         # Visualize slices
-        qim3d.viz.slices(vol, n_slices=15, axis=1)        ```
+        qim3d.viz.slices(vol, n_slices=15, axis=1)
+        ```
         ![synthetic_blob_cylinder_slice](assets/screenshots/synthetic_blob_cylinder_slice.png)
 
     Example:
