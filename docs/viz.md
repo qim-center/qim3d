@@ -9,6 +9,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - orthogonal
             - vol
             - chunks
+            - threshold
             - itk_vtk
             - mesh
             - local_thickness

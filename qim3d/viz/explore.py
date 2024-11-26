@@ -779,25 +779,61 @@ def chunks(zarr_path: str, **kwargs):
 
 def threshold(
         volume: np.ndarray,
-        axis: int = 0,
-        cmap_volume: str = 'gray',
+        cmap_image: str = 'viridis',
         cmap_threshold: str = 'gray',
         vmin: float = None,
         vmax: float = None,
 ):
     """
-    Interactive thresholding of a 3D volume.
+    This function provides an interactive interface to explore thresholding on a 
+    3D volume slice-by-slice. Users can either manually set the threshold value 
+    using a slider or select an automatic thresholding method from `skimage`. 
+
+    The visualization includes the original image slice, a binary mask showing regions above the 
+    threshold and an overlay combining the binary mask and the original image.
+
     Args:
         volume (np.ndarray): 3D volume to threshold.
-        cmap_image (str, optional): Colormap for the original image. Defaults to 'gray'.
-        cmap_threshold (str, optional): Colormap for the thresholded image. Defaults to 'gray'.
+        cmap_image (str, optional): Colormap for the original image. Defaults to 'viridis'.
+        cmap_threshold (str, optional): Colormap for the binary image. Defaults to 'gray'.
+        vmin (float, optional): Minimum value for the colormap. Defaults to None.
+        vmax (float, optional): Maximum value for the colormap. Defaults to None.
+    
+    Returns:
+        slicer_obj (widgets.VBox): The interactive widget for thresholding a 3D volume.
+    
+    Interactivity:
+        - **Manual Thresholding**:
+            Select 'Manual' from the dropdown menu to manually adjust the threshold 
+            using the slider.
+        - **Automatic Thresholding**:
+            Choose a method from the dropdown menu to apply an automatic thresholding 
+            algorithm. Available methods include:
+            - Otsu
+            - Isodata
+            - Li
+            - Mean
+            - Minimum
+            - Triangle
+            - Yen
+
+            The threshold slider will display the computed value and will be disabled 
+            in this mode.
+
+
     Example:
         ```python
         import qim3d
+
+        # Load a sample volume
         vol = qim3d.examples.bone_128x128x128
+
+        # Visualize interactive thresholding
         qim3d.viz.threshold(vol)
         ```
+        ![interactive threshold](assets/screenshots/interactive_thresholding.gif)
     """
+
     threshold_methods = {
         'Otsu': threshold_otsu,
         'Isodata': threshold_isodata,
@@ -826,7 +862,7 @@ def threshold(
             else vmax
         )
 
-        axes[0].imshow(slice_img, cmap=cmap_volume, vmin=new_vmin, vmax=new_vmax)
+        axes[0].imshow(slice_img, cmap=cmap_image, vmin=new_vmin, vmax=new_vmax)
         axes[0].set_title('Original')
         axes[0].axis('off')
 
@@ -901,19 +937,12 @@ def threshold(
         method = method_dropdown,
     )
 
-    #slicer_obj.layout = widgets.Layout(align_items='flex-start')
-
-    # Group sliders vertically (left column)
     controls_left = widgets.VBox([position_slider, threshold_slider])
-
-    # Place the method dropdown in a separate column (right)
     controls_right = widgets.VBox([method_dropdown])
-
-    # Combine the controls horizontally (sliders on the left, dropdown on the right)
     controls_layout = widgets.HBox([controls_left, controls_right], layout=widgets.Layout(justify_content='space-between'))
+    slicer_obj = widgets.VBox([controls_layout, slicer_obj.children[-1]]) 
+    slicer_obj.layout.align_items = "flex-start"
 
-    # Combine the controls with the interactive slicer object
-    slicer_obj = widgets.VBox([controls_layout, slicer_obj.children[-1]])  # Add sliders + dropdown above the plot
 
     return slicer_obj
 
