@@ -8,6 +8,7 @@ Whether you are working with medical imaging data, materials science data, or an
 
 Documentation available at https://platform.qim.dk/qim3d/
 
+For more information on the QIM center visit https://qim.dk/
 
 # License
 This project is licensed under the MIT License.
