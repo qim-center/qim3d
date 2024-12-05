@@ -87,10 +87,16 @@ def objects(
         ![colormap objects](assets/screenshots/viz-colormaps-objects.gif)
 
     Tip:
+        It can be easily used when calling visualization functions as
+        ```python
+        qim3d.viz.slices(segmented_volume, cmap = 'objects')
+        ```
+        which automatically detects number of unique classes 
+        and creates the colormap object with defualt arguments.
+
+    Tip:
         The `min_dist` parameter can be used to control the distance between neighboring colors.
         ![colormap objects mind_dist](assets/screenshots/viz-colormaps-min_dist.gif)
-
-
     """
     from skimage import color
 

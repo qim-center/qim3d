@@ -91,6 +91,9 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
     import skimage
     import scipy
 
+    if len(np.unique(bin_vol)) > 2:
+        raise ValueError("bin_vol has to be binary volume - it must contain max 2 unique values.")
+
     # Compute distance transform of binary volume
     distance = scipy.ndimage.distance_transform_edt(bin_vol)
 
