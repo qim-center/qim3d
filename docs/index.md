@@ -137,6 +137,16 @@ The latest stable version can be simply installed using `pip`. Open your termina
 !!! note
     The base installation of `qim3d` does not include deep-learning dependencies, keeping the library lighter for scenarios where they are unnecessary. If you need to use deep-learning features, you can install the additional dependencies by running: **`pip install qim3d['deep-learning']`**
 
+After completing the installation, you can verify its success by running one or both of the following commands:
+
+    qim3d
+
+or:
+
+    pip show qim3d
+
+If either command displays information about the qim3d library, the installation was successful.
+
 ### Troubleshooting
 
 Here are some solutions for commonly found issues during installation and usage of `qim3d`.
