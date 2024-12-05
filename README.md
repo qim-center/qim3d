@@ -1,4 +1,4 @@
-# Qim3D (Quantitative Imaging in 3D)
+# qim3D (Quantitative Imaging in 3D)
 
 The `qim3d` (kɪm θriː diː) library is designed to make it easier to work with 3D imaging data in Python. It offers a range of features, including data loading and manipulation, image processing and filtering, visualization of 3D data, and analysis of imaging results.
 
