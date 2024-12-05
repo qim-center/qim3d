@@ -18,7 +18,7 @@ def parse_tuple(arg):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Qim3d command-line interface.")
+    parser = argparse.ArgumentParser(description="qim3d command-line interface.")
     subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
 
     # GUIs
@@ -167,7 +167,7 @@ def main():
 
             except qim3d.viz.NotInstalledError as err:
                 print(err)
-                message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let QIM3D install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want QIM3D to install itk-vtk-viewer now?"
+                message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let qim3D install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want qim3D to install itk-vtk-viewer now?"
                 print(message)
                 answer = input("[Y/n]:")
                 if answer in "Yy":

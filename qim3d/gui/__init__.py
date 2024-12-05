@@ -5,7 +5,7 @@ from . import iso3d
 from . import local_thickness
 from . import annotation_tool
 from . import layers2d
-from .qim_theme import QimTheme
+from .qim_theme import QIMTheme
 
 
 def run_gradio_app(gradio_interface, host="0.0.0.0"):
