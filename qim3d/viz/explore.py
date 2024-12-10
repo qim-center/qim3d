@@ -819,6 +819,7 @@ def histogram(
     vol: np.ndarray,
     bins: Union[int, str] = "auto",
     slice_idx: Union[int, str, None] = None,
+    threshold: int = None,
     axis: int = 0,
     kde: bool = True,
     log_scale: bool = False,
@@ -909,8 +910,28 @@ def histogram(
         **sns_kwargs,
     )
 
+    if threshold is not None:
+        ax.axvline(
+            x=threshold,
+            color='red',
+            linestyle="--",
+            linewidth=2,
+            label=f"Threshold = {round(threshold)}"
+        )
+        ax.legend()
+
     if despine:
-        sns.despine(ax=ax, top=True, right=True)
+        sns.despine(
+            fig=None,
+            ax=ax,
+            top=True,
+            right=True,
+            left=False,
+            bottom=False,
+            offset={"left": 0, "bottom": 18},
+            trim=True,
+        )
+
 
     ax.set_xlabel("Voxel Intensity")
     ax.set_ylabel("Frequency")
@@ -1036,19 +1057,14 @@ def threshold(
             vol=volume,
             bins=32,
             slice_idx=position,
+            threshold=threshold,
             axis=1,
             kde=False,
             ax=axes[1],
             show=False,
         )
-        axes[1].axvline(
-            x=threshold, 
-            color="red", 
-            linestyle="--",  
-            linewidth=2, 
-            label=f"Threshold = {threshold}", 
-        )
-        axes[1].set_title("Histogram")
+
+        axes[1].set_title(f'Histogram')
         
         # Compute and add the binary mask to the plot
         mask = slice_img > threshold
@@ -1056,6 +1072,8 @@ def threshold(
         axes[2].set_title('Binary mask')
         axes[2].axis('off')
 
+        # both mask and img should be rgb
+        # mask data in first channel and then black the other sure --> no cmap_overlay
         # Compute and add the overlay to the plot
         masked_volume = qim3d.processing.operations.overlay_rgb_images(
             background = slice_img,
