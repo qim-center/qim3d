@@ -5,7 +5,7 @@ Provides a collection of visualization functions.
 import math
 import warnings
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import dask.array as da
 import ipywidgets as widgets
@@ -818,21 +818,21 @@ def chunks(zarr_path: str, **kwargs):
 def histogram(
     vol: np.ndarray,
     bins: Union[int, str] = "auto",
-    slice_idx: Union[int, str] = None,
+    slice_idx: Union[int, str, None] = None,
     axis: int = 0,
     kde: bool = True,
     log_scale: bool = False,
     despine: bool = True,
     show_title: bool = True,
-    color="qim3d",
-    edgecolor=None,
-    figsize=(8, 4.5),
-    element="step",
-    return_fig=False,
-    show=True,
-    ax=None,  # New parameter for target axes
-    **sns_kwargs,
-):
+    color: str = "qim3d",
+    edgecolor: Optional[str] = None,
+    figsize: Tuple[float, float] = (8, 4.5),
+    element: str = "step",
+    return_fig: bool = False,
+    show: bool = True,
+    ax: Optional[plt.Axes] = None,
+    **sns_kwargs: Union[str, float, int, bool]
+) -> Optional[Union[plt.Figure, plt.Axes]]:
     """
     Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
     
@@ -933,7 +933,7 @@ def threshold(
         cmap_overlay: str = 'gray',
         vmin: float = None,
         vmax: float = None,
-):
+) -> widgets.VBox:
     """
     This function provides an interactive interface to explore thresholding on a 
     3D volume slice-by-slice. Users can either manually set the threshold value 
