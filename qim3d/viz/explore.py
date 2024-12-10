@@ -846,7 +846,7 @@ def threshold(
     
     # Create the interactive widget
     def _slicer(position, threshold, method):
-        fig, axes = plt.subplots(1, 3, figsize=(9, 3))
+        fig, axes = plt.subplots(1, 4, figsize=(9, 3))
 
         slice_img = volume[position, :, :]
         # If vmin is higher than the highest value in the image ValueError is raised
@@ -866,6 +866,8 @@ def threshold(
         axes[0].set_title('Original')
         axes[0].axis('off')
 
+        
+
         if method == 'Manual':
             threshold_slider.disabled = False
         else:
@@ -882,9 +884,9 @@ def threshold(
 
         
         mask = slice_img > threshold
-        axes[1].imshow(mask, cmap=cmap_threshold)
-        axes[1].set_title('Binary mask')
-        axes[1].axis('off')
+        axes[2].imshow(mask, cmap=cmap_threshold)
+        axes[2].set_title('Binary mask')
+        axes[2].axis('off')
 
         masked_volume = qim3d.processing.operations.overlay_rgb_images(
             background = slice_img,
@@ -902,9 +904,9 @@ def threshold(
             if (isinstance(vmax, (float, int)) and vmax < np.min(masked_volume))
             else vmax
         )
-        axes[2].imshow(masked_volume, cmap=cmap_threshold, vmin=new_vmin, vmax=new_vmax)
-        axes[2].set_title('Overlay')
-        axes[2].axis('off')
+        axes[3].imshow(masked_volume, cmap=cmap_threshold, vmin=new_vmin, vmax=new_vmax)
+        axes[3].set_title('Overlay')
+        axes[3].axis('off')
 
         return fig
     
