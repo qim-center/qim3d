@@ -17,9 +17,9 @@ import zarr
 from qim3d.utils.logger import log
 from ipywidgets import interact, IntSlider, FloatSlider, Dropdown
 from skimage.filters import threshold_otsu, threshold_isodata, threshold_li, threshold_mean, threshold_minimum, threshold_triangle, threshold_yen
+import seaborn as sns
 
 import qim3d
-
 
 def slices(
     vol: np.ndarray,
@@ -34,9 +34,10 @@ def slices(
     img_width: int = 2,
     show: bool = False,
     show_position: bool = True,
-    interpolation: Optional[str] = "none",
+    interpolation: Optional[str] = None,
     img_size=None,
     cbar: bool = False,
+    cbar_style: str = "small",
     **imshow_kwargs,
 ) -> plt.Figure:
     """Displays one or several slices from a 3d volume.
@@ -60,6 +61,7 @@ def slices(
         show_position (bool, optional): If True, displays the position of the slices. Defaults to True.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         cbar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
+        cbar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
 
     Returns:
         fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
@@ -69,6 +71,7 @@ def slices(
         ValueError: If the axis to slice along is not a valid choice, i.e. not an integer between 0 and the number of dimensions of the volume minus 1.
         ValueError: If the file or array is not a volume with at least 3 dimensions.
         ValueError: If the `position` keyword argument is not a integer, list of integers or one of the following strings: "start", "mid" or "end".
+        ValueError: If the cbar_style keyword argument is not one of the following strings: 'small' or 'large'.
 
     Example:
         ```python
@@ -83,6 +86,11 @@ def slices(
         img_height = img_size
         img_width = img_size
 
+    # If we pass python None to the imshow function, it will set to 
+    # default value 'antialiased'
+    if interpolation is None:
+        interpolation = 'none'
+
     # Numpy array or Torch tensor input
     if not isinstance(vol, (np.ndarray, da.core.Array)):
         raise ValueError("Data type not supported")
@@ -92,6 +100,10 @@ def slices(
             "The provided object is not a volume as it has less than 3 dimensions."
         )
 
+    cbar_style_options = ["small", "large"]
+    if cbar_style not in cbar_style_options:
+        raise ValueError(f"Value '{cbar_style}' is not valid for colorbar style. Please select from {cbar_style_options}.")
+    
     if isinstance(vol, da.core.Array):
         vol = vol.compute()
 
@@ -100,6 +112,19 @@ def slices(
         raise ValueError(
             f"Invalid value for 'axis'. It should be an integer between 0 and {vol.ndim - 1}."
         )
+
+    if type(cmap) == matplotlib.colors.LinearSegmentedColormap or cmap == 'objects':
+        num_labels = len(np.unique(vol))
+
+        if cmap == 'objects':
+            cmap = qim3d.viz.colormaps.objects(num_labels)
+        # If vmin and vmax are not set like this, then in case the 
+        # number of objects changes on new slice, objects might change 
+        # colors. So when using a slider, the same object suddently 
+        # changes color (flickers), which is confusing and annoying.
+        vmin = 0
+        vmax = num_labels
+
 
     # Get total number of slices in the specified dimension
     n_total = vol.shape[axis]
@@ -146,9 +171,10 @@ def slices(
         vol = vol.compute()
 
     if cbar:
-        # In this case, we want the vrange to be constant across the slices, which makes them all comparable to a single cbar.
-        new_vmin = vmin if vmin else np.min(vol)
-        new_vmax = vmax if vmax else np.max(vol)
+        # In this case, we want the vrange to be constant across the 
+        # slices, which makes them all comparable to a single cbar.
+        new_vmin = vmin if vmin is not None else np.min(vol)
+        new_vmax = vmax if vmax is not None else np.max(vol)
 
     # Run through each ax of the grid
     for i, ax_row in enumerate(axs):
@@ -158,8 +184,9 @@ def slices(
                 slice_img = vol.take(slice_idxs[slice_idx], axis=axis)
 
                 if not cbar:
-                    # If vmin is higher than the highest value in the image ValueError is raised
-                    # We don't want to override the values because next slices might be okay
+                    # If vmin is higher than the highest value in the 
+                    # image ValueError is raised. We don't want to 
+                    # override the values because next slices might be okay
                     new_vmin = (
                         None
                         if (isinstance(vmin, (float, int)) and vmin > np.max(slice_img))
@@ -216,16 +243,27 @@ def slices(
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=UserWarning)
             fig.tight_layout()
+
         norm = matplotlib.colors.Normalize(vmin=new_vmin, vmax=new_vmax, clip=True)
         mappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=cmap)
 
-        # Figure coordinates of top-right axis
-        tr_pos = np.atleast_1d(axs[0])[-1].get_position()
-        # The width is divided by ncols to make it the same relative size to the images
-        cbar_ax = fig.add_axes(
-            [tr_pos.x1 + 0.05 / ncols, tr_pos.y0, 0.05 / ncols, tr_pos.height]
-        )
-        fig.colorbar(mappable=mappable, cax=cbar_ax, orientation="vertical")
+        if cbar_style =="small":
+            # Figure coordinates of top-right axis
+            tr_pos = np.atleast_1d(axs[0])[-1].get_position()
+            # The width is divided by ncols to make it the same relative size to the images
+            cbar_ax = fig.add_axes(
+                [tr_pos.x1 + 0.05 / ncols, tr_pos.y0, 0.05 / ncols, tr_pos.height]
+            )
+            fig.colorbar(mappable=mappable, cax=cbar_ax, orientation="vertical")
+        elif cbar_style == "large":
+            # Figure coordinates of bottom- and top-right axis
+            br_pos = np.atleast_1d(axs[-1])[-1].get_position()
+            tr_pos = np.atleast_1d(axs[0])[-1].get_position()
+            # The width is divided by ncols to make it the same relative size to the images
+            cbar_ax = fig.add_axes(
+                [br_pos.xmax + 0.05 / ncols, br_pos.y0+0.0015, 0.05 / ncols, (tr_pos.y1 - br_pos.y0)-0.0015]
+            )
+            fig.colorbar(mappable=mappable, cax=cbar_ax, orientation="vertical")
 
     if show:
         plt.show()
@@ -260,7 +298,7 @@ def slicer(
     img_height: int = 3,
     img_width: int = 3,
     show_position: bool = False,
-    interpolation: Optional[str] = "none",
+    interpolation: Optional[str] = None,
     img_size=None,
     cbar: bool = False,
     **imshow_kwargs,
@@ -777,6 +815,137 @@ def chunks(zarr_path: str, **kwargs):
     # Display the VBox
     display(final_layout)
 
+def histogram(
+    vol: np.ndarray,
+    bins: Union[int, str] = "auto",
+    slice_idx: Union[int, str] = None,
+    axis: int = 0,
+    kde: bool = True,
+    log_scale: bool = False,
+    despine: bool = True,
+    show_title: bool = True,
+    color="qim3d",
+    edgecolor=None,
+    figsize=(8, 4.5),
+    element="step",
+    return_fig=False,
+    show=True,
+    **sns_kwargs,
+):
+    """
+    Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
+    
+    Utilizes [seaborn.histplot](https://seaborn.pydata.org/generated/seaborn.histplot.html) for visualization.
+
+    Args:
+        vol (np.ndarray): A 3D NumPy array representing the volume to be visualized.
+        bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
+        axis (int, optional): Axis along which to take a slice. Default is 0.
+        slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
+                                               If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
+        kde (bool, optional): Whether to overlay a kernel density estimate. Default is True.
+        log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
+        despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
+        show_title (bool, optional): If True, displays a title with slice information. Default is True.
+        color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
+        edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
+        figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
+        element (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
+        return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
+        show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
+        **sns_kwargs: Additional keyword arguments for `seaborn.histplot`.
+
+    Returns:
+        Optional[matplotlib.figure.Figure]: If `return_fig` is True, returns the generated figure object. Otherwise, returns None.
+
+    Raises:
+        ValueError: If `axis` is not a valid axis index (0, 1, or 2).
+        ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol)
+        ```
+        ![viz histogram](assets/screenshots/viz-histogram-vol.png)
+
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol, bins=32, slice_idx="middle", axis=1, kde=False, log_scale=True)
+        ```
+        ![viz histogram](assets/screenshots/viz-histogram-slice.png)
+    """
+
+    if not (0 <= axis < vol.ndim):
+        raise ValueError(f"Axis must be an integer between 0 and {vol.ndim - 1}.")
+
+    if slice_idx == "middle":
+        slice_idx = vol.shape[axis] // 2
+
+    if slice_idx:
+        if 0 <= slice_idx < vol.shape[axis]:
+            img_slice = np.take(vol, indices=slice_idx, axis=axis)
+            data = img_slice.ravel()
+            title = f"Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {axis}"
+        else:
+            raise ValueError(
+                f"Slice index out of range. Must be between 0 and {vol.shape[axis] - 1}."
+            )
+    else:
+        data = vol.ravel()
+        title = f"Intensity histogram for whole volume {vol.shape}"
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if log_scale:
+        plt.yscale("log")
+
+    if color == "qim3d":
+        color = qim3d.viz.colormaps.qim(1.0)
+
+    sns.histplot(
+        data,
+        bins=bins,
+        kde=kde,
+        color=color,
+        element=element,
+        edgecolor=edgecolor,
+        **sns_kwargs,
+    )
+
+    if despine:
+        sns.despine(
+            fig=None,
+            ax=None,
+            top=True,
+            right=True,
+            left=False,
+            bottom=False,
+            offset={"left": 0, "bottom": 18},
+            trim=True,
+        )
+
+    plt.xlabel("Voxel Intensity")
+    plt.ylabel("Frequency")
+
+    if show_title:
+        plt.title(title, fontsize=10)
+
+    # Handle show and return
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+    if return_fig:
+        return fig
+
+
+
 def threshold(
         volume: np.ndarray,
         cmap_image: str = 'viridis',
@@ -821,7 +990,6 @@ def threshold(
             in this mode.
 
 
-    Example:
         ```python
         import qim3d
 
@@ -948,3 +1116,4 @@ def threshold(
 
     return slicer_obj
 
+        

@@ -2,7 +2,7 @@ import argparse
 from qim3d.gui import data_explorer, iso3d, annotation_tool, local_thickness, layers2d
 
 def main():
-    parser = argparse.ArgumentParser(description='Qim3d command-line interface.')
+    parser = argparse.ArgumentParser(description='qim3d command-line interface.')
     subparsers = parser.add_subparsers(title='Subcommands', dest='subcommand')
 
     # subcommands

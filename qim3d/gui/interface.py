@@ -57,7 +57,7 @@ class BaseInterface(ABC):
             If defined, the interface will be launched with the image already there
             This argument is used especially in jupyter notebooks, where you can launch
             interface in loop with different picture every step
-        force_light_mode: The qim platform doesn't have night mode. The qim_theme thus
+        force_light_mode: The QIM platform doesn't have night mode. The QimTheme thus
             has option to display only light mode so it corresponds with the website. Preferably
             will be removed as we add night mode to the website.
         """

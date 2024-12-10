@@ -2,7 +2,7 @@ import gradio as gr
 
 class QimTheme(gr.themes.Default):
     """
-    QIM3D Theme for gradio interface
+    Theme for qim3d gradio interfaces.
     The theming options are quite broad. However if there is something you can not achieve with this theme
     there is a possibility to add some more css if you override _get_css_theme function as shown at the bottom
     in comments.
@@ -12,7 +12,7 @@ class QimTheme(gr.themes.Default):
         Parameters:
         -----------
         - force_light_mode (bool, optional): Gradio themes have dark mode by default. 
-                Qim platform is not ready for dark mode yet, thus the tools should also be in light mode.
+                QIM platform is not ready for dark mode yet, thus the tools should also be in light mode.
                 This sets the darkmode values to be the same as light mode values.
         """
         super().__init__()

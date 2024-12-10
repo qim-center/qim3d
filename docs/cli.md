@@ -33,7 +33,7 @@ This offers quick interactions, making it ideal for tasks that require efficienc
 | `--anotation-tool` | Starts the annotation tool |
 | `--layers` | Starts the tool for segmenting layers |
 | `--host` | Desired host for the server. By default runs on `0.0.0.0`  |
-| `--platform` | Uses the Qim platform API for a unique path and port depending on the username |
+| `--platform` | Uses the QIM platform API for a unique path and port depending on the username |
 
 
 !!! Example

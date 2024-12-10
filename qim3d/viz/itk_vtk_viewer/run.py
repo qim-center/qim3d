@@ -83,7 +83,7 @@ def itk_vtk(
     Opens a visualization window using the itk-vtk-viewer. Works both for common file types (Tiff, Nifti, etc.) and for **OME-Zarr stores**.
 
     This function starts the itk-vtk-viewer, either using a global
-    installation or a local installation within the QIM package. It also starts
+    installation or a local installation within the qim3d package. It also starts
     an HTTP server to serve the file to the viewer. Optionally, it can
     automatically open a browser window to display the viewer. If the viewer
     is not installed, it raises a NotInstalledError.

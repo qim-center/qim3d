@@ -137,6 +137,16 @@ The latest stable version can be simply installed using `pip`. Open your termina
 !!! note
     The base installation of `qim3d` does not include deep-learning dependencies, keeping the library lighter for scenarios where they are unnecessary. If you need to use deep-learning features, you can install the additional dependencies by running: **`pip install qim3d['deep-learning']`**
 
+After completing the installation, you can verify its success by running one or both of the following commands:
+
+    qim3d
+
+or:
+
+    pip show qim3d
+
+If either command displays information about the qim3d library, the installation was successful.
+
 ### Troubleshooting
 
 Here are some solutions for commonly found issues during installation and usage of `qim3d`.
@@ -203,15 +213,17 @@ This project is licensed under the [MIT License](https://lab.compute.dtu.dk/QIM/
 
 Below is a list of contributors to the project, arranged in chronological order of their first commit to the repository:
 
-| Author                    |   Commits | First commit |
-|:--------------------------|----------:|-------------:|
-| Felipe Delestro           |       195 | 2023-05-12   |
-| Stefan Engelmann Jensen   |        29 | 2023-06-29   |
-| Oskar Kristoffersen       |        15 | 2023-07-05   |
-| Christian Kento Rasmussen |        22 | 2024-02-01   |
-| Alessia Saccardo          |         7 | 2024-02-19   |
-| David Grundfest           |         8 | 2024-04-12   |
-| Anna Bøgevang Ekner       |         5 | 2024-04-18   |
+| Author                      |   Commits | First commit |
+|:----------------------------|----------:|-------------:|
+| Felipe Delestro             |       231 | 2023-05-12   |
+| Stefan Engelmann Jensen     |        29 | 2023-06-29   |
+| Oskar Kristoffersen         |        15 | 2023-07-05   |
+| Christian Kento Rasmussen   |        22 | 2024-02-01   |
+| Alessia Saccardo            |        13 | 2024-02-19   |
+| David Grundfest             |        16 | 2024-04-12   |
+| Anna Bøgevang Ekner         |         6 | 2024-04-18   |
+| David Diamond Wang Johansen |         1 | 2024-10-31   |
+
 
 ## Support
 

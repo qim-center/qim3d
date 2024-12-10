@@ -413,7 +413,8 @@ def save(
     """Save data to a specified file path.
 
     Args:
-        path (str): The path to save file to
+        path (str): The path to save file to. File format is chosen based on the extension. 
+            Supported extensions are: <em>'.tif', '.tiff', '.nii', '.nii.gz', '.h5', '.vol', '.vgi', '.dcm', '.DCM', '.zarr', '.jpeg', '.jpg', '.png'</em>
         data (numpy.ndarray): The data to be saved
         replace (bool, optional): Specifies if an existing file with identical path should be replaced.
             Default is False.
@@ -424,6 +425,13 @@ def save(
         sliced_dim (int, optional): Specifies the dimension that is sliced in case a TIFF stack is saved
             as several files (only relevant for TIFF stacks). Default is 0, i.e., the first dimension.
         **kwargs: Additional keyword arguments to be passed to the DataSaver constructor
+
+    Raises:
+        ValueError: If the provided path is an existing directory and self.basename is not provided <strong>OR</strong>
+         If the file format is not supported <strong>OR</strong>
+         If the provided path does not exist and self.basename is not provided <strong>OR</strong>
+         If a file extension is not provided <strong>OR</strong>
+         if a file with the specified path already exists and replace=False.
 
     Example:
         ```python

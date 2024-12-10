@@ -8,6 +8,8 @@ Volumetric visualization using K3D
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.colors import Colormap
 from qim3d.utils.logger import log
 from qim3d.utils.misc import downscale_img, scale_to_float16
 
@@ -19,6 +21,7 @@ def vol(
     save=False,
     grid_visible=False,
     cmap=None,
+    constant_opacity=False,
     vmin=None,
     vmax=None,
     samples="auto",
@@ -40,7 +43,8 @@ def vol(
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
-        cmap (list, optional): The color map to be used for the volume rendering. Defaults to None.
+        cmap (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to None.
+        constant_opacity (bool, float): Set to True if doing an object label visualization with a corresponding cmap; otherwise, the plot may appear poorly. Defaults to False.
         vmin (float, optional): Together with vmax defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         vmax (float, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
         samples (int, optional): The number of samples to be used for the volume rendering in k3d. Defaults to 512.
@@ -54,6 +58,9 @@ def vol(
 
     Raises:
         ValueError: If `aspectmode` is not `'data'` or `'cube'`.
+
+    Tip:
+        The function can be used for object label visualization using a `cmap` created with `qim3d.viz.colormaps.objects` along with setting `objects=True`. The latter ensures appropriate rendering.
 
     Example:
         Display a volume inline:
@@ -122,6 +129,24 @@ def vol(
     if vmax:
         color_range[1] = vmax
 
+    # Handle the different formats that cmap can take
+    if cmap:
+        if isinstance(cmap, str):
+            cmap = plt.get_cmap(cmap)  # Convert to Colormap object
+        if isinstance(cmap, Colormap):
+            # Convert to the format of cmap required by k3d.volume
+            attr_vals = np.linspace(0.0, 1.0, num=cmap.N)
+            RGB_vals = cmap(np.arange(0, cmap.N))[:, :3]
+            cmap = np.column_stack((attr_vals, RGB_vals)).tolist()
+
+    # Default k3d.volume settings
+    opacity_function = []
+    interpolation = True
+    if constant_opacity:
+        # without these settings, the plot will look bad when cmap is created with qim3d.viz.colormaps.objects
+        opacity_function = [0.0, float(constant_opacity), 1.0, float(constant_opacity)]
+        interpolation = False
+
     # Create the volume plot
     plt_volume = k3d.volume(
         img,
@@ -133,6 +158,8 @@ def vol(
         color_map=cmap,
         samples=samples,
         color_range=color_range,
+        opacity_function=opacity_function,
+        interpolation=interpolation,
     )
     plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume
@@ -144,7 +171,7 @@ def vol(
     if show:
         plot.display()
     else:
-        return plot  
+        return plot
 
 
 def mesh(
@@ -200,11 +227,14 @@ def mesh(
         raise ValueError("Vertices array must have shape (N, 3)")
     if faces.shape[1] != 3:
         raise ValueError("Faces array must have shape (M, 3)")
-    
-    # Ensure the correct data types and memory layout
-    verts = np.ascontiguousarray(verts.astype(np.float32))  # Cast and ensure C-contiguous layout
-    faces = np.ascontiguousarray(faces.astype(np.uint32))    # Cast and ensure C-contiguous layout
 
+    # Ensure the correct data types and memory layout
+    verts = np.ascontiguousarray(
+        verts.astype(np.float32)
+    )  # Cast and ensure C-contiguous layout
+    faces = np.ascontiguousarray(
+        faces.astype(np.uint32)
+    )  # Cast and ensure C-contiguous layout
 
     # Create the mesh plot
     plt_mesh = k3d.mesh(

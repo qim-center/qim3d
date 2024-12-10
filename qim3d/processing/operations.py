@@ -91,6 +91,9 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
     import skimage
     import scipy
 
+    if len(np.unique(bin_vol)) > 2:
+        raise ValueError("bin_vol has to be binary volume - it must contain max 2 unique values.")
+
     # Compute distance transform of binary volume
     distance = scipy.ndimage.distance_transform_edt(bin_vol)
 
@@ -125,6 +128,7 @@ def fade_mask(
     geometry: str = "spherical",
     invert: bool = False,
     axis: int = 0,
+    **kwargs,
 ) -> np.ndarray:
     """
     Apply edge fading to a volume.
@@ -133,8 +137,10 @@ def fade_mask(
         vol (np.ndarray): The volume to apply edge fading to.
         decay_rate (float, optional): The decay rate of the fading. Defaults to 10.
         ratio (float, optional): The ratio of the volume to fade. Defaults to 0.5.
-        geometric (str, optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
+        geometry (str, optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
+        invert (bool, optional): Flag for inverting the fading. Defaults to False.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
+        **kwargs: Additional keyword arguments for the edge fading.
 
     Returns:
         vol_faded (np.ndarray): The volume with edge fading applied.
@@ -165,6 +171,9 @@ def fade_mask(
     shape = vol.shape
     z, y, x = np.indices(shape)
 
+    # Store the original maximum value of the volume
+    original_max_value = np.max(vol)
+
     # Calculate the center of the array
     center = np.array([(s - 1) / 2 for s in shape])
 
@@ -177,10 +186,18 @@ def fade_mask(
         distance_list = np.delete(distance_list, axis, axis=0)
         distance = np.linalg.norm(distance_list, axis=0)
     else:
-        raise ValueError("geometric must be 'spherical' or 'cylindrical'")
+        raise ValueError("Geometry must be 'spherical' or 'cylindrical'")
+    
+    # Compute the maximum distance from the center
+    max_distance = np.linalg.norm(center)
+    
+    # Compute ratio to make synthetic blobs exactly cylindrical
+    # target_max_normalized_distance = 1.4 works well to make the blobs cylindrical
+    if "target_max_normalized_distance" in kwargs:
+        target_max_normalized_distance = kwargs["target_max_normalized_distance"]
+        ratio = np.max(distance) / (target_max_normalized_distance * max_distance)
 
     # Normalize the distances so that they go from 0 at the center to 1 at the farthest point
-    max_distance = np.linalg.norm(center)
     normalized_distance = distance / (max_distance * ratio)
 
     # Apply the decay rate
@@ -196,7 +213,10 @@ def fade_mask(
     # Apply the fading to the volume
     vol_faded = vol * fade_array
 
-    return vol_faded
+    # Normalize the volume to retain the original maximum value
+    vol_normalized = vol_faded * (original_max_value / np.max(vol_faded))
+
+    return vol_normalized
 
 
 def overlay_rgb_images(
