@@ -8,6 +8,7 @@ from .explore import (
     slices,
     chunks,
     histogram,
+    threshold,
 )
 from .itk_vtk_viewer import itk_vtk, Installer, NotInstalledError
 from .k3d import vol, mesh
