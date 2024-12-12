@@ -52,14 +52,14 @@ def test_grid_pred():
 # unit tests for slices function
 def test_slices_numpy_array_input():
     example_volume = np.ones((10, 10, 10))
-    fig = qim3d.viz.slices(example_volume, n_slices=1)
+    fig = qim3d.viz.slices_grid(example_volume, n_slices=1)
     assert isinstance(fig, plt.Figure)
 
 
 def test_slices_wrong_input_format():
     input = "not_a_volume"
     with pytest.raises(ValueError, match="Data type not supported"):
-        qim3d.viz.slices(input)
+        qim3d.viz.slices_grid(input)
 
 
 def test_slices_not_volume():
@@ -68,7 +68,7 @@ def test_slices_not_volume():
         ValueError,
         match="The provided object is not a volume as it has less than 3 dimensions.",
     ):
-        qim3d.viz.slices(example_volume)
+        qim3d.viz.slices_grid(example_volume)
 
 
 def test_slices_wrong_position_format1():
@@ -77,7 +77,7 @@ def test_slices_wrong_position_format1():
         ValueError,
         match='Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".',
     ):
-        qim3d.viz.slices(example_volume, position="invalid_slice")
+        qim3d.viz.slices_grid(example_volume, position="invalid_slice")
 
 
 def test_slices_wrong_position_format2():
@@ -86,7 +86,7 @@ def test_slices_wrong_position_format2():
         ValueError,
         match='Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".',
     ):
-        qim3d.viz.slices(example_volume, position=1.5)
+        qim3d.viz.slices_grid(example_volume, position=1.5)
 
 
 def test_slices_wrong_position_format3():
@@ -95,7 +95,7 @@ def test_slices_wrong_position_format3():
         ValueError,
         match='Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".',
     ):
-        qim3d.viz.slices(example_volume, position=[1, 2, 3.5])
+        qim3d.viz.slices_grid(example_volume, position=[1, 2, 3.5])
 
 
 def test_slices_invalid_axis_value():
@@ -104,14 +104,14 @@ def test_slices_invalid_axis_value():
         ValueError,
         match="Invalid value for 'axis'. It should be an integer between 0 and 2",
     ):
-        qim3d.viz.slices(example_volume, axis=3)
+        qim3d.viz.slices_grid(example_volume, axis=3)
 
 
 def test_slices_interpolation_option():
     example_volume = np.ones((10, 10, 10))
     img_width = 3
     interpolation_method = "bilinear"
-    fig = qim3d.viz.slices(
+    fig = qim3d.viz.slices_grid(
         example_volume,
         n_slices=1,
         img_width=img_width,
@@ -130,7 +130,7 @@ def test_slices_multiple_slices():
     example_volume = np.ones((10, 10, 10))
     img_width = 3
     n_slices = 3
-    fig = qim3d.viz.slices(example_volume, n_slices=n_slices, img_width=img_width)
+    fig = qim3d.viz.slices_grid(example_volume, n_slices=n_slices, img_width=img_width)
     # Add assertions for the expected number of subplots in the figure
     assert len(fig.get_axes()) == n_slices
 
@@ -141,13 +141,13 @@ def test_slices_axis_argument():
     img_width = 3
 
     # Call the function with different values of the axis
-    fig_axis_0 = qim3d.viz.slices(
+    fig_axis_0 = qim3d.viz.slices_grid(
         example_volume, n_slices=1, img_width=img_width, axis=0
     )
-    fig_axis_1 = qim3d.viz.slices(
+    fig_axis_1 = qim3d.viz.slices_grid(
         example_volume, n_slices=1, img_width=img_width, axis=1
     )
-    fig_axis_2 = qim3d.viz.slices(
+    fig_axis_2 = qim3d.viz.slices_grid(
         example_volume, n_slices=1, img_width=img_width, axis=2
     )
 

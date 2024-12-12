@@ -3,7 +3,7 @@ import platform
 from pathlib import Path
 import os
 import qim3d.utils
-from qim3d.utils.logger import log
+from qim3d.utils._logger import log
 
 # from .helpers import get_qim_dir, get_nvm_dir, get_viewer_binaries, get_viewer_dir, get_node_binaries_dir, NotInstalledError, SOURCE_FNM
 from .helpers import *

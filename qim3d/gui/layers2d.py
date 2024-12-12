@@ -27,7 +27,7 @@ from .interface import BaseInterface
 # from qim3d.processing import layers2d as l2d
 from qim3d.processing import overlay_rgb_images, segment_layers, get_lines
 from qim3d.io import load
-from qim3d.viz.layers2d import image_with_lines
+from qim3d.viz._layers2d import image_with_lines
 
 #TODO figure out how not update anything and go through processing when there are no data loaded
 # So user could play with the widgets but it doesnt throw error

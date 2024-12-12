@@ -1,18 +1,18 @@
 from . import colormaps
-from .cc import plot_cc
-from .detection import circles
-from .explore import (
-    interactive_fade_mask,
-    orthogonal,
+from ._cc import plot_cc
+from ._detection import circles
+from ._data_exploration import (
+    fade_mask,
     slicer,
-    slices,
+    slicer_orthogonal,
+    slices_grid,
     chunks,
     histogram,
 )
 from .itk_vtk_viewer import itk_vtk, Installer, NotInstalledError
-from .k3d import vol, mesh
-from .local_thickness_ import local_thickness
-from .structure_tensor import vectors
-from .metrics import plot_metrics, grid_overview, grid_pred, vol_masked
-from .preview import image_preview
-from . import layers2d
+from ._k3d import volumetric, mesh
+from ._local_thickness import local_thickness
+from ._structure_tensor import vectors
+from ._metrics import plot_metrics, grid_overview, grid_pred, vol_masked
+from ._preview import image_preview
+from . import _layers2d

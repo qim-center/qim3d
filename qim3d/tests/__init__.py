@@ -8,7 +8,7 @@ import shutil
 from PIL import Image
 import socket
 import numpy as np
-from qim3d.utils.logger import log
+from qim3d.utils._logger import log
 
 
 def mock_plot():

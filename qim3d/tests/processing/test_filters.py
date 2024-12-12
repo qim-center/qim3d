@@ -1,5 +1,5 @@
 import qim3d
-from qim3d.processing.filters import *
+from qim3d.filters import *
 import numpy as np
 import pytest
 import re
