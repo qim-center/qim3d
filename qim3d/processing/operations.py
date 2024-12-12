@@ -1,6 +1,8 @@
 import numpy as np
 import qim3d.processing.filters as filters
 from qim3d.utils.logger import log
+import skimage
+import scipy
 
 
 def remove_background(
@@ -88,8 +90,6 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
         ![operations-watershed_after](assets/screenshots/operations-watershed_after.png)
 
     """
-    import skimage
-    import scipy
 
     if len(np.unique(bin_vol)) > 2:
         raise ValueError("bin_vol has to be binary volume - it must contain max 2 unique values.")
