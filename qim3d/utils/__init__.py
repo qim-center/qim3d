@@ -1,7 +1,7 @@
-from . import doi
-from .system import Memory
+from . import _doi
+from ._system import Memory
 
-from .misc import (
+from ._misc import (
     get_local_ip,
     port_from_str,
     gradio_header,
@@ -13,4 +13,4 @@ from .misc import (
     scale_to_float16,
 )
 
-from .server import start_http_server
+from ._server import start_http_server

@@ -23,7 +23,7 @@ import plotly.graph_objects as go
 from scipy import ndimage
 
 from qim3d.io import load
-from qim3d.utils.logger import log
+from qim3d.utils._logger import log
 
 from qim3d.gui.interface import InterfaceWithExamples
 

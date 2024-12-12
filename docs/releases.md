@@ -114,7 +114,7 @@ This version focus on the increased usability of the `qim3d` library
 - Online documentation available at [https://platform.qim.dk/qim3d](https://platform.qim.dk/qim3d)
 - Virtual stacks also available for `txm` files
 - Updated GUI launch pipeline
-- New functionalities for `qim3d.viz.slices`
+- New functionalities for `qim3d.viz.slices_grid`
 - Introduction of `qim3d.processing.filters` 🎉 
 - Introduction of `qim3d.viz.vol` 🎉 
 
@@ -140,7 +140,7 @@ Includes new develoments toward the usability of the library, as well as its int
     - For the local thicknes GUI, now it is possible to pass and receive numpy arrays instead of using the upload functionality.
 - Improved data loader
     - Now the extensions `tif`, `h5` and `txm` are supported.
-- Added `qim3d.viz.slices` for easy slice visualization.
+- Added `qim3d.viz.slices_grid` for easy slice visualization.
 - U-net model creation
     - Model availabe from `qim3d.models.UNet`
     - Data augmentation class at `qim3d.utils.Augmentation`

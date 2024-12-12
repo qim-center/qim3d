@@ -1,7 +1,7 @@
 """ Example images for testing and demonstration purposes. """
 
 from pathlib import Path as _Path
-from qim3d.utils.logger import log as _log
+from qim3d.utils._logger import log as _log
 from qim3d.io import load as _load
 
 # Save the original log level and set to ERROR
