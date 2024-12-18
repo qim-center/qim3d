@@ -3,9 +3,9 @@
 import numpy as np
 from qim3d.utils._logger import log
 
-__all__ = ["blob_detection"]
+__all__ = ["blobs"]
 
-def blob_detection(
+def blobs(
     vol: np.ndarray,
     background: str = "dark",
     min_sigma: float = 1,
