@@ -46,13 +46,13 @@ class OMEScaler(
     """Scaler in the style of OME-Zarr.
     This is needed because their current zoom implementation is broken."""
 
-    def __init__(self, order=0, downscale=2, max_layer=5, method="scaleZYXdask"):
+    def __init__(self, order: int = 0, downscale: float = 2, max_layer: int = 5, method: str = "scaleZYXdask"):
         self.order = order
         self.downscale = downscale
         self.max_layer = max_layer
         self.method = method
 
-    def scaleZYX(self, base):
+    def scaleZYX(self, base: dask.array):
         """Downsample using :func:`scipy.ndimage.zoom`."""
         rv = [base]
         log.info(f"- Scale 0: {rv[-1].shape}")
@@ -63,7 +63,7 @@ class OMEScaler(
 
         return list(rv)
 
-    def scaleZYXdask(self, base):
+    def scaleZYXdask(self, base: dask.array):
         """
         Downsample a 3D volume using Dask and scipy.ndimage.zoom.
 

@@ -76,7 +76,7 @@ class DataLoader:
         self.dim_order = kwargs.get("dim_order", (2, 1, 0))
         self.PIL_extensions = (".jp2", ".jpg", "jpeg", ".png", "gif", ".bmp", ".webp")
 
-    def load_tiff(self, path):
+    def load_tiff(self, path: str):
         """Load a TIFF file from the specified path.
 
         Args:
@@ -100,7 +100,7 @@ class DataLoader:
 
         return vol
 
-    def load_h5(self, path):
+    def load_h5(self, path: str):
         """Load an HDF5 file from the specified path.
 
         Args:
@@ -183,7 +183,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_tiff_stack(self, path):
+    def load_tiff_stack(self, path: str):
         """Load a stack of TIFF files from the specified path.
 
         Args:
@@ -237,7 +237,7 @@ class DataLoader:
 
         return vol
 
-    def load_txrm(self, path):
+    def load_txrm(self, path: str):
         """Load a TXRM/XRM/TXM file from the specified path.
 
         Args:
@@ -308,7 +308,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_nifti(self, path):
+    def load_nifti(self, path: str):
         """Load a NIfTI file from the specified path.
 
         Args:
@@ -338,7 +338,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_pil(self, path):
+    def load_pil(self, path: str):
         """Load a PIL image from the specified path
 
         Args:
@@ -349,7 +349,7 @@ class DataLoader:
         """
         return np.array(Image.open(path))
 
-    def load_PIL_stack(self, path):
+    def load_PIL_stack(self, path: str):
         """Load a stack of PIL files from the specified path.
 
         Args:
@@ -433,7 +433,7 @@ class DataLoader:
 
       
 
-    def _load_vgi_metadata(self, path):
+    def _load_vgi_metadata(self, path: str):
         """Helper functions that loads metadata from a VGI file
 
         Args:
@@ -482,7 +482,7 @@ class DataLoader:
 
         return meta_data
 
-    def load_vol(self, path):
+    def load_vol(self, path: str):
         """Load a VOL filed based on the VGI metadata file
 
         Args:
@@ -548,7 +548,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_dicom(self, path):
+    def load_dicom(self, path: str):
         """Load a DICOM file
 
         Args:
@@ -563,7 +563,7 @@ class DataLoader:
         else:
             return dcm_data.pixel_array
 
-    def load_dicom_dir(self, path):
+    def load_dicom_dir(self, path: str):
         """Load a directory of DICOM files into a numpy 3d array
 
         Args:
@@ -654,7 +654,7 @@ class DataLoader:
                     message + " Set 'force_load=True' to ignore this error."
                 )
 
-    def load(self, path):
+    def load(self, path: str):
         """
         Load a file or directory based on the given path.
 
@@ -757,14 +757,14 @@ def _get_ole_offsets(ole):
 
 
 def load(
-    path,
-    virtual_stack=False,
-    dataset_name=None,
-    return_metadata=False,
-    contains=None,
-    progress_bar:bool = True,
+    path: str,
+    virtual_stack: bool = False,
+    dataset_name: bool = None,
+    return_metadata: bool = False,
+    contains: bool = None,
+    progress_bar: bool = True,
     force_load: bool = False,
-    dim_order=(2, 1, 0),
+    dim_order: tuple = (2, 1, 0),
     **kwargs,
 ):
     """
@@ -854,7 +854,7 @@ def load(
 
     return data
 
-def load_mesh(filename):
+def load_mesh(filename: str):
     """
     Load a mesh from an .obj file using trimesh.
 

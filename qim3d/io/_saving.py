@@ -76,7 +76,7 @@ class DataSaver:
         self.sliced_dim = kwargs.get("sliced_dim", 0)
         self.chunk_shape = kwargs.get("chunk_shape", "auto")
 
-    def save_tiff(self, path, data):
+    def save_tiff(self, path: str, data: np.ndarray):
         """Save data to a TIFF file to the given path.
 
         Args:
@@ -85,7 +85,7 @@ class DataSaver:
         """
         tifffile.imwrite(path, data, compression=self.compression)
 
-    def save_tiff_stack(self, path, data):
+    def save_tiff_stack(self, path: str, data: np.ndarray):
         """Save data as a TIFF stack containing slices in separate files to the given path.
         The slices will be named according to the basename plus a suffix with a zero-filled
         value corresponding to the slice number
@@ -124,7 +124,7 @@ class DataSaver:
                 f"Total of {no_slices} files saved following the pattern '{pattern_string}'"
             )
 
-    def save_nifti(self, path, data):
+    def save_nifti(self, path: str, data: np.ndarray):
         """Save data to a NIfTI file to the given path.
 
         Args:
@@ -154,7 +154,7 @@ class DataSaver:
         # Save image
         nib.save(img, path)
 
-    def save_vol(self, path, data):
+    def save_vol(self, path: str, data: np.ndarray):
         """Save data to a VOL file to the given path.
 
         Args:
@@ -200,7 +200,7 @@ class DataSaver:
                 "dataset", data=data, compression="gzip" if self.compression else None
             )
 
-    def save_dicom(self, path, data):
+    def save_dicom(self, path: str, data: np.ndarray):
         """Save data to a DICOM file to the given path.
 
         Args:
@@ -255,7 +255,7 @@ class DataSaver:
 
         ds.save_as(path)
 
-    def save_to_zarr(self, path, data):
+    def save_to_zarr(self, path: str, data: np.ndarray):
         """Saves a Dask array to a Zarr array on disk.
 
         Args:
@@ -284,7 +284,7 @@ class DataSaver:
             )
             zarr_array[:] = data
 
-    def save_PIL(self, path, data):
+    def save_PIL(self, path: str, data: np.ndarray):
         """Save data to a PIL file to the given path.
 
         Args:
@@ -303,7 +303,7 @@ class DataSaver:
         # Save image
         img.save(path)
 
-    def save(self, path, data):
+    def save(self, path: str, data: np.ndarray):
         """Save data to the given path.
 
         Args:

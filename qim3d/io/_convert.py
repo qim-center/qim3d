@@ -21,7 +21,7 @@ class Convert:
         """
         self.chunk_shape = kwargs.get("chunk_shape", (64, 64, 64))
 
-    def convert(self, input_path, output_path):
+    def convert(self, input_path: str, output_path: str):
         def get_file_extension(file_path):
             root, ext = os.path.splitext(file_path)
             if ext in ['.gz', '.bz2', '.xz']:  # handle common compressed extensions
@@ -67,7 +67,7 @@ class Convert:
             else:
                 raise ValueError("Invalid path")
 
-    def convert_tif_to_zarr(self, tif_path, zarr_path):
+    def convert_tif_to_zarr(self, tif_path: str, zarr_path: str):
         """Convert a tiff file to a zarr file
 
         Args:
@@ -97,7 +97,7 @@ class Convert:
 
         return z
 
-    def convert_zarr_to_tif(self, zarr_path, tif_path):
+    def convert_zarr_to_tif(self, zarr_path: str, tif_path: str):
         """Convert a zarr file to a tiff file
 
         Args:
@@ -110,7 +110,7 @@ class Convert:
         z = zarr.open(zarr_path)
         save(tif_path, z)
 
-    def convert_nifti_to_zarr(self, nifti_path, zarr_path):
+    def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str):
         """Convert a nifti file to a zarr file
 
         Args:
@@ -139,7 +139,7 @@ class Convert:
 
         return z
 
-    def convert_zarr_to_nifti(self, zarr_path, nifti_path, compression=False):
+    def convert_zarr_to_nifti(self, zarr_path: str, nifti_path: str, compression: bool = False):
         """Convert a zarr file to a nifti file
 
         Args:
