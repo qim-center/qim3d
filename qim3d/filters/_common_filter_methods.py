@@ -210,7 +210,7 @@ class Pipeline:
         return input
 
 
-def gaussian(vol, dask=False, chunks='auto', *args, **kwargs):
+def gaussian(vol, sigma, dask=False, chunks='auto', **kwargs):
     """
     Applies a Gaussian filter to the input volume using scipy.ndimage.gaussian_filter or dask_image.ndfilters.gaussian_filter.
 
@@ -227,12 +227,12 @@ def gaussian(vol, dask=False, chunks='auto', *args, **kwargs):
     
     if dask:
         if not isinstance(vol, da.Array):
-            vol = da.from_array(vol, chunks=chunks)
-        dask_vol = dask_ndfilters.gaussian_filter(vol, *args, **kwargs)
+            vol = da.from_array(vol, sigma, chunks=chunks)
+        dask_vol = dask_ndfilters.gaussian_filter(vol, **kwargs)
         res = dask_vol.compute()
         return res
     else:
-        res = ndimage.gaussian_filter(vol, *args, **kwargs)
+        res = ndimage.gaussian_filter(vol, sigma, **kwargs)
         return res
 
 

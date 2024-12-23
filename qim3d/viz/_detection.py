@@ -30,11 +30,11 @@ def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
     def _slicer(z_slice):
         clear_output(wait=True)
         fig = qim3d.viz.slices_grid(
-            vol,
-            n_slices=1,
-            position=z_slice,
-            cmap="gray",
-            show_position=False,
+            vol[z_slice:z_slice + 1],
+            num_slices=1,
+            color_map="gray",
+            display_figure=False,
+            display_positions=False,
             **kwargs
         )
         # Add circles from deteced blobs
