@@ -26,7 +26,10 @@ __all__ = [
 
 
 class FilterBase:
-    def __init__(self, dask=False, chunks="auto", *args, **kwargs):
+    def __init__(self, 
+                 dask: bool = False, 
+                 chunks: str = "auto", 
+                 *args, **kwargs):
         """
         Base class for image filters.
 
@@ -40,7 +43,7 @@ class FilterBase:
         self.kwargs = kwargs
 
 class Gaussian(FilterBase):
-    def __call__(self, input):
+    def __call__(self, input: np.ndarray):
         """
         Applies a Gaussian filter to the input.
 
@@ -54,7 +57,7 @@ class Gaussian(FilterBase):
 
 
 class Median(FilterBase):
-    def __call__(self, input):
+    def __call__(self, input: np.ndarray):
         """
         Applies a median filter to the input.
 
@@ -68,7 +71,7 @@ class Median(FilterBase):
 
 
 class Maximum(FilterBase):
-    def __call__(self, input):
+    def __call__(self, input: np.ndarray):
         """
         Applies a maximum filter to the input.
 
@@ -82,7 +85,7 @@ class Maximum(FilterBase):
 
 
 class Minimum(FilterBase):
-    def __call__(self, input):
+    def __call__(self, input: np.ndarray):
         """
         Applies a minimum filter to the input.
 
@@ -95,7 +98,7 @@ class Minimum(FilterBase):
         return minimum(input, dask=self.dask, chunks=self.chunks, **self.kwargs)
 
 class Tophat(FilterBase):
-    def __call__(self, input):
+    def __call__(self, input: np.ndarray):
         """
         Applies a tophat filter to the input.
 
@@ -210,7 +213,10 @@ class Pipeline:
         return input
 
 
-def gaussian(vol, dask=False, chunks='auto', *args, **kwargs):
+def gaussian(vol: np.ndarray, 
+             dask: bool = False, 
+             chunks: str = 'auto',
+             *args, **kwargs) -> np.ndarray:
     """
     Applies a Gaussian filter to the input volume using scipy.ndimage.gaussian_filter or dask_image.ndfilters.gaussian_filter.
 
@@ -236,7 +242,10 @@ def gaussian(vol, dask=False, chunks='auto', *args, **kwargs):
         return res
 
 
-def median(vol, dask=False, chunks='auto', **kwargs):
+def median(vol: np.ndarray, 
+           dask: bool = False, 
+           chunks: str ='auto', 
+           **kwargs) -> np.ndarray:
     """
     Applies a median filter to the input volume using scipy.ndimage.median_filter or dask_image.ndfilters.median_filter.
 
@@ -260,7 +269,10 @@ def median(vol, dask=False, chunks='auto', **kwargs):
         return res
 
 
-def maximum(vol, dask=False, chunks='auto', **kwargs):
+def maximum(vol: np.ndarray, 
+            dask: bool = False, 
+            chunks: str = 'auto', 
+            **kwargs) -> np.ndarray:
     """
     Applies a maximum filter to the input volume using scipy.ndimage.maximum_filter or dask_image.ndfilters.maximum_filter.
 
@@ -284,7 +296,10 @@ def maximum(vol, dask=False, chunks='auto', **kwargs):
         return res
 
 
-def minimum(vol, dask=False, chunks='auto', **kwargs):
+def minimum(vol: np.ndarray, 
+            dask: bool = False, 
+            chunks: str = 'auto', 
+            **kwargs) -> np.ndarray:
     """
     Applies a minimum filter to the input volume using scipy.ndimage.minimum_filter or dask_image.ndfilters.minimum_filter.
 
@@ -307,7 +322,10 @@ def minimum(vol, dask=False, chunks='auto', **kwargs):
         res = ndimage.minimum_filter(vol, **kwargs)
         return res
 
-def tophat(vol, dask=False, chunks='auto', **kwargs):
+def tophat(vol: np.ndarray, 
+           dask: bool = False, 
+           chunks: str = 'auto', 
+           **kwargs) -> np.ndarray:
     """
     Remove background from the volume.
 

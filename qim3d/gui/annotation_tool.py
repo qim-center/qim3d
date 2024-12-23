@@ -36,7 +36,7 @@ from qim3d.gui.interface import BaseInterface
 
 
 class Interface(BaseInterface):
-    def __init__(self, name_suffix: str = "", verbose: bool = False, img=None):
+    def __init__(self, name_suffix: str = "", verbose: bool = False, img: np.ndarray = None):
         super().__init__(
             title="Annotation Tool",
             height=768,
@@ -95,13 +95,13 @@ class Interface(BaseInterface):
         except FileNotFoundError:
             files = None
 
-    def create_preview(self, img_editor):
+    def create_preview(self, img_editor: gr.ImageEditor):
         background = img_editor["background"]
         masks = img_editor["layers"][0]
         overlay_image = overlay_rgb_images(background, masks)
         return overlay_image
 
-    def cerate_download_list(self, img_editor):
+    def cerate_download_list(self, img_editor: gr.ImageEditor):
         masks_rgb = img_editor["layers"][0]
         mask_threshold = 200  # This value is based
 

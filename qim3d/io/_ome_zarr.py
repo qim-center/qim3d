@@ -181,16 +181,16 @@ class OMEScaler(
 
 
 def export_ome_zarr(
-    path,
-    data,
-    chunk_size=256,
-    downsample_rate=2,
-    order=1,
-    replace=False,
-    method="scaleZYX",
+    path: str,
+    data: np.ndarray,
+    chunk_size: int = 256,
+    downsample_rate: int = 2,
+    order: int = 1,
+    replace: bool = False,
+    method: str = "scaleZYX",
     progress_bar: bool = True,
-    progress_bar_repeat_time="auto",
-):
+    progress_bar_repeat_time: str = "auto",
+) -> None:
     """
     Export 3D image data to OME-Zarr format with pyramidal downsampling.
 
@@ -299,7 +299,11 @@ def export_ome_zarr(
     return
 
 
-def import_ome_zarr(path, scale=0, load=True):
+def import_ome_zarr(
+        path: str, 
+        scale: int = 0, 
+        load: bool = True
+        ) -> np.ndarray:
     """
     Import image data from an OME-Zarr file.
 

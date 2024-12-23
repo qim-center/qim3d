@@ -401,15 +401,15 @@ class DataSaver:
 
 
 def save(
-    path,
-    data,
-    replace=False,
-    compression=False,
-    basename=None,
-    sliced_dim=0,
-    chunk_shape="auto",
+    path: str,
+    data: np.ndarray,
+    replace: bool = False,
+    compression: bool = False,
+    basename: bool = None,
+    sliced_dim: int = 0,
+    chunk_shape: str = "auto",
     **kwargs,
-):
+) -> None:
     """Save data to a specified file path.
 
     Args:
@@ -464,7 +464,10 @@ def save(
     ).save(path, data)
 
 
-def save_mesh(filename, mesh):
+def save_mesh(
+        filename: str, 
+        mesh: trimesh.Trimesh
+        ) -> None:
     """
     Save a trimesh object to an .obj file.
 

@@ -48,7 +48,7 @@ class BaseInterface(ABC):
     def set_invisible(self):
         return gr.update(visible=False)
     
-    def change_visibility(self, is_visible):
+    def change_visibility(self, is_visible: bool):
         return gr.update(visible = is_visible)
 
     def launch(self, img=None, force_light_mode: bool = True, **kwargs):
