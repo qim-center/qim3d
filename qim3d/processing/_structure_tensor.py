@@ -12,7 +12,7 @@ def structure_tensor(
     rho: float = 6.0,
     base_noise: bool = True,
     full: bool = False,
-    visualize=False,
+    visualize: bool = False,
     **viz_kwargs
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Wrapper for the 3D structure tensor implementation from the [structure_tensor package](https://github.com/Skielex/structure-tensor/).

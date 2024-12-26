@@ -1,19 +1,21 @@
 """Visualization tools"""
 
+import matplotlib.figure
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib import colormaps
 from qim3d.utils._logger import log
-
+import torch
+import matplotlib
 
 def plot_metrics(
-    *metrics,
-    linestyle="-",
-    batch_linestyle="dotted",
+    *metrics: tuple[dict[str, float]],
+    linestyle: str = "-",
+    batch_linestyle: str = "dotted",
     labels: list = None,
     figsize: tuple = (16, 6),
-    show=False
+    show: bool = False
 ):
     """
     Plots the metrics over epochs and batches.
@@ -79,8 +81,13 @@ def plot_metrics(
 
 
 def grid_overview(
-    data, num_images=7, cmap_im="gray", cmap_segm="viridis", alpha=0.5, show=False
-):
+    data: list|torch.utils.data.Dataset, 
+    num_images: int = 7, 
+    cmap_im: str = "gray", 
+    cmap_segm: str = "viridis", 
+    alpha: float = 0.5, 
+    show: bool = False
+)-> matplotlib.figure.Figure:
     """Displays an overview grid of images, labels, and masks (if they exist).
 
     Labels are the annotated target segmentations
@@ -174,13 +181,13 @@ def grid_overview(
 
 
 def grid_pred(
-    in_targ_preds,
-    num_images=7,
-    cmap_im="gray",
-    cmap_segm="viridis",
-    alpha=0.5,
-    show=False,
-):
+    in_targ_preds: tuple[np.ndarray, np.ndarray, np.ndarray],
+    num_images: int = 7,
+    cmap_im: str = "gray",
+    cmap_segm: str = "viridis",
+    alpha: float = 0.5,
+    show: bool = False,
+)-> matplotlib.figure.Figure:
     """Displays a grid of input images, predicted segmentations, ground truth segmentations, and their comparison.
 
     Displays a grid of subplots representing different aspects of the input images and segmentations.
@@ -282,7 +289,7 @@ def grid_pred(
     return fig
 
 
-def vol_masked(vol, vol_mask, viz_delta=128):
+def vol_masked(vol: np.ndarray, vol_mask: np.ndarray, viz_delta: int=128) -> np.ndarray:
     """
     Applies masking to a volume based on a binary volume mask.
 

@@ -36,7 +36,7 @@ class Memory:
             round(self.free_pct, 1),
         )
 
-def _test_disk_speed(file_size_bytes=1024, ntimes=10):
+def _test_disk_speed(file_size_bytes: int = 1024, ntimes: int =10) -> tuple[float, float, float, float]:
     '''
     Test the write and read speed of the disk by writing a file of a given size
     and then reading it back.
@@ -95,7 +95,7 @@ def _test_disk_speed(file_size_bytes=1024, ntimes=10):
     return avg_write_speed, write_speed_std, avg_read_speed, read_speed_std
 
 
-def disk_report(file_size=1024 * 1024 * 100, ntimes=10):
+def disk_report(file_size: int = 1024 * 1024 * 100, ntimes: int = 10) -> None:
     '''
     Report the average write and read speed of the disk.
 

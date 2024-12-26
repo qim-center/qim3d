@@ -9,7 +9,9 @@ from typing import List, Optional, Union
 
 import dask.array as da
 import ipywidgets as widgets
+import matplotlib.figure
 import matplotlib.pyplot as plt
+import matplotlib
 from IPython.display import SVG, display
 import matplotlib
 import numpy as np
@@ -29,7 +31,7 @@ def slices_grid(
     color_map: str = "magma",
     value_min: float = None,
     value_max: float = None,
-    image_size=None,
+    image_size: int = None,
     image_height: int = 2,
     image_width: int = 2,
     display_figure: bool = False,
@@ -38,7 +40,7 @@ def slices_grid(
     color_bar: bool = False,
     color_bar_style: str = "small",
     **matplotlib_imshow_kwargs,
-) -> plt.Figure:
+) -> matplotlib.figure.Figure:
     """Displays one or several slices from a 3d volume.
 
     By default if `slice_positions` is None, slices_grid plots `num_slices` linearly spaced slices.
@@ -296,7 +298,7 @@ def slices_grid(
     return fig
 
 
-def _get_slice_range(position: int, num_slices: int, n_total):
+def _get_slice_range(position: int, num_slices: int, n_total) -> np.ndarray:
     """Helper function for `slices`. Returns the range of slices to be displayed around the given position."""
     start_idx = position - num_slices // 2
     end_idx = (
@@ -324,7 +326,7 @@ def slicer(
     image_width: int = 3,
     display_positions: bool = False,
     interpolation: Optional[str] = None,
-    image_size=None,
+    image_size: int = None,
     color_bar: bool = False,
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
@@ -401,8 +403,8 @@ def slicer_orthogonal(
     image_width: int = 3,
     display_positions: bool = False,
     interpolation: Optional[str] = None,
-    image_size=None,
-):
+    image_size: int = None,
+)-> widgets.interactive:
     """Interactive widget for visualizing orthogonal slices of a 3D volume.
 
     Args:
@@ -461,7 +463,7 @@ def fade_mask(
     color_map: str = "magma",
     value_min: float = None,
     value_max: float = None,
-):
+)-> widgets.interactive:
     """Interactive widget for visualizing the effect of edge fading on a 3D volume.
 
     This can be used to select the best parameters before applying the mask.
@@ -596,7 +598,7 @@ def fade_mask(
     return slicer_obj
 
 
-def chunks(zarr_path: str, **kwargs):
+def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
     """
     Function to visualize chunks of a Zarr dataset using the specified visualization method.
 
@@ -861,7 +863,7 @@ def histogram(
     return_fig=False,
     show=True,
     **sns_kwargs,
-):
+) -> Optional[matplotlib.figure.Figure]:
     """
     Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
 

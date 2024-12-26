@@ -2,7 +2,14 @@ import numpy as np
 from slgbuilder import GraphObject 
 from slgbuilder import MaxflowBuilder
 
-def segment_layers(data:np.ndarray, inverted:bool = False, n_layers:int = 1, delta:float = 1, min_margin:int = 10, max_margin:int = None, wrap:bool = False):
+def segment_layers(data: np.ndarray, 
+                   inverted: bool = False, 
+                   n_layers: int = 1, 
+                   delta: float = 1, 
+                   min_margin: int = 10, 
+                   max_margin: int = None, 
+                   wrap: bool = False
+                   ) -> list:
     """
     Works on 2D and 3D data.
     Light one function wrapper around slgbuilder https://github.com/Skielex/slgbuilder to do layer segmentation

@@ -10,7 +10,7 @@ def local_thickness(
     image: np.ndarray,
     scale: float = 1,
     mask: Optional[np.ndarray] = None,
-    visualize=False,
+    visualize: bool = False,
     **viz_kwargs
 ) -> np.ndarray:
     """Wrapper for the local thickness function from the [local thickness package](https://github.com/vedranaa/local-thickness)

@@ -153,7 +153,7 @@ def fade_mask(
 
 
 def overlay_rgb_images(
-    background: np.ndarray, foreground: np.ndarray, alpha: float = 0.5, hide_black:bool = True,
+    background: np.ndarray, foreground: np.ndarray, alpha: float = 0.5, hide_black: bool = True,
 ) -> np.ndarray:
     """
     Overlay an RGB foreground onto an RGB background using alpha blending.

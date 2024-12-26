@@ -4,7 +4,7 @@ from qim3d.utils._logger import log
 
 
 class CC:
-    def __init__(self, connected_components, num_connected_components):
+    def __init__(self, connected_components: np.ndarray, num_connected_components: int):
         """
         Initializes a ConnectedComponents object.
 

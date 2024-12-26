@@ -15,18 +15,18 @@ from qim3d.utils._misc import downscale_img, scale_to_float16
 
 
 def volumetric(
-    img,
-    aspectmode="data",
-    show=True,
-    save=False,
-    grid_visible=False,
-    color_map='magma',
-    constant_opacity=False,
-    vmin=None,
-    vmax=None,
-    samples="auto",
-    max_voxels=512**3,
-    data_type="scaled_float16",
+    img: np.ndarray,
+    aspectmode: str = "data",
+    show: bool = True,
+    save: bool = False,
+    grid_visible: bool = False,
+    color_map: str = 'magma',
+    constant_opacity: bool = False,
+    vmin: float = None,
+    vmax: float = None,
+    samples: int|str = "auto",
+    max_voxels: int = 512**3,
+    data_type: str = "scaled_float16",
     **kwargs,
 ):
     """
@@ -175,13 +175,13 @@ def volumetric(
 
 
 def mesh(
-    verts,
-    faces,
-    wireframe=True,
-    flat_shading=True,
-    grid_visible=False,
-    show=True,
-    save=False,
+    verts: np.ndarray,
+    faces: np.ndarray,
+    wireframe: bool = True,
+    flat_shading: bool = True,
+    grid_visible: bool = False,
+    show: bool = True,
+    save: bool = False,
     **kwargs,
 ):
     """
