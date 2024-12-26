@@ -47,7 +47,7 @@ from qim3d.gui.interface import InterfaceWithExamples
 
 class Interface(InterfaceWithExamples):
     def __init__(self,
-                 img = None,
+                 img: np.ndarray = None,
                  verbose:bool = False,
                  plot_height:int = 768,
                  figsize:int = 6): 

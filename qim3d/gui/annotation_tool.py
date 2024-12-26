@@ -55,7 +55,7 @@ class Interface(BaseInterface):
         self.masks_rgb = None
         self.temp_files = []
 
-    def get_result(self):
+    def get_result(self) -> dict:
         # Get the temporary files from gradio
         temp_path_list = []
         for filename in os.listdir(self.temp_dir):
@@ -95,13 +95,13 @@ class Interface(BaseInterface):
         except FileNotFoundError:
             files = None
 
-    def create_preview(self, img_editor: gr.ImageEditor):
+    def create_preview(self, img_editor: gr.ImageEditor) -> np.ndarray:
         background = img_editor["background"]
         masks = img_editor["layers"][0]
         overlay_image = overlay_rgb_images(background, masks)
         return overlay_image
 
-    def cerate_download_list(self, img_editor: gr.ImageEditor):
+    def cerate_download_list(self, img_editor: gr.ImageEditor) -> list[str]:
         masks_rgb = img_editor["layers"][0]
         mask_threshold = 200  # This value is based
 

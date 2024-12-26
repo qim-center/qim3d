@@ -43,7 +43,7 @@ class FilterBase:
         self.kwargs = kwargs
 
 class Gaussian(FilterBase):
-    def __call__(self, input: np.ndarray):
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         """
         Applies a Gaussian filter to the input.
 
@@ -57,7 +57,7 @@ class Gaussian(FilterBase):
 
 
 class Median(FilterBase):
-    def __call__(self, input: np.ndarray):
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         """
         Applies a median filter to the input.
 
@@ -71,7 +71,7 @@ class Median(FilterBase):
 
 
 class Maximum(FilterBase):
-    def __call__(self, input: np.ndarray):
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         """
         Applies a maximum filter to the input.
 
@@ -85,7 +85,7 @@ class Maximum(FilterBase):
 
 
 class Minimum(FilterBase):
-    def __call__(self, input: np.ndarray):
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         """
         Applies a minimum filter to the input.
 
@@ -98,7 +98,7 @@ class Minimum(FilterBase):
         return minimum(input, dask=self.dask, chunks=self.chunks, **self.kwargs)
 
 class Tophat(FilterBase):
-    def __call__(self, input: np.ndarray):
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         """
         Applies a tophat filter to the input.
 

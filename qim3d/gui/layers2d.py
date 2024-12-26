@@ -28,6 +28,7 @@ from .interface import BaseInterface
 from qim3d.processing import overlay_rgb_images, segment_layers, get_lines
 from qim3d.io import load
 from qim3d.viz._layers2d import image_with_lines
+from typing import Dict, Any
 
 #TODO figure out how not update anything and go through processing when there are no data loaded
 # So user could play with the widgets but it doesnt throw error
@@ -302,14 +303,14 @@ class Interface(BaseInterface):
             
         
 
-    def change_plot_type(self, plot_type: str, ):
+    def change_plot_type(self, plot_type: str, ) -> tuple[Dict[str, Any], Dict[str, Any]]:
         self.plot_type = plot_type
         if plot_type == 'Segmentation lines':
             return gr.update(visible = False), gr.update(visible = True)
         else:  
             return gr.update(visible = True), gr.update(visible = False)
         
-    def change_plot_size(self, x_check: int, y_check: int, z_check: int):
+    def change_plot_size(self, x_check: int, y_check: int, z_check: int) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
         """
         Based on how many plots are we displaying (controlled by checkboxes in the bottom) we define
         also their height because gradio doesn't do it automatically. The values of heights were set just by eye.

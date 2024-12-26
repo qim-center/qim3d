@@ -6,6 +6,7 @@ import gradio as gr
 
 from .qim_theme import QimTheme
 import qim3d.gui
+import numpy as np
 
 
 # TODO: when offline it throws an error in cli
@@ -51,7 +52,7 @@ class BaseInterface(ABC):
     def change_visibility(self, is_visible: bool):
         return gr.update(visible = is_visible)
 
-    def launch(self, img=None, force_light_mode: bool = True, **kwargs):
+    def launch(self, img: np.ndarray = None, force_light_mode: bool = True, **kwargs):
         """
         img: If None, user can upload image after the interface is launched.
             If defined, the interface will be launched with the image already there
@@ -76,7 +77,7 @@ class BaseInterface(ABC):
             **kwargs,
         )
 
-    def clear(self):
+    def clear(self) -> None:
         """Used to reset outputs with the clear button"""
         return None
 

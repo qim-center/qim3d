@@ -5,7 +5,7 @@ import trimesh
 import qim3d
 
 
-def volume(obj: np.ndarray, 
+def volume(obj: np.ndarray|trimesh.Trimesh, 
            **mesh_kwargs
            ) -> float:
     """
@@ -51,7 +51,7 @@ def volume(obj: np.ndarray,
     return obj.volume
 
 
-def area(obj: np.ndarray, 
+def area(obj: np.ndarray|trimesh.Trimesh, 
          **mesh_kwargs
          ) -> float:
     """
@@ -96,7 +96,7 @@ def area(obj: np.ndarray,
     return obj.area
 
 
-def sphericity(obj: np.ndarray, 
+def sphericity(obj: np.ndarray|trimesh.Trimesh, 
                **mesh_kwargs
                ) -> float:
     """
