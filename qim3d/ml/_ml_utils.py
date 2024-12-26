@@ -3,7 +3,7 @@
 import torch
 import numpy as np
 
-from torchinfo import summary
+from torchinfo import summary, ModelStatistics
 from qim3d.utils._logger import log
 from qim3d.viz._metrics import plot_metrics
 
@@ -137,7 +137,7 @@ def train_model(
         return train_loss, val_loss
 
 
-def model_summary(dataloader: torch.utils.data.DataLoader, model: torch.nn.Module):
+def model_summary(dataloader: torch.utils.data.DataLoader, model: torch.nn.Module) -> ModelStatistics:
     """Prints the summary of a PyTorch model.
 
     Args:

@@ -13,7 +13,7 @@ def plot_metrics(
     *metrics: tuple[dict[str, float]],
     linestyle: str = "-",
     batch_linestyle: str = "dotted",
-    labels: list = None,
+    labels: list|None = None,
     figsize: tuple = (16, 6),
     show: bool = False
 ):

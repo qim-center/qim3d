@@ -23,7 +23,7 @@ class CC:
         """
         return self.cc_count
 
-    def get_cc(self, index=None, crop=False):
+    def get_cc(self, index: int|None =None, crop: bool=False) -> np.ndarray:
         """
         Get the connected component with the given index, if index is None selects a random component.
 
@@ -52,7 +52,7 @@ class CC:
         
         return volume
 
-    def get_bounding_box(self, index=None):
+    def get_bounding_box(self, index: int|None =None)-> list[tuple]:
         """Get the bounding boxes of the connected components.
 
         Args:

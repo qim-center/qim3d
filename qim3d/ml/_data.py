@@ -101,7 +101,7 @@ class Dataset(torch.utils.data.Dataset):
         return Image.open(str(image_path)).size
 
 
-def check_resize(im_height: int, im_width: int, resize: str, n_channels: int):
+def check_resize(im_height: int, im_width: int, resize: str, n_channels: int) -> tuple[int, int]:
     """
     Checks the compatibility of the image shape with the depth of the model.
     If the image height and width cannot be divided by 2 `n_channels` times, then the image size is inappropriate.
@@ -133,7 +133,7 @@ def check_resize(im_height: int, im_width: int, resize: str, n_channels: int):
     return h_adjust, w_adjust 
 
 
-def prepare_datasets(path: str, val_fraction: float, model: nn.Module, augmentation: Augmentation):
+def prepare_datasets(path: str, val_fraction: float, model: nn.Module, augmentation: Augmentation) -> tuple[torch.utils.data.Subset, torch.utils.data.Subset, torch.utils.data.Subset]:
     """
     Splits and augments the train/validation/test datasets.
 
@@ -180,7 +180,7 @@ def prepare_dataloaders(train_set: torch.utils.data,
                         batch_size: int, 
                         shuffle_train: bool = True, 
                         num_workers: int = 8, 
-                        pin_memory: bool = False):  
+                        pin_memory: bool = False) -> tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:  
     """
     Prepares the dataloaders for model training.
 

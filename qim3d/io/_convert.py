@@ -7,6 +7,7 @@ import numpy as np
 import tifffile as tiff
 import zarr
 from tqdm import tqdm
+import zarr.core
 
 from qim3d.utils._misc import stringify_path
 from qim3d.io._saving import save
@@ -67,7 +68,7 @@ class Convert:
             else:
                 raise ValueError("Invalid path")
 
-    def convert_tif_to_zarr(self, tif_path: str, zarr_path: str):
+    def convert_tif_to_zarr(self, tif_path: str, zarr_path: str) -> zarr.core.Array:
         """Convert a tiff file to a zarr file
 
         Args:
@@ -97,7 +98,7 @@ class Convert:
 
         return z
 
-    def convert_zarr_to_tif(self, zarr_path: str, tif_path: str):
+    def convert_zarr_to_tif(self, zarr_path: str, tif_path: str) -> None:
         """Convert a zarr file to a tiff file
 
         Args:
@@ -110,7 +111,7 @@ class Convert:
         z = zarr.open(zarr_path)
         save(tif_path, z)
 
-    def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str):
+    def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str) -> zarr.core.Array:
         """Convert a nifti file to a zarr file
 
         Args:
@@ -139,7 +140,7 @@ class Convert:
 
         return z
 
-    def convert_zarr_to_nifti(self, zarr_path: str, nifti_path: str, compression: bool = False):
+    def convert_zarr_to_nifti(self, zarr_path: str, nifti_path: str, compression: bool = False) -> None:
         """Convert a zarr file to a nifti file
 
         Args:
@@ -153,7 +154,7 @@ class Convert:
         save(nifti_path, z, compression=compression)
         
 
-def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)):
+def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)) -> None:
     """Convert a file to another format without loading the entire file into memory
 
     Args:

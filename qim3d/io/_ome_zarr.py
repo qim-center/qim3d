@@ -82,7 +82,7 @@ class OMEScaler(
 
 
         """
-        def resize_zoom(vol, scale_factors, order, scaled_shape):
+        def resize_zoom(vol: dask.array, scale_factors, order, scaled_shape):
 
             # Get the chunksize needed so that all the blocks match the new shape
             # This snippet comes from the original OME-Zarr-python library
@@ -182,7 +182,7 @@ class OMEScaler(
 
 def export_ome_zarr(
     path: str,
-    data: np.ndarray,
+    data: np.ndarray|dask.array,
     chunk_size: int = 256,
     downsample_rate: int = 2,
     order: int = 1,

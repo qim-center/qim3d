@@ -29,6 +29,8 @@ from qim3d.utils._system import Memory
 from qim3d.utils._progress_bar import FileLoadingProgressBar
 import trimesh
 
+from typing import Optional, Dict
+
 dask.config.set(scheduler="processes") 
 
 
@@ -100,7 +102,7 @@ class DataLoader:
 
         return vol
 
-    def load_h5(self, path: str):
+    def load_h5(self, path: str) -> tuple[np.ndarray, Optional[Dict]]:
         """Load an HDF5 file from the specified path.
 
         Args:
@@ -183,7 +185,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_tiff_stack(self, path: str):
+    def load_tiff_stack(self, path: str) -> np.ndarray|np.memmap:
         """Load a stack of TIFF files from the specified path.
 
         Args:
@@ -237,7 +239,7 @@ class DataLoader:
 
         return vol
 
-    def load_txrm(self, path: str):
+    def load_txrm(self, path: str) -> tuple[dask.array|np.ndarray, Optional[Dict]]:
         """Load a TXRM/XRM/TXM file from the specified path.
 
         Args:
@@ -766,7 +768,7 @@ def load(
     force_load: bool = False,
     dim_order: tuple = (2, 1, 0),
     **kwargs,
-):
+) -> np.ndarray:
     """
     Load data from the specified file or directory.
 
@@ -854,7 +856,7 @@ def load(
 
     return data
 
-def load_mesh(filename: str):
+def load_mesh(filename: str) -> trimesh.Trimesh:
     """
     Load a mesh from an .obj file using trimesh.
 

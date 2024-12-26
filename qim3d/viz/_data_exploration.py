@@ -298,7 +298,7 @@ def slices_grid(
     return fig
 
 
-def _get_slice_range(position: int, num_slices: int, n_total) -> np.ndarray:
+def _get_slice_range(position: int, num_slices: int, n_total: int) -> np.ndarray:
     """Helper function for `slices`. Returns the range of slices to be displayed around the given position."""
     start_idx = position - num_slices // 2
     end_idx = (
@@ -856,14 +856,14 @@ def histogram(
     log_scale: bool = False,
     despine: bool = True,
     show_title: bool = True,
-    color="qim3d",
-    edgecolor=None,
-    figsize=(8, 4.5),
-    element="step",
-    return_fig=False,
-    show=True,
+    color: str = "qim3d",
+    edgecolor: str|None = None,
+    figsize: tuple[float, float] = (8, 4.5),
+    element: str = "step",
+    return_fig: bool = False,
+    show: bool = True,
     **sns_kwargs,
-) -> Optional[matplotlib.figure.Figure]:
+) -> None|matplotlib.figure.Figure:
     """
     Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
 

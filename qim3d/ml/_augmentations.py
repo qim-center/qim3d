@@ -20,10 +20,10 @@ class Augmentation:
     """
     
     def __init__(self, 
-                 resize = 'crop', 
-                 transform_train = 'moderate', 
-                 transform_validation = None,
-                 transform_test = None,
+                 resize: str = 'crop', 
+                 transform_train: str = 'moderate', 
+                 transform_validation: str | None = None,
+                 transform_test: str | None = None,
                  mean: float = 0.5, 
                  std: float = 0.5
                 ):
@@ -38,7 +38,7 @@ class Augmentation:
         self.transform_validation = transform_validation
         self.transform_test = transform_test
     
-    def augment(self, im_h: int, im_w: int, level: bool = None):
+    def augment(self, im_h: int, im_w: int, level: bool | None = None):
         """
         Returns an albumentations.core.composition.Compose class depending on the augmentation level.
         A baseline augmentation is implemented regardless of the level, and a set of augmentations are added depending of the level.
