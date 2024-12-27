@@ -119,9 +119,10 @@ def sizeof(num: float, suffix: str = "B") -> str:
 
 
     Example:
-        >>> sizeof(1024)
+        >>> import qim3d
+        >>> qim3d.utils.sizeof(1024)
         '1.0 KB'
-        >>> sizeof(1234567890)
+        >>> qim3d.utils.sizeof(1234567890)
         '1.1 GB'
     """
     for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:

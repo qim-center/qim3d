@@ -7,7 +7,7 @@ Example:
     import qim3d
     
     # Generate synthetic blob
-    synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+    synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
     
     qim3d.io.save("fly.tif", synthetic_blob)
     ```
@@ -17,7 +17,7 @@ Example:
     import qim3d
 
     # Generate synthetic blob
-    synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+    synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
     
     qim3d.io.save("slices", synthetic_blob, basename="fly-slices", sliced_dim=0)
     ```
@@ -438,9 +438,9 @@ def save(
         import qim3d
 
         # Generate synthetic blob
-        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+        vol = qim3d.generate.noise_object(noise_scale = 0.015)
 
-        qim3d.io.save("blob.tif", synthetic_blob, replace=True)
+        qim3d.io.save("blob.tif", vol, replace=True)
         ```
 
         Volumes can also be saved with one file per slice:
@@ -448,9 +448,9 @@ def save(
         import qim3d
 
         # Generate synthetic blob
-        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+        vol = qim3d.generate.noise_object(noise_scale = 0.015)
 
-        qim3d.io.save("slices", synthetic_blob, basename="blob-slices", sliced_dim=0)
+        qim3d.io.save("slices", vol, basename="blob-slices", sliced_dim=0)
         ```
     """
 
@@ -479,14 +479,14 @@ def save_mesh(
         ```python
         import qim3d
 
-        vol = qim3d.generate.blob(base_shape=(32, 32, 32),
+        vol = qim3d.generate.noise_object(base_shape=(32, 32, 32),
                                   final_shape=(32, 32, 32),
                                   noise_scale=0.05,
                                   order=1,
                                   gamma=1.0,
                                   max_value=255,
                                   threshold=0.5)
-        mesh = qim3d.processing.create_mesh(vol)
+        mesh = qim3d.mesh.from_volume(vol)
         qim3d.io.save_mesh("mesh.obj", mesh)
         ```
     """

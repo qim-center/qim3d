@@ -104,10 +104,10 @@ class Hyperparameters:
         # This examples shows how to define a UNet model and its hyperparameters.
 
         # Defining the model
-        my_model = qim3d.models.UNet(size='medium')
+        my_model = qim3d.ml.UNet(size='medium')
 
         # Choosing the hyperparameters
-        hyperparams = qim3d.models.Hyperparameters(model=my_model, n_epochs=20, learning_rate=0.001)
+        hyperparams = qim3d.ml.Hyperparameters(model=my_model, n_epochs=20, learning_rate=0.001)
 
         params_dict = hyperparams() # Get the hyperparameters
         optimizer = params_dict['optimizer']

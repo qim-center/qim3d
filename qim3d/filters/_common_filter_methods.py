@@ -116,13 +116,13 @@ class Pipeline:
     Example:
         ```python
         import qim3d
-        from qim3d.processing import Pipeline, Median, Gaussian, Maximum, Minimum
+        from qim3d.filters import Pipeline, Median, Gaussian, Maximum, Minimum
 
         # Get data
         vol = qim3d.examples.fly_150x256x256
 
         # Show original
-        qim3d.viz.slices_grid(vol, axis=0, show=True)
+        fig1 = qim3d.viz.slices_grid(vol, num_slices=5, display_figure=True)
 
         # Create filter pipeline
         pipeline = Pipeline(
@@ -137,7 +137,7 @@ class Pipeline:
         vol_filtered = pipeline(vol)
 
         # Show filtered
-        qim3d.viz.slices_grid(vol_filtered, axis=0)
+        fig2 = qim3d.viz.slices_grid(vol_filtered, num_slices=5, display_figure=True)
         ```
         ![original volume](assets/screenshots/filter_original.png)
         ![filtered volume](assets/screenshots/filter_processed.png)
@@ -185,7 +185,7 @@ class Pipeline:
         Example:
             ```python
             import qim3d
-            from qim3d.processing import Pipeline, Maximum, Median
+            from qim3d.filters import Pipeline, Maximum, Median
 
             # Create filter pipeline
             pipeline = Pipeline(

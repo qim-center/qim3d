@@ -189,10 +189,10 @@ def noise_object_collection(
 
         # Generate synthetic collection of objects
         num_objects = 15
-        synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
+        synthetic_collection, labels = qim3d.generate.noise_object_collection(num_objects = num_objects)
 
         # Visualize synthetic collection
-        qim3d.viz.vol(synthetic_collection)
+        qim3d.viz.volumetric(synthetic_collection)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default.html" width="100%" height="500" frameborder="0"></iframe>
 
@@ -203,8 +203,8 @@ def noise_object_collection(
 
         ```python
         # Visualize labels
-        cmap = qim3d.viz.colormaps.objects(nlabels=num_objects)
-        qim3d.viz.slicer(labels, cmap=cmap, vmax=num_objects)
+        cmap = qim3d.viz.colormaps.segmentation(num_labels=num_objects)
+        qim3d.viz.slicer(labels, color_map=cmap, value_max=num_objects)
         ```
         ![synthetic_collection](assets/screenshots/synthetic_collection_default_labels.gif)
 
@@ -233,7 +233,7 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of cylindrical structures
-        vol, labels = qim3d.generate.collection(num_objects = 40,
+        vol, labels = qim3d.generate.noise_object_collection(num_objects = 40,
                                                 collection_shape = (300, 150, 150),
                                                 min_shape = (280, 10, 10),
                                                 max_shape = (290, 15, 15),
@@ -248,14 +248,14 @@ def noise_object_collection(
                                                 )
 
         # Visualize synthetic collection
-        qim3d.viz.vol(vol)
+        qim3d.viz.volumetric(vol)
 
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_cylinder.html" width="100%" height="500" frameborder="0"></iframe>
         
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(vol, n_slices=15)
+        qim3d.viz.slices_grid(vol, num_slices=15)
         ```
         ![synthetic_collection_cylinder](assets/screenshots/synthetic_collection_cylinder_slices.png)    
         
@@ -264,7 +264,7 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of tubular (hollow) structures
-        vol, labels = qim3d.generate.collection(num_objects = 10,
+        vol, labels = qim3d.generate.noise_object_collection(num_objects = 10,
                                                 collection_shape = (200, 200, 200),
                                                 min_shape = (180, 25, 25),
                                                 max_shape = (190, 35, 35),
@@ -279,13 +279,13 @@ def noise_object_collection(
                                                 )
 
         # Visualize synthetic collection
-        qim3d.viz.vol(vol)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tube.html" width="100%" height="500" frameborder="0"></iframe>
         
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(vol, n_slices=15, axis=1)
+        qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
         ```
         ![synthetic_collection_tube](assets/screenshots/synthetic_collection_tube_slices.png)
     """

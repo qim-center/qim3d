@@ -40,7 +40,7 @@ def segment_layers(data: np.ndarray,
         layers = qim3d.processing.segment_layers(layers_image, n_layers = 2)
         layer_lines = qim3d.processing.get_lines(layers)
 
-        from matplotlib import pyplot as plt
+        import matplotlib.pyplot as plt
 
         plt.imshow(layers_image, cmap='gray')
         plt.axis('off')

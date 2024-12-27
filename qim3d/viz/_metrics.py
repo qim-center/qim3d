@@ -215,10 +215,11 @@ def grid_pred(
         None
 
     Example:
+        import qim3d
         dataset = MySegmentationDataset()
         model = MySegmentationModel()
-        in_targ_preds = qim3d.utils.models.inference(dataset,model)
-        grid_pred(in_targ_preds, cmap_im='viridis', alpha=0.5)
+        in_targ_preds = qim3d.ml.inference(dataset,model)
+        qim3d.viz.grid_pred(in_targ_preds, cmap_im='viridis', alpha=0.5)
     """
     import torch
 

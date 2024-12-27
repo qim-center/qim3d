@@ -79,7 +79,7 @@ def slices_grid(
         import qim3d
 
         vol = qim3d.examples.shell_225x128x128
-        qim3d.viz.slices_grid_grid(vol, num_slices=15)
+        qim3d.viz.slices_grid(vol, num_slices=15)
         ```
         ![Grid of slices](assets/screenshots/viz-slices.png)
     """
@@ -475,6 +475,9 @@ def fade_mask(
         value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
 
+    Returns:
+        slicer_obj (widgets.HBox): The interactive widget for visualizing fade mask on slices of a 3D volume.
+    
     Example:
         ```python
         import qim3d
@@ -504,12 +507,12 @@ def fade_mask(
         )
 
         axes[0].imshow(
-            slice_img, cmap=color_map, value_min=new_value_min, value_max=new_value_max
+            slice_img, cmap=color_map, vmin=new_value_min, vmax=new_value_max
         )
         axes[0].set_title("Original")
         axes[0].axis("off")
 
-        mask = qim3d.processing.operations.fade_mask(
+        mask = qim3d.operations.fade_mask(
             np.ones_like(volume),
             decay_rate=decay_rate,
             ratio=ratio,
@@ -521,7 +524,7 @@ def fade_mask(
         axes[1].set_title("Mask")
         axes[1].axis("off")
 
-        masked_volume = qim3d.processing.operations.fade_mask(
+        masked_volume = qim3d.operations.fade_mask(
             volume,
             decay_rate=decay_rate,
             ratio=ratio,
@@ -692,7 +695,7 @@ def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
             viz_widget = widgets.Output()
             with viz_widget:
                 viz_widget.clear_output(wait=True)
-                fig = qim3d.viz.slices_grid_grid(chunk, **kwargs)
+                fig = qim3d.viz.slices_grid(chunk, **kwargs)
                 display(fig)
         elif visualization_method == "volume":
             viz_widget = widgets.Output()
