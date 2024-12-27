@@ -40,8 +40,8 @@ def local_thickness(
         ```python
         import qim3d
 
-        fly = qim3d.examples.fly_150x256x256 # 3D volume
-        lt_fly = qim3d.processing.local_thickness(fly, visualize=True, axis=0)
+        vol = qim3d.examples.fly_150x256x256
+        lt_vol = qim3d.processing.local_thickness(vol, visualize=True, axis=0)
         ```
         ![local thickness 3d](assets/screenshots/local_thickness_3d.gif)
 
@@ -49,11 +49,10 @@ def local_thickness(
         import qim3d
 
         # Generate synthetic collection of blobs
-        num_objects = 15
-        synthetic_collection, labels = qim3d.generate.noise_object_collection(num_objects = num_objects)
+        vol, labels = qim3d.generate.noise_object_collection(num_objects=15)
 
         # Extract one slice to show that localthickness works on 2D slices too
-        slice = synthetic_collection[:,:,50]
+        slice = vol[:,:,50]
         lt_blobs = qim3d.processing.local_thickness(slice, visualize=True)
 
         ```

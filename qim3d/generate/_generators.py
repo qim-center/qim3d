@@ -43,16 +43,16 @@ def noise_object(
         import qim3d
 
         # Generate synthetic blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        vol = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Visualize 3D volume
-        qim3d.viz.volumetric(synthetic_blob)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_blob.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(synthetic_blob, value_min = 0, value_max = 255, num_slices = 15)
+        qim3d.viz.slices_grid(vol, value_min = 0, value_max = 255, num_slices = 15)
         ```
         ![synthetic_blob](assets/screenshots/synthetic_blob_slices.png)
 

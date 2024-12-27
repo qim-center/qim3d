@@ -41,7 +41,10 @@ Here, we provide functionalities designed specifically for 3D image analysis and
             - maximum
             - minimum
             - tophat
-            - Pipeline
+::: qim3d.filters.Pipeline
+    options:
+        members:
+            - append
 
 ::: qim3d.features
     options:

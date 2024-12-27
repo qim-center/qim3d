@@ -189,10 +189,10 @@ def noise_object_collection(
 
         # Generate synthetic collection of objects
         num_objects = 15
-        synthetic_collection, labels = qim3d.generate.noise_object_collection(num_objects = num_objects)
+        vol, labels = qim3d.generate.noise_object_collection(num_objects = num_objects)
 
         # Visualize synthetic collection
-        qim3d.viz.volumetric(synthetic_collection)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default.html" width="100%" height="500" frameborder="0"></iframe>
 
@@ -213,7 +213,7 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of dense objects
-        synthetic_collection, labels = qim3d.generate.collection(
+        vol, labels = qim3d.generate.collection(
                                     min_high_value = 255,
                                     max_high_value = 255,
                                     min_object_noise = 0.05,
@@ -224,7 +224,7 @@ def noise_object_collection(
                                     max_gamma = 0.02)
 
         # Visualize synthetic collection
-        qim3d.viz.vol(synthetic_collection)
+        qim3d.viz.vol(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense.html" width="100%" height="500" frameborder="0"></iframe>
 
