@@ -5,5 +5,5 @@ The `qim3d` library provides a set of methods for generating volumes consisting 
 ::: qim3d.generate
     options:
         members:
-            - blob
-            - collection
+            - noise_object
+            - noise_object_collection
