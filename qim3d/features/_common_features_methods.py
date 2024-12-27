@@ -25,8 +25,8 @@ def volume(obj, logs: bool = True, **mesh_kwargs) -> float:
         mesh = qim3d.io.load_mesh('path/to/mesh.obj')
 
         # Compute the volume of the mesh
-        vol = qim3d.features.volume(mesh)
-        print('Volume:', vol)
+        volume = qim3d.features.volume(mesh)
+        print('Volume:', volume)
         ```
 
         Compute volume from a np.ndarray:
