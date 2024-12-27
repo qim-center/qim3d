@@ -31,7 +31,7 @@ def from_volume(
     Example:
         ```python
         import qim3d
-        vol = qim3d.generate.blob(base_shape=(128,128,128),
+        vol = qim3d.generate.noise_object(base_shape=(128,128,128),
                                   final_shape=(128,128,128),
                                   noise_scale=0.03,
                                   order=1,
@@ -40,7 +40,7 @@ def from_volume(
                                   threshold=0.5,
                                   dtype='uint8'
                                   )
-        mesh = qim3d.processing.create_mesh(vol, step_size=3)
+        mesh = qim3d.mesh.from_volume(vol, step_size=3)
         qim3d.viz.mesh(mesh.vertices, mesh.faces)
         ```
         <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>

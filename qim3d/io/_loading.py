@@ -568,6 +568,10 @@ class DataLoader:
 
         Args:
             path (str): Directory path
+        
+        returns:
+            numpy.ndarray, numpy.memmap or tuple: The loaded volume.
+                If 'self.return_metadata' is True, returns a tuple (volume, metadata).
         """
         import pydicom
 

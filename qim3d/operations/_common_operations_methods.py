@@ -30,15 +30,15 @@ def remove_background(
         import qim3d
 
         vol = qim3d.examples.cement_128x128x128
-        qim3d.viz.slices_grid(vol, vmin=0, vmax=255)
+        fig1 = qim3d.viz.slices_grid(vol, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
         ![operations-remove_background_before](assets/screenshots/operations-remove_background_before.png)
 
         ```python
-        vol_filtered  = qim3d.processing.operations.remove_background(vol,
+        vol_filtered  = qim3d.operations.remove_background(vol,
                                                               min_object_radius=3,
                                                               background="bright")
-        qim3d.viz.slices_grid(vol_filtered, vmin=0, vmax=255)
+        fig2 = qim3d.viz.slices_grid(vol_filtered, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
         ![operations-remove_background_after](assets/screenshots/operations-remove_background_after.png)
     """
@@ -81,15 +81,16 @@ def fade_mask(
     Example:
         ```python
         import qim3d
-        qim3d.viz.vol(vol)
+        vol = qim3d.io.load('yourVolume.tif')
+        qim3d.viz.volumetric(vol)
         ```
         Image before edge fading has visible artifacts from the support. Which obscures the object of interest.
         ![operations-edge_fade_before](assets/screenshots/operations-edge_fade_before.png)
 
         ```python
         import qim3d
-        vol_faded = qim3d.processing.operations.edge_fade(vol, decay_rate=4, ratio=0.45, geometric='cylindrical')
-        qim3d.viz.vol(vol_faded)
+        vol_faded = qim3d.operations.fade_mask(vol, decay_rate=4, ratio=0.45, geometric='cylindrical')
+        qim3d.viz.volumetrics(vol_faded)
         ```
         Afterwards the artifacts are faded out, making the object of interest more visible for visualization purposes.
         ![operations-edge_fade_after](assets/screenshots/operations-edge_fade_after.png)

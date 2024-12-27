@@ -52,7 +52,7 @@ class Downloader:
         downloader = qim3d.io.Downloader()
         data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
 
-        qim3d.viz.orthogonal(data, cmap = "magma")
+        qim3d.viz.slicer_orthogonal(data, color_map="magma")
         ```
         ![cowry shell](assets/screenshots/cowry_shell_slicer.gif)
     """

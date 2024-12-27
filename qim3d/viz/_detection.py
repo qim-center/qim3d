@@ -25,16 +25,38 @@ def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
     Returns:
         slicer_obj (ipywidgets.interactive): An interactive widget for visualizing the blobs.
 
+    Example:
+        ```python
+        import qim3d
+        import qim3d.detection
+
+        # Get data
+        vol = qim3d.examples.cement_128x128x128
+
+        # Detect blobs, and get binary mask
+        blobs, _ = qim3d.detection.blobs(
+            vol,
+            min_sigma=1,
+            max_sigma=8,
+            threshold=0.001,
+            overlap=0.1,
+            background="bright"
+            )
+
+        # Visualize detected blobs with circles method
+        qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
+        ```
+        ![blob detection](assets/screenshots/blob_detection.gif)
     """
 
     def _slicer(z_slice):
         clear_output(wait=True)
         fig = qim3d.viz.slices_grid(
-            vol,
-            n_slices=1,
-            position=z_slice,
-            cmap="gray",
-            show_position=False,
+            vol[z_slice:z_slice + 1],
+            num_slices=1,
+            color_map="gray",
+            display_figure=False,
+            display_positions=False,
             **kwargs
         )
         # Add circles from deteced blobs

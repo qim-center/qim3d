@@ -40,9 +40,9 @@ class Interface(BaseInterface):
         """
         Parameters:
         -----------
-        show_header (bool, optional): If true, prints starting info into terminal. Default is False
         verbose (bool, optional): If true, prints info during session into terminal. Defualt is False.
         figsize (int, optional): Sets the size of plots displaying the slices. Default is 8.
+        display_saturation_percentile (int, optional): Sets the display saturation percentile. Defaults to 99.
         """
         super().__init__(
             title = "Data Explorer",

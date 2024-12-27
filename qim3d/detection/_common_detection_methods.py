@@ -37,13 +37,14 @@ def blobs(
     Example:
             ```python
             import qim3d
+            import qim3d.detection
 
             # Get data
             vol = qim3d.examples.cement_128x128x128
-            vol_blurred = qim3d.processing.gaussian(vol, sigma=2)
+            vol_blurred = qim3d.filters.gaussian(vol, sigma=2)
 
             # Detect blobs, and get binary mask
-            blobs, mask = qim3d.processing.blob_detection(
+            blobs, mask = qim3d.detection.blobs(
                 vol_blurred,
                 min_sigma=1,
                 max_sigma=8,
@@ -55,7 +56,7 @@ def blobs(
             # Visualize detected blobs
             qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
             ```
-            ![blob detection](assets/screenshots/blob_detection.gif)
+            ![blob detection](assets/screenshots/blob_detection.gif)    
 
             ```python
             # Visualize binary mask
