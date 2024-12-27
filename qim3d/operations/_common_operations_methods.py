@@ -81,7 +81,7 @@ def fade_mask(
     Example:
         ```python
         import qim3d
-        vol = qim3d.io.load('yourVolume.tif')
+        vol = qim3d.io.load('heartScan.tif')
         qim3d.viz.volumetric(vol)
         ```
         Image before edge fading has visible artifacts from the support. Which obscures the object of interest.
