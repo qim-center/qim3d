@@ -61,10 +61,10 @@ def segmentation(
         ```python
         import qim3d
 
-        cmap_bright = qim3d.viz.colormaps.objects(num_labels=100, style = 'bright', first_color_background=True, background_color="black", min_dist=0.7)
-        cmap_soft = qim3d.viz.colormaps.objects(num_labels=100, style = 'soft', first_color_background=True, background_color="black", min_dist=0.2)
-        cmap_earth = qim3d.viz.colormaps.objects(num_labels=100, style = 'earth', first_color_background=True, background_color="black", min_dist=0.8)
-        cmap_ocean = qim3d.viz.colormaps.objects(num_labels=100, style = 'ocean', first_color_background=True, background_color="black", min_dist=0.9)
+        cmap_bright = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'bright', first_color_background=True, background_color="black", min_dist=0.7)
+        cmap_soft = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'soft', first_color_background=True, background_color="black", min_dist=0.2)
+        cmap_earth = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'earth', first_color_background=True, background_color="black", min_dist=0.8)
+        cmap_ocean = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'ocean', first_color_background=True, background_color="black", min_dist=0.9)
 
         display(cmap_bright)
         display(cmap_soft)
@@ -77,11 +77,11 @@ def segmentation(
         import qim3d
 
         vol = qim3d.examples.cement_128x128x128
-        binary = qim3d.processing.filters.gaussian(vol, sigma = 2) < 60
-        labeled_volume, num_labels = qim3d.processing.operations.watershed(binary)
+        binary = qim3d.filters.gaussian(vol, sigma = 2) < 60
+        labeled_volume, num_labels = qim3d.segmentation.watershed(binary)
 
-        cmap = qim3d.viz.colormaps.objects(num_labels, style = 'bright')
-        qim3d.viz.slicer(labeled_volume, axis = 1, cmap=cmap)
+        cmap = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
+        qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=cmap)
         ```
         ![colormap objects](assets/screenshots/viz-colormaps-objects.gif)
 
