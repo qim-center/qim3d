@@ -5,33 +5,45 @@ Here, we provide functionalities designed specifically for 3D image analysis and
 ::: qim3d.processing
     options:
         members:
-            - blob_detection
             - structure_tensor
             - local_thickness
-            - get_3d_cc
+            - get_lines
+            - segment_layers
+
+::: qim3d.mesh
+    options:
+        members:
+            - from_volume
+
+::: qim3d.detection
+    options:
+        members:
+            - blobs
+
+::: qim3d.operations
+    options:
+        members:
+            - remove_background
+            - fade_mask
+            - overlay_rgb_images
+
+::: qim3d.segmentation
+    options:
+      members:
+        - watershed
+        - get_3d_cc
+
+::: qim3d.filters
+    options:
+        members:
             - gaussian
             - median
             - maximum
             - minimum
             - tophat
-            - get_lines
-            - segment_layers
-            - create_mesh
+            - Pipeline
 
-::: qim3d.processing.Pipeline
-    options:
-        members:
-            - append
-
-::: qim3d.processing.operations
-    options:
-        members:
-            - remove_background
-            - watershed
-            - fade_mask
-            - overlay_rgb_images
-
-::: qim3d.processing.features
+::: qim3d.features
     options:
         members:
             - area
