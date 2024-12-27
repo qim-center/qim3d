@@ -25,8 +25,8 @@ def volume(obj, **mesh_kwargs) -> float:
         mesh = qim3d.io.load_mesh('path/to/mesh.obj')
 
         # Compute the volume of the mesh
-        volume = qim3d.features.volume(mesh)
-        print('Volume:', volume)
+        vol = qim3d.features.volume(mesh)
+        print('Volume:', vol)
         ```
 
         Compute volume from a np.ndarray:
@@ -35,8 +35,10 @@ def volume(obj, **mesh_kwargs) -> float:
 
         # Generate a 3D blob
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Compute the volume of the blob
+        volume = qim3d.features.volume(synthetic_blob, level=0.5)
         volume = qim3d.features.volume(synthetic_blob, level=0.5)
         print('Volume:', volume)
         ```
@@ -70,6 +72,7 @@ def area(obj, **mesh_kwargs) -> float:
 
         # Compute the surface area of the mesh
         area = qim3d.features.area(mesh)
+        area = qim3d.features.area(mesh)
         print(f"Area: {area}")
         ```
 
@@ -79,14 +82,17 @@ def area(obj, **mesh_kwargs) -> float:
 
         # Generate a 3D blob
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Compute the surface area of the blob
+        volume = qim3d.features.area(synthetic_blob, level=0.5)
         volume = qim3d.features.area(synthetic_blob, level=0.5)
         print('Area:', volume)
         ```
     """
     if isinstance(obj, np.ndarray):
         log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
         obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
 
     return obj.area
@@ -117,6 +123,7 @@ def sphericity(obj, **mesh_kwargs) -> float:
 
         # Compute the sphericity of the mesh
         sphericity = qim3d.features.sphericity(mesh)
+        sphericity = qim3d.features.sphericity(mesh)
         ```
 
         Compute sphericity from a np.ndarray:
@@ -125,8 +132,10 @@ def sphericity(obj, **mesh_kwargs) -> float:
 
         # Generate a 3D blob
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Compute the sphericity of the blob
+        sphericity = qim3d.features.sphericity(synthetic_blob, level=0.5)
         sphericity = qim3d.features.sphericity(synthetic_blob, level=0.5)
         ```
 
@@ -138,7 +147,10 @@ def sphericity(obj, **mesh_kwargs) -> float:
     if isinstance(obj, np.ndarray):
         log.info("Converting volume to mesh.")
         obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
+        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
 
+    volume = qim3d.features.volume(obj)
+    area = qim3d.features.area(obj)
     volume = qim3d.features.volume(obj)
     area = qim3d.features.area(obj)
 
