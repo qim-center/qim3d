@@ -10,10 +10,10 @@ def plot_cc(
     max_cc_to_plot: int = 32,
     overlay: np.ndarray = None,
     crop: bool = False,
-    show: bool = True,
-    cmap: str = "viridis",
-    vmin: float = None,
-    vmax: float = None,
+    display_figure: bool = True,
+    color_map: str = "viridis",
+    value_min: float = None,
+    value_max: float = None,
     **kwargs,
 ) -> list[plt.Figure]:
     """
@@ -75,7 +75,7 @@ def plot_cc(
                 cc = connected_components.get_cc(component, crop=False)
                 overlay_crop = np.where(cc == 0, 0, overlay)
             fig = qim3d.viz.slices_grid(
-                overlay_crop, show=show, cmap=cmap, vmin=vmin, vmax=vmax, **kwargs
+                overlay_crop, display_figure=display_figure, color_map=color_map, value_min=value_min, value_max=value_max, **kwargs
             )
         else:
             # assigns discrete color map to each connected component if not given
