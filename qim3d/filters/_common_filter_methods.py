@@ -172,12 +172,12 @@ class Pipeline:
             )
         self.filters[name] = fn
 
-    def append(self, fn: Type[FilterBase]):
+    def append(self, fn: FilterBase):
         """
         Appends a filter to the end of the sequence.
 
         Args:
-            fn: An instance of a FilterBase subclass to be appended.
+            fn (FilterBase): An instance of a FilterBase subclass to be appended.
         
         Example:
             ```python

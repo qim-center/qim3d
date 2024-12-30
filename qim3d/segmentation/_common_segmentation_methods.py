@@ -14,10 +14,8 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
                             too close will be merged, affecting the number of segmented objects. Default is 5.
 
     Returns:
-        tuple[np.ndarray, int]: 
-            - Labeled volume (np.ndarray): A 3D array of the same shape as the input `bin_vol`, where each segmented object
-              is assigned a unique integer label.
-            - num_labels (int): The total number of unique objects found in the labeled volume.
+        labeled_vol (np.ndarray): A 3D array of the same shape as the input `bin_vol`, where each segmented object is assigned a unique integer label.
+        num_labels (int): The total number of unique objects found in the labeled volume.
 
     Example:
         ```python

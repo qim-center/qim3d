@@ -22,7 +22,7 @@ def remove_background(
         **median_kwargs (Any): Additional keyword arguments for the Median filter.
 
     Returns:
-        np.ndarray: The volume with background removed.
+        filtered_vol (np.ndarray): The volume with background removed.
 
 
     Example:
@@ -76,7 +76,7 @@ def fade_mask(
         **kwargs (Any): Additional keyword arguments for the edge fading.
 
     Returns:
-        vol_faded (np.ndarray): The volume with edge fading applied.
+        faded_vol (np.ndarray): The volume with edge fading applied.
 
     Example:
         ```python
