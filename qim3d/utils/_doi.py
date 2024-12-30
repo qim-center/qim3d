@@ -56,7 +56,7 @@ def get_bibtex(doi):
 
     return _log_and_get_text(doi, header)
 
-def custom_header(doi, header):
+def custom_header(doi: str, header: str) -> str:
     """Allows a custom header to be passed
 
     Example:
