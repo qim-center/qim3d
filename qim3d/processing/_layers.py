@@ -89,7 +89,7 @@ def segment_layers(data: np.ndarray,
 
     return segmentations
 
-def get_lines(segmentations:list|np.ndarray) -> list:
+def get_lines(segmentations:list[np.ndarray]) -> list:
     """
     Expects list of arrays where each array is 2D segmentation with only 2 classes. This function gets the border between those two
     so it could be plotted. Used with qim3d.processing.segment_layers
