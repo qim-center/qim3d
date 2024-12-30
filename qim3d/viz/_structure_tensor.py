@@ -44,7 +44,7 @@ def vectors(
             be used. Defaults to None.
         grid_size (int, optional): The size of the grid. Defaults to 10.
         interactive (bool, optional): If True, returns an interactive widget. Defaults to True.
-        figsize (Tuple[int, int], optional): The size of the figure. Defaults to (15, 5).
+        figsize (tuple, optional): The size of the figure. Defaults to (15, 5).
         show (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
 
     Raises:
@@ -52,7 +52,7 @@ def vectors(
         ValueError: If the slice index is not an integer or a float between 0 and 1.
 
     Returns:
-        fig (Union[plt.Figure, widgets.interactive]): If `interactive` is True, returns an interactive widget. Otherwise, returns a matplotlib figure.
+        fig (widgets.interactive or plt.Figure): If `interactive` is True, returns an interactive widget. Otherwise, returns a matplotlib figure.
 
     Note:
         The orientation of the vectors is visualized using an HSV color map, where the saturation corresponds to the vector component
