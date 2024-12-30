@@ -10,11 +10,11 @@ def volume(obj, **mesh_kwargs) -> float:
     Compute the volume of a 3D volume or mesh.
 
     Args:
-        obj: Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
-        **mesh_kwargs: Additional arguments for mesh creation if the input is a volume.
+        obj (np.ndarray or trimesh.Trimesh): Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
+        **mesh_kwargs (Any): Additional arguments for mesh creation if the input is a volume.
 
     Returns:
-        volume: The volume of the object.
+        volume (float): The volume of the object.
 
     Example:
         Compute volume from a mesh:
@@ -54,11 +54,11 @@ def area(obj, **mesh_kwargs) -> float:
     Compute the surface area of a 3D volume or mesh.
 
     Args:
-        obj: Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
-        **mesh_kwargs: Additional arguments for mesh creation if the input is a volume.
+        obj (np.ndarray or trimesh.Trimesh): Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
+        **mesh_kwargs (Any): Additional arguments for mesh creation if the input is a volume.
 
     Returns:
-        area: The surface area of the object.
+        area (float): The surface area of the object.
 
     Example:
         Compute area from a mesh:
@@ -101,11 +101,11 @@ def sphericity(obj, **mesh_kwargs) -> float:
     actual surface area.
 
     Args:
-        obj: Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
-        **mesh_kwargs: Additional arguments for mesh creation if the input is a volume.
+        obj (np.ndarray or trimesh.Trimesh): Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
+        **mesh_kwargs (Any): Additional arguments for mesh creation if the input is a volume.
 
     Returns:
-        sphericity: A float value representing the sphericity of the object.
+        sphericity (float): A float value representing the sphericity of the object.
 
     Example:
         Compute sphericity from a mesh:

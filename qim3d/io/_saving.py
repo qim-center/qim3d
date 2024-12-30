@@ -424,14 +424,14 @@ def save(
             (only relevant for TIFF stacks). Default is None
         sliced_dim (int, optional): Specifies the dimension that is sliced in case a TIFF stack is saved
             as several files (only relevant for TIFF stacks). Default is 0, i.e., the first dimension.
-        **kwargs: Additional keyword arguments to be passed to the DataSaver constructor
+        **kwargs (Any): Additional keyword arguments to be passed to the DataSaver constructor
 
     Raises:
         ValueError: If the provided path is an existing directory and self.basename is not provided <strong>OR</strong>
-         If the file format is not supported <strong>OR</strong>
-         If the provided path does not exist and self.basename is not provided <strong>OR</strong>
-         If a file extension is not provided <strong>OR</strong>
-         if a file with the specified path already exists and replace=False.
+            If the file format is not supported <strong>OR</strong>
+            If the provided path does not exist and self.basename is not provided <strong>OR</strong>
+            If a file extension is not provided <strong>OR</strong>
+            if a file with the specified path already exists and replace=False.
 
     Example:
         ```python
@@ -469,8 +469,8 @@ def save_mesh(filename, mesh):
     Save a trimesh object to an .obj file.
 
     Args:
-        filename: The name of the file to save the mesh.
-        mesh: A trimesh.Trimesh object representing the mesh.
+        filename (str): The name of the file to save the mesh.
+        mesh (trimesh.Trimesh): A trimesh.Trimesh object representing the mesh.
 
     Example:
         ```python

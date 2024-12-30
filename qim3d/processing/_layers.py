@@ -18,7 +18,7 @@ def segment_layers(data:np.ndarray, inverted:bool = False, n_layers:int = 1, del
         wrap: If True, starting and ending point of the border between layers are at the same level
 
     Returns:
-        segmentations: list of numpy arrays, even if n_layers == 1, each array is only 0s and 1s, 1s segmenting this specific layer
+        segmentations (list[np.ndarray]): list of numpy arrays, even if n_layers == 1, each array is only 0s and 1s, 1s segmenting this specific layer
 
     Raises:
         TypeError: If Data is not np.array, if n_layers is not integer.

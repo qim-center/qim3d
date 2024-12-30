@@ -19,7 +19,7 @@ def remove_background(
         median_filter_size (int, optional): The size of the median filter. Defaults to 2.
         min_object_radius (int, optional): The radius of the structuring element for the tophat filter. Defaults to 3.
         background (str, optional): The background type. Can be 'dark' or 'bright'. Defaults to 'dark'.
-        **median_kwargs: Additional keyword arguments for the Median filter.
+        **median_kwargs (Any): Additional keyword arguments for the Median filter.
 
     Returns:
         np.ndarray: The volume with background removed.
@@ -73,7 +73,7 @@ def fade_mask(
         geometry (str, optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
         invert (bool, optional): Flag for inverting the fading. Defaults to False.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
-        **kwargs: Additional keyword arguments for the edge fading.
+        **kwargs (Any): Additional keyword arguments for the edge fading.
 
     Returns:
         vol_faded (np.ndarray): The volume with edge fading applied.

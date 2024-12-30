@@ -50,7 +50,7 @@ def volumetric(
             Lower values will render faster but with lower quality.
         max_voxels (int, optional): Defaults to 512^3.
         data_type (str, optional): Default to 'scaled_float16'.
-        **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
+        **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
         plot (k3d.plot): If `show=False`, returns the K3D plot object.
@@ -196,7 +196,7 @@ def mesh(
         save (bool or str, optional): If True, saves the visualization as an HTML file.
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
-        **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
+        **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
         plot (k3d.plot): If `show=False`, returns the K3D plot object.
