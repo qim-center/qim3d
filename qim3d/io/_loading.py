@@ -799,8 +799,13 @@ def load(
         force_load (bool, optional): If the file size exceeds available memory, a MemoryError is raised.
             If force_load is True, the error is changed to warning and the loader tries to load it anyway. Default is False.
         dim_order (tuple, optional): The order of the dimensions in the volume for .vol files. Default is (2,1,0) which corresponds to (z,y,x)
-        **kwargs: Additional keyword arguments to be passed
-        to the DataLoader constructor.
+        **kwargs: Additional keyword arguments supported by `DataLoader`:
+            - `virtual_stack` (bool)
+            - `dataset_name` (str)
+            - `return_metadata` (bool)
+            - `contains` (str)
+            - `force_load` (bool)
+            - `dim_order` (tuple)
 
     Returns:
         vol (numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple): The loaded volume
