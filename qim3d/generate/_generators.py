@@ -20,8 +20,8 @@ def noise_object(
     Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling and gamma correction.
 
     Args:
-        base_shape (tuple, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
-        final_shape (tuple, optional): Desired shape of the final volume. Defaults to (128, 128, 128).
+        base_shape (tuple of ints, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
+        final_shape (tuple of ints, optional): Desired shape of the final volume. Defaults to (128, 128, 128).
         noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
         order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
         gamma (float, optional): Gamma correction factor. Defaults to 1.0.
@@ -29,7 +29,7 @@ def noise_object(
         threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
         smooth_borders (bool, optional): Flag for automatic computation of the threshold value to ensure a blob with no straight edges. If True, the `threshold` parameter is ignored. Defaults to False.
         object_shape (str, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
-        dtype (str, optional): Desired data type of the output volume. Defaults to "uint8".
+        dtype (data-type, optional): Desired data type of the output volume. Defaults to "uint8".
 
     Returns:
         noise_object (numpy.ndarray): Generated 3D volume with specified parameters.
