@@ -52,7 +52,7 @@ class OMEScaler(
         self.max_layer = max_layer
         self.method = method
 
-    def scaleZYX(self, base: dask.array):
+    def scaleZYX(self, base: da.core.Array):
         """Downsample using :func:`scipy.ndimage.zoom`."""
         rv = [base]
         log.info(f"- Scale 0: {rv[-1].shape}")
@@ -63,7 +63,7 @@ class OMEScaler(
 
         return list(rv)
 
-    def scaleZYXdask(self, base: dask.array):
+    def scaleZYXdask(self, base: da.core.Array):
         """
         Downsample a 3D volume using Dask and scipy.ndimage.zoom.
 
@@ -82,7 +82,7 @@ class OMEScaler(
 
 
         """
-        def resize_zoom(vol: dask.array, scale_factors, order, scaled_shape):
+        def resize_zoom(vol: da.core.Array, scale_factors, order, scaled_shape):
 
             # Get the chunksize needed so that all the blocks match the new shape
             # This snippet comes from the original OME-Zarr-python library
@@ -182,7 +182,7 @@ class OMEScaler(
 
 def export_ome_zarr(
     path: str|os.PathLike,
-    data: np.ndarray|dask.array,
+    data: np.ndarray|da.core.Array,
     chunk_size: int = 256,
     downsample_rate: int = 2,
     order: int = 1,

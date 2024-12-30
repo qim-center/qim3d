@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import qim3d
 from qim3d.utils._logger import log
-from segmentation._connected_components import CC
+from qim3d.segmentation._connected_components import CC
 
 def plot_cc(
     connected_components: CC,

@@ -239,7 +239,7 @@ class DataLoader:
 
         return vol
 
-    def load_txrm(self, path: str|os.PathLike) -> tuple[dask.array|np.ndarray, Optional[Dict]]:
+    def load_txrm(self, path: str|os.PathLike) -> tuple[dask.array.core.Array|np.ndarray, Optional[Dict]]:
         """Load a TXRM/XRM/TXM file from the specified path.
 
         Args:
