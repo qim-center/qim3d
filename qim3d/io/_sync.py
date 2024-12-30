@@ -168,7 +168,7 @@ class Sync:
             )
         return
 
-    def count_files_and_dirs(self, path: str, verbose: bool = True) -> tuple[int, int]:
+    def count_files_and_dirs(self, path: str|os.PathLike, verbose: bool = True) -> tuple[int, int]:
         """Count the number of files and directories in the given path.
 
         This function recursively counts the number of files and

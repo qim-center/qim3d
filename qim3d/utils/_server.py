@@ -14,7 +14,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type")
         super().end_headers()
 
-    def list_directory(self, path: str):
+    def list_directory(self, path: str|os.PathLike):
         """Helper to produce a directory listing, includes hidden files."""
         try:
             file_list = os.listdir(path)

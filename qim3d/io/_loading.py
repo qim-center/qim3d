@@ -78,7 +78,7 @@ class DataLoader:
         self.dim_order = kwargs.get("dim_order", (2, 1, 0))
         self.PIL_extensions = (".jp2", ".jpg", "jpeg", ".png", "gif", ".bmp", ".webp")
 
-    def load_tiff(self, path: str):
+    def load_tiff(self, path: str|os.PathLike):
         """Load a TIFF file from the specified path.
 
         Args:
@@ -102,7 +102,7 @@ class DataLoader:
 
         return vol
 
-    def load_h5(self, path: str) -> tuple[np.ndarray, Optional[Dict]]:
+    def load_h5(self, path: str|os.PathLike) -> tuple[np.ndarray, Optional[Dict]]:
         """Load an HDF5 file from the specified path.
 
         Args:
@@ -185,7 +185,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_tiff_stack(self, path: str) -> np.ndarray|np.memmap:
+    def load_tiff_stack(self, path: str|os.PathLike) -> np.ndarray|np.memmap:
         """Load a stack of TIFF files from the specified path.
 
         Args:
@@ -239,7 +239,7 @@ class DataLoader:
 
         return vol
 
-    def load_txrm(self, path: str) -> tuple[dask.array|np.ndarray, Optional[Dict]]:
+    def load_txrm(self, path: str|os.PathLike) -> tuple[dask.array|np.ndarray, Optional[Dict]]:
         """Load a TXRM/XRM/TXM file from the specified path.
 
         Args:
@@ -310,7 +310,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_nifti(self, path: str):
+    def load_nifti(self, path: str|os.PathLike):
         """Load a NIfTI file from the specified path.
 
         Args:
@@ -340,7 +340,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_pil(self, path: str):
+    def load_pil(self, path: str|os.PathLike):
         """Load a PIL image from the specified path
 
         Args:
@@ -351,7 +351,7 @@ class DataLoader:
         """
         return np.array(Image.open(path))
 
-    def load_PIL_stack(self, path: str):
+    def load_PIL_stack(self, path: str|os.PathLike):
         """Load a stack of PIL files from the specified path.
 
         Args:
@@ -435,7 +435,7 @@ class DataLoader:
 
       
 
-    def _load_vgi_metadata(self, path: str):
+    def _load_vgi_metadata(self, path: str|os.PathLike):
         """Helper functions that loads metadata from a VGI file
 
         Args:
@@ -484,7 +484,7 @@ class DataLoader:
 
         return meta_data
 
-    def load_vol(self, path: str):
+    def load_vol(self, path: str|os.PathLike):
         """Load a VOL filed based on the VGI metadata file
 
         Args:
@@ -550,7 +550,7 @@ class DataLoader:
         else:
             return vol
 
-    def load_dicom(self, path: str):
+    def load_dicom(self, path: str|os.PathLike):
         """Load a DICOM file
 
         Args:
@@ -565,7 +565,7 @@ class DataLoader:
         else:
             return dcm_data.pixel_array
 
-    def load_dicom_dir(self, path: str):
+    def load_dicom_dir(self, path: str|os.PathLike):
         """Load a directory of DICOM files into a numpy 3d array
 
         Args:
@@ -607,7 +607,7 @@ class DataLoader:
             return vol
         
 
-    def load_zarr(self, path: str):
+    def load_zarr(self, path: str|os.PathLike):
         """ Loads a Zarr array from disk.
 
         Args:
@@ -656,7 +656,7 @@ class DataLoader:
                     message + " Set 'force_load=True' to ignore this error."
                 )
 
-    def load(self, path: str):
+    def load(self, path: str|os.PathLike):
         """
         Load a file or directory based on the given path.
 
@@ -759,7 +759,7 @@ def _get_ole_offsets(ole):
 
 
 def load(
-    path: str,
+    path: str|os.PathLike,
     virtual_stack: bool = False,
     dataset_name: bool = None,
     return_metadata: bool = False,

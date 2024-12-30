@@ -181,7 +181,7 @@ class OMEScaler(
 
 
 def export_ome_zarr(
-    path: str,
+    path: str|os.PathLike,
     data: np.ndarray|dask.array,
     chunk_size: int = 256,
     downsample_rate: int = 2,
@@ -300,7 +300,7 @@ def export_ome_zarr(
 
 
 def import_ome_zarr(
-        path: str, 
+        path: str|os.PathLike, 
         scale: int = 0, 
         load: bool = True
         ) -> np.ndarray:
