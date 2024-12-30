@@ -2,15 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import qim3d
 from qim3d.utils._logger import log
-
+from segmentation._connected_components import CC
 
 def plot_cc(
-    connected_components,
+    connected_components: CC,
     component_indexs: list | tuple = None,
-    max_cc_to_plot=32,
-    overlay=None,
-    crop=False,
-    display_figure=True,
+    max_cc_to_plot: int = 32,
+    overlay: np.ndarray = None,
+    crop: bool = False,
+    display_figure: bool = True,
     color_map: str = "viridis",
     value_min: float = None,
     value_max: float = None,
