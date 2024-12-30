@@ -16,7 +16,7 @@ class Downloader:
     """Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
 
     Attributes:
-        folder_name (str): Folder class with the name of the folder in <https://data.qim.dk/>
+        folder_name (str or os.PathLike): Folder class with the name of the folder in <https://data.qim.dk/>
 
     Syntax for downloading and loading a file is `qim3d.io.Downloader().{folder_name}.{file_name}(load_file=True)`
 

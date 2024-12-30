@@ -147,12 +147,12 @@ def noise_object_collection(
     Generate a 3D volume of multiple synthetic objects using Perlin noise.
 
     Args:
-        collection_shape (tuple, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
+        collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
         num_objects (int, optional): Number of synthetic objects to include in the collection. Defaults to 15.
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the objects. If not provided, they are placed randomly into the collection. Defaults to None.
-        min_shape (tuple, optional): Minimum shape of the objects. Defaults to (40, 40, 40).
-        max_shape (tuple, optional): Maximum shape of the objects. Defaults to (60, 60, 60).
-        object_shape_zoom (tuple, optional): Scaling factors for each dimension of each object. Defaults to (1.0, 1.0, 1.0).
+        min_shape (tuple of ints, optional): Minimum shape of the objects. Defaults to (40, 40, 40).
+        max_shape (tuple of ints, optional): Maximum shape of the objects. Defaults to (60, 60, 60).
+        object_shape_zoom (tuple of ints, optional): Scaling factors for each dimension of each object. Defaults to (1.0, 1.0, 1.0).
         min_object_noise (float, optional): Minimum scale factor for Perlin noise. Defaults to 0.02.
         max_object_noise (float, optional): Maximum scale factor for Perlin noise. Defaults to 0.05.
         min_rotation_degrees (int, optional): Minimum rotation angle in degrees. Defaults to 0.

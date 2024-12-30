@@ -9,13 +9,13 @@ def segment_layers(data:np.ndarray, inverted:bool = False, n_layers:int = 1, del
     Now uses only MaxflowBuilder for solving.
 
     Args:
-        data: 2D or 3D array on which it will be computed
-        inverted: if True, it will invert the brightness of the image
-        n_layers: How many layers are we looking for (result in a layer and background)
-        delta: Smoothness parameter
-        min_margin: If we want more layers, we have to have a margin otherwise they are all going to be exactly the same
-        max_margin: Maximum margin between layers
-        wrap: If True, starting and ending point of the border between layers are at the same level
+        data (np.ndarray): 2D or 3D array on which it will be computed
+        inverted (bool): if True, it will invert the brightness of the image
+        n_layers (int): How many layers are we looking for (result in a layer and background)
+        delta (float): Smoothness parameter
+        min_margin (int): If we want more layers, we have to have a margin otherwise they are all going to be exactly the same
+        max_margin (int): Maximum margin between layers
+        wrap (bool): If True, starting and ending point of the border between layers are at the same level
 
     Returns:
         segmentations (list[np.ndarray]): list of numpy arrays, even if n_layers == 1, each array is only 0s and 1s, 1s segmenting this specific layer
@@ -88,7 +88,7 @@ def get_lines(segmentations:list|np.ndarray) -> list:
     so it could be plotted. Used with qim3d.processing.segment_layers
 
     Args:
-        segmentations: list of arrays where each array is 2D segmentation with only 2 classes
+        segmentations (list of arrays): list of arrays where each array is 2D segmentation with only 2 classes
 
     Returns:
         segmentation_lines: list of 1D numpy arrays

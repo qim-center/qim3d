@@ -413,7 +413,7 @@ def save(
     """Save data to a specified file path.
 
     Args:
-        path (str): The path to save file to. File format is chosen based on the extension. 
+        path (str or os.PathLike): The path to save file to. File format is chosen based on the extension. 
             Supported extensions are: <em>'.tif', '.tiff', '.nii', '.nii.gz', '.h5', '.vol', '.vgi', '.dcm', '.DCM', '.zarr', '.jpeg', '.jpg', '.png'</em>
         data (numpy.ndarray): The data to be saved
         replace (bool, optional): Specifies if an existing file with identical path should be replaced.
@@ -469,7 +469,7 @@ def save_mesh(filename, mesh):
     Save a trimesh object to an .obj file.
 
     Args:
-        filename (str): The name of the file to save the mesh.
+        filename (str or os.PathLike): The name of the file to save the mesh.
         mesh (trimesh.Trimesh): A trimesh.Trimesh object representing the mesh.
 
     Example:
