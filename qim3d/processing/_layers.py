@@ -88,7 +88,7 @@ def get_lines(segmentations:list|np.ndarray) -> list:
     so it could be plotted. Used with qim3d.processing.segment_layers
 
     Args:
-        segmentations (list of arrays): List of arrays where each array is 2D segmentation with only 2 classes
+        segmentations (list of arrays): List of arrays where each array is 2D segmentation with only 2 classes.
 
     Returns:
         segmentation_lines (list): List of 1D numpy arrays

@@ -220,9 +220,6 @@ def export_ome_zarr(
 
         qim3d.io.export_ome_zarr("Escargot.zarr", data, chunk_size=100, downsample_rate=2)
         ```
-
-    Returns:
-        None (None): This function writes the OME-Zarr data to the specified directory and does not return any value.
     """
 
     # Check if directory exists
