@@ -50,7 +50,7 @@ def slices_grid(
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
         slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
-        slice_positions (str, int, list, optional): One or several slicing levels. If None, linearly spaced slices will be displayed. Defaults to None.
+        slice_positions (str or int or list, optional): One or several slicing levels. If None, linearly spaced slices will be displayed. Defaults to None.
         num_slices (int, optional): Defines how many slices the user wants to be displayed. Defaults to 15.
         max_columns (int, optional): The maximum number of columns to be plotted. Defaults to 5.
         color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".

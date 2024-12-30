@@ -15,9 +15,9 @@ def circles(blobs: tuple[float,float,float,float], vol: np.ndarray, alpha: float
     it defaults to the middle slice of the volume.
 
     Args:
-        blobs (array-like): An array-like object of blobs, where each blob is represented
+        blobs (tuple): An array-like object of blobs, where each blob is represented
             as a 4-tuple (p, r, c, radius). Usually the result of `qim3d.processing.blob_detection(vol)`
-        vol (array-like): The 3D volume on which to plot the blobs.
+        vol (np.ndarray): The 3D volume on which to plot the blobs.
         alpha (float, optional): The transparency of the blobs. Defaults to 0.5.
         color (str, optional): The color of the blobs. Defaults to "#ff9900".
         **kwargs (Any): Arbitrary keyword arguments for the `slices` function.
