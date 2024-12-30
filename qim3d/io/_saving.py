@@ -260,7 +260,7 @@ class DataSaver:
 
         Args:
             path (str): The path to the Zarr array on disk.
-            data (dask.array): The Dask array to be saved to disk.
+            data (dask.array.core.Array): The Dask array to be saved to disk.
 
         Returns:
             zarr.core.Array: The Zarr array saved on disk.

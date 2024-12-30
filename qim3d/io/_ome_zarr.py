@@ -70,10 +70,10 @@ class OMEScaler(
         This method performs multi-scale downsampling on a 3D dataset, generating image pyramids. It processes the data in chunks using Dask.
 
         Args:
-            base (dask.array): The 3D array (volume) to be downsampled. Must be a Dask array for chunked processing.
+            base (dask.array.core.array): The 3D array (volume) to be downsampled. Must be a Dask array for chunked processing.
 
         Returns:
-            list of dask.array: A list of downsampled volumes, where each element represents a different scale. The first element corresponds to the original resolution, and subsequent elements represent progressively downsampled versions.
+            list of dask.array.core.Array: A list of downsampled volumes, where each element represents a different scale. The first element corresponds to the original resolution, and subsequent elements represent progressively downsampled versions.
 
         The downsampling process occurs scale by scale, using the following steps:
         - For each scale, the array is resized based on the downscale factor, computed as a function of the current scale level.
