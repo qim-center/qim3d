@@ -21,7 +21,7 @@ def plot_cc(
 
     Parameters:
         connected_components (CC): The connected components object.
-        component_indexs (list | tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
+        component_indexs (list or tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
         max_cc_to_plot (int, optional): The maximum number of connected components to plot. Defaults to 32.
         overlay (np.ndarray, optional): Overlay image. Defaults to None.
         crop (bool, optional): Whether to crop the image to the cc. Defaults to False.

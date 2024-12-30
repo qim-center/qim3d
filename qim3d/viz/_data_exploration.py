@@ -604,7 +604,7 @@ def chunks(zarr_path: str, **kwargs):
     Function to visualize chunks of a Zarr dataset using the specified visualization method.
 
     Args:
-        zarr_path (str): Path to the Zarr dataset.
+        zarr_path (str or os.PathLike): Path to the Zarr dataset.
         **kwargs (Any): Additional keyword arguments to pass to the visualization method.
 
     Example:

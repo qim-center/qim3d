@@ -89,7 +89,7 @@ def itk_vtk(
     is not installed, it raises a NotInstalledError.
 
     Args:
-        filename (str, optional): Path to the file or OME-Zarr store to be visualized. Trailing slashes in
+        filename (str or or.PathLike, optional): Path to the file or OME-Zarr store to be visualized. Trailing slashes in
             the path are normalized. Defaults to None.
         open_browser (bool, optional): If True, opens the visualization in a new browser tab.
             Defaults to True.
