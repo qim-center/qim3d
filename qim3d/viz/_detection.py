@@ -20,7 +20,7 @@ def circles(blobs: tuple[float,float,float,float], vol: np.ndarray, alpha: float
         vol (array-like): The 3D volume on which to plot the blobs.
         alpha (float, optional): The transparency of the blobs. Defaults to 0.5.
         color (str, optional): The color of the blobs. Defaults to "#ff9900".
-        **kwargs: Arbitrary keyword arguments for the `slices` function.
+        **kwargs (Any): Arbitrary keyword arguments for the `slices` function.
 
     Returns:
         slicer_obj (ipywidgets.interactive): An interactive widget for visualizing the blobs.

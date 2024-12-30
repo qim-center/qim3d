@@ -222,7 +222,7 @@ def export_ome_zarr(
         ```
 
     Returns:
-        None: This function writes the OME-Zarr data to the specified directory and does not return any value.
+        None (None): This function writes the OME-Zarr data to the specified directory and does not return any value.
     """
 
     # Check if directory exists
@@ -319,8 +319,7 @@ def import_ome_zarr(
             If False, returns a lazy Dask array. Defaults to True.
 
     Returns:
-        np.ndarray or dask.array.Array: The requested image data, either as a NumPy array if `load=True`,
-        or a Dask array if `load=False`.
+        vol (np.ndarray or dask.array.Array): The requested image data, either as a NumPy array if `load=True`, or a Dask array if `load=False`.
 
     Raises:
         ValueError: If the requested `scale` does not exist in the data.

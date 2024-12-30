@@ -20,8 +20,7 @@ def from_volume(
         volume (np.ndarray): The 3D numpy array representing the volume.
         level (float, optional): The threshold value for Marching Cubes. If None, Otsu's method is used.
         step_size (int, optional): The step size for the Marching Cubes algorithm.
-        allow_degenerate (bool, optional): Whether to allow degenerate (i.e. zero-area) triangles in the end-result.
-        If False, degenerate triangles are removed, at the cost of making the algorithm slower. Default False.
+        allow_degenerate (bool, optional): Whether to allow degenerate (i.e. zero-area) triangles in the end-result. If False, degenerate triangles are removed, at the cost of making the algorithm slower. Default False.
         padding (tuple of int, optional): Padding to add around the volume.
         **kwargs: Additional keyword arguments to pass to `skimage.measure.marching_cubes`.
 

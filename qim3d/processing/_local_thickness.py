@@ -31,7 +31,7 @@ def local_thickness(
         mask (np.ndarray, optional): binary mask of the same size of the image defining parts of the
             image to be included in the computation of the local thickness. Default is None.
         visualize (bool, optional): Whether to visualize the local thickness. Default is False.
-        **viz_kwargs: Additional keyword arguments passed to `qim3d.viz.local_thickness`. Only used if `visualize=True`.
+        **viz_kwargs (Any): Additional keyword arguments passed to `qim3d.viz.local_thickness`. Only used if `visualize=True`.
 
     Returns:
         local_thickness (np.ndarray): 2D or 3D NumPy array representing the local thickness of the input image/volume.

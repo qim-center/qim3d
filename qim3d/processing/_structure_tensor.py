@@ -31,7 +31,7 @@ def structure_tensor(
         base_noise (bool, optional): A flag indicating whether to add a small noise to the volume. Default is True.
         full (bool, optional): A flag indicating that all three eigenvalues should be returned. Default is False.
         visualize (bool, optional): Whether to visualize the structure tensor. Default is False.
-        **viz_kwargs: Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
+        **viz_kwargs (Any): Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
 
     Raises:
         ValueError: If the input volume is not 3D.

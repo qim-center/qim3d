@@ -29,7 +29,7 @@ def plot_cc(
         color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
         value_min (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         value_max (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        **kwargs: Additional keyword arguments to pass to `qim3d.viz.slices_grid`.
+        **kwargs (Any): Additional keyword arguments to pass to `qim3d.viz.slices_grid`.
 
     Returns:
         figs (list[plt.Figure]): List of figures, if `display_figure=False`.

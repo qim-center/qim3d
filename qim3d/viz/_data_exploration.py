@@ -48,7 +48,7 @@ def slices_grid(
     If `slice_positions` is given as a list, `num_slices` will be ignored and the slices from `slice_positions` will be plotted.
 
     Args:
-        vol np.ndarray: The 3D volume to be sliced.
+        volume (np.ndarray): The 3D volume to be sliced.
         slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
         slice_positions (str, int, list, optional): One or several slicing levels. If None, linearly spaced slices will be displayed. Defaults to None.
         num_slices (int, optional): Defines how many slices the user wants to be displayed. Defaults to 15.
@@ -607,7 +607,7 @@ def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
 
     Args:
         zarr_path (str): Path to the Zarr dataset.
-        **kwargs: Additional keyword arguments to pass to the visualization method.
+        **kwargs (Any): Additional keyword arguments to pass to the visualization method.
 
     Example:
         ```python
@@ -874,9 +874,9 @@ def histogram(
 
     Args:
         volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
-        bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
+        bins (int or str, optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
         axis (int, optional): Axis along which to take a slice. Default is 0.
-        slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
+        slice_idx (int or str, optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
         kde (bool, optional): Whether to overlay a kernel density estimate. Default is True.
         log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
@@ -888,10 +888,10 @@ def histogram(
         element (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
         return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
         show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
-        **sns_kwargs: Additional keyword arguments for `seaborn.histplot`.
+        **sns_kwargs (Any): Additional keyword arguments for `seaborn.histplot`.
 
     Returns:
-        Optional[matplotlib.figure.Figure]: If `return_fig` is True, returns the generated figure object. Otherwise, returns None.
+        fig (Optional[matplotlib.figure.Figure]): If `return_fig` is True, returns the generated figure object. Otherwise, returns None.
 
     Raises:
         ValueError: If `axis` is not a valid axis index (0, 1, or 2).
