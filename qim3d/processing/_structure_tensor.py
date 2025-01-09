@@ -4,7 +4,7 @@ from typing import Tuple
 import logging
 import numpy as np
 from qim3d.utils._logger import log
-
+from IPython.display import display
 
 def structure_tensor(
     vol: np.ndarray,
