@@ -48,10 +48,10 @@ def slices_grid(
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
         slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
-        slice_positions (str or int or list, optional): One or several slicing levels. If None, linearly spaced slices will be displayed. Defaults to None.
+        slice_positions (int or list[int] or str or None, optional): One or several slicing levels. If None, linearly spaced slices will be displayed. Defaults to None.
         num_slices (int, optional): Defines how many slices the user wants to be displayed. Defaults to 15.
         max_columns (int, optional): The maximum number of columns to be plotted. Defaults to 5.
-        color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        color_map (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
         value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         image_height (int, optional): Height of the figure.
@@ -333,7 +333,7 @@ def slicer(
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
         slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
-        color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        color_map (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to 'magma'.
         value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         image_height (int, optional): Height of the figure. Defaults to 3.
@@ -407,7 +407,7 @@ def slicer_orthogonal(
 
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
-        color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        color_map (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
         value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         image_height (int, optional): Height of the figure.
@@ -470,8 +470,8 @@ def fade_mask(
         volume (np.ndarray): The volume to apply edge fading to.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
         color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        value_min (float or None, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        value_max (float or None, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
 
     Returns:
         slicer_obj (widgets.HBox): The interactive widget for visualizing fade mask on slices of a 3D volume.
@@ -874,7 +874,7 @@ def histogram(
         volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
         bins (int or str, optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
         axis (int, optional): Axis along which to take a slice. Default is 0.
-        slice_idx (int or str, optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
+        slice_idx (int or str or None, optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
         kde (bool, optional): Whether to overlay a kernel density estimate. Default is True.
         log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
@@ -882,7 +882,7 @@ def histogram(
         show_title (bool, optional): If True, displays a title with slice information. Default is True.
         color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
         edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
-        figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
+        figsize (tuple of floats, optional): Size of the figure (width, height). Default is (8, 4.5).
         element (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
         return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
         show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.

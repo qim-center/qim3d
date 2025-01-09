@@ -12,7 +12,7 @@ class UNet(nn.Module):
     This class represents a 2D UNet model designed for imaging segmentation tasks.
 
     Args:
-        size (str, optional): Size of the UNet model. Must be one of 'small', 'medium', or 'large'. Defaults to 'medium'.
+        size ('small' or 'medium' or 'large', optional): Size of the UNet model. Must be one of 'small', 'medium', or 'large'. Defaults to 'medium'.
         dropout (float, optional): Dropout rate between 0 and 1. Defaults to 0.
         kernel_size (int, optional): Convolution kernel size. Defaults to 3.
         up_kernel_size (int, optional): Up-convolution kernel size. Defaults to 3.

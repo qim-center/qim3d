@@ -152,7 +152,7 @@ def noise_object_collection(
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the objects. If not provided, they are placed randomly into the collection. Defaults to None.
         min_shape (tuple of ints, optional): Minimum shape of the objects. Defaults to (40, 40, 40).
         max_shape (tuple of ints, optional): Maximum shape of the objects. Defaults to (60, 60, 60).
-        object_shape_zoom (tuple of ints, optional): Scaling factors for each dimension of each object. Defaults to (1.0, 1.0, 1.0).
+        object_shape_zoom (tuple of floats, optional): Scaling factors for each dimension of each object. Defaults to (1.0, 1.0, 1.0).
         min_object_noise (float, optional): Minimum scale factor for Perlin noise. Defaults to 0.02.
         max_object_noise (float, optional): Maximum scale factor for Perlin noise. Defaults to 0.05.
         min_rotation_degrees (int, optional): Minimum rotation angle in degrees. Defaults to 0.
@@ -165,7 +165,7 @@ def noise_object_collection(
         min_threshold (float, optional): Minimum threshold value for clipping low intensity values. Defaults to 0.5.
         max_threshold (float, optional): Maximum threshold value for clipping low intensity values. Defaults to 0.6.
         smooth_borders (bool, optional): Flag for smoothing object borders to avoid straight edges in the objects. If True, the `min_threshold` and `max_threshold` parameters are ignored. Defaults to False.
-        object_shape (str, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
+        object_shape (str or None, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
         seed (int, optional): Seed for reproducibility. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
 

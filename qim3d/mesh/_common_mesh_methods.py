@@ -25,7 +25,7 @@ def from_volume(
         **kwargs: Additional keyword arguments to pass to `skimage.measure.marching_cubes`.
 
     Returns:
-        trimesh.Trimesh: The generated mesh.
+        mesh (trimesh.Trimesh): The generated mesh.
 
     Example:
         ```python

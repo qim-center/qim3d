@@ -23,12 +23,12 @@ def plot_cc(
         connected_components (CC): The connected components object.
         component_indexs (list or tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
         max_cc_to_plot (int, optional): The maximum number of connected components to plot. Defaults to 32.
-        overlay (np.ndarray, optional): Overlay image. Defaults to None.
+        overlay (np.ndarray or None, optional): Overlay image. Defaults to None.
         crop (bool, optional): Whether to crop the image to the cc. Defaults to False.
         display_figure (bool, optional): Whether to show the figure. Defaults to True.
         color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        value_min (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        value_max (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        value_min (float or None, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        value_max (float or None, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         **kwargs (Any): Additional keyword arguments to pass to `qim3d.viz.slices_grid`.
 
     Returns:

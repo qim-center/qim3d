@@ -105,7 +105,7 @@ class Tophat(FilterBase):
         Returns:
             The filtered image or volume.
         """
-        return tophat(input, dask=self.dask, chunks=self.chunks, **self.kwargs)
+        return tophat(input, dask=self.dask, **self.kwargs)
 
 
 class Pipeline:
@@ -307,7 +307,7 @@ def minimum(vol, dask=False, chunks='auto', **kwargs):
         res = ndimage.minimum_filter(vol, **kwargs)
         return res
 
-def tophat(vol, dask=False, chunks='auto', **kwargs):
+def tophat(vol, dask=False, **kwargs):
     """
     Remove background from the volume.
 

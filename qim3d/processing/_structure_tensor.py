@@ -26,8 +26,8 @@ def structure_tensor(
 
     Args:
         vol (np.ndarray): 3D NumPy array representing the volume.
-        sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing.
-        rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed.
+        sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing. Defaults to 1.0.
+        rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed. Defaults to 6.0.
         base_noise (bool, optional): A flag indicating whether to add a small noise to the volume. Default is True.
         full (bool, optional): A flag indicating that all three eigenvalues should be returned. Default is False.
         visualize (bool, optional): Whether to visualize the structure tensor. Default is False.

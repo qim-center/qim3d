@@ -54,7 +54,7 @@ def segmentation(
         seed (int, optional): Seed for random number generator. Defaults to 19.
 
     Returns:
-        cmap (matplotlib.colors.LinearSegmentedColormap): Colormap for matplotlib
+        color_map (matplotlib.colors.LinearSegmentedColormap): Colormap for matplotlib
 
 
     Example:
@@ -80,15 +80,15 @@ def segmentation(
         binary = qim3d.filters.gaussian(vol, sigma = 2) < 60
         labeled_volume, num_labels = qim3d.segmentation.watershed(binary)
 
-        cmap = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
-        qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=cmap)
+        color_map = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
+        qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=color_map)
         ```
         ![colormap objects](assets/screenshots/viz-colormaps-objects.gif)
 
     Tip:
         It can be easily used when calling visualization functions as
         ```python
-        qim3d.viz.slices_grid(segmented_volume, cmap = 'objects')
+        qim3d.viz.slices_grid(segmented_volume, color_map = 'objects')
         ```
         which automatically detects number of unique classes 
         and creates the colormap object with defualt arguments.

@@ -28,7 +28,7 @@ def local_thickness(
             If grayscale, it will be binarized using Otsu's method.
         scale (float, optional): Downscaling factor, e.g. 0.5 for halving each dim of the image.
             Default is 1.
-        mask (np.ndarray, optional): binary mask of the same size of the image defining parts of the
+        mask (np.ndarray or None, optional): Binary mask of the same size of the image defining parts of the
             image to be included in the computation of the local thickness. Default is None.
         visualize (bool, optional): Whether to visualize the local thickness. Default is False.
         **viz_kwargs (Any): Additional keyword arguments passed to `qim3d.viz.local_thickness`. Only used if `visualize=True`.

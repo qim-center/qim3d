@@ -37,7 +37,7 @@ def vectors(
         volume_cmap (str, optional): Defines colormap for display of the volume
         vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        slice_idx (int or float, optional): The initial slice to be visualized. The slice index
+        slice_idx (int or float or None, optional): The initial slice to be visualized. The slice index
             can afterwards be changed. If value is an integer, it will be the index of the slice
             to be visualized. If value is a float between 0 and 1, it will be multiplied by the
             number of slices and rounded to the nearest integer. If None, the middle slice will

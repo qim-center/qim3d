@@ -10,12 +10,12 @@ def segment_layers(data:np.ndarray, inverted:bool = False, n_layers:int = 1, del
 
     Args:
         data (np.ndarray): 2D or 3D array on which it will be computed
-        inverted (bool): if True, it will invert the brightness of the image
-        n_layers (int): How many layers are we looking for (result in a layer and background)
-        delta (float): Smoothness parameter
-        min_margin (int): If we want more layers, we have to have a margin otherwise they are all going to be exactly the same
-        max_margin (int): Maximum margin between layers
-        wrap (bool): If True, starting and ending point of the border between layers are at the same level
+        inverted (bool): If True, it will invert the brightness of the image. Defaults to False
+        n_layers (int): Determines amount of layers to look for (result in a layer and background). Defaults to 1.
+        delta (float): Patameter determining smoothness. Defaults to 1.
+        min_margin (int or None): Parameter for minimum margin. If more layers are wanted, a margin is necessary to avoid layers being identical. Defaults to None.
+        max_margin (int or None): Parameter for maximum margin. If more layers are wanted, a margin is necessary to avoid layers being identical. Defaults to None.
+        wrap (bool): If True, starting and ending point of the border between layers are at the same level. Defaults to False.
 
     Returns:
         segmentations (list[np.ndarray]): list of numpy arrays, even if n_layers == 1, each array is only 0s and 1s, 1s segmenting this specific layer
@@ -88,10 +88,10 @@ def get_lines(segmentations:list|np.ndarray) -> list:
     so it could be plotted. Used with qim3d.processing.segment_layers
 
     Args:
-        segmentations (list of arrays): list of arrays where each array is 2D segmentation with only 2 classes
+        segmentations (list of arrays): List of arrays where each array is 2D segmentation with only 2 classes
 
     Returns:
-        segmentation_lines: list of 1D numpy arrays
+        segmentation_lines (list): List of 1D numpy arrays
     """
     segmentation_lines = [np.argmin(s, axis=0) - 0.5 for s in segmentations]
     return segmentation_lines
