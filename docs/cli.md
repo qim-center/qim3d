@@ -11,6 +11,7 @@ This offers quick interactions, making it ideal for tasks that require efficienc
 
 
 ## Graphical User Interfaces
+The command line interface allows you to run graphical user interfaces directly from the terminal.
 
 ### `qim3d gui`
 !!! quote "Reference"
@@ -38,7 +39,7 @@ This offers quick interactions, making it ideal for tasks that require efficienc
 
 !!! Example
 
-    Here's an example of how to open the [Data Explorer](gui.md#data_explorer)
+    Here's an example of how to open the [Data Explorer](gui.md#qim3d.gui.data_explorer)
 
     ``` title="Command"
     qim3d gui --data-explorer
@@ -82,16 +83,6 @@ This offers quick interactions, making it ideal for tasks that require efficienc
     In this case, the GUI will be available at `http://127.0.0.1:47326/gui/fima/47326/`
 
     ![Local thickness GUI](assets/screenshots/GUI-local_thickness.png)
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -190,7 +181,8 @@ Or an specific path for destination can be used. We can also choose to not open 
     This writes to disk the `my_plot.html` file.
 
 ## File preview
-Command line interface, which allows users to preview 3D structers or 2D images directly in command line.
+File previewing can also be done directly from the command line interface to preview 3D structure or 2D images.
+
 ###  `qim3d preview`
 | Arguments | Description |
 | --------- | ----------- |
