@@ -1,15 +1,16 @@
 import subprocess
-import platform
 from pathlib import Path
 import os
-import qim3d.utils
-from qim3d.utils._logger import log
-
-# from .helpers import get_qim_dir, get_nvm_dir, get_viewer_binaries, get_viewer_dir, get_node_binaries_dir, NotInstalledError, SOURCE_FNM
-from .helpers import *
 import webbrowser
 import threading
 import time
+
+import qim3d.utils
+from qim3d.utils._logger import log
+
+from .helpers import *
+from .installation import Installer
+
 
 
 # Start viewer
@@ -73,7 +74,7 @@ def run_within_qim_dir(port=3000):
     )
 
 
-def itk_vtk(
+def try_opening_itk_vtk(
     filename: str = None,
     open_browser: bool = True,
     file_server_port: int = 8042,
@@ -120,8 +121,8 @@ def itk_vtk(
         1.85GB [00:17, 111MB/s]                                                         
 
         Loading Okinawa_Foram_1.tif
-        Loading: 100%
-         1.85GB/1.85GB  [00:02<00:00, 762MB/s]
+        Loading: 100%
+         1.85GB/1.85GB  [00:02<00:00, 762MB/s]
         Loaded shape: (995, 1014, 984)
         Using virtual stack
         Exporting data to OME-Zarr format at Okinawa_Foram_1.zarr
@@ -207,3 +208,34 @@ def itk_vtk(
     # If we still get an error, it is not installed in location we expect it to be installed and have to raise an error
     # which will be caught in the command line and it will ask for installation
     raise NotInstalledError
+
+
+def itk_vtk(
+    filename: str = None,
+    open_browser: bool = True,
+    file_server_port: int = 8042,
+    viewer_port: int = 3000
+    ):
+    """
+    Command to run in cli/__init__.py. Tries to run the vizualization,
+    if that fails, asks the user to install it. This function is needed
+    here so we don't have to import NotInstalledError and Installer, 
+    which exposes these to user.
+    """
+
+    try:
+        try_opening_itk_vtk(filename, 
+                open_browser=open_browser,
+                file_server_port = file_server_port,
+                viewer_port = viewer_port)
+
+    except NotInstalledError:
+        message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let qim3D install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want qim3D to install itk-vtk-viewer now?"
+        print(message)
+        answer = input("[Y/n]:")
+        if answer in "Yy":
+            Installer().install()
+            try_opening_itk_vtk(filename, 
+                    open_browser=open_browser,
+                    file_server_port = file_server_port,
+                    viewer_port = viewer_port)
