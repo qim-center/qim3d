@@ -14,7 +14,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Headers", "X-Requested-With, Content-Type")
         super().end_headers()
 
-    def list_directory(self, path):
+    def list_directory(self, path: str|os.PathLike):
         """Helper to produce a directory listing, includes hidden files."""
         try:
             file_list = os.listdir(path)
@@ -49,7 +49,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         # Write the encoded HTML directly to the response
         self.wfile.write(encoded)
 
-def start_http_server(directory, port=8000):
+def start_http_server(directory: str, port: int = 8000) -> HTTPServer:
     """
     Starts an HTTP server serving the specified directory on the given port with CORS enabled.
     

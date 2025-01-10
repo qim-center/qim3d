@@ -20,6 +20,7 @@ import os
 import re
 
 import gradio as gr
+import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import outputformat as ouf
@@ -29,6 +30,8 @@ from qim3d.utils._logger import log
 from qim3d.utils import _misc
 
 from qim3d.gui.interface import BaseInterface
+from typing import Callable, Any, Dict
+import matplotlib
 
 
 class Interface(BaseInterface):
@@ -271,7 +274,7 @@ class Interface(BaseInterface):
         operations.change(fn=self.show_results, inputs = operations, outputs = results)
         cmap.change(fn=self.run_operations, inputs = pipeline_inputs, outputs = pipeline_outputs)
 
-    def update_explorer(self, new_path):
+    def update_explorer(self, new_path: str):
         new_path = os.path.expanduser(new_path)
 
         # In case we have a directory
@@ -367,7 +370,7 @@ class Interface(BaseInterface):
         except Exception as error_message:
             self.error_message = F"Error when loading data: {error_message}"
     
-    def run_operations(self, operations, *args):
+    def run_operations(self, operations: list[str], *args) -> list[Dict[str, Any]]:
         outputs = []
         self.calculated_operations = []
         for operation in self.all_operations:
@@ -411,7 +414,7 @@ class Interface(BaseInterface):
             case _:
                 raise NotImplementedError(F"Operation '{operation} is not defined")
 
-    def show_results(self, operations):
+    def show_results(self, operations: list[str]) -> list[Dict[str, Any]]:
         update_list = []
         for operation in self.all_operations:
             if operation in operations and operation in self.calculated_operations:
@@ -426,7 +429,7 @@ class Interface(BaseInterface):
 #
 #######################################################
 
-    def create_img_fig(self, img, **kwargs):
+    def create_img_fig(self, img: np.ndarray, **kwargs) -> matplotlib.figure.Figure:
         fig, ax = plt.subplots(figsize=(self.figsize, self.figsize))
 
         ax.imshow(img, interpolation="nearest", **kwargs)
@@ -437,8 +440,8 @@ class Interface(BaseInterface):
 
         return fig
 
-    def update_slice_wrapper(self, letter):
-        def update_slice(position_slider:float, cmap:str):
+    def update_slice_wrapper(self, letter: str) -> Callable[[float, str], Dict[str, Any]]:
+        def update_slice(position_slider: float, cmap:str) -> Dict[str, Any]:
             """
             position_slider: float from gradio slider, saying which relative slice we want to see
             cmap: string gradio drop down menu, saying what cmap we want to use for display
@@ -465,7 +468,7 @@ class Interface(BaseInterface):
             return gr.update(value = fig_img, label = f"{letter} Slice: {slice_index}", visible = True)
         return update_slice
     
-    def vol_histogram(self, nbins, min_value, max_value):
+    def vol_histogram(self, nbins: int, min_value: float, max_value: float) -> tuple[np.ndarray, np.ndarray]:
         # Start histogram
         vol_hist = np.zeros(nbins)
 
@@ -478,7 +481,7 @@ class Interface(BaseInterface):
 
         return vol_hist, bin_edges
 
-    def plot_histogram(self):
+    def plot_histogram(self) -> matplotlib.figure.Figure:
         # The Histogram needs results from the projections
         if not self.projections_calculated:
             _ = self.get_projections()
@@ -498,7 +501,7 @@ class Interface(BaseInterface):
 
         return fig
     
-    def create_projections_figs(self):
+    def create_projections_figs(self) -> tuple[matplotlib.figure.Figure, matplotlib.figure.Figure]:
         if not self.projections_calculated:
             projections = self.get_projections()
             self.max_projection = projections[0]
@@ -519,7 +522,7 @@ class Interface(BaseInterface):
         self.projections_calculated = True
         return max_projection_fig, min_projection_fig
 
-    def get_projections(self):
+    def get_projections(self) -> tuple[np.ndarray, np.ndarray]:
         # Create arrays for iteration
         max_projection = np.zeros(np.shape(self.vol[0]))
         min_projection = np.ones(np.shape(self.vol[0])) * float("inf")

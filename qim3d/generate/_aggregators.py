@@ -142,7 +142,7 @@ def noise_object_collection(
     object_shape: str = None,
     seed: int = 0,
     verbose: bool = False,
-) -> tuple[np.ndarray, object]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate a 3D volume of multiple synthetic objects using Perlin noise.
 

@@ -47,7 +47,7 @@ from qim3d.gui.interface import InterfaceWithExamples
 
 class Interface(InterfaceWithExamples):
     def __init__(self,
-                 img = None,
+                 img: np.ndarray = None,
                  verbose:bool = False,
                  plot_height:int = 768,
                  figsize:int = 6): 
@@ -248,7 +248,7 @@ class Interface(InterfaceWithExamples):
     #
     #######################################################
 
-    def process_input(self, data, dark_objects):
+    def process_input(self, data: np.ndarray, dark_objects: bool):
         # Load volume
         try:
             self.vol = load(data.name)
@@ -265,7 +265,7 @@ class Interface(InterfaceWithExamples):
         self.vmin = np.min(self.vol)
         self.vmax = np.max(self.vol)
 
-    def show_slice(self, vol, zpos, vmin=None, vmax=None, cmap="viridis"):
+    def show_slice(self, vol: np.ndarray, zpos: int, vmin: float = None, vmax: float = None, cmap: str = "viridis"):
         plt.close()
         z_idx = int(zpos * (vol.shape[0] - 1))
         fig, ax = plt.subplots(figsize=(self.figsize, self.figsize))
@@ -278,19 +278,19 @@ class Interface(InterfaceWithExamples):
 
         return fig
 
-    def make_binary(self, threshold):
+    def make_binary(self, threshold: float):
         # Make a binary volume
         # Nothing fancy, but we could add new features here
         self.vol_binary = self.vol > (threshold * np.max(self.vol))
     
-    def compute_localthickness(self, lt_scale):
+    def compute_localthickness(self, lt_scale: float):
         self.vol_thickness = lt.local_thickness(self.vol_binary, lt_scale)
 
         # Valus for visualization
         self.vmin_lt = np.min(self.vol_thickness)
         self.vmax_lt = np.max(self.vol_thickness)
 
-    def thickness_histogram(self, nbins):
+    def thickness_histogram(self, nbins: int):
         # Ignore zero thickness
         non_zero_values = self.vol_thickness[self.vol_thickness > 0]
 

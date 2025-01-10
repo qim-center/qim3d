@@ -46,13 +46,13 @@ class OMEScaler(
     """Scaler in the style of OME-Zarr.
     This is needed because their current zoom implementation is broken."""
 
-    def __init__(self, order=0, downscale=2, max_layer=5, method="scaleZYXdask"):
+    def __init__(self, order: int = 0, downscale: float = 2, max_layer: int = 5, method: str = "scaleZYXdask"):
         self.order = order
         self.downscale = downscale
         self.max_layer = max_layer
         self.method = method
 
-    def scaleZYX(self, base):
+    def scaleZYX(self, base: da.core.Array):
         """Downsample using :func:`scipy.ndimage.zoom`."""
         rv = [base]
         log.info(f"- Scale 0: {rv[-1].shape}")
@@ -63,7 +63,7 @@ class OMEScaler(
 
         return list(rv)
 
-    def scaleZYXdask(self, base):
+    def scaleZYXdask(self, base: da.core.Array):
         """
         Downsample a 3D volume using Dask and scipy.ndimage.zoom.
 
@@ -82,7 +82,7 @@ class OMEScaler(
 
 
         """
-        def resize_zoom(vol, scale_factors, order, scaled_shape):
+        def resize_zoom(vol: da.core.Array, scale_factors, order, scaled_shape):
 
             # Get the chunksize needed so that all the blocks match the new shape
             # This snippet comes from the original OME-Zarr-python library
@@ -181,16 +181,16 @@ class OMEScaler(
 
 
 def export_ome_zarr(
-    path,
-    data,
-    chunk_size=256,
-    downsample_rate=2,
-    order=1,
-    replace=False,
-    method="scaleZYX",
+    path: str|os.PathLike,
+    data: np.ndarray|da.core.Array,
+    chunk_size: int = 256,
+    downsample_rate: int = 2,
+    order: int = 1,
+    replace: bool = False,
+    method: str = "scaleZYX",
     progress_bar: bool = True,
-    progress_bar_repeat_time="auto",
-):
+    progress_bar_repeat_time: str = "auto",
+) -> None:
     """
     Export 3D image data to OME-Zarr format with pyramidal downsampling.
 
@@ -299,7 +299,11 @@ def export_ome_zarr(
     return
 
 
-def import_ome_zarr(path, scale=0, load=True):
+def import_ome_zarr(
+        path: str|os.PathLike, 
+        scale: int = 0, 
+        load: bool = True
+        ) -> np.ndarray:
     """
     Import image data from an OME-Zarr file.
 

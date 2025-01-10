@@ -29,6 +29,7 @@ from qim3d.processing import segment_layers, get_lines
 from qim3d.operations import overlay_rgb_images
 from qim3d.io import load
 from qim3d.viz._layers2d import image_with_lines
+from typing import Dict, Any
 
 #TODO figure out how not update anything and go through processing when there are no data loaded
 # So user could play with the widgets but it doesnt throw error
@@ -303,14 +304,14 @@ class Interface(BaseInterface):
             
         
 
-    def change_plot_type(self, plot_type, ):
+    def change_plot_type(self, plot_type: str, ) -> tuple[Dict[str, Any], Dict[str, Any]]:
         self.plot_type = plot_type
         if plot_type == 'Segmentation lines':
             return gr.update(visible = False), gr.update(visible = True)
         else:  
             return gr.update(visible = True), gr.update(visible = False)
         
-    def change_plot_size(self, x_check, y_check, z_check):
+    def change_plot_size(self, x_check: int, y_check: int, z_check: int) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
         """
         Based on how many plots are we displaying (controlled by checkboxes in the bottom) we define
         also their height because gradio doesn't do it automatically. The values of heights were set just by eye.
@@ -320,10 +321,10 @@ class Interface(BaseInterface):
         height = self.heights[index] # also used to define heights of plots in the begining
         return gr.update(height = height, visible= x_check), gr.update(height = height, visible = y_check), gr.update(height = height, visible = z_check)
 
-    def change_row_visibility(self, x_check, y_check, z_check):
+    def change_row_visibility(self, x_check: int, y_check: int, z_check: int):
         return self.change_visibility(x_check), self.change_visibility(y_check), self.change_visibility(z_check)
     
-    def update_explorer(self, new_path):
+    def update_explorer(self, new_path: str):
         # Refresh the file explorer object
         new_path = os.path.expanduser(new_path)
 
@@ -342,13 +343,13 @@ class Interface(BaseInterface):
     def set_relaunch_button(self):
         return gr.update(value=f"Relaunch", interactive=True)
 
-    def set_spinner(self, message):
+    def set_spinner(self, message: str):
         if self.error:
             return gr.Button()
         # spinner icon/shows the user something is happeing
         return gr.update(value=f"{message}", interactive=False)
     
-    def load_data(self, base_path, explorer):
+    def load_data(self, base_path: str, explorer: str):
         if base_path and os.path.isfile(base_path):
             file_path = base_path
         elif explorer and os.path.isfile(explorer):

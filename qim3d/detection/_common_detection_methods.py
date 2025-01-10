@@ -15,7 +15,7 @@ def blobs(
     overlap: float = 0.5,
     threshold_rel: float = None,
     exclude_border: bool = False,
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Extract blobs from a volume using Difference of Gaussian (DoG) method, and retrieve a binary volume with the blobs marked as True
 

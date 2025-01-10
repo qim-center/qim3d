@@ -3,24 +3,24 @@
 import torch
 import numpy as np
 
-from torchinfo import summary
+from torchinfo import summary, ModelStatistics
 from qim3d.utils._logger import log
 from qim3d.viz._metrics import plot_metrics
 
 from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
-
+from models._unet import Hyperparameters
 
 def train_model(
-    model,
-    hyperparameters,
-    train_loader,
-    val_loader,
-    eval_every=1,
-    print_every=5,
-    plot=True,
-    return_loss=False,
-):
+    model: torch.nn.Module,
+    hyperparameters: Hyperparameters,
+    train_loader: torch.utils.data.DataLoader,
+    val_loader: torch.utils.data.DataLoader,
+    eval_every: int = 1,
+    print_every: int = 5,
+    plot: bool = True,
+    return_loss: bool = False,
+) -> tuple[tuple[float], tuple[float]]:
     """Function for training Neural Network models.
 
     Args:
@@ -137,7 +137,7 @@ def train_model(
         return train_loss, val_loss
 
 
-def model_summary(dataloader, model):
+def model_summary(dataloader: torch.utils.data.DataLoader, model: torch.nn.Module) -> ModelStatistics:
     """Prints the summary of a PyTorch model.
 
     Args:
@@ -160,7 +160,7 @@ def model_summary(dataloader, model):
     return model_s
 
 
-def inference(data, model):
+def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Performs inference on input data using the specified model.
 
     Performs inference on the input data using the provided model. The input data should be in the form of a list,
@@ -242,7 +242,7 @@ def inference(data, model):
     return inputs, targets, preds
 
 
-def volume_inference(volume, model, threshold=0.5):
+def volume_inference(volume: np.ndarray, model: torch.nn.Module, threshold:float = 0.5) -> np.ndarray:
     """
     Compute on the entire volume
     Args:

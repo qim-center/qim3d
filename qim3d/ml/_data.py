@@ -4,7 +4,9 @@ from PIL import Image
 from qim3d.utils._logger import log
 import torch
 import numpy as np
-
+from typing import Optional, Callable
+import torch.nn as nn
+from ._data import Augmentation
 
 class Dataset(torch.utils.data.Dataset):
     """
@@ -36,7 +38,7 @@ class Dataset(torch.utils.data.Dataset):
             transform=albumentations.Compose([ToTensorV2()]))
         image, target = dataset[idx]
     """
-    def __init__(self, root_path: str, split="train", transform=None):
+    def __init__(self, root_path: str, split: str = "train", transform: Optional[Callable] = None):
         super().__init__()
 
         # Check if split is valid
@@ -58,7 +60,7 @@ class Dataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.sample_images)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: int):
         image_path = self.sample_images[idx]
         target_path = self.sample_targets[idx]
 
@@ -76,7 +78,7 @@ class Dataset(torch.utils.data.Dataset):
 
 
     # TODO: working with images of different sizes
-    def check_shape_consistency(self,sample_images):
+    def check_shape_consistency(self,sample_images: tuple[str]):
         image_shapes= []
         for image_path in sample_images:
             image_shape = self._get_shape(image_path)
@@ -99,7 +101,7 @@ class Dataset(torch.utils.data.Dataset):
         return Image.open(str(image_path)).size
 
 
-def check_resize(im_height: int, im_width: int, resize: str, n_channels: int):
+def check_resize(im_height: int, im_width: int, resize: str, n_channels: int) -> tuple[int, int]:
     """
     Checks the compatibility of the image shape with the depth of the model.
     If the image height and width cannot be divided by 2 `n_channels` times, then the image size is inappropriate.
@@ -131,7 +133,7 @@ def check_resize(im_height: int, im_width: int, resize: str, n_channels: int):
     return h_adjust, w_adjust 
 
 
-def prepare_datasets(path: str, val_fraction: float, model, augmentation):
+def prepare_datasets(path: str, val_fraction: float, model: nn.Module, augmentation: Augmentation) -> tuple[torch.utils.data.Subset, torch.utils.data.Subset, torch.utils.data.Subset]:
     """
     Splits and augments the train/validation/test datasets.
 
@@ -172,7 +174,13 @@ def prepare_datasets(path: str, val_fraction: float, model, augmentation):
     return train_set, val_set, test_set
 
 
-def prepare_dataloaders(train_set, val_set, test_set, batch_size, shuffle_train = True, num_workers = 8, pin_memory = False):  
+def prepare_dataloaders(train_set: torch.utils.data, 
+                        val_set: torch.utils.data, 
+                        test_set: torch.utils.data, 
+                        batch_size: int, 
+                        shuffle_train: bool = True, 
+                        num_workers: int = 8, 
+                        pin_memory: bool = False) -> tuple[torch.utils.data.DataLoader, torch.utils.data.DataLoader, torch.utils.data.DataLoader]:  
     """
     Prepares the dataloaders for model training.
 

@@ -12,7 +12,7 @@ import difflib
 import qim3d
 
 
-def get_local_ip():
+def get_local_ip() -> str:
     """Retrieves the local IP address of the current machine.
 
     The function uses a socket to determine the local IP address.
@@ -42,7 +42,7 @@ def get_local_ip():
     return ip_address
 
 
-def port_from_str(s):
+def port_from_str(s: str) -> int:
     """
     Generates a port number from a given string.
 
@@ -65,7 +65,7 @@ def port_from_str(s):
     return int(hashlib.sha1(s.encode("utf-8")).hexdigest(), 16) % (10**4)
 
 
-def gradio_header(title, port):
+def gradio_header(title: str, port: int) -> None:
     """Display the header for a Gradio server.
 
     Displays a formatted header containing the provided title,
@@ -99,7 +99,7 @@ def gradio_header(title, port):
     ouf.showlist(details, style="box", title="Starting gradio server")
 
 
-def sizeof(num, suffix="B"):
+def sizeof(num: float, suffix: str = "B") -> str:
     """Converts a number to a human-readable string representing its size.
 
     Converts the given number to a human-readable string representing its size in
@@ -131,7 +131,7 @@ def sizeof(num, suffix="B"):
     return f"{num:.1f} Y{suffix}"
 
 
-def find_similar_paths(path):
+def find_similar_paths(path: str) -> list[str]:
     parent_dir = os.path.dirname(path) or "."
     parent_files = os.listdir(parent_dir) if os.path.isdir(parent_dir) else ""
     valid_paths = [os.path.join(parent_dir, file) for file in parent_files]
@@ -165,14 +165,14 @@ def get_file_size(file_path: str) -> int:
     return file_size
 
 
-def stringify_path(path):
+def stringify_path(path: os.PathLike) -> str:
     """Converts an os.PathLike object to a string"""
     if isinstance(path, os.PathLike):
         path = path.__fspath__()
     return path
 
 
-def get_port_dict():
+def get_port_dict() -> dict:
     # Gets user and port
     username = getpass.getuser()
     url = f"https://platform.qim.dk/qim-api/get-port/{username}"
@@ -189,7 +189,7 @@ def get_port_dict():
     return port_dict
 
 
-def get_css():
+def get_css() -> str:
 
     current_directory = os.path.dirname(os.path.abspath(__file__))
     parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
@@ -201,7 +201,7 @@ def get_css():
     return css_content
 
 
-def downscale_img(img, max_voxels=512**3):
+def downscale_img(img: np.ndarray, max_voxels: int = 512**3) -> np.ndarray:
     """Downscale image if total number of voxels exceeds 512³.
 
     Args:
@@ -226,7 +226,7 @@ def downscale_img(img, max_voxels=512**3):
     return zoom(img, zoom_factor, order=0)
 
 
-def scale_to_float16(arr: np.ndarray):
+def scale_to_float16(arr: np.ndarray) -> np.ndarray:
     """
     Scale the input array to the float16 data type.
 
