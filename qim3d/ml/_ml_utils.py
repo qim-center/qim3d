@@ -9,7 +9,7 @@ from qim3d.viz._metrics import plot_metrics
 
 from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
-from models._unet import Hyperparameters
+from .models._unet import Hyperparameters
 
 def train_model(
     model: torch.nn.Module,

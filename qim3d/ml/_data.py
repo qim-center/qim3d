@@ -6,7 +6,7 @@ import torch
 import numpy as np
 from typing import Optional, Callable
 import torch.nn as nn
-from ._data import Augmentation
+from ._augmentations import Augmentation
 
 class Dataset(torch.utils.data.Dataset):
     """
