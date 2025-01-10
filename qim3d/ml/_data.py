@@ -1,7 +1,7 @@
 """Provides a custom Dataset class for building a PyTorch dataset."""
 from pathlib import Path
 from PIL import Image
-from qim3d.utils._logger import log
+from qim3d.utils import log
 import torch
 import numpy as np
 from typing import Optional, Callable

@@ -2,7 +2,7 @@
 
 import torch.nn as nn
 
-from qim3d.utils._logger import log
+from qim3d.utils import log
 
 
 class UNet(nn.Module):

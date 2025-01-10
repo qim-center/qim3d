@@ -40,12 +40,11 @@ import gradio as gr
 import numpy as np
 import tifffile
 import localthickness as lt
-
-from qim3d.io import load
-from qim3d.gui.interface import InterfaceWithExamples
+import qim3d
 
 
-class Interface(InterfaceWithExamples):
+
+class Interface(qim3d.gui.interface.InterfaceWithExamples):
     def __init__(self,
                  img: np.ndarray = None,
                  verbose:bool = False,
@@ -79,7 +78,7 @@ class Interface(InterfaceWithExamples):
         file_idx = np.argmax(creation_time_list)
 
         # Load the temporary file
-        vol_lt = load(temp_path_list[file_idx])
+        vol_lt = qim3d.io.load(temp_path_list[file_idx])
 
         return vol_lt
 
@@ -251,7 +250,7 @@ class Interface(InterfaceWithExamples):
     def process_input(self, data: np.ndarray, dark_objects: bool):
         # Load volume
         try:
-            self.vol = load(data.name)
+            self.vol = qim3d.io.load(data.name)
             assert self.vol.ndim == 3
         except AttributeError:
             self.vol = data

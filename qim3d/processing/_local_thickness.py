@@ -2,7 +2,7 @@
 
 import numpy as np
 from typing import Optional
-from qim3d.utils._logger import log
+from qim3d.utils import log
 import qim3d
 
 

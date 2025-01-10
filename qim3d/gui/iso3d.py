@@ -22,9 +22,8 @@ import numpy as np
 import plotly.graph_objects as go
 from scipy import ndimage
 
-from qim3d.io import load
+import qim3d
 from qim3d.utils._logger import log
-
 from qim3d.gui.interface import InterfaceWithExamples
 
 
@@ -46,7 +45,7 @@ class Interface(InterfaceWithExamples):
 
     def load_data(self, gradiofile: gr.File):
         try:
-            self.vol = load(gradiofile.name)
+            self.vol = qim3d.io.load(gradiofile.name)
             assert self.vol.ndim == 3
         except AttributeError:
             raise gr.Error("You have to select a file")

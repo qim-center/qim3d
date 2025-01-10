@@ -23,9 +23,9 @@ from dask import delayed
 from PIL import Image, UnidentifiedImageError
 
 import qim3d
-from qim3d.utils._logger import log
+from qim3d.utils import log
 from qim3d.utils._misc import get_file_size, sizeof, stringify_path
-from qim3d.utils._system import Memory
+from qim3d.utils import Memory
 from qim3d.utils._progress_bar import FileLoadingProgressBar
 import trimesh
 
@@ -718,7 +718,7 @@ class DataLoader:
         # Fails
         else:
             # Find the closest matching path to warn the user
-            similar_paths = qim3d.utils.misc.find_similar_paths(path)
+            similar_paths = qim3d.utils._misc.find_similar_paths(path)
 
             if similar_paths:
                 suggestion = similar_paths[0]  # Get the closest match

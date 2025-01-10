@@ -31,7 +31,7 @@ from skimage.transform import (
     resize,
 )
 
-from qim3d.utils._logger import log
+from qim3d.utils import log
 from qim3d.utils._progress_bar import OmeZarrExportProgressBar
 from qim3d.utils._ome_zarr import get_n_chunks
 

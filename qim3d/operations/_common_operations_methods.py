@@ -1,6 +1,6 @@
 import numpy as np
 import qim3d.filters as filters
-from qim3d.utils._logger import log
+from qim3d.utils import log
 
 __all__ = ["remove_background", "fade_mask", "overlay_rgb_images"]
 

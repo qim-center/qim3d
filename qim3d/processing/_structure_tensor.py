@@ -3,7 +3,7 @@
 from typing import Tuple
 import logging
 import numpy as np
-from qim3d.utils._logger import log
+from qim3d.utils import log
 
 
 def structure_tensor(
@@ -108,7 +108,7 @@ def structure_tensor(
     val, vec = st.eig_special_3d(s_vol, full=full)
 
     if visualize:
-        from qim3d.viz._structure_tensor import vectors
+        from qim3d.viz import vectors
 
         display(vectors(vol, vec, **viz_kwargs))
 
