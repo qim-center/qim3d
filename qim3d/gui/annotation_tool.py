@@ -28,6 +28,7 @@ import gradio as gr
 import numpy as np
 from PIL import Image
 import qim3d
+from qim3d.gui.interface import BaseInterface
 
 # TODO: img in launch should be self.img
 
