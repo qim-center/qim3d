@@ -159,20 +159,12 @@ def main():
     elif args.subcommand == "viz":
 
         if args.method == "itk-vtk":
-            try:
-                # We need the full path to the file for the viewer
-                current_dir = os.getcwd()
-                full_path = os.path.normpath(os.path.join(current_dir, args.source))
-                qim3d.viz.itk_vtk(full_path, open_browser=not args.no_browser)
 
-            except qim3d.viz.NotInstalledError as err:
-                print(err)
-                message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let qim3D install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want qim3D to install itk-vtk-viewer now?"
-                print(message)
-                answer = input("[Y/n]:")
-                if answer in "Yy":
-                    qim3d.viz.Installer().install()
-                    qim3d.viz.itk_vtk(full_path)
+            # We need the full path to the file for the viewer
+            current_dir = os.getcwd()
+            full_path = os.path.normpath(os.path.join(current_dir, args.source))
+            qim3d.viz.itk_vtk(full_path, open_browser = not args.no_browser)
+
 
         elif args.method == "k3d":
             volume = qim3d.io.load(str(args.source))

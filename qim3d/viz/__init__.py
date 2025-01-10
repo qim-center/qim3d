@@ -9,7 +9,7 @@ from ._data_exploration import (
     chunks,
     histogram,
 )
-from .itk_vtk_viewer import itk_vtk, Installer, NotInstalledError
+from .itk_vtk_viewer import itk_vtk
 from ._k3d import volumetric, mesh
 from ._local_thickness import local_thickness
 from ._structure_tensor import vectors
