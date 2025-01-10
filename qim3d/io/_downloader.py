@@ -8,7 +8,7 @@ from tqdm import tqdm
 from pathlib import Path
 
 from qim3d.io import load
-from qim3d.utils._logger import log
+from qim3d.utils import log
 import outputformat as ouf
 
 

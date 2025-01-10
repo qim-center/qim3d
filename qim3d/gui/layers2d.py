@@ -21,7 +21,6 @@ import os
 
 import gradio as gr
 import numpy as np
-
 from .interface import BaseInterface
 
 # from qim3d.processing import layers2d as l2d
@@ -358,7 +357,7 @@ class Interface(BaseInterface):
             raise gr.Error("Invalid file path")
 
         try:
-            self.data = load(
+            self.data = qim3d.io.load(
                 file_path,
                 progress_bar=False
             )
@@ -403,7 +402,7 @@ class Interface(BaseInterface):
                 
                 if self.is_transposed(slicing_axis, segmenting_axis):
                     slice = np.rot90(slice)
-                self.__dict__[seg_key] = segment_layers(slice, inverted = inverted, n_layers = n_layers, delta = delta, min_margin = min_margin, wrap = wrap)
+                self.__dict__[seg_key] = qim3d.processing.segment_layers(slice, inverted = inverted, n_layers = n_layers, delta = delta, min_margin = min_margin, wrap = wrap)
         
         return process
 
@@ -456,13 +455,13 @@ class Interface(BaseInterface):
                     seg = np.rot90(seg, k = 3)
                 # slice = 255 * (slice/np.max(slice))
                 # return image_with_overlay(np.repeat(slice[..., None], 3, -1), seg, alpha) 
-                return overlay_rgb_images(slice, seg, alpha)
+                return qim3d.operations.overlay_rgb_images(slice, seg, alpha)
             else:
-                lines = get_lines(seg)
+                lines = qim3d.processing.get_lines(seg)
                 if self.is_transposed(slicing_axis, segmenting_axis):
-                    return image_with_lines(np.rot90(slice), lines, line_thickness).rotate(270, expand = True)
+                    return qim3d.viz.image_with_lines(np.rot90(slice), lines, line_thickness).rotate(270, expand = True)
                 else:
-                    return image_with_lines(slice, lines, line_thickness)
+                    return qim3d.viz.image_with_lines(slice, lines, line_thickness)
             
         return plot_output_img
     

@@ -1,6 +1,8 @@
 from . import _doi
 from ._system import Memory
 
+from ._logger import log
+
 from ._misc import (
     get_local_ip,
     port_from_str,

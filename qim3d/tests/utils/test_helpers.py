@@ -33,7 +33,7 @@ def test_get_local_ip():
         else:
             return False
 
-    local_ip = qim3d.utils.misc.get_local_ip()
+    local_ip = qim3d.utils._misc.get_local_ip()
 
     assert validate_ip(local_ip) == True
 
@@ -42,7 +42,7 @@ def test_stringify_path1():
     """Test that the function converts os.PathLike objects to strings"""
     blobs_path = Path(qim3d.__file__).parents[0] / "img_examples" / "blobs_256x256.tif"
 
-    assert str(blobs_path) == qim3d.utils.misc.stringify_path(blobs_path)
+    assert str(blobs_path) == qim3d.utils._misc.stringify_path(blobs_path)
 
 
 def test_stringify_path2():
@@ -50,4 +50,4 @@ def test_stringify_path2():
     # Create test_path
     test_path = os.path.join("this", "path", "doesnt", "exist.tif")
 
-    assert test_path == qim3d.utils.misc.stringify_path(test_path)
+    assert test_path == qim3d.utils._misc.stringify_path(test_path)

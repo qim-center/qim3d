@@ -5,13 +5,13 @@ import pytest
 
 # unit tests for Augmentation()
 def test_augmentation():
-    augment_class = qim3d.models.Augmentation()
+    augment_class = qim3d.ml.Augmentation()
 
     assert augment_class.resize == "crop"
 
 
 def test_augment():
-    augment_class = qim3d.models.Augmentation()
+    augment_class = qim3d.ml.Augmentation()
 
     album_augment = augment_class.augment(256, 256)
 
@@ -26,11 +26,11 @@ def test_resize():
         ValueError,
         match=f"Invalid resize type: {resize_str}. Use either 'crop', 'resize' or 'padding'.",
     ):
-        augment_class = qim3d.models.Augmentation(resize=resize_str)
+        augment_class = qim3d.ml.Augmentation(resize=resize_str)
 
 
 def test_levels():
-    augment_class = qim3d.models.Augmentation()
+    augment_class = qim3d.ml.Augmentation()
 
     level = "Not a valid level"
 

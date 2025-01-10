@@ -153,7 +153,7 @@ def get_file_size(file_path: str) -> int:
     try:
         file_size = os.path.getsize(file_path)
     except FileNotFoundError:
-        similar_paths = qim3d.utils.misc.find_similar_paths(file_path)
+        similar_paths = qim3d.utils._misc.find_similar_paths(file_path)
 
         if similar_paths:
             suggestion = similar_paths[0]  # Get the closest match

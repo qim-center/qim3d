@@ -37,7 +37,7 @@ from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
 import trimesh
 
-from qim3d.utils._logger import log
+from qim3d.utils import log
 from qim3d.utils._misc import sizeof, stringify_path
 
 

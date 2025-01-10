@@ -27,10 +27,7 @@ import tempfile
 import gradio as gr
 import numpy as np
 from PIL import Image
-
-from qim3d.io import load, save
-from qim3d.operations._common_operations_methods import overlay_rgb_images
-from qim3d.gui.interface import BaseInterface
+import qim3d
 
 # TODO: img in launch should be self.img
 
@@ -68,7 +65,7 @@ class Interface(BaseInterface):
         for temp_file in temp_path_list:
             mask_file = os.path.basename(temp_file)
             mask_name = os.path.splitext(mask_file)[0]
-            masks[mask_name] = load(temp_file)
+            masks[mask_name] = qim3d.io.load(temp_file)
 
         return masks
 
@@ -98,7 +95,7 @@ class Interface(BaseInterface):
     def create_preview(self, img_editor: gr.ImageEditor) -> np.ndarray:
         background = img_editor["background"]
         masks = img_editor["layers"][0]
-        overlay_image = overlay_rgb_images(background, masks)
+        overlay_image = qim3d.operations.overlay_rgb_images(background, masks)
         return overlay_image
 
     def cerate_download_list(self, img_editor: gr.ImageEditor) -> list[str]:
@@ -122,7 +119,7 @@ class Interface(BaseInterface):
                 filepath = os.path.join(self.temp_dir, filename)
                 files_list.append(filepath)
 
-                save(filepath, mask, replace=True)
+                qim3d.io.save(filepath, mask, replace=True)
                 self.temp_files.append(filepath)
 
         return files_list

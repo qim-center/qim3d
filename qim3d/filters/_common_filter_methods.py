@@ -8,9 +8,10 @@ from skimage import morphology
 import dask.array as da
 import dask_image.ndfilters as dask_ndfilters
 
-from qim3d.utils._logger import log
+from qim3d.utils import log
 
 __all__ = [
+    "FilterBase",
     "Gaussian",
     "Median",
     "Maximum",
