@@ -28,7 +28,7 @@ class Sync:
 
             return False
 
-    def check_destination(self, source, destination, checksum=False, verbose=True):
+    def check_destination(self, source: str, destination: str, checksum: bool = False, verbose: bool = True) -> list[str]:
         """Check if all files from 'source' are in 'destination'
 
         This function compares the files in the 'source' directory to those in
@@ -80,7 +80,7 @@ class Sync:
 
         return diff_files
 
-    def compare_dirs(self, source, destination, checksum=False, verbose=True):
+    def compare_dirs(self, source: str, destination: str, checksum: bool = False, verbose: bool = True) -> None:
         """Checks whether 'source' and 'destination' directories are synchronized.
 
         This function compares the contents of two directories
@@ -168,7 +168,7 @@ class Sync:
             )
         return
 
-    def count_files_and_dirs(self, path, verbose=True):
+    def count_files_and_dirs(self, path: str|os.PathLike, verbose: bool = True) -> tuple[int, int]:
         """Count the number of files and directories in the given path.
 
         This function recursively counts the number of files and

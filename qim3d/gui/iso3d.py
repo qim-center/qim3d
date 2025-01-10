@@ -44,7 +44,7 @@ class Interface(InterfaceWithExamples):
         self.img = img
         self.plot_height = plot_height
 
-    def load_data(self, gradiofile):
+    def load_data(self, gradiofile: gr.File):
         try:
             self.vol = load(gradiofile.name)
             assert self.vol.ndim == 3
@@ -55,7 +55,7 @@ class Interface(InterfaceWithExamples):
         except AssertionError:
             raise gr.Error(F"File has to be 3D structure. Your structure has {self.vol.ndim} dimension{'' if self.vol.ndim == 1 else 's'}")
 
-    def resize_vol(self, display_size):
+    def resize_vol(self, display_size: int):
         """Resizes the loaded volume to the display size"""
 
         # Get original size
@@ -80,32 +80,33 @@ class Interface(InterfaceWithExamples):
                 f"Resized volume: {self.display_size_z, self.display_size_y, self.display_size_x}"
             )
 
-    def save_fig(self, fig, filename):
+    def save_fig(self, fig: go.Figure, filename: str):
         # Write Plotly figure to disk
         fig.write_html(filename)
 
     def create_fig(self, 
-        gradio_file,
-        display_size,
-        opacity,
-        opacityscale,
-        only_wireframe,
-        min_value,
-        max_value,
-        surface_count,
-        colormap,
-        show_colorbar,
-        reversescale,
-        flip_z,
-        show_axis,
-        show_ticks,
-        show_caps,
-        show_z_slice,
-        slice_z_location,
-        show_y_slice,
-        slice_y_location,
-        show_x_slice,
-        slice_x_location,):
+        gradio_file: gr.File,
+        display_size: int ,
+        opacity: float,
+        opacityscale: str,
+        only_wireframe: bool,
+        min_value: float,
+        max_value: float,
+        surface_count: int,
+        colormap: str,
+        show_colorbar: bool,
+        reversescale: bool,
+        flip_z: bool,
+        show_axis: bool,
+        show_ticks: bool,
+        show_caps: bool,
+        show_z_slice: bool,
+        slice_z_location: int,
+        show_y_slice: bool,
+        slice_y_location: int,
+        show_x_slice: bool,
+        slice_x_location: int,
+        ) -> tuple[go.Figure, str]:
 
         # Load volume
         self.load_data(gradio_file)

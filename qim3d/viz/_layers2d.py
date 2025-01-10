@@ -8,7 +8,7 @@ import numpy as np
 from PIL import Image
 
 
-def image_with_lines(image:np.ndarray, lines: list, line_thickness:float|int) -> Image:
+def image_with_lines(image: np.ndarray, lines: list, line_thickness: float) -> Image:
     """
     Plots the image and plots the lines on top of it. Then extracts it as PIL.Image and in the same size as the input image was.
     Paramters:

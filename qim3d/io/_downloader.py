@@ -76,7 +76,7 @@ class Downloader:
             [file_name_n](load_file,optional): Function to download file number n in the given folder.
         """
 
-        def __init__(self, folder):
+        def __init__(self, folder: str):
             files = _extract_names(folder)
 
             for idx, file in enumerate(files):
@@ -88,7 +88,7 @@ class Downloader:
 
                 setattr(self, f'{file_name.split(".")[0]}', self._make_fn(folder, file))
 
-        def _make_fn(self, folder, file):
+        def _make_fn(self, folder: str, file: str):
             """Private method that returns a function. The function downloads the chosen file from the folder.
 
             Args:
@@ -101,7 +101,7 @@ class Downloader:
 
             url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
 
-            def _download(load_file=False, virtual_stack=True):
+            def _download(load_file: bool = False, virtual_stack: bool = True):
                 """Downloads the file and optionally also loads it.
 
                 Args:
@@ -121,7 +121,7 @@ class Downloader:
             return _download
 
 
-def _update_progress(pbar, blocknum, bs):
+def _update_progress(pbar: tqdm, blocknum: int, bs: int):
     """
     Helper function for the ´download_file()´ function. Updates the progress bar.
     """
@@ -129,7 +129,7 @@ def _update_progress(pbar, blocknum, bs):
     pbar.update(blocknum * bs - pbar.n)
 
 
-def _get_file_size(url):
+def _get_file_size(url: str):
     """
     Helper function for the ´download_file()´ function. Finds the size of the file.
     """
@@ -137,7 +137,7 @@ def _get_file_size(url):
     return int(urllib.request.urlopen(url).info().get("Content-Length", -1))
 
 
-def download_file(path, name, file):
+def download_file(path: str, name: str, file: str):
     """Downloads the file from path / name / file.
 
     Args:
@@ -177,7 +177,7 @@ def download_file(path, name, file):
         )
 
 
-def _extract_html(url):
+def _extract_html(url: str):
     """Extracts the html content of a webpage in "utf-8"
 
     Args:
@@ -198,7 +198,7 @@ def _extract_html(url):
     return html_content
 
 
-def _extract_names(name=None):
+def _extract_names(name: str = None):
     """Extracts the names of the folders and files.
 
     Finds the names of either the folders if no name is given,

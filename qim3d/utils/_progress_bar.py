@@ -24,7 +24,7 @@ class RepeatTimer(Timer):
             self.function(*self.args, **self.kwargs)
 
 class ProgressBar(ABC):
-    def __init__(self,tqdm_kwargs:dict, repeat_time: float,  *args, **kwargs):
+    def __init__(self, tqdm_kwargs: dict, repeat_time: float,  *args, **kwargs):
         """
         Context manager for ('with' statement) to track progress during a long progress over 
         which we don't have control (like loading a file) and thus can not insert the tqdm
@@ -98,7 +98,7 @@ class FileLoadingProgressBar(ProgressBar):
         super().__init__( tqdm_kwargs, repeat_time)
         self.process = psutil.Process()
 
-    def get_new_update(self):
+    def get_new_update(self) -> int:
         counters = self.process.io_counters()
         try:
             memory = counters.read_chars
@@ -107,7 +107,7 @@ class FileLoadingProgressBar(ProgressBar):
         return memory
 
 class OmeZarrExportProgressBar(ProgressBar):
-    def __init__(self,path:str, n_chunks:int, reapeat_time="auto"):
+    def __init__(self,path: str, n_chunks: int, reapeat_time: str = "auto"):
         """
         Context manager to track the exporting of OmeZarr files.
 
@@ -152,7 +152,7 @@ class OmeZarrExportProgressBar(ProgressBar):
         self.last_update = 0
 
     def get_new_update(self):
-        def file_count(folder_path:str):
+        def file_count(folder_path: str) -> int:
             """
             Goes recursively through the folders and counts how many files are there, 
             Doesn't count metadata json files

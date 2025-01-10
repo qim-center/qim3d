@@ -6,7 +6,7 @@ from IPython.display import clear_output, display
 import qim3d
 
 
-def circles(blobs, vol, alpha=0.5, color="#ff9900", **kwargs):
+def circles(blobs: tuple[float,float,float,float], vol: np.ndarray, alpha: float = 0.5, color: str = "#ff9900", **kwargs)-> widgets.interactive:
     """
     Plots the blobs found on a slice of the volume.
 

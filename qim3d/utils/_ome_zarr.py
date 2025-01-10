@@ -1,7 +1,7 @@
 from zarr.util import normalize_chunks, normalize_dtype, normalize_shape
 import numpy as np
 
-def get_chunk_size(shape:tuple, dtype):
+def get_chunk_size(shape:tuple, dtype: tuple) -> tuple[int, ...]:
     """
     How the chunk size is computed in zarr.storage.init_array_metadata which is ran in the chain of functions we use 
     in qim3d.io.export_ome_zarr function
@@ -20,7 +20,7 @@ def get_chunk_size(shape:tuple, dtype):
     return chunks
 
 
-def get_n_chunks(shapes:tuple, dtypes:tuple):
+def get_n_chunks(shapes: tuple, dtypes: tuple) -> int:
     """
     Estimates how many chunks we will use in advence so we can pass this number to a progress bar and track how many
     have been already written to disk

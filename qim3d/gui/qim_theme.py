@@ -7,7 +7,7 @@ class QimTheme(gr.themes.Default):
     there is a possibility to add some more css if you override _get_css_theme function as shown at the bottom
     in comments.
     """
-    def __init__(self, force_light_mode:bool = True):
+    def __init__(self, force_light_mode: bool = True):
         """
         Parameters:
         -----------

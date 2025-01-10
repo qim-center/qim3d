@@ -5,7 +5,9 @@ import trimesh
 import qim3d
 
 
-def volume(obj, **mesh_kwargs) -> float:
+def volume(obj: np.ndarray|trimesh.Trimesh, 
+           **mesh_kwargs
+           ) -> float:
     """
     Compute the volume of a 3D volume or mesh.
 
@@ -49,7 +51,9 @@ def volume(obj, **mesh_kwargs) -> float:
     return obj.volume
 
 
-def area(obj, **mesh_kwargs) -> float:
+def area(obj: np.ndarray|trimesh.Trimesh, 
+         **mesh_kwargs
+         ) -> float:
     """
     Compute the surface area of a 3D volume or mesh.
 
@@ -92,7 +96,9 @@ def area(obj, **mesh_kwargs) -> float:
     return obj.area
 
 
-def sphericity(obj, **mesh_kwargs) -> float:
+def sphericity(obj: np.ndarray|trimesh.Trimesh, 
+               **mesh_kwargs
+               ) -> float:
     """
     Compute the sphericity of a 3D volume or mesh.
 

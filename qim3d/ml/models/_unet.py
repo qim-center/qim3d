@@ -119,13 +119,13 @@ class Hyperparameters:
 
     def __init__(
         self,
-        model,
-        n_epochs=10,
-        learning_rate=1e-3,
-        optimizer="Adam",
-        momentum=0,
-        weight_decay=0,
-        loss_function="Focal",
+        model: nn.Module,
+        n_epochs: int = 10,
+        learning_rate: float = 1e-3,
+        optimizer: str = "Adam",
+        momentum: float = 0,
+        weight_decay: float = 0,
+        loss_function: str = "Focal",
     ):
 
         # TODO: implement custom loss_functions? then add a check to see if loss works for segmentation.
@@ -168,13 +168,13 @@ class Hyperparameters:
 
     def model_params(
         self,
-        model,
-        n_epochs,
-        optimizer,
-        learning_rate,
-        weight_decay,
-        momentum,
-        loss_function,
+        model: nn.Module,
+        n_epochs: int,
+        optimizer: str,
+        learning_rate: float,
+        weight_decay: float,
+        momentum: float,
+        loss_function: str,
     ):
 
         optim = self._optimizer(model, optimizer, learning_rate, weight_decay, momentum)
@@ -188,7 +188,12 @@ class Hyperparameters:
         return hyper_dict
 
     # selecting the optimizer
-    def _optimizer(self, model, optimizer, learning_rate, weight_decay, momentum):
+    def _optimizer(self, 
+        model: nn.Module, 
+        optimizer: str, 
+        learning_rate: float, 
+        weight_decay: float, 
+        momentum: float):
         from torch.optim import Adam, SGD, RMSprop
 
         if optimizer == "Adam":
@@ -212,7 +217,7 @@ class Hyperparameters:
         return optim
 
     # selecting the loss function
-    def _loss_functions(self, loss_function):
+    def _loss_functions(self, loss_function: str):
         from monai.losses import FocalLoss, DiceLoss, DiceCELoss
         from torch.nn import BCEWithLogitsLoss
 

@@ -8,8 +8,8 @@ from qim3d.utils._logger import log
 def from_volume(
     volume: np.ndarray,
     level: float = None,
-    step_size=1,
-    allow_degenerate=False,
+    step_size: int = 1,
+    allow_degenerate: bool = False,
     padding: Tuple[int, int, int] = (2, 2, 2),
     **kwargs: Any,
 ) -> trimesh.Trimesh:

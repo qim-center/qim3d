@@ -2,7 +2,14 @@ import numpy as np
 from slgbuilder import GraphObject 
 from slgbuilder import MaxflowBuilder
 
-def segment_layers(data:np.ndarray, inverted:bool = False, n_layers:int = 1, delta:float = 1, min_margin:int = 10, max_margin:int = None, wrap:bool = False):
+def segment_layers(data: np.ndarray, 
+                   inverted: bool = False, 
+                   n_layers: int = 1, 
+                   delta: float = 1, 
+                   min_margin: int = 10, 
+                   max_margin: int = None, 
+                   wrap: bool = False
+                   ) -> list:
     """
     Works on 2D and 3D data.
     Light one function wrapper around slgbuilder https://github.com/Skielex/slgbuilder to do layer segmentation
@@ -82,7 +89,7 @@ def segment_layers(data:np.ndarray, inverted:bool = False, n_layers:int = 1, del
 
     return segmentations
 
-def get_lines(segmentations:list|np.ndarray) -> list:
+def get_lines(segmentations:list[np.ndarray]) -> list:
     """
     Expects list of arrays where each array is 2D segmentation with only 2 classes. This function gets the border between those two
     so it could be plotted. Used with qim3d.processing.segment_layers
