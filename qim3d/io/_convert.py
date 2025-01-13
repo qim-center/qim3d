@@ -10,7 +10,7 @@ from tqdm import tqdm
 import zarr.core
 
 from qim3d.utils._misc import stringify_path
-from qim3d.io import save
+from qim3d.io import save, load
 
 
 class Convert:
