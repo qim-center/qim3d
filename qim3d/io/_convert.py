@@ -127,6 +127,8 @@ class Convert:
         Returns:
             None
         """
+        assert self.base_name is not None, "Please specify a base name for the tiff stack"
+
         z = zarr.open(zarr_path)
         save(tiff_stack_path, z, basename=self.base_name)
 
@@ -140,6 +142,8 @@ class Convert:
         Returns:
             zarr.core.Array: zarr array containing the data from the tiff stack
         """
+        assert self.contains is not None, "Please specify common part of file names for tiff stack."
+
         # ! tiff stack memmap is stored as slices on disk and not as a single file, making assignments to blocks slow.
         vol = load(tiff_stack_path, virtual_stack=True, contains=self.contains)
         z = zarr.open(
