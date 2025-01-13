@@ -52,6 +52,10 @@ class Convert:
                     return self.convert_zarr_to_nifti(input_path, output_path)
                 case (".zarr", ".nii.gz"):
                     return self.convert_zarr_to_nifti(input_path, output_path, compression=True)
+                case (".zarr", ""):
+                    self.convert_zarr_to_tiff_stack(input_path, output_path)
+                case ("", ".zarr"):
+                    return self.convert_tiff_stack_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
         # Fail
@@ -110,6 +114,33 @@ class Convert:
         """
         z = zarr.open(zarr_path)
         save(tif_path, z)
+
+    def convert_zarr_to_tiff_stack(self, zarr_path, tiff_stack_path):
+        """Convert a zarr file to a tiff stack
+
+        Args:
+            zarr_path (str): path to the zarr file
+            tiff_stack_path (str): path to the tiff stack
+
+        Returns:
+            None
+        """
+        z = zarr.open(zarr_path)
+        save(tiff_stack_path, z, basename=self.base_name)
+
+    def convert_tiff_stack_to_zarr(self, tiff_stack_path, zarr_path):
+        """Convert a tiff stack to a zarr file
+
+        Args:
+            tiff_stack_path (str): path to the tiff stack
+            zarr_path (str): path to the zarr file
+
+        Returns:
+            zarr.core.Array: zarr array containing the data from the tiff stack
+        """
+        # ! tiff stack memmap is stored as slices on disk and not as a single file, making assignments to blocks slow.
+        vol = load(tiff_stack_path, virtual_stack=True, contains=self.contains)
+        return self._save_zarr(zarr_path, vol)
 
     def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str) -> zarr.core.Array:
         """Convert a nifti file to a zarr file
