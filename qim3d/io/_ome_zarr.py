@@ -178,6 +178,20 @@ class OMEScaler(
 
             log.info(f"- Scale {i+1}: {rv[-1].shape}")
         return list(rv)
+    
+    def scaleZYXmean(self, base):
+        """ Downsample using the mean of the pixels in each block
+
+        Args:
+            base (dask): The 3D array (volume) to be downsampled. Must be a Dask array for chunked processing.
+
+        Returns:
+            list: A list of downsampled volumes of increasingly lower resolution.
+        """
+        mip = [base]
+        for _ in range(self.max_layer):
+            mip.append(da.coarsen(da.mean, mip[-1], {0:self.downscale, 1:self.downscale, 2:self.downscale}, trim_excess=True))
+        return mip
 
 
 def export_ome_zarr(
