@@ -4,7 +4,7 @@ import numpy as np
 from typing import Optional
 from qim3d.utils import log
 import qim3d
-
+from IPython.display import display
 
 def local_thickness(
     image: np.ndarray,
@@ -28,10 +28,10 @@ def local_thickness(
             If grayscale, it will be binarized using Otsu's method.
         scale (float, optional): Downscaling factor, e.g. 0.5 for halving each dim of the image.
             Default is 1.
-        mask (np.ndarray, optional): binary mask of the same size of the image defining parts of the
+        mask (np.ndarray or None, optional): Binary mask of the same size of the image defining parts of the
             image to be included in the computation of the local thickness. Default is None.
         visualize (bool, optional): Whether to visualize the local thickness. Default is False.
-        **viz_kwargs: Additional keyword arguments passed to `qim3d.viz.local_thickness`. Only used if `visualize=True`.
+        **viz_kwargs (Any): Additional keyword arguments passed to `qim3d.viz.local_thickness`. Only used if `visualize=True`.
 
     Returns:
         local_thickness (np.ndarray): 2D or 3D NumPy array representing the local thickness of the input image/volume.
@@ -40,8 +40,8 @@ def local_thickness(
         ```python
         import qim3d
 
-        fly = qim3d.examples.fly_150x256x256 # 3D volume
-        lt_fly = qim3d.processing.local_thickness(fly, visualize=True, axis=0)
+        vol = qim3d.examples.fly_150x256x256
+        lt_vol = qim3d.processing.local_thickness(vol, visualize=True, axis=0)
         ```
         ![local thickness 3d](assets/screenshots/local_thickness_3d.gif)
 
@@ -49,11 +49,10 @@ def local_thickness(
         import qim3d
 
         # Generate synthetic collection of blobs
-        num_objects = 15
-        synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
+        vol, labels = qim3d.generate.noise_object_collection(num_objects=15)
 
         # Extract one slice to show that localthickness works on 2D slices too
-        slice = synthetic_collection[:,:,50]
+        slice = vol[:,:,50]
         lt_blobs = qim3d.processing.local_thickness(slice, visualize=True)
 
         ```

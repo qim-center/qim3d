@@ -18,11 +18,11 @@ def remove_background(
         vol (np.ndarray): The volume to remove background from.
         median_filter_size (int, optional): The size of the median filter. Defaults to 2.
         min_object_radius (int, optional): The radius of the structuring element for the tophat filter. Defaults to 3.
-        background (str, optional): The background type. Can be 'dark' or 'bright'. Defaults to 'dark'.
-        **median_kwargs: Additional keyword arguments for the Median filter.
+        background ('dark' or 'bright, optional): The background type. Can be 'dark' or 'bright'. Defaults to 'dark'.
+        **median_kwargs (Any): Additional keyword arguments for the Median filter.
 
     Returns:
-        np.ndarray: The volume with background removed.
+        filtered_vol (np.ndarray): The volume with background removed.
 
 
     Example:
@@ -30,15 +30,15 @@ def remove_background(
         import qim3d
 
         vol = qim3d.examples.cement_128x128x128
-        qim3d.viz.slices_grid(vol, vmin=0, vmax=255)
+        fig1 = qim3d.viz.slices_grid(vol, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
         ![operations-remove_background_before](assets/screenshots/operations-remove_background_before.png)
 
         ```python
-        vol_filtered  = qim3d.processing.operations.remove_background(vol,
+        vol_filtered  = qim3d.operations.remove_background(vol,
                                                               min_object_radius=3,
                                                               background="bright")
-        qim3d.viz.slices_grid(vol_filtered, vmin=0, vmax=255)
+        fig2 = qim3d.viz.slices_grid(vol_filtered, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
         ![operations-remove_background_after](assets/screenshots/operations-remove_background_after.png)
     """
@@ -70,26 +70,27 @@ def fade_mask(
         vol (np.ndarray): The volume to apply edge fading to.
         decay_rate (float, optional): The decay rate of the fading. Defaults to 10.
         ratio (float, optional): The ratio of the volume to fade. Defaults to 0.5.
-        geometry (str, optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
+        geometry ('spherical' or 'cylindrical', optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
         invert (bool, optional): Flag for inverting the fading. Defaults to False.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
-        **kwargs: Additional keyword arguments for the edge fading.
+        **kwargs (Any): Additional keyword arguments for the edge fading.
 
     Returns:
-        vol_faded (np.ndarray): The volume with edge fading applied.
+        faded_vol (np.ndarray): The volume with edge fading applied.
 
     Example:
         ```python
         import qim3d
-        qim3d.viz.vol(vol)
+        vol = qim3d.io.load('heartScan.tif')
+        qim3d.viz.volumetric(vol)
         ```
         Image before edge fading has visible artifacts from the support. Which obscures the object of interest.
         ![operations-edge_fade_before](assets/screenshots/operations-edge_fade_before.png)
 
         ```python
         import qim3d
-        vol_faded = qim3d.processing.operations.edge_fade(vol, decay_rate=4, ratio=0.45, geometric='cylindrical')
-        qim3d.viz.vol(vol_faded)
+        vol_faded = qim3d.operations.fade_mask(vol, decay_rate=4, ratio=0.45, geometric='cylindrical')
+        qim3d.viz.volumetrics(vol_faded)
         ```
         Afterwards the artifacts are faded out, making the object of interest more visible for visualization purposes.
         ![operations-edge_fade_after](assets/screenshots/operations-edge_fade_after.png)

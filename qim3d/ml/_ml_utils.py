@@ -40,18 +40,21 @@ def train_model(
                 val_loss (dict): Dictionary with average losses and batch losses for validation loop.
 
     Example:
+        import qim3d
+        from qim3d.ml import train_model
+
         # defining the model.
-        model = qim3d.utils.UNet()
+        model = qim3d.ml.UNet()
 
         # choosing the hyperparameters
-        hyperparameters = qim3d.utils.hyperparameters(model)
+        hyperparameters = qim3d.ml.models.Hyperparameters(model)
 
         # DataLoaders
         train_loader = MyTrainLoader()
         val_loader = MyValLoader()
 
         # training the model.
-        train_loss,val_loss = train_model(model, hyperparameters, train_loader, val_loader)
+        train_loss,val_loss = qim3d.ml.train_model(model, hyperparameters, train_loader, val_loader)
     """
     params_dict = hyperparameters()
     n_epochs = params_dict["n_epochs"]
@@ -186,9 +189,10 @@ def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[t
         - The function does not assume the model is already in evaluation mode (model.eval()).
 
     Example:
+        import qim3d
         dataset = MySegmentationDataset()
         model = MySegmentationModel()
-        inference(data,model)
+        qim3d.ml.inference(data,model)
     """
 
     # Get device

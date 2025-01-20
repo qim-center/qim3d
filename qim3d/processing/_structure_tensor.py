@@ -3,8 +3,8 @@
 from typing import Tuple
 import logging
 import numpy as np
-from qim3d.utils import log
-
+from qim3d.utils._logger import log
+from IPython.display import display
 
 def structure_tensor(
     vol: np.ndarray,
@@ -26,12 +26,12 @@ def structure_tensor(
 
     Args:
         vol (np.ndarray): 3D NumPy array representing the volume.
-        sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing.
-        rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed.
+        sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing. Defaults to 1.0.
+        rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed. Defaults to 6.0.
         base_noise (bool, optional): A flag indicating whether to add a small noise to the volume. Default is True.
         full (bool, optional): A flag indicating that all three eigenvalues should be returned. Default is False.
         visualize (bool, optional): Whether to visualize the structure tensor. Default is False.
-        **viz_kwargs: Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
+        **viz_kwargs (Any): Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
 
     Raises:
         ValueError: If the input volume is not 3D.

@@ -83,7 +83,7 @@ def get_3d_cc(image: np.ndarray) -> CC:
         ```python
         import qim3d
         vol = qim3d.examples.cement_128x128x128[50:150]<60
-        cc = qim3d.processing.get_3d_cc(vol)
+        cc = qim3d.segmentation.get_3d_cc(vol)
         ```
     """
     connected_components, num_connected_components = label(image)

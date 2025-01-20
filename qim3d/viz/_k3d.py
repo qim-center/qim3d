@@ -35,7 +35,6 @@ def volumetric(
     Args:
         img (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
         aspectmode (str, optional): Determines the proportions of the scene's axes. Defaults to "data".
-
             If `'data'`, the axes are drawn in proportion with the axes' ranges.
             If `'cube'`, the axes are drawn as a cube, regardless of the axes' ranges.
         show (bool, optional): If True, displays the visualization inline. Defaults to True.
@@ -43,15 +42,15 @@ def volumetric(
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
-        color_map (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to None.
-        constant_opacity (bool, float): Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to False.
-        vmin (float, optional): Together with vmax defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        vmax (float, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        samples (int, optional): The number of samples to be used for the volume rendering in k3d. Defaults to 512.
+        color_map (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to 'magma'.
+        constant_opacity (bool): Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to False.
+        vmin (float or None, optional): Together with vmax defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        vmax (float or None, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        samples (int or 'auto', optional): The number of samples to be used for the volume rendering in k3d. Input 'auto' for auto selection. Defaults to 'auto'.
             Lower values will render faster but with lower quality.
         max_voxels (int, optional): Defaults to 512^3.
         data_type (str, optional): Default to 'scaled_float16'.
-        **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
+        **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
         plot (k3d.plot): If `show=False`, returns the K3D plot object.
@@ -197,7 +196,7 @@ def mesh(
         save (bool or str, optional): If True, saves the visualization as an HTML file.
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
-        **kwargs: Additional keyword arguments to be passed to the `k3d.plot` function.
+        **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
         plot (k3d.plot): If `show=False`, returns the K3D plot object.
@@ -206,7 +205,7 @@ def mesh(
         ```python
         import qim3d
 
-        vol = qim3d.generate.blob(base_shape=(128,128,128),
+        vol = qim3d.generate.noise_object(base_shape=(128,128,128),
                                   final_shape=(128,128,128),
                                   noise_scale=0.03,
                                   order=1,
@@ -215,7 +214,7 @@ def mesh(
                                   threshold=0.5,
                                   dtype='uint8'
                                   )
-        mesh = qim3d.processing.create_mesh(vol, step_size=3)
+        mesh = qim3d.mesh.from_volume(vol, step_size=3)
         qim3d.viz.mesh(mesh.vertices, mesh.faces)
         ```
         <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>

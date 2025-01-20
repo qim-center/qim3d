@@ -7,7 +7,7 @@ Example:
     import qim3d
     
     # Generate synthetic blob
-    synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+    synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
     
     qim3d.io.save("fly.tif", synthetic_blob)
     ```
@@ -17,7 +17,7 @@ Example:
     import qim3d
 
     # Generate synthetic blob
-    synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+    synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
     
     qim3d.io.save("slices", synthetic_blob, basename="fly-slices", sliced_dim=0)
     ```
@@ -260,7 +260,7 @@ class DataSaver:
 
         Args:
             path (str): The path to the Zarr array on disk.
-            data (dask.array): The Dask array to be saved to disk.
+            data (dask.array.core.Array): The Dask array to be saved to disk.
 
         Returns:
             zarr.core.Array: The Zarr array saved on disk.
@@ -413,7 +413,7 @@ def save(
     """Save data to a specified file path.
 
     Args:
-        path (str): The path to save file to. File format is chosen based on the extension. 
+        path (str or os.PathLike): The path to save file to. File format is chosen based on the extension. 
             Supported extensions are: <em>'.tif', '.tiff', '.nii', '.nii.gz', '.h5', '.vol', '.vgi', '.dcm', '.DCM', '.zarr', '.jpeg', '.jpg', '.png'</em>
         data (numpy.ndarray): The data to be saved
         replace (bool, optional): Specifies if an existing file with identical path should be replaced.
@@ -424,23 +424,23 @@ def save(
             (only relevant for TIFF stacks). Default is None
         sliced_dim (int, optional): Specifies the dimension that is sliced in case a TIFF stack is saved
             as several files (only relevant for TIFF stacks). Default is 0, i.e., the first dimension.
-        **kwargs: Additional keyword arguments to be passed to the DataSaver constructor
+        **kwargs (Any): Additional keyword arguments to be passed to the DataSaver constructor
 
     Raises:
         ValueError: If the provided path is an existing directory and self.basename is not provided <strong>OR</strong>
-         If the file format is not supported <strong>OR</strong>
-         If the provided path does not exist and self.basename is not provided <strong>OR</strong>
-         If a file extension is not provided <strong>OR</strong>
-         if a file with the specified path already exists and replace=False.
+            If the file format is not supported <strong>OR</strong>
+            If the provided path does not exist and self.basename is not provided <strong>OR</strong>
+            If a file extension is not provided <strong>OR</strong>
+            if a file with the specified path already exists and replace=False.
 
     Example:
         ```python
         import qim3d
 
         # Generate synthetic blob
-        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+        vol = qim3d.generate.noise_object(noise_scale = 0.015)
 
-        qim3d.io.save("blob.tif", synthetic_blob, replace=True)
+        qim3d.io.save("blob.tif", vol, replace=True)
         ```
 
         Volumes can also be saved with one file per slice:
@@ -448,9 +448,9 @@ def save(
         import qim3d
 
         # Generate synthetic blob
-        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+        vol = qim3d.generate.noise_object(noise_scale = 0.015)
 
-        qim3d.io.save("slices", synthetic_blob, basename="blob-slices", sliced_dim=0)
+        qim3d.io.save("slices", vol, basename="blob-slices", sliced_dim=0)
         ```
     """
 
@@ -472,21 +472,21 @@ def save_mesh(
     Save a trimesh object to an .obj file.
 
     Args:
-        filename: The name of the file to save the mesh.
-        mesh: A trimesh.Trimesh object representing the mesh.
+        filename (str or os.PathLike): The name of the file to save the mesh.
+        mesh (trimesh.Trimesh): A trimesh.Trimesh object representing the mesh.
 
     Example:
         ```python
         import qim3d
 
-        vol = qim3d.generate.blob(base_shape=(32, 32, 32),
+        vol = qim3d.generate.noise_object(base_shape=(32, 32, 32),
                                   final_shape=(32, 32, 32),
                                   noise_scale=0.05,
                                   order=1,
                                   gamma=1.0,
                                   max_value=255,
                                   threshold=0.5)
-        mesh = qim3d.processing.create_mesh(vol)
+        mesh = qim3d.mesh.from_volume(vol)
         qim3d.io.save_mesh("mesh.obj", mesh)
         ```
     """

@@ -74,7 +74,6 @@ class Convert:
         Args:
             tif_path (str): path to the tiff file
             zarr_path (str): path to the zarr file
-            chunks (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
 
         Returns:
             zarr.core.Array: zarr array containing the data from the tiff file
