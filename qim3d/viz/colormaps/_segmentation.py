@@ -80,8 +80,13 @@ def segmentation(
         binary = qim3d.filters.gaussian(vol, sigma = 2) < 60
         labeled_volume, num_labels = qim3d.segmentation.watershed(binary)
 
+<<<<<<< HEAD
         color_map = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
         qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=color_map)
+=======
+        cmap = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
+        qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=cmap)
+>>>>>>> c82fb8c (More changes)
         ```
         ![colormap objects](assets/screenshots/viz-colormaps-objects.gif)
 
