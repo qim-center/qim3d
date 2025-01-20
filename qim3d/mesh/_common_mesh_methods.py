@@ -11,6 +11,7 @@ def from_volume(
     step_size=1,
     allow_degenerate=False,
     padding: Tuple[int, int, int] = (2, 2, 2),
+    logs: bool = True,
     **kwargs: Any,
 ) -> trimesh.Trimesh:
     """
@@ -50,7 +51,8 @@ def from_volume(
     # Compute the threshold level if not provided
     if level is None:
         level = filters.threshold_otsu(volume)
-        log.info(f"Computed level using Otsu's method: {level}")
+        if logs:
+            log.info(f"Computed level using Otsu's method: {level}")
 
     # Apply padding to the volume
     if padding is not None:
@@ -62,7 +64,8 @@ def from_volume(
             mode="constant",
             constant_values=padding_value,
         )
-        log.info(f"Padded volume with {padding} to shape: {volume.shape}")
+        if logs:
+            log.info(f"Padded volume with {padding} to shape: {volume.shape}")
 
     # Call skimage.measure.marching_cubes with user-provided kwargs
     verts, faces, normals, values = measure.marching_cubes(
