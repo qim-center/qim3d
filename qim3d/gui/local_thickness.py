@@ -164,29 +164,48 @@ class Interface(InterfaceWithExamples):
 
                 
             with gr.Column(scale=4):
+                def create_uniform_image(intensity=1):
+                    """
+                    Generates a blank image with a single color.
+                    Gradio `gr.Plot` components will flicker if there is no default value.
+                    bug fix on gradio version 4.44.0
+                    """
+                    pixels = np.zeros((100, 100, 3), dtype=np.uint8) + int(intensity * 255)
+                    fig, ax = plt.subplots(figsize=(10, 10))
+                    ax.imshow(pixels, interpolation="nearest")
+
+                    # Adjustments
+                    ax.axis("off")
+                    fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+                    return fig
+                
                 with gr.Row():
                     input_vol = gr.Plot(
                         show_label=True,
                         label="Original",
                         visible=True,
+                        value=create_uniform_image(),
                     )
 
                     binary_vol = gr.Plot(
                         show_label=True,
                         label="Binary",
                         visible=True,
+                        value=create_uniform_image(),
                     )
 
                     output_vol = gr.Plot(
                         show_label=True,
                         label="Local thickness",
                         visible=True,
+                        value=create_uniform_image(),
                     )
                 with gr.Row():
                     histogram = gr.Plot(
                         show_label=True,
                         label="Thickness histogram",
                         visible=True,
+                        value=create_uniform_image(),
                     )
                 with gr.Row():
                     lt_output = gr.File(
