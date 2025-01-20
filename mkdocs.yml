@@ -7,14 +7,17 @@ repo_name: Gitlab
 
 
 nav:
-   
   - qim3d: index.md
-  - Input & Output: io.md
-  - Data Generation: generate.md
-  - Processing: processing.md
+  - Data handling: datahandling.md
   - Visualization: viz.md
-  - GUIs: gui.md
+  - Features: features.md
+  - Filters: filters.md
+  - Detection: detection.md
+  - Segmentation: segmentation.md
+  - Operations: operations.md
+  - Processing: processing.md
   - ML Models: models.md
+  - GUIs: gui.md
   - CLI: cli.md
 
   - Release history: releases.md

@@ -12,7 +12,7 @@ class UNet(nn.Module):
     This class represents a 2D UNet model designed for imaging segmentation tasks.
 
     Args:
-        size (str, optional): Size of the UNet model. Must be one of 'small', 'medium', or 'large'. Defaults to 'medium'.
+        size ('small' or 'medium' or 'large', optional): Size of the UNet model. Must be one of 'small', 'medium', or 'large'. Defaults to 'medium'.
         dropout (float, optional): Dropout rate between 0 and 1. Defaults to 0.
         kernel_size (int, optional): Convolution kernel size. Defaults to 3.
         up_kernel_size (int, optional): Up-convolution kernel size. Defaults to 3.
@@ -104,10 +104,10 @@ class Hyperparameters:
         # This examples shows how to define a UNet model and its hyperparameters.
 
         # Defining the model
-        my_model = qim3d.models.UNet(size='medium')
+        my_model = qim3d.ml.UNet(size='medium')
 
         # Choosing the hyperparameters
-        hyperparams = qim3d.models.Hyperparameters(model=my_model, n_epochs=20, learning_rate=0.001)
+        hyperparams = qim3d.ml.Hyperparameters(model=my_model, n_epochs=20, learning_rate=0.001)
 
         params_dict = hyperparams() # Get the hyperparameters
         optimizer = params_dict['optimizer']

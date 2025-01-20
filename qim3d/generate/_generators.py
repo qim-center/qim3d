@@ -20,8 +20,8 @@ def noise_object(
     Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling and gamma correction.
 
     Args:
-        base_shape (tuple, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
-        final_shape (tuple, optional): Desired shape of the final volume. Defaults to (128, 128, 128).
+        base_shape (tuple of ints, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
+        final_shape (tuple of ints, optional): Desired shape of the final volume. Defaults to (128, 128, 128).
         noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
         order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
         gamma (float, optional): Gamma correction factor. Defaults to 1.0.
@@ -29,7 +29,7 @@ def noise_object(
         threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
         smooth_borders (bool, optional): Flag for automatic computation of the threshold value to ensure a blob with no straight edges. If True, the `threshold` parameter is ignored. Defaults to False.
         object_shape (str, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
-        dtype (str, optional): Desired data type of the output volume. Defaults to "uint8".
+        dtype (data-type, optional): Desired data type of the output volume. Defaults to "uint8".
 
     Returns:
         noise_object (numpy.ndarray): Generated 3D volume with specified parameters.
@@ -43,16 +43,16 @@ def noise_object(
         import qim3d
 
         # Generate synthetic blob
-        synthetic_blob = qim3d.generate.blob(noise_scale = 0.015)
+        vol = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Visualize 3D volume
-        qim3d.viz.vol(synthetic_blob)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_blob.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(synthetic_blob, vmin = 0, vmax = 255, n_slices = 15)
+        qim3d.viz.slices_grid(vol, value_min = 0, value_max = 255, num_slices = 15)
         ```
         ![synthetic_blob](assets/screenshots/synthetic_blob_slices.png)
 
@@ -61,7 +61,7 @@ def noise_object(
         import qim3d
 
         # Generate tubular synthetic blob
-        vol = qim3d.generate.blob(base_shape = (10, 300, 300),
+        vol = qim3d.generate.noise_object(base_shape = (10, 300, 300),
                                 final_shape = (100, 100, 100),
                                 noise_scale = 0.3,
                                 gamma = 2,
@@ -70,13 +70,13 @@ def noise_object(
                                 )
 
         # Visualize synthetic object
-        qim3d.viz.vol(vol)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_blob_cylinder.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(vol, n_slices=15, axis=1)
+        qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
         ```
         ![synthetic_blob_cylinder_slice](assets/screenshots/synthetic_blob_cylinder_slice.png)
 
@@ -85,7 +85,7 @@ def noise_object(
         import qim3d
 
         # Generate tubular synthetic blob
-        vol = qim3d.generate.blob(base_shape = (200, 100, 100),
+        vol = qim3d.generate.noise_object(base_shape = (200, 100, 100),
                                 final_shape = (400, 100, 100),
                                 noise_scale = 0.03,
                                 gamma = 0.12,
@@ -94,13 +94,13 @@ def noise_object(
                                 )
 
         # Visualize synthetic blob
-        qim3d.viz.vol(vol)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_blob_tube.html" width="100%" height="500" frameborder="0"></iframe>
         
         ```python
         # Visualize
-        qim3d.viz.slices_grid(vol, n_slices=15)
+        qim3d.viz.slices_grid(vol, num_slices=15)
         ```
         ![synthetic_blob_tube_slice](assets/screenshots/synthetic_blob_tube_slice.png)    
     """
@@ -178,7 +178,7 @@ def noise_object(
         axis = np.argmax(volume.shape)  # Fade along the dimension where the object is the largest
         target_max_normalized_distance = 1.4   # This value ensures that the object will become cylindrical
 
-        volume = qim3d.processing.operations.fade_mask(volume, 
+        volume = qim3d.operations.fade_mask(volume, 
                                                        geometry = geometry, 
                                                        axis = axis, 
                                                        target_max_normalized_distance = target_max_normalized_distance
@@ -193,7 +193,7 @@ def noise_object(
         target_max_normalized_distance = 1.4   # This value ensures that the object will become cylindrical
 
         # Fade once for making the object cylindrical
-        volume = qim3d.processing.operations.fade_mask(volume, 
+        volume = qim3d.operations.fade_mask(volume, 
                                                        geometry = geometry, 
                                                        axis = axis,
                                                        decay_rate = decay_rate,
@@ -202,7 +202,7 @@ def noise_object(
                                                        )
 
         # Fade again with invert = True for making the object a tube (i.e. with a hole in the middle)
-        volume = qim3d.processing.operations.fade_mask(volume, 
+        volume = qim3d.operations.fade_mask(volume, 
                                                        geometry = geometry, 
                                                        axis = axis, 
                                                        decay_rate = decay_rate,

@@ -59,10 +59,11 @@ def get_bibtex(doi: str):
 def custom_header(doi: str, header: str) -> str:
     """Allows a custom header to be passed
 
-    For example:
+    Example:
+        import qim3d
         doi = "https://doi.org/10.1101/2022.11.08.515664"
         header = {"Accept": "text/bibliography"}
-        response = qim3d.utils.doi.cusom_header(doi, header)
+        custom_header = qim3d.utils.custom_header(doi, header)
 
     """
     return _log_and_get_text(doi, header)

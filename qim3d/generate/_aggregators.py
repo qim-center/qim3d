@@ -147,12 +147,12 @@ def noise_object_collection(
     Generate a 3D volume of multiple synthetic objects using Perlin noise.
 
     Args:
-        collection_shape (tuple, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
+        collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
         num_objects (int, optional): Number of synthetic objects to include in the collection. Defaults to 15.
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the objects. If not provided, they are placed randomly into the collection. Defaults to None.
-        min_shape (tuple, optional): Minimum shape of the objects. Defaults to (40, 40, 40).
-        max_shape (tuple, optional): Maximum shape of the objects. Defaults to (60, 60, 60).
-        object_shape_zoom (tuple, optional): Scaling factors for each dimension of each object. Defaults to (1.0, 1.0, 1.0).
+        min_shape (tuple of ints, optional): Minimum shape of the objects. Defaults to (40, 40, 40).
+        max_shape (tuple of ints, optional): Maximum shape of the objects. Defaults to (60, 60, 60).
+        object_shape_zoom (tuple of floats, optional): Scaling factors for each dimension of each object. Defaults to (1.0, 1.0, 1.0).
         min_object_noise (float, optional): Minimum scale factor for Perlin noise. Defaults to 0.02.
         max_object_noise (float, optional): Maximum scale factor for Perlin noise. Defaults to 0.05.
         min_rotation_degrees (int, optional): Minimum rotation angle in degrees. Defaults to 0.
@@ -165,7 +165,7 @@ def noise_object_collection(
         min_threshold (float, optional): Minimum threshold value for clipping low intensity values. Defaults to 0.5.
         max_threshold (float, optional): Maximum threshold value for clipping low intensity values. Defaults to 0.6.
         smooth_borders (bool, optional): Flag for smoothing object borders to avoid straight edges in the objects. If True, the `min_threshold` and `max_threshold` parameters are ignored. Defaults to False.
-        object_shape (str, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
+        object_shape (str or None, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
         seed (int, optional): Seed for reproducibility. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
 
@@ -189,10 +189,10 @@ def noise_object_collection(
 
         # Generate synthetic collection of objects
         num_objects = 15
-        synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
+        vol, labels = qim3d.generate.noise_object_collection(num_objects = num_objects)
 
         # Visualize synthetic collection
-        qim3d.viz.vol(synthetic_collection)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default.html" width="100%" height="500" frameborder="0"></iframe>
 
@@ -203,8 +203,8 @@ def noise_object_collection(
 
         ```python
         # Visualize labels
-        cmap = qim3d.viz.colormaps.objects(nlabels=num_objects)
-        qim3d.viz.slicer(labels, cmap=cmap, vmax=num_objects)
+        cmap = qim3d.viz.colormaps.segmentation(num_labels=num_objects)
+        qim3d.viz.slicer(labels, color_map=cmap, value_max=num_objects)
         ```
         ![synthetic_collection](assets/screenshots/synthetic_collection_default_labels.gif)
 
@@ -213,7 +213,7 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of dense objects
-        synthetic_collection, labels = qim3d.generate.collection(
+        vol, labels = qim3d.generate.collection(
                                     min_high_value = 255,
                                     max_high_value = 255,
                                     min_object_noise = 0.05,
@@ -224,7 +224,7 @@ def noise_object_collection(
                                     max_gamma = 0.02)
 
         # Visualize synthetic collection
-        qim3d.viz.vol(synthetic_collection)
+        qim3d.viz.vol(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense.html" width="100%" height="500" frameborder="0"></iframe>
 
@@ -233,7 +233,7 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of cylindrical structures
-        vol, labels = qim3d.generate.collection(num_objects = 40,
+        vol, labels = qim3d.generate.noise_object_collection(num_objects = 40,
                                                 collection_shape = (300, 150, 150),
                                                 min_shape = (280, 10, 10),
                                                 max_shape = (290, 15, 15),
@@ -248,14 +248,14 @@ def noise_object_collection(
                                                 )
 
         # Visualize synthetic collection
-        qim3d.viz.vol(vol)
+        qim3d.viz.volumetric(vol)
 
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_cylinder.html" width="100%" height="500" frameborder="0"></iframe>
         
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(vol, n_slices=15)
+        qim3d.viz.slices_grid(vol, num_slices=15)
         ```
         ![synthetic_collection_cylinder](assets/screenshots/synthetic_collection_cylinder_slices.png)    
         
@@ -264,7 +264,7 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of tubular (hollow) structures
-        vol, labels = qim3d.generate.collection(num_objects = 10,
+        vol, labels = qim3d.generate.noise_object_collection(num_objects = 10,
                                                 collection_shape = (200, 200, 200),
                                                 min_shape = (180, 25, 25),
                                                 max_shape = (190, 35, 35),
@@ -279,13 +279,13 @@ def noise_object_collection(
                                                 )
 
         # Visualize synthetic collection
-        qim3d.viz.vol(vol)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tube.html" width="100%" height="500" frameborder="0"></iframe>
         
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(vol, n_slices=15, axis=1)
+        qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
         ```
         ![synthetic_collection_tube](assets/screenshots/synthetic_collection_tube_slices.png)
     """

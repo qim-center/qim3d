@@ -70,10 +70,10 @@ class OMEScaler(
         This method performs multi-scale downsampling on a 3D dataset, generating image pyramids. It processes the data in chunks using Dask.
 
         Args:
-            base (dask.array): The 3D array (volume) to be downsampled. Must be a Dask array for chunked processing.
+            base (dask.array.core.array): The 3D array (volume) to be downsampled. Must be a Dask array for chunked processing.
 
         Returns:
-            list of dask.array: A list of downsampled volumes, where each element represents a different scale. The first element corresponds to the original resolution, and subsequent elements represent progressively downsampled versions.
+            list of dask.array.core.Array: A list of downsampled volumes, where each element represents a different scale. The first element corresponds to the original resolution, and subsequent elements represent progressively downsampled versions.
 
         The downsampling process occurs scale by scale, using the following steps:
         - For each scale, the array is resized based on the downscale factor, computed as a function of the current scale level.
@@ -197,7 +197,7 @@ def export_ome_zarr(
     This function generates a multi-scale OME-Zarr representation of the input data, which is commonly used for large imaging datasets. The downsampled scales are calculated such that the smallest scale fits within the specified `chunk_size`.
 
     Args:
-        path (str): The directory where the OME-Zarr data will be stored.
+        path (str or os.PathLike): The directory where the OME-Zarr data will be stored.
         data (np.ndarray or dask.array): The 3D image data to be exported. Supports both NumPy and Dask arrays.
         chunk_size (int, optional): The size of the chunks for storing data. This affects both the original data and the downsampled scales. Defaults to 256.
         downsample_rate (int, optional): The factor by which to downsample the data for each scale. Must be greater than 1. Defaults to 2.
@@ -220,9 +220,6 @@ def export_ome_zarr(
 
         qim3d.io.export_ome_zarr("Escargot.zarr", data, chunk_size=100, downsample_rate=2)
         ```
-
-    Returns:
-        None: This function writes the OME-Zarr data to the specified directory and does not return any value.
     """
 
     # Check if directory exists
@@ -311,7 +308,7 @@ def import_ome_zarr(
     The image data can be lazily loaded (as Dask arrays) or fully computed into memory.
 
     Args:
-        path (str): The file path to the OME-Zarr data.
+        path (str or os.PathLike): The file path to the OME-Zarr data.
         scale (int or str, optional): The scale level to load.
             If 'highest', loads the finest scale (scale 0).
             If 'lowest', loads the coarsest scale (last available scale). Defaults to 0.
@@ -319,8 +316,7 @@ def import_ome_zarr(
             If False, returns a lazy Dask array. Defaults to True.
 
     Returns:
-        np.ndarray or dask.array.Array: The requested image data, either as a NumPy array if `load=True`,
-        or a Dask array if `load=False`.
+        vol (np.ndarray or dask.array.Array): The requested image data, either as a NumPy array if `load=True`, or a Dask array if `load=False`.
 
     Raises:
         ValueError: If the requested `scale` does not exist in the data.

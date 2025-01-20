@@ -20,18 +20,17 @@ def from_volume(
         volume (np.ndarray): The 3D numpy array representing the volume.
         level (float, optional): The threshold value for Marching Cubes. If None, Otsu's method is used.
         step_size (int, optional): The step size for the Marching Cubes algorithm.
-        allow_degenerate (bool, optional): Whether to allow degenerate (i.e. zero-area) triangles in the end-result.
-        If False, degenerate triangles are removed, at the cost of making the algorithm slower. Default False.
-        padding (tuple of int, optional): Padding to add around the volume.
+        allow_degenerate (bool, optional): Whether to allow degenerate (i.e. zero-area) triangles in the end-result. If False, degenerate triangles are removed, at the cost of making the algorithm slower. Default False.
+        padding (tuple of ints, optional): Padding to add around the volume.
         **kwargs: Additional keyword arguments to pass to `skimage.measure.marching_cubes`.
 
     Returns:
-        trimesh: The generated mesh.
+        mesh (trimesh.Trimesh): The generated mesh.
 
     Example:
         ```python
         import qim3d
-        vol = qim3d.generate.blob(base_shape=(128,128,128),
+        vol = qim3d.generate.noise_object(base_shape=(128,128,128),
                                   final_shape=(128,128,128),
                                   noise_scale=0.03,
                                   order=1,
@@ -40,7 +39,7 @@ def from_volume(
                                   threshold=0.5,
                                   dtype='uint8'
                                   )
-        mesh = qim3d.processing.create_mesh(vol, step_size=3)
+        mesh = qim3d.mesh.from_volume(vol, step_size=3)
         qim3d.viz.mesh(mesh.vertices, mesh.faces)
         ```
         <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>

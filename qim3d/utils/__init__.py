@@ -1,4 +1,4 @@
-from . import _doi
+from ._doi import *
 from ._system import Memory
 
 from ._logger import log

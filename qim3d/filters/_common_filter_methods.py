@@ -110,7 +110,7 @@ class Tophat(FilterBase):
         Returns:
             The filtered image or volume.
         """
-        return tophat(input, dask=self.dask, chunks=self.chunks, **self.kwargs)
+        return tophat(input, dask=self.dask, **self.kwargs)
 
 
 class Pipeline:
@@ -118,13 +118,13 @@ class Pipeline:
     Example:
         ```python
         import qim3d
-        from qim3d.processing import Pipeline, Median, Gaussian, Maximum, Minimum
+        from qim3d.filters import Pipeline, Median, Gaussian, Maximum, Minimum
 
         # Get data
         vol = qim3d.examples.fly_150x256x256
 
         # Show original
-        qim3d.viz.slices_grid(vol, axis=0, show=True)
+        fig1 = qim3d.viz.slices_grid(vol, num_slices=5, display_figure=True)
 
         # Create filter pipeline
         pipeline = Pipeline(
@@ -139,7 +139,7 @@ class Pipeline:
         vol_filtered = pipeline(vol)
 
         # Show filtered
-        qim3d.viz.slices_grid(vol_filtered, axis=0)
+        fig2 = qim3d.viz.slices_grid(vol_filtered, num_slices=5, display_figure=True)
         ```
         ![original volume](assets/screenshots/filter_original.png)
         ![filtered volume](assets/screenshots/filter_processed.png)
@@ -178,17 +178,17 @@ class Pipeline:
             )
         self.filters[name] = fn
 
-    def append(self, fn: Type[FilterBase]):
+    def append(self, fn: FilterBase):
         """
         Appends a filter to the end of the sequence.
 
         Args:
-            fn: An instance of a FilterBase subclass to be appended.
-
+            fn (FilterBase): An instance of a FilterBase subclass to be appended.
+        
         Example:
             ```python
             import qim3d
-            from qim3d.processing import Pipeline, Maximum, Median
+            from qim3d.filters import Pipeline, Maximum, Median
 
             # Create filter pipeline
             pipeline = Pipeline(
@@ -223,14 +223,14 @@ def gaussian(
     Applies a Gaussian filter to the input volume using scipy.ndimage.gaussian_filter or dask_image.ndfilters.gaussian_filter.
 
     Args:
-        vol: The input image or volume.
-        dask: Whether to use Dask for the Gaussian filter.
-        chunks: Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        *args: Additional positional arguments for the Gaussian filter.
-        **kwargs: Additional keyword arguments for the Gaussian filter.
+        vol (np.ndarray): The input image or volume.
+        dask (bool, optional): Whether to use Dask for the Gaussian filter.
+        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
+        *args (Any): Additional positional arguments for the Gaussian filter.
+        **kwargs (Any): Additional keyword arguments for the Gaussian filter.
 
     Returns:
-        The filtered image or volume.
+        filtered_vol (np.ndarray): The filtered image or volume.
     """
 
     if dask:
@@ -251,13 +251,13 @@ def median(
     Applies a median filter to the input volume using scipy.ndimage.median_filter or dask_image.ndfilters.median_filter.
 
     Args:
-        vol: The input image or volume.
-        dask: Whether to use Dask for the median filter.
-        chunks: Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs: Additional keyword arguments for the median filter.
+        vol (np.ndarray): The input image or volume.
+        dask (bool, optional): Whether to use Dask for the median filter.
+        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
+        **kwargs (Any): Additional keyword arguments for the median filter.
 
     Returns:
-        The filtered image or volume.
+        filtered_vol (np.ndarray): The filtered image or volume.
     """
     if dask:
         if not isinstance(vol, da.Array):
@@ -277,13 +277,13 @@ def maximum(
     Applies a maximum filter to the input volume using scipy.ndimage.maximum_filter or dask_image.ndfilters.maximum_filter.
 
     Args:
-        vol: The input image or volume.
-        dask: Whether to use Dask for the maximum filter.
-        chunks: Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs: Additional keyword arguments for the maximum filter.
+        vol (np.ndarray): The input image or volume.
+        dask (bool, optional): Whether to use Dask for the maximum filter.
+        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
+        **kwargs (Any): Additional keyword arguments for the maximum filter.
 
     Returns:
-        The filtered image or volume.
+        filtered_vol (np.ndarray): The filtered image or volume.
     """
     if dask:
         if not isinstance(vol, da.Array):
@@ -303,13 +303,13 @@ def minimum(
     Applies a minimum filter to the input volume using scipy.ndimage.minimum_filter or dask_image.ndfilters.minimum_filter.
 
     Args:
-        vol: The input image or volume.
-        dask: Whether to use Dask for the minimum filter.
-        chunks: Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs: Additional keyword arguments for the minimum filter.
+        vol (np.ndarray): The input image or volume.
+        dask (bool, optional): Whether to use Dask for the minimum filter.
+        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
+        **kwargs (Any): Additional keyword arguments for the minimum filter.
 
     Returns:
-        The filtered image or volume.
+        filtered_vol (np.ndarray): The filtered image or volume.
     """
     if dask:
         if not isinstance(vol, da.Array):
@@ -321,23 +321,19 @@ def minimum(
         res = ndimage.minimum_filter(vol, **kwargs)
         return res
 
-
-def tophat(
-    vol: np.ndarray, dask: bool = False, chunks: str = "auto", **kwargs
-) -> np.ndarray:
+def tophat(vol, dask=False, **kwargs):
     """
     Remove background from the volume.
 
     Args:
-        vol: The volume to remove background from.
-        radius: The radius of the structuring element (default: 3).
-        background: Color of the background, 'dark' or 'bright' (default: 'dark'). If 'bright', volume will be inverted.
-        dask: Whether to use Dask for the tophat filter (not supported, will default to SciPy).
-        chunks: Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs: Additional keyword arguments.
+        vol (np.ndarray): The volume to remove background from.
+        dask (bool, optional): Whether to use Dask for the tophat filter (not supported, will default to SciPy).
+        **kwargs (Any): Additional keyword arguments.
+            `radius` (float): The radius of the structuring element (default: 3).
+            `background` (str): Color of the background, 'dark' or 'bright' (default: 'dark'). If 'bright', volume will be inverted.
 
     Returns:
-        vol: The volume with background removed.
+        filtered_vol (np.ndarray): The volume with background removed.
     """
 
     radius = kwargs["radius"] if "radius" in kwargs else 3

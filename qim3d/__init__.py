@@ -48,6 +48,7 @@ _submodules = [
     'mesh',
     'features',
     'operations',
+    'detection'
 ]
 
 # Creating lazy loaders for each submodule

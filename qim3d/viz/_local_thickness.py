@@ -30,19 +30,19 @@ def local_thickness(
             number of slices and rounded to the nearest integer. If None, the middle slice will
             be used for 3D images. Unused for 2D images. Defaults to None.
         show (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
-        figsize (Tuple[int, int], optional): The size of the figure. Defaults to (15, 5).
+        figsize (tuple, optional): The size of the figure. Defaults to (15, 5).
 
     Raises:
         ValueError: If the slice index is not an integer or a float between 0 and 1.
 
     Returns:
-        If the input is 3D, returns an interactive widget. Otherwise, returns a matplotlib figure.
+        local_thickness (widgets.interactive or plt.Figure): If the input is 3D, returns an interactive widget. Otherwise, returns a matplotlib figure.
 
     Example:
         ```python
         import qim3d
 
-        fly = qim3d.examples.fly_150x256x256 # 3D volume
+        fly = qim3d.examples.fly_150x256x256
         lt_fly = qim3d.processing.local_thickness(fly)
         qim3d.viz.local_thickness(fly, lt_fly, axis=0)
         ```

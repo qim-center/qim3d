@@ -20,15 +20,15 @@ def blobs(
     Extract blobs from a volume using Difference of Gaussian (DoG) method, and retrieve a binary volume with the blobs marked as True
 
     Args:
-        vol: The volume to detect blobs in
-        background: 'dark' if background is darker than the blobs, 'bright' if background is lighter than the blobs
-        min_sigma: The minimum standard deviation for Gaussian kernel
-        max_sigma: The maximum standard deviation for Gaussian kernel
-        sigma_ratio: The ratio between the standard deviation of Gaussian Kernels
-        threshold: The absolute lower bound for scale space maxima. Reduce this to detect blobs with lower intensities
-        overlap: The fraction of area of two blobs that overlap
-        threshold_rel: The relative lower bound for scale space maxima
-        exclude_border: If True, exclude blobs that are too close to the border of the image
+        vol (np.ndarray): The volume to detect blobs in.
+        background (str): 'dark' if background is darker than the blobs, 'bright' if background is lighter than the blobs. Defaults to 'dark'.
+        min_sigma (float): The minimum standard deviation for Gaussian kernel. Defaults to 1.
+        max_sigma (float): The maximum standard deviation for Gaussian kernel. Defaults to 50.
+        sigma_ratio (float): The ratio between the standard deviation of Gaussian Kernels. Defaults to 1.6.
+        threshold (float): The absolute lower bound for scale space maxima. Reduce this to detect blobs with lower intensities. Defaults to 0.5.
+        overlap (float): The fraction of area of two blobs that overlap. Defaults to 0.5.
+        threshold_rel (float or None): The relative lower bound for scale space maxima. Defaults to None.
+        exclude_border (bool): If True, exclude blobs that are too close to the border of the image. Defaults to False.
 
     Returns:
         blobs: The blobs found in the volume as (p, r, c, radius)
@@ -37,13 +37,14 @@ def blobs(
     Example:
             ```python
             import qim3d
+            import qim3d.detection
 
             # Get data
             vol = qim3d.examples.cement_128x128x128
-            vol_blurred = qim3d.processing.gaussian(vol, sigma=2)
+            vol_blurred = qim3d.filters.gaussian(vol, sigma=2)
 
-            # Detect blobs, and get binary mask
-            blobs, mask = qim3d.processing.blob_detection(
+            # Detect blobs, and get binary_volume
+            blobs, binary_volume = qim3d.detection.blobs(
                 vol_blurred,
                 min_sigma=1,
                 max_sigma=8,
@@ -55,11 +56,11 @@ def blobs(
             # Visualize detected blobs
             qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
             ```
-            ![blob detection](assets/screenshots/blob_detection.gif)
+            ![blob detection](assets/screenshots/blob_detection.gif)    
 
             ```python
-            # Visualize binary mask
-            qim3d.viz.slicer(mask)
+            # Visualize binary binary_volume
+            qim3d.viz.slicer(binary_volume)
             ```
             ![blob detection](assets/screenshots/blob_get_mask.gif)
     """
