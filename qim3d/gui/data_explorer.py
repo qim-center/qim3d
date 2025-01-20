@@ -166,17 +166,31 @@ class Interface(BaseInterface):
 
         # Visualization and results
         with gr.Row():
+            def create_uniform_image(intensity=1):
+                """
+                Generates a blank image with a single color.
+                Gradio `gr.Plot` components will flicker if there is no default value.
+                bug fix on gradio version 4.44.0
+                """
+                pixels = np.zeros((100, 100, 3), dtype=np.uint8) + int(intensity * 255)
+                fig, ax = plt.subplots(figsize=(10, 10))
+                ax.imshow(pixels, interpolation="nearest")
+
+                # Adjustments
+                ax.axis("off")
+                fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+                return fig
 
             # Z Slicer
             with gr.Column(visible=False) as result_z_slicer:
-                zslice_plot = gr.Plot(label="Z slice")
+                zslice_plot = gr.Plot(label="Z slice", value=create_uniform_image(1))
                 zpos = gr.Slider(
                     minimum=0, maximum=1, value=0.5, step=0.01, label="Z position"
                 )
 
             # Y Slicer
             with gr.Column(visible=False) as result_y_slicer:
-                yslice_plot = gr.Plot(label="Y slice")
+                yslice_plot = gr.Plot(label="Y slice", value=create_uniform_image(1))
 
                 ypos = gr.Slider(
                     minimum=0, maximum=1, value=0.5, step=0.01, label="Y position"
@@ -184,7 +198,7 @@ class Interface(BaseInterface):
 
             # X Slicer
             with gr.Column(visible=False) as result_x_slicer:
-                xslice_plot = gr.Plot(label="X slice")
+                xslice_plot = gr.Plot(label="X slice", value=create_uniform_image(1))
 
                 xpos = gr.Slider(
                     minimum=0, maximum=1, value=0.5, step=0.01, label="X position"
