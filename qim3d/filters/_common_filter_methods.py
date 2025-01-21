@@ -141,8 +141,8 @@ class Pipeline:
         # Show filtered
         fig2 = qim3d.viz.slices_grid(vol_filtered, num_slices=5, display_figure=True)
         ```
-        ![original volume](assets/screenshots/filter_original.png)
-        ![filtered volume](assets/screenshots/filter_processed.png)
+        ![original volume](../../assets/screenshots/filter_original.png)
+        ![filtered volume](../../assets/screenshots/filter_processed.png)
 
     """
 

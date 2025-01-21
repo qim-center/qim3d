@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Data visualization
 The `qim3d` library aims to provide easy ways to explore and get insights from volumetric data. 
 

@@ -7,20 +7,22 @@ repo_name: Gitlab
 
 
 nav:
-  - qim3d: index.md
-  - Data handling: datahandling.md
-  - Visualization: viz.md
-  - Features: features.md
-  - Filters: filters.md
-  - Detection: detection.md
-  - Segmentation: segmentation.md
-  - Operations: operations.md
-  - Processing: processing.md
-  - ML Models: models.md
-  - GUIs: gui.md
-  - CLI: cli.md
-
-  - Release history: releases.md
+  - Data handling:
+    - Input and Output: doc/data_handling/io.md
+    - Synthetic data: doc/data_handling/generate.md
+  - Visualization: doc/visualization/viz.md
+  - Image analysis:
+    - Features: doc/image_analysis/features.md
+    - Filters: doc/image_analysis/filters.md
+    - Detection: doc/image_analysis/detection.md
+    - Segmentation: doc/image_analysis/segmentation.md
+    - Operations: doc/image_analysis/operations.md
+    - Processing: doc/image_analysis/processing.md
+    - Meshes: doc/image_analysis/mesh.md
+  - Machine Learning: doc/ml/models.md
+  - Graphical User Interfaces: doc/gui/gui.md
+  - Command Line Interface: doc/cli/cli.md
+  - Release history: doc/releases/releases.md
 
 theme:
   language: en 
@@ -35,7 +37,7 @@ theme:
     - navigation.expand
     - navigation.instant
     # - navigation.tracking
-    - toc.integrate
+    # - toc.integrate
     # - toc.follow
     - search.suggest
     # - content.tabs.link
@@ -87,6 +89,6 @@ plugins:
               show_source: true
               show_root_full_path: true
               show_object_full_path: true
-              show_symbol_type_heading: true
+              show_symbol_type_heading: false
               show_symbol_type_toc: false
               separate_signature: true

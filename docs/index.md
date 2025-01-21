@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <audio id="audio" src="assets/qim3d.mp3"></audio>
@@ -215,14 +220,16 @@ Below is a list of contributors to the project, arranged in chronological order 
 
 | Author                      |   Commits | First commit |
 |:----------------------------|----------:|-------------:|
-| Felipe Delestro             |       231 | 2023-05-12   |
+| Felipe Delestro             |       254 | 2023-05-12   |
 | Stefan Engelmann Jensen     |        29 | 2023-06-29   |
 | Oskar Kristoffersen         |        15 | 2023-07-05   |
-| Christian Kento Rasmussen   |        22 | 2024-02-01   |
-| Alessia Saccardo            |        13 | 2024-02-19   |
-| David Grundfest             |        16 | 2024-04-12   |
-| Anna Bøgevang Ekner         |         6 | 2024-04-18   |
-| David Diamond Wang Johansen |         1 | 2024-10-31   |
+| Christian Kento Rasmussen   |        23 | 2024-02-01   |
+| Alessia Saccardo            |        14 | 2024-02-19   |
+| David Grundfest             |        19 | 2024-04-12   |
+| Anna Bøgevang Ekner         |         7 | 2024-04-18   |
+| David Diamond Wang Johansen |         2 | 2024-10-31   |
+| Oscar Flensburg Clausen     |         5 | 2024-11-20   |
+| Hans Martin Kjer            |         1 | 2024-12-02   |
 
 
 ## Support

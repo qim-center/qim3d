@@ -1,3 +1,9 @@
+---
+hide:
+  - navigation
+  
+---
+
 # Release History
 [![PyPI version](https://badge.fury.io/py/qim3d.svg)](https://badge.fury.io/py/qim3d)
 [![Downloads](https://static.pepy.tech/badge/qim3d)](https://pepy.tech/project/qim3d)
@@ -19,18 +25,18 @@ And remember to keep your pip installation [up to date](index.md/#get-the-latest
 
 ### v0.4.4 (11/10/2024)
 
-- Introduction of `itk-vtk-viewer` for OME-Zarr data visualization 🎉 ![itk-vtk-viewer](assets/screenshots/itk-vtk-viewer.gif)
+- Introduction of `itk-vtk-viewer` for OME-Zarr data visualization 🎉 ![itk-vtk-viewer](../../assets/screenshots/itk-vtk-viewer.gif)
 
 
 ### v0.4.3 (02/10/2024)
 
 - Updated requirements
-- Introduction of mesh generation, visualization, saving and loading 🎉  ![Mesh generation](assets/screenshots/releases/mesh_generation.png)
+- Introduction of mesh generation, visualization, saving and loading 🎉  ![Mesh generation](../../assets/screenshots/releases/mesh_generation.png)
 
 ### v0.4.2 (30/09/2024)
 
 - Export and import is now possible in the OME-Zarr standard, including multi-scale datasets.
-- Filters now have the option to use Dask when available ![Filters with dask](assets/screenshots/releases/filters_with_dask.png)
+- Filters now have the option to use Dask when available ![Filters with dask](../../assets/screenshots/releases/filters_with_dask.png)
 
 
 ### v0.4.1 (30/07/2024)
@@ -50,9 +56,9 @@ And remember to keep your pip installation [up to date](index.md/#get-the-latest
 - Loading and saving for Zarr files
 - File convertion using the CLI, including Zarr
 - Refactoring for the GUIs
-- Color visualization for structure tensor ![Color visualization for structure tensor](assets/screenshots/releases/qim3d-structure_tensor_with_colors.gif)
+- Color visualization for structure tensor ![Color visualization for structure tensor](../../assets/screenshots/releases/qim3d-structure_tensor_with_colors.gif)
 - Refactoring for synthetic data generation, from `utils` to `generate`
-- Introduction of `qim3d.generate.collection` 🎉 ![Introduction of `qim3d.generate.collection`](assets/screenshots/releases/qim3d-generate_collection.gif)
+- Introduction of `qim3d.generate.collection` 🎉 ![Introduction of `qim3d.generate.collection`](../../assets/screenshots/releases/qim3d-generate_collection.gif)
 
 ### v0.3.8 (20/06/2024)
 
@@ -61,22 +67,22 @@ And remember to keep your pip installation [up to date](index.md/#get-the-latest
 ### v0.3.7 (17/06/2024)
 
 - Performance improvements when importing 
-- Refactoring for blob detection ![Refactoring for blob detection](assets/screenshots/releases/qim3d-blob_detection_refactoring.gif)
+- Refactoring for blob detection ![Refactoring for blob detection](../../assets/screenshots/releases/qim3d-blob_detection_refactoring.gif)
 
 
 ### v0.3.6 (30/05/2024)
 
 - Refactoring for performance improvement
 - Welcome message for the CLI
-- Introduction of `qim3d.processing.fade_mask` 🎉 ![Introduction of `qim3d.processing.fade_mask`](assets/screenshots/releases/qim3d-fade_viz.gif)
+- Introduction of `qim3d.processing.fade_mask` 🎉 ![Introduction of `qim3d.processing.fade_mask`](../../assets/screenshots/releases/qim3d-fade_viz.gif)
 
 
 
 ### v0.3.5 (27/05/2024)
 
 - Added runtime and memory usage in the documentation
-- Introduction of `qim3d.utils.generate_volume` 🎉 ![Introduction of `qim3d.utils.generate_volume`](assets/screenshots/releases/qim3d-synthetic_volume.gif)
-- CLI refactoring, adding welcome message to the user ![CLI refactoring](assets/screenshots/releases/qim3d-CLI_welcome_message.png)
+- Introduction of `qim3d.utils.generate_volume` 🎉 ![Introduction of `qim3d.utils.generate_volume`](../../assets/screenshots/releases/qim3d-synthetic_volume.gif)
+- CLI refactoring, adding welcome message to the user ![CLI refactoring](../../assets/screenshots/releases/qim3d-CLI_welcome_message.png)
 - Introduction of `preview` CLI 🎉
 
 

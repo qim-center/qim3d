@@ -13,7 +13,7 @@ import qim3d
 layers = qim3d.gui.layers2d.Interface()
 app = layers.launch()
 ```
-![gui-layers](assets/screenshots/GUI-layers.png)
+![gui-layers](../../assets/screenshots/GUI-layers.png)
 
 """
 

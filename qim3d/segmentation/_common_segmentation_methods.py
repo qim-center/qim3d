@@ -26,7 +26,7 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
 
         fig1 = qim3d.viz.slices_grid(bin_vol, slice_axis=1, display_figure=True)
         ```
-        ![operations-watershed_before](assets/screenshots/operations-watershed_before.png)
+        ![operations-watershed_before](../../assets/screenshots/operations-watershed_before.png)
 
         ```python
         labeled_volume, num_labels = qim3d.segmentation.watershed(bin_vol)
@@ -34,7 +34,7 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
         cmap = qim3d.viz.colormaps.segmentation(num_labels)
         fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, color_map=cmap, display_figure=True)
         ```
-        ![operations-watershed_after](assets/screenshots/operations-watershed_after.png)
+        ![operations-watershed_after](../../assets/screenshots/operations-watershed_after.png)
 
     """
     import skimage

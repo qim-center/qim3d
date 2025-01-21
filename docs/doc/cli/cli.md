@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Command line interface
 The library also includes a command line interface for easy access to some functionalities, and the convenience of using qim3d directly from your terminal. 
 
@@ -7,7 +12,7 @@ This offers quick interactions, making it ideal for tasks that require efficienc
     ``` title="Command"
     qim3d gui --data-explorer
     ```
-    ![CLI Data Explorer](assets/screenshots/CLI-data_explorer.gif)
+    ![CLI Data Explorer](../../assets/screenshots/CLI-data_explorer.gif)
 
 
 ## Graphical User Interfaces
@@ -50,7 +55,7 @@ The command line interface allows you to run graphical user interfaces directly 
 
     In this case, the GUI will be available at `http://127.0.0.1:7860`
 
-    ![Data explorer GUI](assets/screenshots/GUI-data_explorer.png)
+    ![Data explorer GUI](../../assets/screenshots/GUI-data_explorer.png)
 
 
 !!! Example
@@ -82,7 +87,7 @@ The command line interface allows you to run graphical user interfaces directly 
 
     In this case, the GUI will be available at `http://127.0.0.1:47326/gui/fima/47326/`
 
-    ![Local thickness GUI](assets/screenshots/GUI-local_thickness.png)
+    ![Local thickness GUI](../../assets/screenshots/GUI-local_thickness.png)
 
 
 
@@ -127,7 +132,7 @@ You can launch volumetric visualizations directly from the command line. By defa
 
     A new tab in the default browser will be open with the visualization:
 
-    ![itk-vtk-viewer](assets/screenshots/itk-vtk-viewer.gif)
+    ![itk-vtk-viewer](../../assets/screenshots/itk-vtk-viewer.gif)
 
 !!! Example "Example using k3d"
     ``` title="Command"
@@ -152,7 +157,7 @@ You can launch volumetric visualizations directly from the command line. By defa
     ```
     And a new tab will be opened in the default browser with the interactive k3d plot:
 
-    ![CLI k3d](assets/screenshots/CLI-k3d.png){ width="512" }
+    ![CLI k3d](../../assets/screenshots/CLI-k3d.png){ width="512" }
 
 Or an specific path for destination can be used. We can also choose to not open the browser:
 
@@ -196,32 +201,32 @@ File previewing can also be done directly from the command line interface to pre
     qim3d preview blobs_256x256x256.tif 
     ```
 
-    ![CLI k3d](assets/preview/default.png){ width="512" }
+    ![CLI k3d](../../assets/preview/default.png){ width="512" }
 
 !!! Example
     ``` title="Command"
     qim3d preview blobs_256x256x256.tif --resolution 30
     ```
 
-    ![CLI k3d](assets/preview/res30.png){ width="512" }
+    ![CLI k3d](../../assets/preview/res30.png){ width="512" }
 
 !!! Example
     ``` title="Command"
     qim3d preview blobs_256x256x256.tif --resolution 50 --axis 1
     ```
 
-    ![CLI k3d](assets/preview/axis1.png){ width="512" }
+    ![CLI k3d](../../assets/preview/axis1.png){ width="512" }
 
 !!! Example
     ``` title="Command"
     qim3d preview blobs_256x256x256.tif --resolution 50 --axis 2 --slice 0
     ```
 
-    ![CLI k3d](assets/preview/relativeIntensity.png){ width="512" }
+    ![CLI k3d](../../assets/preview/relativeIntensity.png){ width="512" }
 
 !!! Example
     ``` title="Command"
     qim3d preview qim_logo.png --resolution 40
     ```
 
-    ![CLI k3d](assets/preview/qimLogo.png){ width="512" }
+    ![CLI k3d](../../assets/preview/qimLogo.png){ width="512" }

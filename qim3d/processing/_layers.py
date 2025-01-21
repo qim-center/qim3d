@@ -47,8 +47,8 @@ def segment_layers(data: np.ndarray,
         for layer_line in layer_lines:
             plt.plot(layer_line, linewidth = 3)
         ```
-        ![layer_segmentation](assets/screenshots/layers.png)
-        ![layer_segmentation](assets/screenshots/segmented_layers.png)
+        ![layer_segmentation](../../assets/screenshots/layers.png)
+        ![layer_segmentation](../../assets/screenshots/segmented_layers.png)
 
     """
     if isinstance(data, np.ndarray):

@@ -43,8 +43,8 @@ def plot_cc(
         qim3d.viz.plot_cc(cc, crop=True, display_figure=True, overlay=None, num_slices=5, component_indexs=[4,6,7])
         qim3d.viz.plot_cc(cc, crop=True, display_figure=True, overlay=vol, num_slices=5, component_indexs=[4,6,7])
         ```
-        ![plot_cc_no_overlay](assets/screenshots/plot_cc_no_overlay.png)
-        ![plot_cc_overlay](assets/screenshots/plot_cc_overlay.png)
+        ![plot_cc_no_overlay](../../assets/screenshots/plot_cc_no_overlay.png)
+        ![plot_cc_overlay](../../assets/screenshots/plot_cc_overlay.png)
     """
     # if no components are given, plot the first max_cc_to_plot=32 components
     if component_indexs is None:

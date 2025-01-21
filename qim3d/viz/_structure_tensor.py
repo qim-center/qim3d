@@ -69,7 +69,7 @@ def vectors(
         # Visualize the structure tensor
         qim3d.viz.vectors(vol, vec, axis = 2, interactive = True)
         ```
-        ![structure tensor](assets/screenshots/structure_tensor_visualization.gif)
+        ![structure tensor](../../assets/screenshots/structure_tensor_visualization.gif)
 
     """
 
