@@ -43,7 +43,7 @@ def local_thickness(
         vol = qim3d.examples.fly_150x256x256
         lt_vol = qim3d.processing.local_thickness(vol, visualize=True, axis=0)
         ```
-        ![local thickness 3d](assets/screenshots/local_thickness_3d.gif)
+        ![local thickness 3d](../../assets/screenshots/local_thickness_3d.gif)
 
         ```python
         import qim3d
@@ -56,10 +56,10 @@ def local_thickness(
         lt_blobs = qim3d.processing.local_thickness(slice, visualize=True)
 
         ```
-        ![local thickness 2d](assets/screenshots/local_thickness_2d.png)
+        ![local thickness 2d](../../assets/screenshots/local_thickness_2d.png)
 
     !!! info "Runtime and memory usage of the local thickness method for different volume sizes"
-        ![local thickness estimate time and mem](assets/screenshots/Local_thickness_time_mem_estimation.png)
+        ![local thickness estimate time and mem](../../assets/screenshots/Local_thickness_time_mem_estimation.png)
 
         Performance computed on Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHz.
 

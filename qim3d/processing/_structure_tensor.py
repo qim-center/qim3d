@@ -47,11 +47,11 @@ def structure_tensor(
         vol = qim3d.examples.NT_128x128x128
         val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 2)
         ```
-        ![structure tensor](assets/screenshots/structure_tensor_visualization.gif)
+        ![structure tensor](../../assets/screenshots/structure_tensor_visualization.gif)
 
 
     !!! info "Runtime and memory usage of the structure tensor method for different volume sizes"
-        ![structure tensor estimate time and mem](assets/screenshots/Structure_tensor_time_mem_estimation.png)
+        ![structure tensor estimate time and mem](../../assets/screenshots/Structure_tensor_time_mem_estimation.png)
 
         Performance computed on Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHz.
 

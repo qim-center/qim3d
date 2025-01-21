@@ -71,7 +71,7 @@ def segmentation(
         display(cmap_earth)
         display(cmap_ocean)
         ```
-        ![colormap objects](assets/screenshots/viz-colormaps-objects-all.png)
+        ![colormap objects](../../assets/screenshots/viz-colormaps-objects-all.png)
 
         ```python
         import qim3d
@@ -83,7 +83,7 @@ def segmentation(
         color_map = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
         qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=color_map)
         ```
-        ![colormap objects](assets/screenshots/viz-colormaps-objects.gif)
+        ![colormap objects](../../assets/screenshots/viz-colormaps-objects.gif)
 
     Tip:
         It can be easily used when calling visualization functions as
@@ -95,7 +95,7 @@ def segmentation(
 
     Tip:
         The `min_dist` parameter can be used to control the distance between neighboring colors.
-        ![colormap objects mind_dist](assets/screenshots/viz-colormaps-min_dist.gif)
+        ![colormap objects mind_dist](../../assets/screenshots/viz-colormaps-min_dist.gif)
     """
     from skimage import color
 

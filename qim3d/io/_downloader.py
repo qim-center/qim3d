@@ -54,7 +54,7 @@ class Downloader:
 
         qim3d.viz.slicer_orthogonal(data, color_map="magma")
         ```
-        ![cowry shell](assets/screenshots/cowry_shell_slicer.gif)
+        ![cowry shell](../../assets/screenshots/cowry_shell_slicer.gif)
     """
 
     def __init__(self):

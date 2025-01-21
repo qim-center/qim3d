@@ -81,7 +81,7 @@ def slices_grid(
         vol = qim3d.examples.shell_225x128x128
         qim3d.viz.slices_grid(vol, num_slices=15)
         ```
-        ![Grid of slices](assets/screenshots/viz-slices.png)
+        ![Grid of slices](../../assets/screenshots/viz-slices.png)
     """
     if image_size:
         image_height = image_size
@@ -354,7 +354,7 @@ def slicer(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.slicer(vol)
         ```
-        ![viz slicer](assets/screenshots/viz-slicer.gif)
+        ![viz slicer](../../assets/screenshots/viz-slicer.gif)
     """
 
     if image_size:
@@ -427,7 +427,7 @@ def slicer_orthogonal(
         vol = qim3d.examples.fly_150x256x256
         qim3d.viz.slicer_orthogonal(vol, color_map="magma")
         ```
-        ![viz slicer_orthogonal](assets/screenshots/viz-orthogonal.gif)
+        ![viz slicer_orthogonal](../../assets/screenshots/viz-orthogonal.gif)
     """
 
     if image_size:
@@ -484,7 +484,7 @@ def fade_mask(
         vol = qim3d.examples.cement_128x128x128
         qim3d.viz.fade_mask(vol)
         ```
-        ![operations-edge_fade_before](assets/screenshots/viz-fade_mask.gif)
+        ![operations-edge_fade_before](../../assets/screenshots/viz-fade_mask.gif)
 
     """
 
@@ -623,7 +623,7 @@ def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
         # Explore chunks
         qim3d.viz.chunks("Escargot.zarr")
         ```
-        ![chunks-visualization](assets/screenshots/chunks_visualization.gif)
+        ![chunks-visualization](../../assets/screenshots/chunks_visualization.gif)
     """
 
     # Load the Zarr dataset
@@ -904,7 +904,7 @@ def histogram(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.histogram(vol)
         ```
-        ![viz histogram](assets/screenshots/viz-histogram-vol.png)
+        ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
 
         ```python
         import qim3d
@@ -912,7 +912,7 @@ def histogram(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.histogram(vol, bins=32, slice_idx="middle", axis=1, kde=False, log_scale=True)
         ```
-        ![viz histogram](assets/screenshots/viz-histogram-slice.png)
+        ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
     """
 
     if not (0 <= axis < volume.ndim):

@@ -54,7 +54,7 @@ def noise_object(
         # Visualize slices
         qim3d.viz.slices_grid(vol, value_min = 0, value_max = 255, num_slices = 15)
         ```
-        ![synthetic_blob](assets/screenshots/synthetic_blob_slices.png)
+        ![synthetic_blob](../../assets/screenshots/synthetic_blob_slices.png)
 
     Example:
         ```python
@@ -78,7 +78,7 @@ def noise_object(
         # Visualize slices
         qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
         ```
-        ![synthetic_blob_cylinder_slice](assets/screenshots/synthetic_blob_cylinder_slice.png)
+        ![synthetic_blob_cylinder_slice](../../assets/screenshots/synthetic_blob_cylinder_slice.png)
 
     Example:
         ```python
@@ -102,7 +102,7 @@ def noise_object(
         # Visualize
         qim3d.viz.slices_grid(vol, num_slices=15)
         ```
-        ![synthetic_blob_tube_slice](assets/screenshots/synthetic_blob_tube_slice.png)    
+        ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)    
     """
 
     if not isinstance(final_shape, tuple) or len(final_shape) != 3:

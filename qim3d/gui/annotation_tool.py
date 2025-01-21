@@ -16,7 +16,7 @@ annotation_tool = qim3d.gui.annotation_tool.Interface()
 # We can directly pass the image we loaded to the interface
 app = annotation_tool.launch(vol[0])
 ```
-![gui-annotation_tool](assets/screenshots/gui-annotation_tool.gif)
+![gui-annotation_tool](../../assets/screenshots/gui-annotation_tool.gif)
 
 """
 

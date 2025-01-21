@@ -56,13 +56,13 @@ def blobs(
             # Visualize detected blobs
             qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
             ```
-            ![blob detection](assets/screenshots/blob_detection.gif)    
+            ![blob detection](../../assets/screenshots/blob_detection.gif)    
 
             ```python
             # Visualize binary binary_volume
             qim3d.viz.slicer(binary_volume)
             ```
-            ![blob detection](assets/screenshots/blob_get_mask.gif)
+            ![blob detection](../../assets/screenshots/blob_get_mask.gif)
     """
     from skimage.feature import blob_dog
 

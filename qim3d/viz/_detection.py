@@ -46,7 +46,7 @@ def circles(blobs: tuple[float,float,float,float], vol: np.ndarray, alpha: float
         # Visualize detected blobs with circles method
         qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
         ```
-        ![blob detection](assets/screenshots/blob_detection.gif)
+        ![blob detection](../../assets/screenshots/blob_detection.gif)
     """
 
     def _slicer(z_slice):
