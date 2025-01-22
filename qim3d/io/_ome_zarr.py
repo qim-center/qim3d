@@ -161,7 +161,7 @@ class OMEScaler(
 
         return list(rv)
 
-    def scaleZYXdask_legacy(self, base):
+    def scaleZYXdask_legacy(self, base: da.core.Array):
         """Downsample using the original OME-Zarr python library"""
 
         rv = [base]
@@ -179,7 +179,7 @@ class OMEScaler(
             log.info(f"- Scale {i+1}: {rv[-1].shape}")
         return list(rv)
     
-    def scaleZYXmean(self, base):
+    def scaleZYXdask_mean(self, base: da.core.Array):
         """ Downsample using the mean of the pixels in each block
 
         Args:
