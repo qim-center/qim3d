@@ -199,6 +199,7 @@ def export_ome_zarr(
     data: np.ndarray|da.core.Array,
     chunk_size: int = 256,
     downsample_rate: int = 2,
+    max_scales: int = None,
     order: int = 1,
     replace: bool = False,
     method: str = "scaleZYX",
@@ -215,6 +216,7 @@ def export_ome_zarr(
         data (np.ndarray or dask.array): The 3D image data to be exported. Supports both NumPy and Dask arrays.
         chunk_size (int, optional): The size of the chunks for storing data. This affects both the original data and the downsampled scales. Defaults to 256.
         downsample_rate (int, optional): The factor by which to downsample the data for each scale. Must be greater than 1. Defaults to 2.
+        max_scale (int, optional): The maximum number of scales to generate. If not specified, the number of scales is determined based on the smallest dimension of the input data and the `chunk_size`.
         order (int, optional): The interpolation order to use when downsampling. Defaults to 1 (linear). Use 0 for a faster nearest-neighbor interpolation.
         replace (bool, optional): Whether to replace the existing directory if it already exists. Defaults to False.
         method (str, optional): The method used for downsampling. If set to "dask", Dask arrays are used for chunking and downsampling. Defaults to "scaleZYX".
@@ -257,6 +259,7 @@ def export_ome_zarr(
     # Get the number of scales
     min_dim = np.max(np.shape(data))
     nscales = math.ceil(math.log(min_dim / chunk_size) / math.log(downsample_rate))
+    nscales = min(nscales, max_scales) if max_scales is not None else nscales
     log.info(f"Number of scales: {nscales + 1}")
 
     # Create scaler
