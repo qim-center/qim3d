@@ -771,6 +771,7 @@ def load(
     progress_bar: bool = True,
     force_load: bool = False,
     dim_order: tuple = (2, 1, 0),
+    log_memory: bool = True,
     **kwargs,
 ) -> np.ndarray:
     """
@@ -852,7 +853,8 @@ def load(
         log.warning("The file format does not contain metadata")
 
     if not virtual_stack:
-        log_memory_info(data)
+        if log_memory:
+            log_memory_info(data)
     else:
         # Only log if file type is not a np.ndarray, i.e., it is some kind of memmap object
         if not isinstance(
@@ -861,7 +863,8 @@ def load(
             log.info("Using virtual stack")
         else:
             log.warning("Virtual stack is not supported for this file format")
-            log_memory_info(data)
+            if log_memory:
+                log_memory_info(data)
 
     return data
 
