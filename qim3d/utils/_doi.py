@@ -35,7 +35,7 @@ def _make_request(doi: str, header: str) -> requests.Response:
     return response
 
 
-def _log_and_get_text(doi, header) -> str:
+def _log_and_get_text(doi: str, header: str) -> str:
     response = _make_request(doi, header)
 
     if response and response.encoding:
