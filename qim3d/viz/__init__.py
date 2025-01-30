@@ -8,6 +8,7 @@ from ._data_exploration import (
     slices_grid,
     chunks,
     histogram,
+    line_profile
 )
 from .itk_vtk_viewer import itk_vtk
 from ._k3d import volumetric, mesh

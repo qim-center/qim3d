@@ -12,12 +12,13 @@ import ipywidgets as widgets
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import matplotlib
-from IPython.display import SVG, display
+from IPython.display import SVG, display, clear_output
 import matplotlib
 import numpy as np
 import zarr
 from qim3d.utils._logger import log
 import seaborn as sns
+import skimage.measure
 
 import qim3d
 
@@ -978,3 +979,141 @@ def histogram(
 
     if return_fig:
         return fig
+
+class _LineProfile:
+    def __init__(self, volume, axis=0):
+        self.volume = volume
+        self.axis = axis
+
+        self.dims = np.array(volume.shape)
+        self.pad = 1 # Padding to avoid border issues
+        self.cmap = matplotlib.cm.plasma
+        self.initialize_widgets()
+        self.update_axis(axis)
+    
+    def update_axis(self, axis):
+        self.axis = axis
+        self.slice_index_widget.max = self.volume.shape[axis] - 1
+        self.slice_index_widget.value = self.volume.shape[axis] // 2
+
+        self.x_max, self.y_max = np.delete(self.dims, self.axis) - 1
+        self.x_widget.max = self.x_max - self.pad
+        self.x_widget.value = self.x_max // 2
+        self.y_widget.max = self.y_max - self.pad
+        self.y_widget.value = self.y_max // 2
+
+    def initialize_widgets(self):
+        layout = widgets.Layout(width='400px', height='auto')
+        self.angle_widget = widgets.IntSlider(min=0, max=360, step=1, value=0, description="Angle (°)", layout=layout)
+        self.x_widget = widgets.IntSlider(min=self.pad, step=1, description="P[0]", layout=layout)
+        self.y_widget = widgets.IntSlider(min=self.pad, step=1, description="P[1]", layout=layout)
+        self.axis_widget = widgets.Dropdown(options=[0,1,2], value=self.axis, description='Slice axis')
+        self.slice_index_widget = widgets.IntSlider(min=0, step=1, description="Slice index", layout=layout)
+        self.line_fraction_widget = widgets.FloatRangeSlider(
+            min=0, max=1, step=0.01, value=[0, 1], 
+            description="Fraction", layout=layout
+        )
+    
+    def calculate_line_endpoints(self, x, y, angle):
+        """
+        Line is parameterized as: [x + t*np.cos(angle), y + t*np.sin(angle)]
+        """
+        if np.isclose(angle, 0):
+            return [0, y], [self.x_max, y]
+        elif np.isclose(angle, np.pi/2):
+            return [x, 0], [x, self.y_max]
+        elif np.isclose(angle, np.pi):
+            return [self.x_max, y], [0, y]
+        elif np.isclose(angle, 3*np.pi/2):
+            return [x, self.y_max], [x, 0]
+        elif np.isclose(angle, 2*np.pi):
+            return [0, y], [self.x_max, y]
+        
+        t_left = -x / np.cos(angle)
+        t_bottom = -y / np.sin(angle)
+        t_right = (self.x_max - x) / np.cos(angle)
+        t_top = (self.y_max - y) / np.sin(angle)
+        t_values = np.array([t_left, t_top, t_right, t_bottom])
+        t_pos = np.min(t_values[t_values > 0])
+        t_neg = np.max(t_values[t_values < 0])
+        
+        src = [x + t_neg * np.cos(angle), y + t_neg * np.sin(angle)]
+        dst = [x + t_pos * np.cos(angle), y + t_pos * np.sin(angle)]
+        return src, dst
+    
+    def update(self, axis, slice_index, x, y, angle_deg, fraction_range):
+        if axis != self.axis:
+            self.update_axis(axis)
+            x = self.x_widget.value
+            y = self.y_widget.value
+            slice_index = self.slice_index_widget.value
+        
+        clear_output(wait=True)
+        
+        image = np.take(self.volume, slice_index, axis)
+        angle = np.radians(angle_deg)
+        src, dst = [np.array(point, dtype='float32') for point in self.calculate_line_endpoints(x, y, angle)]
+
+        # Rescale endpoints
+        line_vec = dst - src
+        dst = src + fraction_range[1] * line_vec
+        src = src + fraction_range[0] * line_vec
+
+        y_pline = skimage.measure.profile_line(image, src, dst)
+
+        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+        
+        # Image with color-gradiented line
+        num_segments = 100
+        x_seg = np.linspace(src[0], dst[0], num_segments)
+        y_seg = np.linspace(src[1], dst[1], num_segments)
+        segments = np.stack([np.column_stack([y_seg[:-2], x_seg[:-2]]), 
+                             np.column_stack([y_seg[2:], x_seg[2:]])], axis=1)
+        norm = plt.Normalize(vmin=0, vmax=num_segments-1)
+        colors = self.cmap(norm(np.arange(num_segments - 1)))
+        lc = matplotlib.collections.LineCollection(segments, colors=colors, linewidth=2)
+
+        ax[0].imshow(image,cmap='gray')
+        ax[0].add_collection(lc)
+        ax[0].plot(y,x,label='Pivot point P',marker='s', linestyle='', color='cyan', markersize=4)
+        ax[0].legend(bbox_to_anchor=(0.5, 1.1 + 0.04*(image.shape[1]/image.shape[0] - 0.5)**2))
+        
+        # Profile intensity plot
+        norm = plt.Normalize(0, vmax=len(y_pline) - 1)
+        x_pline = np.arange(len(y_pline))
+        points = np.column_stack((x_pline, y_pline))[:, np.newaxis, :]
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        lc = matplotlib.collections.LineCollection(segments, cmap=self.cmap, norm=norm, array=x_pline[:-1], linewidth=2)
+
+        ax[1].add_collection(lc)
+        ax[1].autoscale()
+        ax[1].set_xlabel('Distance along line')
+        ax[1].grid(True)
+        plt.tight_layout()
+        plt.show()
+    
+    def build_interactive(self):
+        # Group widgets into two columns
+        title_style = "text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;"
+        title_column1 = widgets.HTML(f"<div style='{title_style}'>Line parameterization</div>")
+        title_column2 = widgets.HTML(f"<div style='{title_style}'>Slice selection</div>")
+
+        controls_column1 = widgets.VBox([title_column1, self.x_widget, self.y_widget, self.angle_widget, self.line_fraction_widget])
+        controls_column2 = widgets.VBox([title_column2, self.axis_widget, self.slice_index_widget])
+        controls = widgets.HBox([controls_column1, controls_column2])
+
+        interactive_plot = widgets.interactive_output(
+            self.update, 
+            {'axis': self.axis_widget, 'slice_index': self.slice_index_widget, 
+            'x': self.x_widget, 'y': self.y_widget, 'angle_deg': self.angle_widget,
+            'fraction_range': self.line_fraction_widget}
+        )
+
+        return widgets.VBox([controls, interactive_plot])
+
+def line_profile(
+        volume: np.ndarray,
+        slice_axis: int=0
+    ):
+    lp = _LineProfile(volume, slice_axis)
+    return lp.build_interactive()
