@@ -17,6 +17,9 @@ class Downloader:
 
     Attributes:
         folder_name (str or os.PathLike): Folder class with the name of the folder in <https://data.qim.dk/>
+    
+    Methods:
+        list_files(): Prints the downloadable files from the QIM data repository.
 
     Syntax for downloading and loading a file is `qim3d.io.Downloader().{folder_name}.{file_name}(load_file=True)`
 
@@ -50,6 +53,7 @@ class Downloader:
         import qim3d
         
         downloader = qim3d.io.Downloader()
+        downloader.list_files()        
         data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
 
         qim3d.viz.slicer_orthogonal(data, color_map="magma")
@@ -62,6 +66,27 @@ class Downloader:
         for idx, folder in enumerate(folders):
             exec(f"self.{folder} = self._Myfolder(folder)")
 
+    def list_files(self):
+        """Generate and print formatted folder, file, and size information."""
+
+        url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
+
+        folders = _extract_names()
+
+        for folder in folders:
+            log.info(f'\n{ouf.boxtitle(folder, return_str=True)}')
+            files = _extract_names(folder)
+
+            for file in files:
+                url = os.path.join(url_dl, folder, file).replace("\\", "/")
+                file_size = _get_file_size(url)
+                formatted_file = f"{file[:-len(file.split('.')[-1])-1].replace('%20', '_')}"
+                formatted_size = _format_file_size(file_size)
+                path_string = f'{folder}.{formatted_file}'
+
+                log.info(f'{path_string:<50}({formatted_size})')
+            
+        
     class _Myfolder:
         """Class for extracting the files from each folder in the Downloader class.
 
@@ -231,3 +256,17 @@ def _extract_names(name: str = None):
         folders = [element.split(" ")[0][4:-4] for element in split]
 
         return folders
+
+def _format_file_size(size_in_bytes):
+    # Define size units
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    size = float(size_in_bytes)
+    unit_index = 0
+
+    # Convert to appropriate unit
+    while size >= 1024 and unit_index < len(units) - 1:
+        size /= 1024
+        unit_index += 1
+
+    # Format the size with 1 decimal place
+    return f"{size:.2f}{units[unit_index]}"
