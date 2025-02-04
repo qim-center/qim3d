@@ -5,7 +5,7 @@ Provides a collection of visualization functions.
 import math
 import warnings
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import dask.array as da
 import ipywidgets as widgets
@@ -981,38 +981,48 @@ def histogram(
         return fig
 
 class _LineProfile:
-    def __init__(self, volume, axis=0):
+    def __init__(self, volume, slice_axis, slice_index, vertical_position, horizontal_position, angle, fraction_range):
         self.volume = volume
-        self.axis = axis
+        self.slice_axis = slice_axis
 
         self.dims = np.array(volume.shape)
-        self.pad = 1 # Padding to avoid border issues
-        self.cmap = matplotlib.cm.plasma
-        self.initialize_widgets()
-        self.update_axis(axis)
-    
-    def update_axis(self, axis):
-        self.axis = axis
-        self.slice_index_widget.max = self.volume.shape[axis] - 1
-        self.slice_index_widget.value = self.volume.shape[axis] // 2
+        self.pad = 1 # Padding on pivot point to avoid border issues
+        self.cmap = [matplotlib.cm.plasma, matplotlib.cm.spring][1]
 
-        self.x_max, self.y_max = np.delete(self.dims, self.axis) - 1
+        self.initialize_widgets()
+        self.update_slice_axis(slice_axis)
+        self.slice_index_widget.value = slice_index
+        self.x_widget.value = horizontal_position
+        self.y_widget.value = vertical_position
+        self.angle_widget.value = angle
+        self.line_fraction_widget.value = [fraction_range[0], fraction_range[1]]
+    
+    def update_slice_axis(self, slice_axis):
+        self.slice_axis = slice_axis
+        self.slice_index_widget.max = self.volume.shape[slice_axis] - 1
+        self.slice_index_widget.value = self.volume.shape[slice_axis] // 2
+
+        self.x_max, self.y_max = np.delete(self.dims, self.slice_axis) - 1
         self.x_widget.max = self.x_max - self.pad
         self.x_widget.value = self.x_max // 2
         self.y_widget.max = self.y_max - self.pad
         self.y_widget.value = self.y_max // 2
 
     def initialize_widgets(self):
-        layout = widgets.Layout(width='400px', height='auto')
-        self.angle_widget = widgets.IntSlider(min=0, max=360, step=1, value=0, description="Angle (°)", layout=layout)
-        self.x_widget = widgets.IntSlider(min=self.pad, step=1, description="P[0]", layout=layout)
-        self.y_widget = widgets.IntSlider(min=self.pad, step=1, description="P[1]", layout=layout)
-        self.axis_widget = widgets.Dropdown(options=[0,1,2], value=self.axis, description='Slice axis')
-        self.slice_index_widget = widgets.IntSlider(min=0, step=1, description="Slice index", layout=layout)
+        layout = widgets.Layout(width='300px', height='auto')
+        self.x_widget = widgets.IntSlider(min=self.pad, step=1, description="", layout=layout)
+        self.y_widget = widgets.IntSlider(min=self.pad, step=1, description="", layout=layout)
+        self.angle_widget = widgets.IntSlider(min=0, max=360, step=1, value=0, description="", layout=layout)
         self.line_fraction_widget = widgets.FloatRangeSlider(
             min=0, max=1, step=0.01, value=[0, 1], 
-            description="Fraction", layout=layout
+            description="", layout=layout
         )
+
+        self.slice_axis_widget = widgets.Dropdown(options=[0,1,2], value=self.slice_axis, description='Slice axis')
+        self.slice_axis_widget.layout.width = '250px'
+
+        self.slice_index_widget = widgets.IntSlider(min=0, step=1, description="Slice index", layout=layout)
+        self.slice_index_widget.layout.width = '400px'
     
     def calculate_line_endpoints(self, x, y, angle):
         """
@@ -1041,16 +1051,16 @@ class _LineProfile:
         dst = [x + t_pos * np.cos(angle), y + t_pos * np.sin(angle)]
         return src, dst
     
-    def update(self, axis, slice_index, x, y, angle_deg, fraction_range):
-        if axis != self.axis:
-            self.update_axis(axis)
+    def update(self, slice_axis, slice_index, x, y, angle_deg, fraction_range):
+        if slice_axis != self.slice_axis:
+            self.update_slice_axis(slice_axis)
             x = self.x_widget.value
             y = self.y_widget.value
             slice_index = self.slice_index_widget.value
         
         clear_output(wait=True)
         
-        image = np.take(self.volume, slice_index, axis)
+        image = np.take(self.volume, slice_index, slice_axis)
         angle = np.radians(angle_deg)
         src, dst = [np.array(point, dtype='float32') for point in self.calculate_line_endpoints(x, y, angle)]
 
@@ -1075,8 +1085,10 @@ class _LineProfile:
 
         ax[0].imshow(image,cmap='gray')
         ax[0].add_collection(lc)
-        ax[0].plot(y,x,label='Pivot point P',marker='s', linestyle='', color='cyan', markersize=4)
-        ax[0].legend(bbox_to_anchor=(0.5, 1.1 + 0.04*(image.shape[1]/image.shape[0] - 0.5)**2))
+        # pivot point
+        ax[0].plot(y,x,marker='s', linestyle='', color='cyan', markersize=4)
+        ax[0].set_xlabel(f'axis {np.delete(np.arange(3), self.slice_axis)[1]}')
+        ax[0].set_ylabel(f'axis {np.delete(np.arange(3), self.slice_axis)[0]}')
         
         # Profile intensity plot
         norm = plt.Normalize(0, vmax=len(y_pline) - 1)
@@ -1098,13 +1110,25 @@ class _LineProfile:
         title_column1 = widgets.HTML(f"<div style='{title_style}'>Line parameterization</div>")
         title_column2 = widgets.HTML(f"<div style='{title_style}'>Slice selection</div>")
 
-        controls_column1 = widgets.VBox([title_column1, self.x_widget, self.y_widget, self.angle_widget, self.line_fraction_widget])
-        controls_column2 = widgets.VBox([title_column2, self.axis_widget, self.slice_index_widget])
+        # Make label widgets instead of descriptions which have different lengths.
+        label_layout = widgets.Layout(width='120px')
+        label_x = widgets.Label("Vertical position", layout=label_layout)
+        label_y = widgets.Label("Horizontal position", layout=label_layout)
+        label_angle = widgets.Label("Angle (°)", layout=label_layout)
+        label_fraction = widgets.Label("Fraction range", layout=label_layout)
+
+        row_x = widgets.HBox([label_x, self.x_widget])
+        row_y = widgets.HBox([label_y, self.y_widget])
+        row_angle = widgets.HBox([label_angle, self.angle_widget])
+        row_fraction = widgets.HBox([label_fraction, self.line_fraction_widget])
+
+        controls_column1 = widgets.VBox([title_column1, row_x, row_y, row_angle, row_fraction])
+        controls_column2 = widgets.VBox([title_column2, self.slice_axis_widget, self.slice_index_widget])
         controls = widgets.HBox([controls_column1, controls_column2])
 
         interactive_plot = widgets.interactive_output(
             self.update, 
-            {'axis': self.axis_widget, 'slice_index': self.slice_index_widget, 
+            {'slice_axis': self.slice_axis_widget, 'slice_index': self.slice_index_widget, 
             'x': self.x_widget, 'y': self.y_widget, 'angle_deg': self.angle_widget,
             'fraction_range': self.line_fraction_widget}
         )
@@ -1113,7 +1137,62 @@ class _LineProfile:
 
 def line_profile(
         volume: np.ndarray,
-        slice_axis: int=0
-    ):
-    lp = _LineProfile(volume, slice_axis)
+        slice_axis: int=0,
+        slice_index: int | str='middle',
+        vertical_position: int | str='middle',
+        horizontal_position: int | str='middle',
+        angle: int=0,
+        fraction_range: Tuple[float,float]=(0.00, 1.00)
+    ) -> widgets.interactive:
+    """Returns an interactive widget for visualizing the intensity profiles of lines on slices.
+
+    Args:
+        volume (np.ndarray): The 3D volume of interest.
+        slice_axis (int, optional): Specifies the initial axis along which to slice.
+        slice_index (int or str, optional): Specifies the initial slice index along slice_axis.
+        vertical_position (int or str, optional): Specifies the initial vertical position of the line's pivot point.
+        horizontal_position (int or str, optional): Specifies the initial horizontal position of the line's pivot point.
+        angle (int or float, optional): Specifies the initial angle (°) of the line around the pivot point. A float will be converted to an int. A value outside the range will be wrapped modulo. 
+        fraction_range (tuple or list, optional): Specifies the fraction of the line segment to use from border to border. Both the start and the end should be in the range [0.0, 1.0].
+
+    Returns:
+        widget (widgets.widget_box.VBox): The interactive widget.
+    """
+    def parse_position(pos, pos_range, name):
+        if isinstance(pos, int):
+            if not pos_range[0] <= pos < pos_range[1]:
+                raise ValueError(f'Value for {name} must be inside [{pos_range[0]}, {pos_range[1]}]')
+            return pos
+        elif isinstance(pos, str):
+            pos = pos.lower()
+            if pos == 'start': return pos_range[0]
+            elif pos == 'middle': return pos_range[0] + (pos_range[1] - pos_range[0]) // 2
+            elif pos == 'end': return pos_range[1]
+            else:
+                raise ValueError(
+                    f"Invalid string '{pos}' for {name}. "
+                    "Must be 'start', 'middle', or 'end'."
+                )
+        else:
+            raise TypeError(f'Axis position must be of type int or str.')
+    
+    if not isinstance(volume, (np.ndarray, da.core.Array)):
+        raise ValueError("Data type for volume not supported.")
+    if volume.ndim != 3:
+        raise ValueError("Volume must be 3D.")
+    
+    dims = volume.shape
+    slice_index = parse_position(slice_index, (0, dims[slice_axis] - 1), 'slice_index')
+    # the omission of the ends for the pivot point is due to border issues.
+    vertical_position = parse_position(vertical_position, (1, np.delete(dims, slice_axis)[0] - 2), 'vertical_position')
+    horizontal_position = parse_position(horizontal_position, (1, np.delete(dims, slice_axis)[1] - 2), 'horizontal_position')
+    
+    if not isinstance(angle, int | float):
+        raise ValueError("Invalid type for angle.")
+    angle = round(angle) % 360
+
+    if not (0.0 <= fraction_range[0] <= 1.0 and 0.0 <= fraction_range[1] <= 1.0 and fraction_range[0] <= fraction_range[1]):
+        raise ValueError("Invalid values for fraction_range.")
+
+    lp = _LineProfile(volume, slice_axis, slice_index, vertical_position, horizontal_position, angle, fraction_range)
     return lp.build_interactive()
