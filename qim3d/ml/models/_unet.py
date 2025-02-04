@@ -5,7 +5,7 @@ import torch.nn as nn
 from qim3d.utils import log
 
 
-class UNet(nn.Module):
+class UNet2D(nn.Module):
     """
     2D UNet model for QIM imaging.
 
