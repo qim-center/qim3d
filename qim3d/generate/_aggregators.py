@@ -170,7 +170,7 @@ def noise_object_collection(
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
 
     Returns:
-        synthetic_collection (numpy.ndarray): 3D volume of the generated collection of synthetic objects with specified parameters.
+        noise_collection (numpy.ndarray): 3D volume of the generated collection of synthetic objects with specified parameters.
         labels (numpy.ndarray): Array with labels for each voxel, same shape as synthetic_collection.
 
     Raises:
@@ -213,15 +213,15 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of dense objects
-        vol, labels = qim3d.generate.collection(
-                                    min_high_value = 255,
-                                    max_high_value = 255,
-                                    min_object_noise = 0.05,
-                                    max_object_noise = 0.05,
-                                    min_threshold = 0.99,
-                                    max_threshold = 0.99,
-                                    min_gamma = 0.02,
-                                    max_gamma = 0.02)
+        vol, labels = qim3d.generate.noise_object_collection(
+                                                min_high_value = 255,
+                                                max_high_value = 255,
+                                                min_object_noise = 0.05,
+                                                max_object_noise = 0.05,
+                                                min_threshold = 0.99,
+                                                max_threshold = 0.99,
+                                                min_gamma = 0.02,
+                                                max_gamma = 0.02)
 
         # Visualize synthetic collection
         qim3d.viz.vol(vol)
@@ -233,7 +233,8 @@ def noise_object_collection(
         import qim3d
 
         # Generate synthetic collection of cylindrical structures
-        vol, labels = qim3d.generate.noise_object_collection(num_objects = 40,
+        vol, labels = qim3d.generate.noise_object_collection(
+                                                num_objects = 40,
                                                 collection_shape = (300, 150, 150),
                                                 min_shape = (280, 10, 10),
                                                 max_shape = (290, 15, 15),
