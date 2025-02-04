@@ -197,7 +197,7 @@ def noise_object_collection(
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-        qim3d.viz.slicer(synthetic_collection)
+        qim3d.viz.slicer(vol)
         ```
         ![synthetic_collection](../../assets/screenshots/synthetic_collection_default.gif)
 
