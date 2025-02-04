@@ -14,12 +14,12 @@ repos:
 -   repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.4.7
     hooks:
+      # Run the formatter and fix code styling
+    - id: ruff-format
+    
     # Run the linter and fix what is possible
     - id: ruff
       args: ['--fix']
-    
-    # Run the formatter and fix code styling
-    - id: ruff-format
 
     # Validate if all is fine with preview mode
     - id: ruff
