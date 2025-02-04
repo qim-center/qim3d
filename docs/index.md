@@ -234,6 +234,8 @@ Below is a list of contributors to the project, arranged in chronological order 
 
 ## Support
 
-The development of `qim3d` is supported by:
+The development of the `qim3d` is supported by the Infrastructure for Quantitative AI-based Tomography QUAITOM which is supported by a Novo Nordisk Foundation Data Science Programme grant (Grant number NNF21OC0069766).
+
+![QIM](https://platform.qim.dk/static/images/QIM-logo.svg){ width="148" }
 
 ![Novo Nordisk Foundation](https://novonordiskfonden.dk//app/uploads/NNF-INT_logo_tagline_blue_RGB_solid.png){ width="256" }
