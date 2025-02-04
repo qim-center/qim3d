@@ -1,30 +1,34 @@
 """Provides filter functions and classes for image processing."""
 
 from typing import Type
+
 import dask.array as da
+import dask_image.ndfilters as dask_ndfilters
+import numpy as np
 from scipy import ndimage
 from skimage import morphology
-import dask_image.ndfilters as dask_ndfilters
+
 from qim3d.utils import log
-import os
-import numpy as np
 
 __all__ = [
-    "FilterBase",
-    "Gaussian",
-    "Median",
-    "Pipeline",
-    "gaussian",
-    "median",
-    "tophat",
+    'FilterBase',
+    'Gaussian',
+    'Median',
+    'Pipeline',
+    'gaussian',
+    'median',
+    'tophat',
 ]
 
+
 class FilterBase:
-    def __init__(self, *args, dask: bool = False, chunks: str = "auto", **kwargs):
+    def __init__(self, *args, dask: bool = False, chunks: str = 'auto', **kwargs):
         """
         Base class for image filters.
 
         Args:
+            chunks: ??
+            dask: ??
             *args: Additional positional arguments for filter initialization.
             **kwargs: Additional keyword arguments for filter initialization.
 
@@ -89,6 +93,7 @@ class Median(FilterBase):
         super().__init__(*args, **kwargs)
         self.size = size
         self.footprint = footprint
+
 
 class Pipeline:
 
@@ -184,6 +189,7 @@ class Pipeline:
         """
         self._add_filter(str(len(self.filters)), fn)
 
+
 def gaussian(
     vol: np.ndarray, sigma: float, dask: bool = False, chunks: str = 'auto', **kwargs
 ) -> np.ndarray:
@@ -214,7 +220,13 @@ def gaussian(
         return res
 
 
-def median(vol: np.ndarray, size: float = None, footprint: np.ndarray = None, dask: bool = False, chunks: str = 'auto', **kwargs,
+def median(
+    vol: np.ndarray,
+    size: float = None,
+    footprint: np.ndarray = None,
+    dask: bool = False,
+    chunks: str = 'auto',
+    **kwargs,
 ) -> np.ndarray:
     """
     Applies a median filter to the input volume using scipy.ndimage.median_filter or dask_image.ndfilters.median_filter.
@@ -247,6 +259,7 @@ def median(vol: np.ndarray, size: float = None, footprint: np.ndarray = None, da
     else:
         res = ndimage.median_filter(vol, size, footprint, **kwargs)
         return res
+
 
 def tophat(vol: np.ndarray, dask: bool = False, **kwargs):
     """
