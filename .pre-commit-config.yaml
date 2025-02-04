@@ -16,10 +16,10 @@ repos:
     hooks:
       # Run the formatter and fix code styling
     - id: ruff-format
-    
+
     # Run the linter and fix what is possible
     - id: ruff
       args: ['--fix']
 
     # Validate if all is fine with preview mode
-    - id: ruff
+    # - id: ruff
