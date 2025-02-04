@@ -6,6 +6,7 @@ import qim3d
 
 
 def volume(obj: np.ndarray|trimesh.Trimesh, 
+           print_logs: bool = True,
            **mesh_kwargs
            ) -> float:
     """
@@ -47,13 +48,15 @@ def volume(obj: np.ndarray|trimesh.Trimesh,
 
     """
     if isinstance(obj, np.ndarray):
-        log.info("Converting volume to mesh.")
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
+        if print_logs:
+            log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume(obj, print_logs=print_logs, **mesh_kwargs)
 
     return obj.volume
 
 
 def area(obj: np.ndarray|trimesh.Trimesh, 
+         print_logs: bool = True,
          **mesh_kwargs
          ) -> float:
     """
@@ -95,14 +98,15 @@ def area(obj: np.ndarray|trimesh.Trimesh,
         ```
     """
     if isinstance(obj, np.ndarray):
-        log.info("Converting volume to mesh.")
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
+        if print_logs:
+            log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume(obj, print_logs=print_logs, **mesh_kwargs)
 
     return obj.area
 
 
 def sphericity(obj: np.ndarray|trimesh.Trimesh, 
+               print_logs: bool = True,
                **mesh_kwargs
                ) -> float:
     """
@@ -151,19 +155,16 @@ def sphericity(obj: np.ndarray|trimesh.Trimesh,
         Higher resolution meshes may mitigate these errors but often at the cost of increased computational demands.
     """
     if isinstance(obj, np.ndarray):
-        log.info("Converting volume to mesh.")
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
+        if print_logs:
+            log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume(obj, print_logs=print_logs, **mesh_kwargs)
 
-    volume = qim3d.features.volume(obj)
-    area = qim3d.features.area(obj)
-    volume = qim3d.features.volume(obj)
-    area = qim3d.features.area(obj)
+    volume = qim3d.features.volume(obj, print_logs=print_logs)
+    area = qim3d.features.area(obj, print_logs=print_logs)
 
     if area == 0:
         log.warning("Surface area is zero, sphericity is undefined.")
         return np.nan
 
     sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
-    log.info(f"Sphericity: {sphericity}")
     return sphericity

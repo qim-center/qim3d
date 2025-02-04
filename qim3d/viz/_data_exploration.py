@@ -409,7 +409,7 @@ def slicer(
         continuous_update=True,
     )
     slicer_obj = widgets.interactive(_slicer, slice_positions=position_slider)
-    slicer_obj.layout = widgets.Layout(align_items="flex-start")
+    #slicer_obj.layout = widgets.Layout(align_items="flex-start")
 
     return slicer_obj
 
