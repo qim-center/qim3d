@@ -2,6 +2,7 @@
 
 import logging
 
+logger = logging.getLogger("qim3d")
 
 def set_detailed_output():
     """Configures the logging output to display detailed information.
@@ -18,7 +19,6 @@ def set_detailed_output():
     )
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger = logging.getLogger("qim3d")
     logger.handlers = []
     logger.addHandler(handler)
 
@@ -36,7 +36,6 @@ def set_simple_output():
     formatter = logging.Formatter("%(message)s")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger = logging.getLogger()
     logger.handlers = []
     logger.addHandler(handler)
 
@@ -48,7 +47,7 @@ def set_level_debug():
         >>> set_level_debug()
     """
 
-    logging.getLogger("qim3d").setLevel(logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
 
 
 def set_level_info():
@@ -58,7 +57,7 @@ def set_level_info():
         >>> set_level_info()
     """
 
-    logging.getLogger("qim3d").setLevel(logging.INFO)
+    logger.setLevel(logging.INFO)
 
 
 def set_level_warning():
@@ -68,7 +67,7 @@ def set_level_warning():
         >>> set_level_warning()
     """
 
-    logging.getLogger("qim3d").setLevel(logging.WARNING)
+    logger.setLevel(logging.WARNING)
 
 
 def set_level_error():
@@ -77,7 +76,7 @@ def set_level_error():
     Example:
         >>> set_level_error()
     """
-    logging.getLogger("qim3d").setLevel(logging.ERROR)
+    logger.setLevel(logging.ERROR)
 
 
 def set_level_critical():
@@ -86,7 +85,7 @@ def set_level_critical():
     Example:
         >>> set_level_critical()
     """
-    logging.getLogger("qim3d").setLevel(logging.CRITICAL)
+    logger.setLevel(logging.CRITICAL)
 
 
 def level(log_level):
@@ -121,7 +120,7 @@ def level(log_level):
         set_level_critical()
 
     elif isinstance(log_level, int):
-        logging.getLogger("qim3d").setLevel(log_level)
+        logger.setLevel(log_level)
 
     else:
         raise ValueError(
@@ -130,7 +129,7 @@ def level(log_level):
         )
 
 
-# create the logger
+# Create the logger
 log = logging.getLogger("qim3d")
 set_level_info()
 set_simple_output()
