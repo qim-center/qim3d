@@ -10,7 +10,7 @@ from tqdm import tqdm
 import zarr.core
 
 from qim3d.utils._misc import stringify_path
-from qim3d.io import save
+from qim3d.io import save, load
 
 
 class Convert:
@@ -21,6 +21,8 @@ class Convert:
             chunk_shape (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
         """
         self.chunk_shape = kwargs.get("chunk_shape", (64, 64, 64))
+        self.base_name = kwargs.get("basename", "tiff_stack")
+        self.contains = kwargs.get("contains", None)
 
     def convert(self, input_path: str, output_path: str):
         def get_file_extension(file_path):
@@ -52,6 +54,10 @@ class Convert:
                     return self.convert_zarr_to_nifti(input_path, output_path)
                 case (".zarr", ".nii.gz"):
                     return self.convert_zarr_to_nifti(input_path, output_path, compression=True)
+                case (".zarr", ""):
+                    self.convert_zarr_to_tiff_stack(input_path, output_path)
+                case ("", ".zarr"):
+                    return self.convert_tiff_stack_to_zarr(input_path, output_path)
                 case _:
                     raise ValueError("Unsupported file format")
         # Fail
@@ -110,6 +116,53 @@ class Convert:
         z = zarr.open(zarr_path)
         save(tif_path, z)
 
+    def convert_zarr_to_tiff_stack(self, zarr_path: str, tiff_stack_path: str):
+        """Convert a zarr file to a tiff stack
+
+        Args:
+            zarr_path (str): path to the zarr file
+            tiff_stack_path (str): path to the tiff stack
+
+        Returns:
+            None
+        """
+        assert self.base_name is not None, "Please specify a base name for the tiff stack"
+
+        z = zarr.open(zarr_path)
+        save(tiff_stack_path, z, basename=self.base_name)
+
+    def convert_tiff_stack_to_zarr(self, tiff_stack_path: str, zarr_path: str):
+        """Convert a tiff stack to a zarr file
+
+        Args:
+            tiff_stack_path (str): path to the tiff stack
+            zarr_path (str): path to the zarr file
+
+        Returns:
+            zarr.core.Array: zarr array containing the data from the tiff stack
+        """
+        assert self.contains is not None, "Please specify common part of file names for tiff stack."
+
+        # ! tiff stack memmap is stored as slices on disk and not as a single file, making assignments to blocks slow.
+        vol = load(tiff_stack_path, virtual_stack=True, contains=self.contains)
+        z = zarr.open(
+            zarr_path, mode="w", shape=vol.shape, chunks=self.chunk_shape, dtype=vol.dtype
+        )
+        chunk_shape = tuple((s + c - 1) // c for s, c in zip(z.shape, z.chunks))
+        # ! Fastest way is z[:] = vol[:], but does not have a progress bar
+        for chunk_indices in tqdm(
+            product(*[range(n) for n in chunk_shape]), total=np.prod(chunk_shape)
+        ):
+            slices = tuple(
+                slice(c * i, min(c * (i + 1), s))
+                for s, c, i in zip(z.shape, z.chunks, chunk_indices)
+            )
+            temp_data = vol[slices]
+            # The assignment takes 99% of the cpu-time
+            z.blocks[chunk_indices] = temp_data
+
+        return z
+
     def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str) -> zarr.core.Array:
         """Convert a nifti file to a zarr file
 
@@ -153,13 +206,14 @@ class Convert:
         save(nifti_path, z, compression=compression)
         
 
-def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64)) -> None:
+def convert(input_path: str, output_path: str, chunk_shape: tuple = (64, 64, 64), basename: str = 'tiff_stack', contains: str = None) -> None:
     """Convert a file to another format without loading the entire file into memory
 
     Args:
         input_path (str): path to the input file
         output_path (str): path to the output file
         chunk_shape (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
+        basename (str, optional): base name for the saving of a tiff stack. Defaults to 'tiff_stack'.
     """
-    converter = Convert(chunk_shape=chunk_shape)
+    converter = Convert(chunk_shape=chunk_shape, basename=basename, contains=contains)
     converter.convert(input_path, output_path)

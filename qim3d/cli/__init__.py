@@ -132,6 +132,20 @@ def main():
         default=(64, 64, 64),
         help="Chunk size for the zarr file. Defaults to (64, 64, 64).",
     )
+    convert_parser.add_argument(
+        "--basename",
+        type=str,
+        metavar="basename",
+        default="tiff_stack",
+        help="The base name for the saving of a tiff stack.",
+    )
+    convert_parser.add_argument(
+        "--contains",
+        type=str,
+        metavar="contains",
+        default=None,
+        help="Specify common part of file names for tiff stack.",
+    )
     args = parser.parse_args()
 
     if args.subcommand == "gui":
@@ -201,7 +215,11 @@ def main():
 
     elif args.subcommand == "convert":
 
-        qim3d.io.convert(args.input_path, args.output_path, chunk_shape=args.chunks)
+        qim3d.io.convert(args.input_path, 
+                         args.output_path, 
+                         chunk_shape=args.chunks, 
+                         basename=args.basename, 
+                         contains=args.contains)
 
     elif args.subcommand is None:
         print(QIM_TITLE)
