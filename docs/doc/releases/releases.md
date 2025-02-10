@@ -11,9 +11,14 @@ hide:
 
 Below, you'll find details about the version history of `qim3d`.
 
-As the library is still in its early development stages, **there may be breaking changes** before `v1.0` without prior deprecation warnings. Therefore, it's advisable to review the release history for more information if you encounter any issues.
+Remember to keep your pip installation [up to date](index.md/#get-the-latest-version) so that you have the latest features!
 
-And remember to keep your pip installation [up to date](index.md/#get-the-latest-version) so that you have the latest features!
+### v1.0.0 (21/01/2025)
+
+- First stable release of the library, with significant refactoring.
+- Layout and organizational update for the documentation.
+- Additional coverage for unit tests.
+
 
 ### v0.4.5 (21/11/2024)
 
