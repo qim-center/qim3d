@@ -41,14 +41,12 @@ class Augmentation:
         self.transform_test = transform_test
         self.is_3d = is_3d
     
-    def augment(self, im_h: int, im_w: int, im_d: int | None = None, level: str | None = None):
+    def augment(self, img_shape: tuple, level: str | None = None):
         """
         Creates an augmentation pipeline based on the specified level.
 
         Args:
-            im_h (int): Height of the image.
-            im_w (int): Width of the image.
-            im_d (int, optional): Depth of the image (for 3D).
+            img_shape (tuple): Dimensions of the image.
             level (str, optional): Level of augmentation. One of [None, 'light', 'moderate', 'heavy'].
 
         Raises:
@@ -58,6 +56,13 @@ class Augmentation:
             Compose, RandRotate90, RandFlip, RandAffine, ToTensor, \
             RandGaussianSmooth, NormalizeIntensity, Resize, CenterSpatialCrop, SpatialPad
         )
+
+        # Check if 2D or 3D
+        if len(img_shape) == 2:
+            im_h, im_w = img_shape
+        
+        elif len(img_shape) == 3:
+            im_d, im_h, im_w = img_shape
 
         # Check if one of standard augmentation levels
         if level not in [None,'light','moderate','heavy']:

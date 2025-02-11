@@ -271,9 +271,9 @@ def prepare_datasets(path: str, val_fraction: float, model: nn.Module, augmentat
 
     final_shape = check_resize(orig_shape, resize, n_channels, is_3d)
 
-    train_set = Dataset(root_path=path, transform=augmentation.augment(*final_shape, level = augmentation.transform_train)) 
-    val_set = Dataset(root_path=path, transform=augmentation.augment(*final_shape, level = augmentation.transform_validation))
-    test_set = Dataset(root_path=path, split='test', transform=augmentation.augment(*final_shape, level = augmentation.transform_test))
+    train_set = Dataset(root_path=path, transform=augmentation.augment(final_shape, level = augmentation.transform_train)) 
+    val_set = Dataset(root_path=path, transform=augmentation.augment(final_shape, level = augmentation.transform_validation))
+    test_set = Dataset(root_path=path, split='test', transform=augmentation.augment(final_shape, level = augmentation.transform_test))
 
     split_idx = int(np.floor(val_fraction * len(train_set)))
     indices = torch.randperm(len(train_set))
