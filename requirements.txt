@@ -12,8 +12,8 @@ scipy>=1.11.2
 seaborn>=0.12.2
 pydicom==2.4.4
 setuptools>=68.0.0
-imagecodecs==2023.7.10
-tifffile==2023.8.12 
+imagecodecs==2024.12.30
+tifffile==2025.1.10 
 torch>=2.0.1
 torchvision>=0.15.2
 torchinfo>=1.8.0

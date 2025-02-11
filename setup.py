@@ -57,8 +57,8 @@ setup(
         "scipy>=1.11.2",
         "seaborn>=0.12.2",
         "setuptools>=68.0.0",
-        "tifffile==2023.8.12",
-        "imagecodecs==2023.7.10",
+        "tifffile==2025.1.10",
+        "imagecodecs==2024.12.30",
         "tqdm>=4.65.0",
         "nibabel>=5.2.0",
         "ipywidgets>=8.1.2",
@@ -81,6 +81,9 @@ setup(
         "torchvision>=0.15.2",
         "torchinfo>=1.8.0",
         "monai>=1.2.0",
+    ],
+    'test': [
+        'testbook>=0.4.2'
     ]
 }
 )
