@@ -86,11 +86,11 @@ class Augmentation:
             level_aug = []
 
         elif level == 'light':
-            level_aug = [RandRotate90(prob=1, spatial_axes=(0, 1, 2))] if self.is_3d else [RandRotate90(prob=1)]
+            level_aug = [RandRotate90(prob=1, spatial_axes=(0, 1))] if self.is_3d else [RandRotate90(prob=1)]
         
         elif level == 'moderate':
             level_aug = [
-                RandRotate90(prob=1, spatial_axes=(0, 1, 2)) if self.is_3d else RandRotate90(prob=1),
+                RandRotate90(prob=1, spatial_axes=(0, 1)) if self.is_3d else RandRotate90(prob=1),
                 RandFlip(prob=0.3, spatial_axis=0),
                 RandFlip(prob=0.3, spatial_axis=1),
                 RandGaussianSmooth(sigma_x=(0.7, 0.7), prob=0.1),
@@ -99,7 +99,7 @@ class Augmentation:
 
         elif level == 'heavy':
             level_aug = [
-                RandRotate90(prob=1, spatial_axes=(0, 1, 2)) if self.is_3d else RandRotate90(prob=1),
+                RandRotate90(prob=1, spatial_axes=(0, 1)) if self.is_3d else RandRotate90(prob=1),
                 RandFlip(prob=0.7, spatial_axis=0),
                 RandFlip(prob=0.7, spatial_axis=1),
                 RandGaussianSmooth(sigma_x=(1.2, 1.2), prob=0.3),
