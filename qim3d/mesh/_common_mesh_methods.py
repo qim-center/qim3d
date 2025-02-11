@@ -1,6 +1,7 @@
 import numpy as np
 from skimage import measure, filters
 import trimesh
+from pygel3d import hmesh
 from typing import Tuple, Any
 from qim3d.utils._logger import log
 
@@ -76,3 +77,15 @@ def from_volume(
     trimesh.repair.fix_inversion(mesh, multibody=True) 
 
     return mesh
+
+
+def from_volume_pygel3d(
+        volume: np.ndarray,
+        **Kwargs
+) -> hmesh.Manifold:
+    
+    if volume.ndim != 3:
+        raise ValueError("The input volume must be a 3D numpy array.")
+    
+    m = hmesh.volumetric_isocontour(volume)
+    return m

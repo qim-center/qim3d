@@ -3,6 +3,7 @@ import qim3d.processing
 from qim3d.utils._logger import log
 import trimesh
 import qim3d
+from pygel3d import hmesh
 
 
 def volume(obj: np.ndarray|trimesh.Trimesh, 
@@ -89,14 +90,13 @@ def area(obj: np.ndarray|trimesh.Trimesh,
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Compute the surface area of the blob
-        volume = qim3d.features.area(synthetic_blob, level=0.5)
-        volume = qim3d.features.area(synthetic_blob, level=0.5)
-        print('Area:', volume)
+        area = qim3d.features.area(synthetic_blob, level=0.5)
+        area = qim3d.features.area(synthetic_blob, level=0.5)
+        print('Area:', area)
         ```
     """
     if isinstance(obj, np.ndarray):
         log.info("Converting volume to mesh.")
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
         obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
 
     return obj.area
@@ -153,12 +153,71 @@ def sphericity(obj: np.ndarray|trimesh.Trimesh,
     if isinstance(obj, np.ndarray):
         log.info("Converting volume to mesh.")
         obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
 
     volume = qim3d.features.volume(obj)
     area = qim3d.features.area(obj)
     volume = qim3d.features.volume(obj)
     area = qim3d.features.area(obj)
+
+    if area == 0:
+        log.warning("Surface area is zero, sphericity is undefined.")
+        return np.nan
+
+    sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
+    log.info(f"Sphericity: {sphericity}")
+    return sphericity
+
+def volume_pygel3d(obj: np.ndarray|hmesh.Manifold) -> float:
+    """
+    Compute the volume of a 3D mesh using the Pygel3D library.
+
+    Args:
+        obj: Either a np.ndarray volume or a mesh object of type hmesh.Manifold.
+
+    Returns:
+        volume (float): The volume of the object. 
+    """
+
+    if isinstance(obj, np.ndarray):
+        log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume_pygel3d(obj)
+
+    return hmesh.volume(obj)
+
+def area_pygel3d(obj: np.ndarray|hmesh.Manifold) -> float:
+    """
+    Compute the surface area of a 3D mesh using the Pygel3D library.
+
+    Args:
+        obj: Either a np.ndarray volume or a mesh object of type hmesh.Manifold.
+
+    Returns:
+        area (float): The surface area of the object. 
+    """
+
+    if isinstance(obj, np.ndarray):
+        log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume_pygel3d(obj)
+
+    return hmesh.area(obj)
+
+def sphericity_pygel3d(obj: np.ndarray|hmesh.Manifold) -> float:
+    """
+    Compute the sphericity of a 3D mesh using the Pygel3D library.
+
+    Args:
+        obj: Either a np.ndarray volume or a mesh object of type hmesh.Manifold.
+
+    Returns:
+        sphericity (float): The sphericity of the object. 
+    """
+
+    if isinstance(obj, np.ndarray):
+        log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume_pygel3d(obj)
+
+    volume = volume_pygel3d(obj)
+    area = area_pygel3d(obj)
 
     if area == 0:
         log.warning("Surface area is zero, sphericity is undefined.")
