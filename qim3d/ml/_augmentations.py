@@ -6,34 +6,30 @@ class Augmentation:
         
     Args:
         resize (str, optional): Specifies how the images should be reshaped to the appropriate size.
-        trainsform_train (str, optional): level of transformation for the training set.
-        transform_validation (str, optional): level of transformation for the validation set.
-        transform_test (str, optional): level of transformation for the test set.
-        mean (float, optional): The mean value for normalizing pixel intensities.
-        std (float, optional): The standard deviation value for normalizing pixel intensities.
+        trainsform_train (str, optional): Level of transformation for the training set.
+        transform_validation (str, optional): Level of transformation for the validation set.
+        transform_test (str, optional): Level of transformation for the test set.
 
     Raises:
-        ValueError: If the ´resize´ is neither 'crop', 'resize' or 'padding'.
+        ValueError: If the ´resize´ is neither 'crop', 'resize' nor 'padding'.
     
     Example:
-        my_augmentation = Augmentation(resize = 'crop', transform_train = 'heavy')
+        my_augmentation = Augmentation(resize = 'crop', transform_train = 'light')
     """
     
-    def __init__(self, 
-                 resize: str = 'crop', 
-                 transform_train: str = 'moderate', 
-                 transform_validation: str | None = None,
-                 transform_test: str | None = None,
-                 mean: float = 0.5, 
-                 std: float = 0.5,
-                ):
+    def __init__(
+            self, 
+            resize: str = 'crop', 
+            transform_train: str = 'moderate', 
+            transform_validation: str | None = None,
+            transform_test: str | None = None,
+        ):
 
         if resize not in ['crop', 'reshape', 'padding']:
-            raise ValueError(f"Invalid resize type: {resize}. Use either 'crop', 'resize' or 'padding'.")
+            msg = f"Invalid resize type: {resize}. Use either 'crop', 'resize' or 'padding'."
+            raise ValueError(msg)
 
         self.resize = resize
-        self.mean = mean
-        self.std = std
         self.transform_train = transform_train
         self.transform_validation = transform_validation
         self.transform_test = transform_test
@@ -47,7 +43,8 @@ class Augmentation:
             level (str, optional): Level of augmentation. One of [None, 'light', 'moderate', 'heavy'].
 
         Raises:
-            ValueError: If `level` is neither None, light, moderate nor heavy.
+            ValueError: If `img_shape` is not 3D.
+            ValueError: If `level` is neither None, 'light', 'moderate' nor 'heavy'.
         """
         from monai.transforms import (
             Compose, RandRotate90d, RandFlipd, RandAffined, ToTensor, \
@@ -69,7 +66,7 @@ class Augmentation:
 
         # Baseline augmentations
         # TODO: Figure out how to properly do normalization in 3D (normalization should be done channel-wise)
-        baseline_aug = [ToTensor()]
+        baseline_aug = [ToTensor()] #, NormalizeIntensityd(keys=["image"])]
 
         # Resize augmentations
         if self.resize == 'crop':
