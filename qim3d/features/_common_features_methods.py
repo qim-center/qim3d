@@ -1,5 +1,5 @@
 import numpy as np
-import qim3d.processing
+import qim3d
 from qim3d.utils._logger import log
 import qim3d
 from pygel3d import hmesh
@@ -12,7 +12,33 @@ def volume(obj: np.ndarray|hmesh.Manifold) -> float:
         obj: Either a np.ndarray volume or a mesh object of type hmesh.Manifold.
 
     Returns:
-        volume (float): The volume of the object. 
+        volume (float): The volume of the object.
+    
+    Example:
+        Compute volume from a mesh:
+        ```python
+        import qim3d
+
+        # Load a mesh from a file
+        mesh = qim3d.io.load_mesh('path/to/mesh.obj')
+
+        # Compute the volume of the mesh
+        volume = qim3d.features.volume(mesh)
+        print('Volume:', volume)
+        ```
+
+        Compute volume from a np.ndarray:
+        ```python
+        import qim3d
+
+        # Generate a 3D blob
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+
+        # Compute the volume of the blob
+        volume = qim3d.features.volume(synthetic_blob)
+        print('Volume:', volume)
+        ```
+
     """
 
     if isinstance(obj, np.ndarray):
@@ -30,6 +56,32 @@ def area(obj: np.ndarray|hmesh.Manifold) -> float:
 
     Returns:
         area (float): The surface area of the object. 
+    
+    Example:
+        Compute area from a mesh:
+        ```python
+        import qim3d
+
+        # Load a mesh from a file
+        mesh = qim3d.io.load_mesh('path/to/mesh.obj')
+
+        # Compute the surface area of the mesh
+        area = qim3d.features.area(mesh)
+        print(f"Area: {area}")
+        ```
+
+        Compute area from a np.ndarray:
+        ```python
+        import qim3d
+
+        # Generate a 3D blob
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+
+        # Compute the surface area of the blob
+        area = qim3d.features.area(synthetic_blob)
+        print(f"Area: {area}")
+        ```
+    
     """
 
     if isinstance(obj, np.ndarray):
@@ -38,7 +90,7 @@ def area(obj: np.ndarray|hmesh.Manifold) -> float:
 
     return hmesh.area(obj)
 
-def sphericity_pygel3d(obj: np.ndarray|hmesh.Manifold) -> float:
+def sphericity(obj: np.ndarray|hmesh.Manifold) -> float:
     """
     Compute the sphericity of a 3D mesh using the Pygel3D library.
 
@@ -47,14 +99,38 @@ def sphericity_pygel3d(obj: np.ndarray|hmesh.Manifold) -> float:
 
     Returns:
         sphericity (float): The sphericity of the object. 
+    
+    Example:
+        Compute sphericity from a mesh:
+        ```python
+        import qim3d
+
+        # Load a mesh from a file
+        mesh = qim3d.io.load_mesh('path/to/mesh.obj')
+
+        # Compute the sphericity of the mesh
+        sphericity = qim3d.features.sphericity(mesh)
+        ```
+
+        Compute sphericity from a np.ndarray:
+        ```python
+        import qim3d
+
+        # Generate a 3D blob
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+
+        # Compute the sphericity of the blob
+        sphericity = qim3d.features.sphericity(synthetic_blob)
+        ```
+
     """
 
     if isinstance(obj, np.ndarray):
         log.info("Converting volume to mesh.")
-        obj = qim3d.mesh.from_volume_pygel3d(obj)
+        obj = qim3d.mesh.from_volume(obj)
 
-    volume = volume(obj)
-    area = area(obj)
+    volume = qim3d.features.volume(obj)
+    area = qim3d.features.area(obj)
 
     if area == 0:
         log.warning("Surface area is zero, sphericity is undefined.")

@@ -13,5 +13,5 @@ def from_volume(
     if volume.ndim != 3:
         raise ValueError("The input volume must be a 3D numpy array.")
     
-    m = hmesh.volumetric_isocontour(volume)
-    return m
+    mesh = hmesh.volumetric_isocontour(volume)
+    return mesh

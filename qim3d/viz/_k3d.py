@@ -214,6 +214,21 @@ def mesh(
         k3d.Plot or None: 
             - If `backend="k3d"`, returns a `k3d.Plot` object.
             - If `backend="pygel3d"`, the function displays the mesh but does not return a plot object.
+    Example:
+        ```python
+        import qim3d
+        vol = qim3d.generate.noise_object(base_shape=(128,128,128),
+                          final_shape=(128,128,128),
+                          noise_scale=0.03,
+                          order=1,
+                          gamma=1,
+                          max_value=255,
+                          threshold=0.5,
+                          dtype='uint8'
+                          )
+        mesh = qim3d.mesh.from_volume(vol)
+        qim3d.viz.mesh(mesh)
+        ```
     """
 
 
@@ -249,14 +264,20 @@ def mesh(
             flat_shading=flat_shading,
         )
 
+        # Create plot
         plot = k3d.plot(grid_visible=grid_visible, **valid_k3d_kwargs)
         plot += mesh_plot
 
         if save:
+            # Save html to disk
             with open(str(save), "w", encoding="utf-8") as fp:
                 fp.write(plot.get_snapshot())
 
-        return plot.display() if show else plot
+        if show:
+            plot.display()
+        else:
+            return plot
+
 
     elif backend == "pygel3d":
         jd.set_export_mode(True)
