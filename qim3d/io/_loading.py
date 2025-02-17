@@ -28,7 +28,7 @@ from qim3d.utils._misc import get_file_size, sizeof, stringify_path
 from qim3d.utils import Memory
 from qim3d.utils._progress_bar import FileLoadingProgressBar
 import trimesh
-
+from pygel3d import hmesh
 from typing import Optional, Dict
 
 dask.config.set(scheduler="processes") 
@@ -865,15 +865,16 @@ def load(
 
     return data
 
-def load_mesh(filename: str) -> trimesh.Trimesh:
+
+def load_mesh(filename: str) -> hmesh.Manifold:
     """
-    Load a mesh from an .obj file using trimesh.
+    Load a mesh from an an X3D/OBJ/OFF/PLY file.
 
     Args:
         filename (str or os.PathLike): The path to the .obj file.
 
     Returns:
-        mesh (trimesh.Trimesh): A trimesh object containing the mesh data (vertices and faces).
+        mesh (hmesh.Manifold or None): A hmesh object containing the mesh data or None if loading failed.
 
     Example:
         ```python
@@ -882,5 +883,6 @@ def load_mesh(filename: str) -> trimesh.Trimesh:
         mesh = qim3d.io.load_mesh("path/to/mesh.obj")
         ```
     """
-    mesh = trimesh.load(filename)
+    mesh = hmesh.load(filename)
+
     return mesh

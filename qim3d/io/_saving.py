@@ -36,7 +36,7 @@ import zarr
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
 import trimesh
-
+from pygel3d import hmesh
 from qim3d.utils import log
 from qim3d.utils._misc import sizeof, stringify_path
 
@@ -464,16 +464,41 @@ def save(
     ).save(path, data)
 
 
-def save_mesh(
-        filename: str, 
-        mesh: trimesh.Trimesh
-        ) -> None:
-    """
-    Save a trimesh object to an .obj file.
+# def save_mesh(
+#         filename: str, 
+#         mesh: trimesh.Trimesh
+#         ) -> None:
+#     """
+#     Save a trimesh object to an .obj file.
+
+#     Args:
+#         filename (str or os.PathLike): The name of the file to save the mesh.
+#         mesh (trimesh.Trimesh): A trimesh.Trimesh object representing the mesh.
+
+#     Example:
+#         ```python
+#         import qim3d
+
+#         vol = qim3d.generate.noise_object(base_shape=(32, 32, 32),
+#                                   final_shape=(32, 32, 32),
+#                                   noise_scale=0.05,
+#                                   order=1,
+#                                   gamma=1.0,
+#                                   max_value=255,
+#                                   threshold=0.5)
+#         mesh = qim3d.mesh.from_volume(vol)
+#         qim3d.io.save_mesh("mesh.obj", mesh)
+#         ```
+#     """
+#     # Export the mesh to the specified filename
+#     mesh.export(filename)
+    
+def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
+    """Save a mesh object to an X3D/OBJ/OFF file. The file format is determined by the file extension.
 
     Args:
         filename (str or os.PathLike): The name of the file to save the mesh.
-        mesh (trimesh.Trimesh): A trimesh.Trimesh object representing the mesh.
+        mesh (hmesh.Manifold): A hmesh.Manifold object representing the mesh.
 
     Example:
         ```python
@@ -481,7 +506,7 @@ def save_mesh(
 
         vol = qim3d.generate.noise_object(base_shape=(32, 32, 32),
                                   final_shape=(32, 32, 32),
-                                  noise_scale=0.05,
+                                  noise_scale=0.05,mesh.export(filename)
                                   order=1,
                                   gamma=1.0,
                                   max_value=255,
@@ -491,4 +516,4 @@ def save_mesh(
         ```
     """
     # Export the mesh to the specified filename
-    mesh.export(filename)
+    hmesh.save(filename, mesh)
