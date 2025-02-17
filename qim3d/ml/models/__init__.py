@@ -1,1 +1,1 @@
-from ._unet import UNet, UNet2D, Hyperparameters
+from ._unet import UNet, Hyperparameters
