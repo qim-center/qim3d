@@ -78,6 +78,8 @@ class Dataset(torch.utils.data.Dataset):
         target = np.expand_dims(target, axis=0)
 
         if self.transform:
+
+            # Apply augmentation
             transformed = self.transform({"image": image, "label": target})
             image = transformed["image"]
             target = transformed["label"]

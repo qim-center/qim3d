@@ -5,25 +5,29 @@ class Augmentation:
     Class for defining image augmentation transformations using the MONAI library.
         
     Args:
-        resize (str, optional): Specifies how the images should be reshaped to the appropriate size.
-        trainsform_train (str, optional): Level of transformation for the training set.
-        transform_validation (str, optional): Level of transformation for the validation set.
-        transform_test (str, optional): Level of transformation for the test set.
+        resize (str, optional): Specifies how the images should be reshaped to the appropriate size, either 'crop', 'resize', or 'padding'. Defaults to 'crop'.
+        trainsform_train (str, optional): Level of transformation for the training set, either 'light', 'moderate', 'heavy' or None. Defaults to 'moderate'.
+        transform_validation (str, optional): Level of transformation for the validation set, either 'light', 'moderate', 'heavy' or None. Defaults to None.
+        transform_test (str, optional): Level of transformation for the test set, either 'light', 'moderate', 'heavy' or None. Defaults to None.
 
     Raises:
-        ValueError: If the ´resize´ is neither 'crop', 'resize' nor 'padding'.
+        ValueError: If `resize` is neither 'crop', 'resize' nor 'padding'.
     
     Example:
-        my_augmentation = Augmentation(resize = 'crop', transform_train = 'light')
+        ```python
+        import qim3d
+
+        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
+        ```
     """
     
     def __init__(
             self, 
             resize: str = 'crop', 
-            transform_train: str = 'moderate', 
+            transform_train: str | None = 'moderate', 
             transform_validation: str | None = None,
             transform_test: str | None = None,
-        ):
+            ):
 
         if resize not in ['crop', 'reshape', 'padding']:
             msg = f"Invalid resize type: {resize}. Use either 'crop', 'resize' or 'padding'."
@@ -34,13 +38,17 @@ class Augmentation:
         self.transform_validation = transform_validation
         self.transform_test = transform_test
     
-    def augment(self, img_shape: tuple, level: str | None = None):
-        """
+    def augment(
+            self, 
+            img_shape: tuple, 
+            level: str | None = None
+            ): 
+        """ 
         Creates an augmentation pipeline based on the specified level.
 
         Args:
-            img_shape (tuple): Dimensions of the image.
-            level (str, optional): Level of augmentation. One of [None, 'light', 'moderate', 'heavy'].
+            img_shape (tuple): Dimensions of the volume as (D, W, H).
+            level (str, optional): Level of augmentation, either 'light', 'moderate', 'heavy' or None. Defaults to None.
 
         Raises:
             ValueError: If `img_shape` is not 3D.
