@@ -53,8 +53,8 @@ class Augmentation:
             ValueError: If `level` is neither None, light, moderate nor heavy.
         """
         from monai.transforms import (
-            Compose, RandRotate90, RandFlip, RandAffine, ToTensor, \
-            RandGaussianSmooth, NormalizeIntensity, Resize, CenterSpatialCrop, SpatialPad
+            Compose, RandRotate90d, RandFlipd, RandAffined, ToTensor, \
+            RandGaussianSmoothd, NormalizeIntensityd, Resized, CenterSpatialCropd, SpatialPadd
         )
 
         # Check if 2D or 3D
@@ -74,41 +74,64 @@ class Augmentation:
         # For 2D, add normalization to the baseline augmentations
         # TODO: Figure out how to properly do this in 3D (normalization should be done channel-wise)
         if not self.is_3d:
-            baseline_aug.append(NormalizeIntensity(subtrahend=self.mean, divisor=self.std))
+            # baseline_aug.append(NormalizeIntensity(subtrahend=self.mean, divisor=self.std))
+            baseline_aug.append(NormalizeIntensityd(keys=["image"], subtrahend=self.mean, divisor=self.std))
 
         # Resize augmentations
         if self.resize == 'crop':
-            resize_aug = [CenterSpatialCrop((im_d, im_h, im_w))] if self.is_3d else [CenterSpatialCrop((im_h, im_w))]
+            # resize_aug = [CenterSpatialCrop((im_d, im_h, im_w))]
+            resize_aug = [CenterSpatialCropd(keys=["image", "label"], roi_size=(im_d, im_h, im_w))]
         
         elif self.resize == 'reshape':
-            resize_aug = [Resize((im_d, im_h, im_w))] if self.is_3d else [Resize((im_h, im_w))]
+            # resize_aug = [Resize((im_d, im_h, im_w))]
+            resize_aug = [Resized(keys=["image", "label"], spatial_size=(im_d, im_h, im_w))]
         
         elif self.resize == 'padding':
-            resize_aug = [SpatialPad((im_d, im_h, im_w))] if self.is_3d else [SpatialPad((im_h, im_w))]
+            # resize_aug = [SpatialPad((im_d, im_h, im_w))]
+            resize_aug = [SpatialPadd(keys=["image", "label"], spatial_size=(im_d, im_h, im_w))]
 
         # Level of augmentation
         if level == None:
+
+            # No augmentation for the validation and test sets
             level_aug = []
+            resize_aug = []
 
         elif level == 'light':
-            level_aug = [RandRotate90(prob=1, spatial_axes=(0, 1))] if self.is_3d else [RandRotate90(prob=1)]
+            # level_aug = [RandRotate90(prob=1, spatial_axes=(0, 1))]
+            level_aug = [RandRotate90d(keys=["image", "label"], prob=1, spatial_axes=(0, 1))]
         
         elif level == 'moderate':
+            # level_aug = [
+            #     RandRotate90(prob=1, spatial_axes=(0, 1)),
+            #     RandFlip(prob=0.3, spatial_axis=0),
+            #     RandFlip(prob=0.3, spatial_axis=1),
+            #     RandGaussianSmooth(sigma_x=(0.7, 0.7), prob=0.1),
+            #     RandAffine(prob=0.5, translate_range=(0.1, 0.1), scale_range=(0.9, 1.1)),
+            # ]
             level_aug = [
-                RandRotate90(prob=1, spatial_axes=(0, 1)) if self.is_3d else RandRotate90(prob=1),
-                RandFlip(prob=0.3, spatial_axis=0),
-                RandFlip(prob=0.3, spatial_axis=1),
-                RandGaussianSmooth(sigma_x=(0.7, 0.7), prob=0.1),
-                RandAffine(prob=0.5, translate_range=(0.1, 0.1), scale_range=(0.9, 1.1)),
-            ]
-
+                    RandRotate90d(keys=["image", "label"], prob=1, spatial_axes=(0, 1)),
+                    RandFlipd(keys=["image", "label"], prob=0.3, spatial_axis=0),
+                    RandFlipd(keys=["image", "label"], prob=0.3, spatial_axis=1),
+                    RandGaussianSmoothd(keys=["image"], sigma_x=(0.7, 0.7), prob=0.1),
+                    RandAffined(keys=["image", "label"], prob=0.5, translate_range=(0.1, 0.1), scale_range=(0.9, 1.1)),
+                ]
+            
         elif level == 'heavy':
-            level_aug = [
-                RandRotate90(prob=1, spatial_axes=(0, 1)) if self.is_3d else RandRotate90(prob=1),
-                RandFlip(prob=0.7, spatial_axis=0),
-                RandFlip(prob=0.7, spatial_axis=1),
-                RandGaussianSmooth(sigma_x=(1.2, 1.2), prob=0.3),
-                RandAffine(prob=0.5, translate_range=(0.2, 0.2), scale_range=(0.8, 1.4), shear_range=(-15, 15))
-            ]
+            # level_aug = [
+            #     RandRotate90(prob=1, spatial_axes=(0, 1)),
+            #     RandFlip(prob=0.7, spatial_axis=0),
+            #     RandFlip(prob=0.7, spatial_axis=1),
+            #     RandGaussianSmooth(sigma_x=(1.2, 1.2), prob=0.3),
+            #     RandAffine(prob=0.5, translate_range=(0.2, 0.2), scale_range=(0.8, 1.4), shear_range=(-15, 15))
+            # ]
 
+            level_aug = [
+                    RandRotate90d(keys=["image", "label"], prob=1, spatial_axes=(0, 1)),
+                    RandFlipd(keys=["image", "label"], prob=0.7, spatial_axis=0),
+                    RandFlipd(keys=["image", "label"], prob=0.7, spatial_axis=1),
+                    RandGaussianSmoothd(keys=["image"], sigma_x=(1.2, 1.2), prob=0.3),
+                    RandAffined(keys=["image", "label"], prob=0.5, translate_range=(0.2, 0.2), scale_range=(0.8, 1.4), shear_range=(-15, 15))
+                ]
+            
         return Compose(baseline_aug + resize_aug + level_aug)

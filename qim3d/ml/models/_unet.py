@@ -69,7 +69,8 @@ class UNet(nn.Module):
             in_channels=1,  # TODO: check if image has 1 or multiple input channels
             out_channels=1,
             channels=self.channels,
-            strides=(2,) * (len(self.channels) - 1),
+            strides=(2,) * (len(self.channels) - 1), # TODO: Check if the strides are correct?
+            num_res_units=2, # TODO: This was not here before
             kernel_size=self.kernel_size,
             up_kernel_size=self.up_kernel_size,
             act=self.activation,

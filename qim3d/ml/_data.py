@@ -104,8 +104,12 @@ class Dataset(torch.utils.data.Dataset):
                 target = target.transpose((2, 0, 1))
 
         if self.transform:
-            image = self.transform(image) # uint8
-            target = self.transform(target) # int32
+            transformed = self.transform({"image": image, "label": target})
+            image = transformed["image"]
+            target = transformed["label"]
+
+            # image = self.transform(image) # uint8
+            # target = self.transform(target) # int32
             
         # TODO: Which dtype?
         image = image.clone().detach().to(dtype=torch.float32)
@@ -160,7 +164,7 @@ def check_resize(
         orig_shape (tuple): Original shape of the image.
         resize (tuple): Desired resize dimensions.
         n_channels (int): Number of channels in the model.
-        is_3d (bool): Whether the data is 3D or not.
+        is_3d (bool): If True, the input data is 3D. Otherwise the input data is 2D. Defaults to True.
 
     Returns:
         tuple: Final resize dimensions.
@@ -230,7 +234,12 @@ def check_resize(
 
         return final_h, final_w
 
-def prepare_datasets(path: str, val_fraction: float, model: nn.Module, augmentation: Augmentation) -> tuple[torch.utils.data.Subset, torch.utils.data.Subset, torch.utils.data.Subset]:
+def prepare_datasets(
+        path: str, 
+        val_fraction: float, 
+        model: nn.Module, 
+        augmentation: Augmentation,
+        ) -> tuple[torch.utils.data.Subset, torch.utils.data.Subset, torch.utils.data.Subset]:
     """
     Splits and augments the train/validation/test datasets.
 

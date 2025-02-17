@@ -132,6 +132,10 @@ def train_model(
                         f"Epoch {epoch: 3}, train loss: {train_loss['loss'][epoch]:.4f}, "
                         f"val loss: {val_loss['loss'][epoch]:.4f}"
                     )
+    
+    # NOTE: Delete this again
+    # Save model checkpoint to .pth file
+    torch.save(model.state_dict(), "C:/Users\s193396/dataset/model.pth")
 
     if plot:
         plot_metrics(train_loss, val_loss, labels=["Train", "Valid."], show=True)
@@ -163,7 +167,12 @@ def model_summary(dataloader: torch.utils.data.DataLoader, model: torch.nn.Modul
     return model_s
 
 
-def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+def inference(
+        data: torch.utils.data.Dataset, 
+        model: torch.nn.Module,
+        threshold: float = 0.5,
+        is_3d: bool = True,
+        ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """Performs inference on input data using the specified model.
 
     Performs inference on the input data using the provided model. The input data should be in the form of a list,
@@ -177,6 +186,8 @@ def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[t
         data (torch.utils.data.Dataset): A Torch dataset containing input image and
             ground truth label data.
         model (torch.nn.Module): The trained network model used for predicting segmentations.
+        threshold (float): The threshold value used to binarize the model predictions.
+        is_3d (bool): If True, the input data is 3D. Otherwise the input data is 2D. Defaults to True.
 
     Returns:
         tuple: A tuple containing the input images, target labels, and predicted labels.
@@ -194,59 +205,130 @@ def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[t
         model = MySegmentationModel()
         qim3d.ml.inference(data,model)
     """
-
-    # Get device
+    # Set model to evaluation mode
     device = "cuda" if torch.cuda.is_available() else "cpu"
-
-    # Check if data have the right format
-    if not isinstance(data[0], tuple):
-        raise ValueError("Data items must be tuples")
-
-    # Check if data is torch tensors
-    for element in data[0]:
-        if not isinstance(element, torch.Tensor):
-            raise ValueError("Data items must consist of tensors")
-
-    # Check if input image is (C,H,W) format
-    if data[0][0].dim() == 3 and (data[0][0].shape[0] in [1, 3]):
-        pass
-    else:
-        raise ValueError("Input image must be (C,H,W) format")
-
     model.to(device)
     model.eval()
 
-    # Make new list such that possible augmentations remain identical for all three rows
-    plot_data = [data[idx] for idx in range(len(data))]
+    results = []
 
-    # Create input and target batch
-    inputs = torch.stack([item[0] for item in plot_data], dim=0).to(device)
-    targets = torch.stack([item[1] for item in plot_data], dim=0)
+    # 3D data
+    if is_3d:
+        for volume, target in data:
+            if not isinstance(volume, torch.Tensor) or not isinstance(target, torch.Tensor):
+                raise ValueError("Data items must consist of tensors")
 
-    # Get output predictions
-    with torch.no_grad():
-        outputs = model(inputs)
+            # Add batch and channel dimensions
+            volume = volume.unsqueeze(0).to(device)  # Shape: [1, 1, D, H, W]
+            target = target.unsqueeze(0).to(device)  # Shape: [1, 1, D, H, W]
 
-    # Prepare data for plotting
-    inputs = inputs.cpu().squeeze()
-    targets = targets.squeeze()
-    if outputs.shape[1] == 1:
-        preds = (
-            outputs.cpu().squeeze() > 0.5
-        )  # TODO: outputs from model are not between [0,1] yet, need to implement that
+            with torch.no_grad():
+
+                # Get model predictions (logits)
+                output = model(volume)
+
+                # Convert logits to probabilities [0, 1]
+                preds = torch.sigmoid(output)
+
+                # Convert to binary mask by thresholding the probabilities
+                preds = (preds > threshold).float()
+
+                # Remove batch and channel dimensions
+                volume = volume.squeeze().cpu().numpy()
+                target = target.squeeze().cpu().numpy()
+                preds = preds.squeeze().cpu().numpy()
+
+            # Append results to list
+            results.append((volume, target, preds))
+
+    # 2D data
     else:
-        preds = outputs.cpu().argmax(axis=1)
+        # Check if data have the right format
+        if not isinstance(data[0], tuple):
+            raise ValueError("Data items must be tuples")
 
-    # if there is only one image
-    if inputs.dim() == 2:
-        inputs = inputs.unsqueeze(0)    # TODO: Not sure if unsqueeze (add extra dimension) is necessary
-        targets = targets.unsqueeze(0)
-        preds = preds.unsqueeze(0)
+        # Check if data is torch tensors
+        for element in data[0]:
+            if not isinstance(element, torch.Tensor):
+                raise ValueError("Data items must consist of tensors")
 
-    return inputs, targets, preds
+        for inputs, targets in data:
+            inputs = inputs.to(device)
+            targets = targets.to(device)
 
+            with torch.no_grad():
+                outputs = model(inputs)
 
-def volume_inference(volume: np.ndarray, model: torch.nn.Module, threshold:float = 0.5) -> np.ndarray:
+            # Prepare data for plotting
+            inputs_cpu = inputs.cpu().squeeze()
+            targets_cpu = targets.cpu().squeeze()
+            if outputs.shape[1] == 1:
+                preds = outputs.cpu().squeeze() > threshold
+            else:
+                preds = outputs.cpu().argmax(axis=1)
+
+            # If there is only one image
+            if inputs_cpu.dim() == 2:
+                inputs_cpu = inputs_cpu.unsqueeze(0).numpy()
+                targets_cpu = targets_cpu.unsqueeze(0).numpy()
+                preds = preds.unsqueeze(0).numpy()
+
+        # Append results to list
+        results.append((inputs_cpu, targets_cpu, preds))
+
+    return results
+
+    # Old implementation: 
+    # else:
+    #     # Check if data have the right format
+    #     if not isinstance(data[0], tuple):
+    #         raise ValueError("Data items must be tuples")
+
+    #     # Check if data is torch tensors
+    #     for element in data[0]:
+    #         if not isinstance(element, torch.Tensor):
+    #             raise ValueError("Data items must consist of tensors")
+
+    #     # Check if input image is (C,H,W) format
+    #     if data[0][0].dim() == 3 and (data[0][0].shape[0] in [1, 3]):
+    #         pass
+    #     else:
+    #         raise ValueError("Input image must be (C,H,W) format")
+
+    #     # Make new list such that possible augmentations remain identical for all three rows
+    #     plot_data = [data[idx] for idx in range(len(data))]
+
+    #     # Create input and target batch
+    #     inputs = torch.stack([item[0] for item in plot_data], dim=0).to(device)
+    #     targets = torch.stack([item[1] for item in plot_data], dim=0)
+
+    #     # Get output predictions
+    #     with torch.no_grad():
+    #         outputs = model(inputs)
+
+    #     # Prepare data for plotting
+    #     inputs = inputs.cpu().squeeze()
+    #     targets = targets.squeeze()
+    #     if outputs.shape[1] == 1:
+    #         preds = (
+    #             outputs.cpu().squeeze() > threshold
+    #         )  # TODO: outputs from model are not between [0,1] yet, need to implement that
+    #     else:
+    #         preds = outputs.cpu().argmax(axis=1)
+
+    #     # if there is only one image
+    #     if inputs.dim() == 2:
+    #         inputs = inputs.unsqueeze(0)    # TODO: Not sure if unsqueeze (add extra dimension) is necessary
+    #         targets = targets.unsqueeze(0)
+    #         preds = preds.unsqueeze(0)
+
+    #     return inputs, targets, preds
+
+def volume_inference(
+        volume: np.ndarray, 
+        model: torch.nn.Module, 
+        threshold:float = 0.5,
+        ) -> np.ndarray:
     """
     Compute on the entire volume
     Args:
