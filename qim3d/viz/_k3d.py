@@ -223,6 +223,7 @@ def mesh(
         mesh = qim3d.mesh.from_volume(synthetic_blob)
         qim3d.viz.mesh(mesh, backend="k3d") # or qim3d.viz.mesh(mesh, backend="pygel3d")
         ```
+    <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
