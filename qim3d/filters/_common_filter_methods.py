@@ -295,7 +295,6 @@ def gaussian(
         sigma (float or sequence of floats): The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.
         dask (bool, optional): Whether to use Dask for the Gaussian filter.
         chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        *args (Any): Additional positional arguments for the Gaussian filter.
         **kwargs (Any): Additional keyword arguments for the Gaussian filter.
 
     Returns:

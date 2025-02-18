@@ -9,7 +9,7 @@ def volume(obj: np.ndarray|hmesh.Manifold) -> float:
     Compute the volume of a 3D mesh using the Pygel3D library.
 
     Args:
-        obj: Either a np.ndarray volume or a mesh object of type hmesh.Manifold.
+        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
 
     Returns:
         volume (float): The volume of the object.
@@ -24,7 +24,7 @@ def volume(obj: np.ndarray|hmesh.Manifold) -> float:
 
         # Compute the volume of the mesh
         volume = qim3d.features.volume(mesh)
-        print('Volume:', volume)
+        print(f'Volume: {volume}')
         ```
 
         Compute volume from a np.ndarray:
@@ -36,7 +36,7 @@ def volume(obj: np.ndarray|hmesh.Manifold) -> float:
 
         # Compute the volume of the blob
         volume = qim3d.features.volume(synthetic_blob)
-        print('Volume:', volume)
+        print(f'Volume: {volume}')
         ```
 
     """
@@ -52,7 +52,7 @@ def area(obj: np.ndarray|hmesh.Manifold) -> float:
     Compute the surface area of a 3D mesh using the Pygel3D library.
 
     Args:
-        obj: Either a np.ndarray volume or a mesh object of type hmesh.Manifold.
+        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
 
     Returns:
         area (float): The surface area of the object. 
@@ -67,7 +67,7 @@ def area(obj: np.ndarray|hmesh.Manifold) -> float:
 
         # Compute the surface area of the mesh
         area = qim3d.features.area(mesh)
-        print(f"Area: {area}")
+        print(f'Area: {area}')
         ```
 
         Compute area from a np.ndarray:
@@ -79,7 +79,7 @@ def area(obj: np.ndarray|hmesh.Manifold) -> float:
 
         # Compute the surface area of the blob
         area = qim3d.features.area(synthetic_blob)
-        print(f"Area: {area}")
+        print(f'Area: {area}')
         ```
     
     """
@@ -95,7 +95,7 @@ def sphericity(obj: np.ndarray|hmesh.Manifold) -> float:
     Compute the sphericity of a 3D mesh using the Pygel3D library.
 
     Args:
-        obj: Either a np.ndarray volume or a mesh object of type hmesh.Manifold.
+        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
 
     Returns:
         sphericity (float): The sphericity of the object. 
@@ -110,6 +110,7 @@ def sphericity(obj: np.ndarray|hmesh.Manifold) -> float:
 
         # Compute the sphericity of the mesh
         sphericity = qim3d.features.sphericity(mesh)
+        print(f'Sphericity: {sphericity}')
         ```
 
         Compute sphericity from a np.ndarray:
@@ -121,6 +122,7 @@ def sphericity(obj: np.ndarray|hmesh.Manifold) -> float:
 
         # Compute the sphericity of the blob
         sphericity = qim3d.features.sphericity(synthetic_blob)
+        print(f'Sphericity: {sphericity}')
         ```
 
     """
@@ -137,5 +139,5 @@ def sphericity(obj: np.ndarray|hmesh.Manifold) -> float:
         return np.nan
 
     sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
-    log.info(f"Sphericity: {sphericity}")
+    # log.info(f"Sphericity: {sphericity}")
     return sphericity

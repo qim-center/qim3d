@@ -15,6 +15,7 @@ from qim3d.utils._misc import downscale_img, scale_to_float16
 from pygel3d import hmesh
 from pygel3d import jupyter_display as jd
 import k3d
+from typing import Optional
 
 def volumetric(
     img: np.ndarray,
@@ -182,54 +183,47 @@ def mesh(
     show: bool = True,
     save: bool = False,
     **kwargs,
-):
+)-> Optional[k3d.Plot]:
     """Visualize a 3D mesh using `k3d` or `pygel3d`.
     
     Args:
-        mesh (pygel3d.hmesh.HMesh): The input mesh object.
+        mesh (pygel3d.hmesh.Manifold): The input mesh object.
         backend (str, optional): The visualization backend to use. 
-            Choose between `"k3d"` (default) and `"pygel3d"`.
+            Choose between `k3d` (default) and `pygel3d`.
         wireframe (bool, optional): If True, displays the mesh as a wireframe.
-            Works both with `"k3d"` and `"pygel3d"`. Defaults to True.
+            Works both with `k3d` and `pygel3d`. Defaults to True.
         flat_shading (bool, optional): If True, applies flat shading to the mesh.
-            Works only with `"k3d"`. Defaults to True.
+            Works only with `k3d`. Defaults to True.
         grid_visible (bool, optional): If True, shows a grid in the visualization.
-            Works only with `"k3d"`. Defaults to False.
+            Works only with `k3d`. Defaults to False.
         show (bool, optional): If True, displays the visualization inline.
-            Works for both `"k3d"` and `"pygel3d"`. Defaults to True.
+            Works only with `k3d`. Defaults to True.
         save (bool or str, optional): If True, saves the visualization as an HTML file.
             If a string is provided, it's interpreted as the file path where the HTML
-            file will be saved. Works only with `"k3d"`. Defaults to False.
+            file will be saved. Works only with `k3d`. Defaults to False.
         **kwargs (Any): Additional keyword arguments specific to the chosen backend:
             
-            - `k3d.plot` kwargs: Arguments that customize the `k3d.plot` visualization. 
-              See full reference: https://k3d-jupyter.org/reference/factory.plot.html
+            - `k3d.plot` kwargs: Arguments that customize the [`k3d.plot`](https://k3d-jupyter.org/reference/factory.plot.html) visualization. 
             
-            - `pygel3d.display` kwargs: Arguments for `pygel3d` visualization, such as:
-                - `smooth` (bool, default=True): Enables smooth shading.
-                - `data` (optional): Allows embedding custom data in the visualization.
-              See full reference: https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display
-
+            - `pygel3d.display` kwargs: Arguments that customize the [`pygel3d.display`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display) visualization.
+    
     Returns:
         k3d.Plot or None:
         
             - If `backend="k3d"`, returns a `k3d.Plot` object.
             - If `backend="pygel3d"`, the function displays the mesh but does not return a plot object.
+    
+    Raises:
+        ValueError: If `backend` is not `'k3d'` or `'pygel3d'`.
+
     Example:
         ```python
         import qim3d
-        vol = qim3d.generate.noise_object(base_shape=(128,128,128),
-                          final_shape=(128,128,128),
-                          noise_scale=0.03,
-                          order=1,
-                          gamma=1,
-                          max_value=255,
-                          threshold=0.5,
-                          dtype='uint8'
-                          )
-        mesh = qim3d.mesh.from_volume(vol)
-        qim3d.viz.mesh(mesh)
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        mesh = qim3d.mesh.from_volume(synthetic_blob)
+        qim3d.viz.mesh(mesh, backend="k3d") # or qim3d.viz.mesh(mesh, backend="pygel3d")
         ```
+
     """
 
 
@@ -282,4 +276,4 @@ def mesh(
 
     elif backend == "pygel3d":
         jd.set_export_mode(True)
-        return jd.display(mesh, **valid_pygel_kwargs)
+        return jd.display(mesh, wireframe=wireframe, **valid_pygel_kwargs)

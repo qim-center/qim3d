@@ -868,10 +868,18 @@ def load(
 
 def load_mesh(filename: str) -> hmesh.Manifold:
     """
-    Load a mesh from an an X3D/OBJ/OFF/PLY file.
+    Load a mesh from a specific file.
+    This function is based on the [PyGEL3D library's loading function implementation](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#load).
+
+    Supported formats:
+
+    - `X3D`
+    - `OBJ`
+    - `OFF`
+    - `PLY`
 
     Args:
-        filename (str or os.PathLike): The path to the .obj file.
+        filename (str or os.PathLike): The path to the file.
 
     Returns:
         mesh (hmesh.Manifold or None): A hmesh object containing the mesh data or None if loading failed.
