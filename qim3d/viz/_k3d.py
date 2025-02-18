@@ -176,7 +176,7 @@ def volumetric(
 
 def mesh(
     mesh,
-    backend: str = "k3d",
+    backend: str = "pygel3d",
     wireframe: bool = True,
     flat_shading: bool = True,
     grid_visible: bool = False,
@@ -184,14 +184,14 @@ def mesh(
     save: bool = False,
     **kwargs,
 )-> Optional[k3d.Plot]:
-    """Visualize a 3D mesh using `k3d` or `pygel3d`.
+    """Visualize a 3D mesh using `pygel3d` or `k3d`.
     
     Args:
         mesh (pygel3d.hmesh.Manifold): The input mesh object.
         backend (str, optional): The visualization backend to use. 
-            Choose between `k3d` (default) and `pygel3d`.
+            Choose between `pygel3d` (default) and `k3d`.
         wireframe (bool, optional): If True, displays the mesh as a wireframe.
-            Works both with `k3d` and `pygel3d`. Defaults to True.
+            Works both with `pygel3d` and `k3d`. Defaults to True.
         flat_shading (bool, optional): If True, applies flat shading to the mesh.
             Works only with `k3d`. Defaults to True.
         grid_visible (bool, optional): If True, shows a grid in the visualization.
@@ -214,22 +214,21 @@ def mesh(
             - If `backend="pygel3d"`, the function displays the mesh but does not return a plot object.
     
     Raises:
-        ValueError: If `backend` is not `'k3d'` or `'pygel3d'`.
+        ValueError: If `backend` is not `pygel3d` or `k3d`.
 
     Example:
         ```python
         import qim3d
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
         mesh = qim3d.mesh.from_volume(synthetic_blob)
-        qim3d.viz.mesh(mesh, backend="k3d") # or qim3d.viz.mesh(mesh, backend="pygel3d")
+        qim3d.viz.mesh(mesh, backend="pygel3d") # or qim3d.viz.mesh(mesh, backend="k3d")
         ```
-    <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>
-
+    ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
     """
 
 
     if backend not in ["k3d", "pygel3d"]:
-        raise ValueError("Invalid backend. Choose 'k3d' or 'pygel3d'.")
+        raise ValueError("Invalid backend. Choose 'pygel3d' or 'k3d'.")
 
     # Extract vertex positions and face indices
     face_indices = list(mesh.faces())
