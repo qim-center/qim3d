@@ -16,7 +16,7 @@ def from_volume(
         **kwargs: Additional arguments to pass to the Pygel3D volumetric_isocontour function.
 
     Raises:
-        ValueError: If the input volume is not a 3D numpy array.
+        ValueError: If the input volume is not a 3D numpy array or if the input volume is empty.
 
     Returns:
         hmesh.Manifold: A Pygel3D mesh object representing the input volume.
@@ -37,5 +37,8 @@ def from_volume(
     if volume.ndim != 3:
         raise ValueError("The input volume must be a 3D numpy array.")
     
+    if volume.size == 0:
+        raise ValueError("The input volume must not be empty.")
+
     mesh = hmesh.volumetric_isocontour(volume, **kwargs)
     return mesh
