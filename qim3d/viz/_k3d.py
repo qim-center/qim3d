@@ -211,7 +211,8 @@ def mesh(
               See full reference: https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display
 
     Returns:
-        k3d.Plot or None: 
+        k3d.Plot or None:
+        
             - If `backend="k3d"`, returns a `k3d.Plot` object.
             - If `backend="pygel3d"`, the function displays the mesh but does not return a plot object.
     Example:
