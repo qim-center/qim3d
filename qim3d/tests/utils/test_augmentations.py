@@ -1,13 +1,14 @@
-import qim3d
 import albumentations
 import pytest
+
+import qim3d
 
 
 # unit tests for Augmentation()
 def test_augmentation():
     augment_class = qim3d.ml.Augmentation()
 
-    assert augment_class.resize == "crop"
+    assert augment_class.resize == 'crop'
 
 
 def test_augment():
@@ -20,7 +21,7 @@ def test_augment():
 
 # unit tests for ValueErrors in Augmentation()
 def test_resize():
-    resize_str = "not valid resize"
+    resize_str = 'not valid resize'
 
     with pytest.raises(
         ValueError,
@@ -32,7 +33,7 @@ def test_resize():
 def test_levels():
     augment_class = qim3d.ml.Augmentation()
 
-    level = "Not a valid level"
+    level = 'Not a valid level'
 
     with pytest.raises(
         ValueError,
