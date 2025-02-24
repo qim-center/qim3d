@@ -7,9 +7,10 @@ import numpy as np
 import tifffile as tiff
 import zarr
 import zarr.core
+import qim3d
+
 from tqdm import tqdm
 
-from qim3d.io import save
 from qim3d.utils._misc import stringify_path
 
 
@@ -121,7 +122,7 @@ class Convert:
 
         """
         z = zarr.open(zarr_path)
-        save(tif_path, z)
+        qim3d.io.save(tif_path, z)
 
     def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str) -> zarr.core.Array:
         """
@@ -173,7 +174,7 @@ class Convert:
 
         """
         z = zarr.open(zarr_path)
-        save(nifti_path, z, compression=compression)
+        qim3d.io.save(nifti_path, z, compression=compression)
 
 
 def convert(
