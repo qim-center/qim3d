@@ -13,7 +13,10 @@ from matplotlib.colors import Colormap
 
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
-
+from pygel3d import hmesh
+from pygel3d import jupyter_display as jd
+import k3d
+from typing import Optional
 
 def volumetric(
     img: np.ndarray,
@@ -82,7 +85,6 @@ def volumetric(
         ```
 
     """
-    import k3d
 
     pixel_count = img.shape[0] * img.shape[1] * img.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
@@ -172,88 +174,106 @@ def volumetric(
     else:
         return plot
 
-
 def mesh(
-    verts: np.ndarray,
-    faces: np.ndarray,
+    mesh,
+    backend: str = "pygel3d",
     wireframe: bool = True,
     flat_shading: bool = True,
     grid_visible: bool = False,
     show: bool = True,
     save: bool = False,
     **kwargs,
-):
-    """
-    Visualizes a 3D mesh using K3D.
-
+)-> Optional[k3d.Plot]:
+    """Visualize a 3D mesh using `pygel3d` or `k3d`.
+    
     Args:
-        verts (numpy.ndarray): A 2D array (Nx3) containing the vertices of the mesh.
-        faces (numpy.ndarray): A 2D array (Mx3) containing the indices of the mesh faces.
-        wireframe (bool, optional): If True, the mesh is rendered as a wireframe. Defaults to True.
-        flat_shading (bool, optional): If True, flat shading is applied to the mesh. Defaults to True.
-        grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
-        show (bool, optional): If True, displays the visualization inline. Defaults to True.
+        mesh (pygel3d.hmesh.Manifold): The input mesh object.
+        backend (str, optional): The visualization backend to use. 
+            Choose between `pygel3d` (default) and `k3d`.
+        wireframe (bool, optional): If True, displays the mesh as a wireframe.
+            Works both with `pygel3d` and `k3d`. Defaults to True.
+        flat_shading (bool, optional): If True, applies flat shading to the mesh.
+            Works only with `k3d`. Defaults to True.
+        grid_visible (bool, optional): If True, shows a grid in the visualization.
+            Works only with `k3d`. Defaults to False.
+        show (bool, optional): If True, displays the visualization inline.
+            Works only with `k3d`. Defaults to True.
         save (bool or str, optional): If True, saves the visualization as an HTML file.
             If a string is provided, it's interpreted as the file path where the HTML
-            file will be saved. Defaults to False.
-        **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
-
+            file will be saved. Works only with `k3d`. Defaults to False.
+        **kwargs (Any): Additional keyword arguments specific to the chosen backend:
+            
+            - `k3d.plot` kwargs: Arguments that customize the [`k3d.plot`](https://k3d-jupyter.org/reference/factory.plot.html) visualization. 
+            
+            - `pygel3d.display` kwargs: Arguments that customize the [`pygel3d.display`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display) visualization.
+    
     Returns:
-        plot (k3d.plot): If `show=False`, returns the K3D plot object.
+        k3d.Plot or None:
+        
+            - If `backend="k3d"`, returns a `k3d.Plot` object.
+            - If `backend="pygel3d"`, the function displays the mesh but does not return a plot object.
+    
+    Raises:
+        ValueError: If `backend` is not `pygel3d` or `k3d`.
 
     Example:
         ```python
         import qim3d
-
-        vol = qim3d.generate.noise_object(base_shape=(128,128,128),
-                                  final_shape=(128,128,128),
-                                  noise_scale=0.03,
-                                  order=1,
-                                  gamma=1,
-                                  max_value=255,
-                                  threshold=0.5,
-                                  dtype='uint8'
-                                  )
-        mesh = qim3d.mesh.from_volume(vol, step_size=3)
-        qim3d.viz.mesh(mesh.vertices, mesh.faces)
+        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        mesh = qim3d.mesh.from_volume(synthetic_blob)
+        qim3d.viz.mesh(mesh, backend="pygel3d") # or qim3d.viz.mesh(mesh, backend="k3d")
         ```
-        <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>
-
+    ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
     """
-    import k3d
 
-    # Validate the inputs
-    if verts.shape[1] != 3:
-        raise ValueError('Vertices array must have shape (N, 3)')
-    if faces.shape[1] != 3:
-        raise ValueError('Faces array must have shape (M, 3)')
 
-    # Ensure the correct data types and memory layout
-    verts = np.ascontiguousarray(
-        verts.astype(np.float32)
-    )  # Cast and ensure C-contiguous layout
-    faces = np.ascontiguousarray(
-        faces.astype(np.uint32)
-    )  # Cast and ensure C-contiguous layout
+    if backend not in ["k3d", "pygel3d"]:
+        raise ValueError("Invalid backend. Choose 'pygel3d' or 'k3d'.")
 
-    # Create the mesh plot
-    plt_mesh = k3d.mesh(
-        vertices=verts,
-        indices=faces,
-        wireframe=wireframe,
-        flat_shading=flat_shading,
-    )
+    # Extract vertex positions and face indices
+    face_indices = list(mesh.faces())
+    vertices_array = np.array(mesh.positions())
 
-    # Create plot
-    plot = k3d.plot(grid_visible=grid_visible, **kwargs)
-    plot += plt_mesh
+    # Extract face vertex indices
+    face_vertices = [
+        list(mesh.circulate_face(int(fid), mode="v"))[:3] for fid in face_indices
+    ]
+    face_vertices = np.array(face_vertices, dtype=np.uint32)
 
-    if save:
-        # Save html to disk
-        with open(str(save), 'w', encoding='utf-8') as fp:
-            fp.write(plot.get_snapshot())
+    # Validate the mesh structure
+    if vertices_array.shape[1] != 3 or face_vertices.shape[1] != 3:
+        raise ValueError("Vertices must have shape (N, 3) and faces (M, 3)")
 
-    if show:
-        plot.display()
-    else:
-        return plot
+    # Separate valid kwargs for each backend
+    valid_k3d_kwargs = {k: v for k, v in kwargs.items() if k not in ["smooth", "data"]}
+    valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ["smooth", "data"]}
+
+    if backend == "k3d":
+        vertices_array = np.ascontiguousarray(vertices_array.astype(np.float32))
+        face_vertices = np.ascontiguousarray(face_vertices)
+
+        mesh_plot = k3d.mesh(
+            vertices=vertices_array,
+            indices=face_vertices,
+            wireframe=wireframe,
+            flat_shading=flat_shading,
+        )
+
+        # Create plot
+        plot = k3d.plot(grid_visible=grid_visible, **valid_k3d_kwargs)
+        plot += mesh_plot
+
+        if save:
+            # Save html to disk
+            with open(str(save), "w", encoding="utf-8") as fp:
+                fp.write(plot.get_snapshot())
+
+        if show:
+            plot.display()
+        else:
+            return plot
+
+
+    elif backend == "pygel3d":
+        jd.set_export_mode(True)
+        return jd.display(mesh, wireframe=wireframe, **valid_pygel_kwargs)

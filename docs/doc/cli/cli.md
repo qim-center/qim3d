@@ -44,7 +44,7 @@ The command line interface allows you to run graphical user interfaces directly 
 
 !!! Example
 
-    Here's an example of how to open the [Data Explorer](gui.md#qim3d.gui.data_explorer)
+    Here's an example of how to open the [Data Explorer](../gui/gui.md#qim3d.gui.data_explorer)
 
     ``` title="Command"
     qim3d gui --data-explorer

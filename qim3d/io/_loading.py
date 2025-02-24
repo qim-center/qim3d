@@ -27,8 +27,11 @@ import qim3d
 from qim3d.utils import Memory, log
 from qim3d.utils._misc import get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
+import trimesh
+from pygel3d import hmesh
+from typing import Optional, Dict
 
-dask.config.set(scheduler='processes')
+dask.config.set(scheduler="processes") 
 
 
 class DataLoader:
@@ -891,15 +894,23 @@ def load(
     return data
 
 
-def load_mesh(filename: str) -> trimesh.Trimesh:
+def load_mesh(filename: str) -> hmesh.Manifold:
     """
-    Load a mesh from an .obj file using trimesh.
+    Load a mesh from a specific file.
+    This function is based on the [PyGEL3D library's loading function implementation](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#load).
+
+    Supported formats:
+
+    - `X3D`
+    - `OBJ`
+    - `OFF`
+    - `PLY`
 
     Args:
-        filename (str or os.PathLike): The path to the .obj file.
+        filename (str or os.PathLike): The path to the file.
 
     Returns:
-        mesh (trimesh.Trimesh): A trimesh object containing the mesh data (vertices and faces).
+        mesh (hmesh.Manifold or None): A hmesh object containing the mesh data or None if loading failed.
 
     Example:
         ```python
@@ -909,5 +920,6 @@ def load_mesh(filename: str) -> trimesh.Trimesh:
         ```
 
     """
-    mesh = trimesh.load(filename)
+    mesh = hmesh.load(filename)
+
     return mesh

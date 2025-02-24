@@ -1,22 +1,19 @@
 import numpy as np
-import trimesh
-
 import qim3d
-import qim3d.processing
 from qim3d.utils._logger import log
+import qim3d
+from pygel3d import hmesh
 
-
-def volume(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
+def volume(obj: np.ndarray|hmesh.Manifold) -> float:
     """
-    Compute the volume of a 3D volume or mesh.
+    Compute the volume of a 3D mesh using the Pygel3D library.
 
     Args:
-        obj (np.ndarray or trimesh.Trimesh): Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
-        **mesh_kwargs (Any): Additional arguments for mesh creation if the input is a volume.
+        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
 
     Returns:
         volume (float): The volume of the object.
-
+    
     Example:
         Compute volume from a mesh:
         ```python
@@ -26,8 +23,8 @@ def volume(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
         mesh = qim3d.io.load_mesh('path/to/mesh.obj')
 
         # Compute the volume of the mesh
-        vol = qim3d.features.volume(mesh)
-        print('Volume:', vol)
+        volume = qim3d.features.volume(mesh)
+        print(f'Volume: {volume}')
         ```
 
         Compute volume from a np.ndarray:
@@ -36,33 +33,30 @@ def volume(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
 
         # Generate a 3D blob
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Compute the volume of the blob
-        volume = qim3d.features.volume(synthetic_blob, level=0.5)
-        volume = qim3d.features.volume(synthetic_blob, level=0.5)
-        print('Volume:', volume)
+        volume = qim3d.features.volume(synthetic_blob)
+        print(f'Volume: {volume}')
         ```
 
     """
+
     if isinstance(obj, np.ndarray):
-        log.info('Converting volume to mesh.')
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
+        log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume(obj)
 
-    return obj.volume
+    return hmesh.volume(obj)
 
-
-def area(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
+def area(obj: np.ndarray|hmesh.Manifold) -> float:
     """
-    Compute the surface area of a 3D volume or mesh.
+    Compute the surface area of a 3D mesh using the Pygel3D library.
 
     Args:
-        obj (np.ndarray or trimesh.Trimesh): Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
-        **mesh_kwargs (Any): Additional arguments for mesh creation if the input is a volume.
+        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
 
     Returns:
-        area (float): The surface area of the object.
-
+        area (float): The surface area of the object. 
+    
     Example:
         Compute area from a mesh:
         ```python
@@ -73,8 +67,7 @@ def area(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
 
         # Compute the surface area of the mesh
         area = qim3d.features.area(mesh)
-        area = qim3d.features.area(mesh)
-        print(f"Area: {area}")
+        print(f'Area: {area}')
         ```
 
         Compute area from a np.ndarray:
@@ -83,38 +76,30 @@ def area(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
 
         # Generate a 3D blob
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Compute the surface area of the blob
-        volume = qim3d.features.area(synthetic_blob, level=0.5)
-        volume = qim3d.features.area(synthetic_blob, level=0.5)
-        print('Area:', volume)
+        area = qim3d.features.area(synthetic_blob)
+        print(f'Area: {area}')
         ```
-
+    
     """
+
     if isinstance(obj, np.ndarray):
-        log.info('Converting volume to mesh.')
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
+        log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume(obj)
 
-    return obj.area
+    return hmesh.area(obj)
 
-
-def sphericity(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
+def sphericity(obj: np.ndarray|hmesh.Manifold) -> float:
     """
-    Compute the sphericity of a 3D volume or mesh.
-
-    Sphericity is a measure of how spherical an object is. It is defined as the ratio
-    of the surface area of a sphere with the same volume as the object to the object's
-    actual surface area.
+    Compute the sphericity of a 3D mesh using the Pygel3D library.
 
     Args:
-        obj (np.ndarray or trimesh.Trimesh): Either a np.ndarray volume or a mesh object of type trimesh.Trimesh.
-        **mesh_kwargs (Any): Additional arguments for mesh creation if the input is a volume.
+        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
 
     Returns:
-        sphericity (float): A float value representing the sphericity of the object.
-
+        sphericity (float): The sphericity of the object. 
+    
     Example:
         Compute sphericity from a mesh:
         ```python
@@ -125,7 +110,7 @@ def sphericity(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
 
         # Compute the sphericity of the mesh
         sphericity = qim3d.features.sphericity(mesh)
-        sphericity = qim3d.features.sphericity(mesh)
+        print(f'Sphericity: {sphericity}')
         ```
 
         Compute sphericity from a np.ndarray:
@@ -134,26 +119,18 @@ def sphericity(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
 
         # Generate a 3D blob
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
 
         # Compute the sphericity of the blob
-        sphericity = qim3d.features.sphericity(synthetic_blob, level=0.5)
-        sphericity = qim3d.features.sphericity(synthetic_blob, level=0.5)
+        sphericity = qim3d.features.sphericity(synthetic_blob)
+        print(f'Sphericity: {sphericity}')
         ```
 
-    !!! info "Limitations due to pixelation"
-        Sphericity is particularly sensitive to the resolution of the mesh, as it directly impacts the accuracy of surface area and volume calculations.
-        Since the mesh is generated from voxel-based 3D volume data, the discrete nature of the voxels leads to pixelation effects that reduce the precision of sphericity measurements.
-        Higher resolution meshes may mitigate these errors but often at the cost of increased computational demands.
-
     """
-    if isinstance(obj, np.ndarray):
-        log.info('Converting volume to mesh.')
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
-        obj = qim3d.mesh.from_volume(obj, **mesh_kwargs)
 
-    volume = qim3d.features.volume(obj)
-    area = qim3d.features.area(obj)
+    if isinstance(obj, np.ndarray):
+        log.info("Converting volume to mesh.")
+        obj = qim3d.mesh.from_volume(obj)
+
     volume = qim3d.features.volume(obj)
     area = qim3d.features.area(obj)
 
@@ -162,5 +139,5 @@ def sphericity(obj: np.ndarray | trimesh.Trimesh, **mesh_kwargs) -> float:
         return np.nan
 
     sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
-    log.info(f'Sphericity: {sphericity}')
+    # log.info(f"Sphericity: {sphericity}")
     return sphericity
