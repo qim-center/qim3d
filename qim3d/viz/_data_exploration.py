@@ -1157,6 +1157,17 @@ def line_profile(
 
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
+
+    
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.line_profile(vol)
+        ```
+        ![viz histogram](../../assets/screenshots/viz-line_profile.gif)
+
     """
     def parse_position(pos, pos_range, name):
         if isinstance(pos, int):
