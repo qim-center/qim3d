@@ -1,43 +1,40 @@
 """Provides filter functions and classes for image processing"""
 
-from typing import Type, Union
+from typing import Type
 
+import dask.array as da
+import dask_image.ndfilters as dask_ndfilters
 import numpy as np
 from scipy import ndimage
 from skimage import morphology
-import dask.array as da
-import dask_image.ndfilters as dask_ndfilters
 
 from qim3d.utils import log
 
 __all__ = [
-    "FilterBase",
-    "Gaussian",
-    "Median",
-    "Maximum",
-    "Minimum",
-    "Pipeline",
-    "Tophat",
-    "gaussian",
-    "median",
-    "maximum",
-    "minimum",
-    "tophat",
+    'FilterBase',
+    'Gaussian',
+    'Median',
+    'Maximum',
+    'Minimum',
+    'Pipeline',
+    'Tophat',
+    'gaussian',
+    'median',
+    'maximum',
+    'minimum',
+    'tophat',
 ]
 
 
 class FilterBase:
-    def __init__(self, 
-                 *args, 
-                 dask: bool = False, 
-                 chunks: str = "auto", 
-                 **kwargs):
+    def __init__(self, *args, dask: bool = False, chunks: str = 'auto', **kwargs):
         """
         Base class for image filters.
 
         Args:
             *args: Additional positional arguments for filter initialization.
             **kwargs: Additional keyword arguments for filter initialization.
+
         """
         self.args = args
         self.dask = dask
@@ -54,6 +51,7 @@ class Gaussian(FilterBase):
             sigma (float): Standard deviation for Gaussian kernel.
             *args: Additional arguments.
             **kwargs: Additional keyword arguments.
+
         """
         super().__init__(*args, **kwargs)
         self.sigma = sigma
@@ -67,14 +65,22 @@ class Gaussian(FilterBase):
 
         Returns:
             The filtered image or volume.
+
         """
         return gaussian(
-            input, sigma=self.sigma, dask=self.dask, chunks=self.chunks, *self.args, **self.kwargs
+            input,
+            sigma=self.sigma,
+            dask=self.dask,
+            chunks=self.chunks,
+            *self.args,
+            **self.kwargs,
         )
 
 
 class Median(FilterBase):
-    def __init__(self, size: float = None, footprint: np.ndarray = None, *args, **kwargs):
+    def __init__(
+        self, size: float = None, footprint: np.ndarray = None, *args, **kwargs
+    ):
         """
         Median filter initialization.
 
@@ -83,6 +89,7 @@ class Median(FilterBase):
             footprint (np.ndarray, optional): The structuring element for filtering.
             *args: Additional arguments.
             **kwargs: Additional keyword arguments.
+
         """
         if size is None and footprint is None:
             raise ValueError("Either 'size' or 'footprint' must be provided.")
@@ -99,12 +106,22 @@ class Median(FilterBase):
 
         Returns:
             The filtered image or volume.
+
         """
-        return median(vol=input, size=self.size, footprint=self.footprint, dask=self.dask, chunks=self.chunks, **self.kwargs)
+        return median(
+            vol=input,
+            size=self.size,
+            footprint=self.footprint,
+            dask=self.dask,
+            chunks=self.chunks,
+            **self.kwargs,
+        )
 
 
 class Maximum(FilterBase):
-    def __init__(self, size: float = None, footprint: np.ndarray = None, *args, **kwargs):
+    def __init__(
+        self, size: float = None, footprint: np.ndarray = None, *args, **kwargs
+    ):
         """
         Maximum filter initialization.
 
@@ -113,6 +130,7 @@ class Maximum(FilterBase):
             footprint (np.ndarray, optional): The structuring element for filtering.
             *args: Additional arguments.
             **kwargs: Additional keyword arguments.
+
         """
         if size is None and footprint is None:
             raise ValueError("Either 'size' or 'footprint' must be provided.")
@@ -129,12 +147,22 @@ class Maximum(FilterBase):
 
         Returns:
             The filtered image or volume.
+
         """
-        return maximum(vol=input, size=self.size, footprint=self.footprint, dask=self.dask, chunks=self.chunks, **self.kwargs)
+        return maximum(
+            vol=input,
+            size=self.size,
+            footprint=self.footprint,
+            dask=self.dask,
+            chunks=self.chunks,
+            **self.kwargs,
+        )
 
 
 class Minimum(FilterBase):
-    def __init__(self, size: float = None, footprint: np.ndarray = None, *args, **kwargs):
+    def __init__(
+        self, size: float = None, footprint: np.ndarray = None, *args, **kwargs
+    ):
         """
         Minimum filter initialization.
 
@@ -143,6 +171,7 @@ class Minimum(FilterBase):
             footprint (np.ndarray, optional): The structuring element for filtering.
             *args: Additional arguments.
             **kwargs: Additional keyword arguments.
+
         """
         if size is None and footprint is None:
             raise ValueError("Either 'size' or 'footprint' must be provided.")
@@ -159,8 +188,16 @@ class Minimum(FilterBase):
 
         Returns:
             The filtered image or volume.
+
         """
-        return minimum(vol=input, size=self.size, footprint=self.footprint, dask=self.dask, chunks=self.chunks, **self.kwargs)
+        return minimum(
+            vol=input,
+            size=self.size,
+            footprint=self.footprint,
+            dask=self.dask,
+            chunks=self.chunks,
+            **self.kwargs,
+        )
 
 
 class Tophat(FilterBase):
@@ -173,11 +210,13 @@ class Tophat(FilterBase):
 
         Returns:
             The filtered image or volume.
+
         """
         return tophat(input, dask=self.dask, **self.kwargs)
 
 
 class Pipeline:
+
     """
     Example:
         ```python
@@ -216,6 +255,7 @@ class Pipeline:
 
         Args:
             *args: Variable number of filter instances to be applied sequentially.
+
         """
         self.filters = {}
 
@@ -232,13 +272,14 @@ class Pipeline:
 
         Raises:
             AssertionError: If `fn` is not an instance of the FilterBase class.
+
         """
         if not isinstance(fn, FilterBase):
             filter_names = [
                 subclass.__name__ for subclass in FilterBase.__subclasses__()
             ]
             raise AssertionError(
-                f"filters should be instances of one of the following classes: {filter_names}"
+                f'filters should be instances of one of the following classes: {filter_names}'
             )
         self.filters[name] = fn
 
@@ -248,7 +289,7 @@ class Pipeline:
 
         Args:
             fn (FilterBase): An instance of a FilterBase subclass to be appended.
-        
+
         Example:
             ```python
             import qim3d
@@ -262,6 +303,7 @@ class Pipeline:
             # Append a second filter to the pipeline
             pipeline.append(Median(size=5))
             ```
+
         """
         self._add_filter(str(len(self.filters)), fn)
 
@@ -274,6 +316,7 @@ class Pipeline:
 
         Returns:
             The filtered image or volume after applying all sequential filters.
+
         """
         for fn in self.filters.values():
             input = fn(input)
@@ -281,12 +324,8 @@ class Pipeline:
 
 
 def gaussian(
-    vol: np.ndarray, 
-    sigma: float, 
-    dask: bool = False, 
-    chunks: str = "auto", 
-    **kwargs
-    ) -> np.ndarray:
+    vol: np.ndarray, sigma: float, dask: bool = False, chunks: str = 'auto', **kwargs
+) -> np.ndarray:
     """
     Applies a Gaussian filter to the input volume using scipy.ndimage.gaussian_filter or dask_image.ndfilters.gaussian_filter.
 
@@ -299,6 +338,7 @@ def gaussian(
 
     Returns:
         filtered_vol (np.ndarray): The filtered image or volume.
+
     """
 
     if dask:
@@ -313,12 +353,12 @@ def gaussian(
 
 
 def median(
-    vol: np.ndarray, 
+    vol: np.ndarray,
     size: float = None,
     footprint: np.ndarray = None,
-    dask: bool = False, 
-    chunks: str = "auto", 
-    **kwargs
+    dask: bool = False,
+    chunks: str = 'auto',
+    **kwargs,
 ) -> np.ndarray:
     """
     Applies a median filter to the input volume using scipy.ndimage.median_filter or dask_image.ndfilters.median_filter.
@@ -336,11 +376,12 @@ def median(
 
     Raises:
         RuntimeError: If neither size nor footprint is defined
+
     """
     if size is None:
         if footprint is None:
-            raise RuntimeError("no footprint or filter size provided")
-    
+            raise RuntimeError('no footprint or filter size provided')
+
     if dask:
         if not isinstance(vol, da.Array):
             vol = da.from_array(vol, chunks=chunks)
@@ -356,9 +397,9 @@ def maximum(
     vol: np.ndarray,
     size: float = None,
     footprint: np.ndarray = None,
-    dask: bool = False, 
-    chunks: str = "auto", 
-    **kwargs
+    dask: bool = False,
+    chunks: str = 'auto',
+    **kwargs,
 ) -> np.ndarray:
     """
     Applies a maximum filter to the input volume using scipy.ndimage.maximum_filter or dask_image.ndfilters.maximum_filter.
@@ -373,14 +414,15 @@ def maximum(
 
     Returns:
         filtered_vol (np.ndarray): The filtered image or volume.
-    
+
     Raises:
         RuntimeError: If neither size nor footprint is defined
+
     """
     if size is None:
         if footprint is None:
-            raise RuntimeError("no footprint or filter size provided")
-    
+            raise RuntimeError('no footprint or filter size provided')
+
     if dask:
         if not isinstance(vol, da.Array):
             vol = da.from_array(vol, chunks=chunks)
@@ -393,12 +435,12 @@ def maximum(
 
 
 def minimum(
-    vol: np.ndarray, 
+    vol: np.ndarray,
     size: float = None,
     footprint: np.ndarray = None,
-    dask: bool = False, 
-    chunks: str = "auto", 
-    **kwargs
+    dask: bool = False,
+    chunks: str = 'auto',
+    **kwargs,
 ) -> np.ndarray:
     """
     Applies a minimum filter to the input volume using scipy.ndimage.minimum_filter or dask_image.ndfilters.minimum_filter.
@@ -416,11 +458,12 @@ def minimum(
 
     Raises:
         RuntimeError: If neither size nor footprint is defined
+
     """
     if size is None:
         if footprint is None:
-            raise RuntimeError("no footprint or filter size provided")
-    
+            raise RuntimeError('no footprint or filter size provided')
+
     if dask:
         if not isinstance(vol, da.Array):
             vol = da.from_array(vol, chunks=chunks)
@@ -431,10 +474,8 @@ def minimum(
         res = ndimage.minimum_filter(vol, size, footprint, **kwargs)
         return res
 
-def tophat(vol: np.ndarray, 
-           dask: bool = False, 
-           **kwargs
-           ):
+
+def tophat(vol: np.ndarray, dask: bool = False, **kwargs):
     """
     Remove background from the volume.
 
@@ -447,24 +488,25 @@ def tophat(vol: np.ndarray,
 
     Returns:
         filtered_vol (np.ndarray): The volume with background removed.
+
     """
 
-    radius = kwargs["radius"] if "radius" in kwargs else 3
-    background = kwargs["background"] if "background" in kwargs else "dark"
+    radius = kwargs['radius'] if 'radius' in kwargs else 3
+    background = kwargs['background'] if 'background' in kwargs else 'dark'
 
     if dask:
-        log.info("Dask not supported for tophat filter, switching to scipy.")
+        log.info('Dask not supported for tophat filter, switching to scipy.')
 
-    if background == "bright":
+    if background == 'bright':
         log.info(
-            "Bright background selected, volume will be temporarily inverted when applying white_tophat"
+            'Bright background selected, volume will be temporarily inverted when applying white_tophat'
         )
         vol = np.invert(vol)
 
     selem = morphology.ball(radius)
     vol = vol - morphology.white_tophat(vol, selem)
 
-    if background == "bright":
+    if background == 'bright':
         vol = np.invert(vol)
 
     return vol

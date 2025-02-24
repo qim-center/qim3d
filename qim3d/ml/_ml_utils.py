@@ -1,15 +1,16 @@
-""" Tools performed with models."""
+"""Tools performed with models."""
 
-import torch
 import numpy as np
+import torch
+from torchinfo import ModelStatistics, summary
+from tqdm.auto import tqdm
+from tqdm.contrib.logging import logging_redirect_tqdm
 
-from torchinfo import summary, ModelStatistics
 from qim3d.utils._logger import log
 from qim3d.viz._metrics import plot_metrics
 
-from tqdm.auto import tqdm
-from tqdm.contrib.logging import logging_redirect_tqdm
 from .models._unet import Hyperparameters
+
 
 def train_model(
     model: torch.nn.Module,
@@ -21,7 +22,8 @@ def train_model(
     plot: bool = True,
     return_loss: bool = False,
 ) -> tuple[tuple[float], tuple[float]]:
-    """Function for training Neural Network models.
+    """
+    Function for training Neural Network models.
 
     Args:
         model (torch.nn.Module): PyTorch model.
@@ -55,22 +57,23 @@ def train_model(
 
         # training the model.
         train_loss,val_loss = qim3d.ml.train_model(model, hyperparameters, train_loader, val_loader)
+
     """
     params_dict = hyperparameters()
-    n_epochs = params_dict["n_epochs"]
-    optimizer = params_dict["optimizer"]
-    criterion = params_dict["criterion"]
+    n_epochs = params_dict['n_epochs']
+    optimizer = params_dict['optimizer']
+    criterion = params_dict['criterion']
 
     # Choosing best device available.
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model.to(device)
 
     # Avoid logging twice.
     log.propagate = False
 
-    train_loss = {"loss": [], "batch_loss": []}
-    val_loss = {"loss": [], "batch_loss": []}
+    train_loss = {'loss': [], 'batch_loss': []}
+    val_loss = {'loss': [], 'batch_loss': []}
     with logging_redirect_tqdm():
         for epoch in tqdm(range(n_epochs)):
             epoch_loss = 0
@@ -96,11 +99,11 @@ def train_model(
                 step += 1
 
                 # Log and store batch training loss.
-                train_loss["batch_loss"].append(loss.detach().item())
+                train_loss['batch_loss'].append(loss.detach().item())
 
             # Log and store average training loss per epoch.
             epoch_loss = epoch_loss / step
-            train_loss["loss"].append(epoch_loss)
+            train_loss['loss'].append(epoch_loss)
 
             if epoch % eval_every == 0:
                 eval_loss = 0
@@ -121,11 +124,11 @@ def train_model(
                     step += 1
 
                     # Log and store batch validation loss.
-                    val_loss["batch_loss"].append(loss.item())
+                    val_loss['batch_loss'].append(loss.item())
 
                 # Log and store average validation loss.
                 eval_loss = eval_loss / step
-                val_loss["loss"].append(eval_loss)
+                val_loss['loss'].append(eval_loss)
 
                 if epoch % print_every == 0:
                     log.info(
@@ -134,14 +137,17 @@ def train_model(
                     )
 
     if plot:
-        plot_metrics(train_loss, val_loss, labels=["Train", "Valid."], show=True)
+        plot_metrics(train_loss, val_loss, labels=['Train', 'Valid.'], show=True)
 
     if return_loss:
         return train_loss, val_loss
 
 
-def model_summary(dataloader: torch.utils.data.DataLoader, model: torch.nn.Module) -> ModelStatistics:
-    """Prints the summary of a PyTorch model.
+def model_summary(
+    dataloader: torch.utils.data.DataLoader, model: torch.nn.Module
+) -> ModelStatistics:
+    """
+    Prints the summary of a PyTorch model.
 
     Args:
         model (torch.nn.Module): The PyTorch model to summarize.
@@ -155,6 +161,7 @@ def model_summary(dataloader: torch.utils.data.DataLoader, model: torch.nn.Modul
         dataloader = DataLoader(dataset, batch_size=32)
         summary = model_summary(model, dataloader)
         print(summary)
+
     """
     images, _ = next(iter(dataloader))
     batch_size = tuple(images.shape)
@@ -163,8 +170,11 @@ def model_summary(dataloader: torch.utils.data.DataLoader, model: torch.nn.Modul
     return model_s
 
 
-def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-    """Performs inference on input data using the specified model.
+def inference(
+    data: torch.utils.data.Dataset, model: torch.nn.Module
+) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Performs inference on input data using the specified model.
 
     Performs inference on the input data using the provided model. The input data should be in the form of a list,
     where each item is a tuple containing the input image tensor and the corresponding target label tensor.
@@ -193,25 +203,26 @@ def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[t
         dataset = MySegmentationDataset()
         model = MySegmentationModel()
         qim3d.ml.inference(data,model)
+
     """
 
     # Get device
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
     # Check if data have the right format
     if not isinstance(data[0], tuple):
-        raise ValueError("Data items must be tuples")
+        raise ValueError('Data items must be tuples')
 
     # Check if data is torch tensors
     for element in data[0]:
         if not isinstance(element, torch.Tensor):
-            raise ValueError("Data items must consist of tensors")
+            raise ValueError('Data items must consist of tensors')
 
     # Check if input image is (C,H,W) format
     if data[0][0].dim() == 3 and (data[0][0].shape[0] in [1, 3]):
         pass
     else:
-        raise ValueError("Input image must be (C,H,W) format")
+        raise ValueError('Input image must be (C,H,W) format')
 
     model.to(device)
     model.eval()
@@ -246,22 +257,27 @@ def inference(data: torch.utils.data.Dataset, model: torch.nn.Module) -> tuple[t
     return inputs, targets, preds
 
 
-def volume_inference(volume: np.ndarray, model: torch.nn.Module, threshold:float = 0.5) -> np.ndarray:
+def volume_inference(
+    volume: np.ndarray, model: torch.nn.Module, threshold: float = 0.5
+) -> np.ndarray:
     """
     Compute on the entire volume
     Args:
         volume (numpy.ndarray): A 3D numpy array representing the input volume.
         model (torch.nn.Module): The trained network model used for inference.
         threshold (float): The threshold value used to binarize the model predictions.
-    Returns:
+
+    Returns
         numpy.ndarray: A 3D numpy array representing the model predictions for each slice of the input volume.
-    Raises:
+
+    Raises
         ValueError: If the input volume is not a 3D numpy array.
+
     """
     if len(volume.shape) != 3:
-        raise ValueError("Input volume must be a 3D numpy array")
+        raise ValueError('Input volume must be a 3D numpy array')
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model.to(device)
     model.eval()
 
@@ -272,7 +288,7 @@ def volume_inference(volume: np.ndarray, model: torch.nn.Module, threshold:float
         input_tensor = torch.tensor(input_with_channel, dtype=torch.float32).to(device)
         input_tensor = input_tensor.unsqueeze(0)
         output = model(input_tensor) > threshold
-        output = output.cpu() if device == "cuda" else output
+        output = output.cpu() if device == 'cuda' else output
         output_detached = output.detach()
         output_numpy = output_detached.numpy()[0, 0, :, :]
         inference_vol[idx] = output_numpy

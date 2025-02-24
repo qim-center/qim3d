@@ -7,9 +7,10 @@ Volumetric visualization using K3D
 
 """
 
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.colors import Colormap
+
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
 from pygel3d import hmesh
@@ -19,17 +20,17 @@ from typing import Optional
 
 def volumetric(
     img: np.ndarray,
-    aspectmode: str = "data",
+    aspectmode: str = 'data',
     show: bool = True,
     save: bool = False,
     grid_visible: bool = False,
     color_map: str = 'magma',
     constant_opacity: bool = False,
-    vmin: float|None = None,
-    vmax: float|None = None,
-    samples: int|str = "auto",
+    vmin: float | None = None,
+    vmax: float | None = None,
+    samples: int | str = 'auto',
     max_voxels: int = 512**3,
-    data_type: str = "scaled_float16",
+    data_type: str = 'scaled_float16',
     **kwargs,
 ):
     """
@@ -87,7 +88,7 @@ def volumetric(
 
     pixel_count = img.shape[0] * img.shape[1] * img.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
-    if samples == "auto":
+    if samples == 'auto':
         y1, x1 = 256, 16777216  # 256 samples at res 256*256*256=16.777.216
         y2, x2 = 32, 134217728  # 32 samples at res 512*512*512=134.217.728
 
@@ -99,7 +100,7 @@ def volumetric(
     else:
         samples = int(samples)  # make sure it's an integer
 
-    if aspectmode.lower() not in ["data", "cube"]:
+    if aspectmode.lower() not in ['data', 'cube']:
         raise ValueError("aspectmode should be either 'data' or 'cube'")
     # check if image should be downsampled for visualization
     original_shape = img.shape
@@ -109,7 +110,7 @@ def volumetric(
 
     if original_shape != new_shape:
         log.warning(
-            f"Downsampled image for visualization, from {original_shape} to {new_shape}"
+            f'Downsampled image for visualization, from {original_shape} to {new_shape}'
         )
 
     # Scale the image to float16 if needed
@@ -117,8 +118,7 @@ def volumetric(
         # When saving, we need float64
         img = img.astype(np.float64)
     else:
-
-        if data_type == "scaled_float16":
+        if data_type == 'scaled_float16':
             img = scale_to_float16(img)
         else:
             img = img.astype(data_type)
@@ -153,7 +153,7 @@ def volumetric(
         img,
         bounds=(
             [0, img.shape[2], 0, img.shape[1], 0, img.shape[0]]
-            if aspectmode.lower() == "data"
+            if aspectmode.lower() == 'data'
             else None
         ),
         color_map=color_map,
@@ -166,7 +166,7 @@ def volumetric(
     plot += plt_volume
     if save:
         # Save html to disk
-        with open(str(save), "w", encoding="utf-8") as fp:
+        with open(str(save), 'w', encoding='utf-8') as fp:
             fp.write(plot.get_snapshot())
 
     if show:

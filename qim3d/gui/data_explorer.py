@@ -18,54 +18,51 @@ app.launch()
 import datetime
 import os
 import re
+from typing import Any, Callable, Dict
 
 import gradio as gr
+import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import outputformat as ouf
 
-from qim3d.io import load
-from qim3d.utils._logger import log
-from qim3d.utils import _misc
-
 from qim3d.gui.interface import BaseInterface
-from typing import Callable, Any, Dict
-import matplotlib
+from qim3d.io import load
+from qim3d.utils import _misc
+from qim3d.utils._logger import log
 
 
 class Interface(BaseInterface):
-    def __init__(self,
-                 verbose:bool = False,
-                 figsize:int = 8,
-                 display_saturation_percentile:int = 99,
-                 nbins:int = 32):
+    def __init__(
+        self,
+        verbose: bool = False,
+        figsize: int = 8,
+        display_saturation_percentile: int = 99,
+        nbins: int = 32,
+    ):
         """
-        Parameters:
-        -----------
+        Parameters
+        ----------
         verbose (bool, optional): If true, prints info during session into terminal. Defualt is False.
         figsize (int, optional): Sets the size of plots displaying the slices. Default is 8.
         display_saturation_percentile (int, optional): Sets the display saturation percentile. Defaults to 99.
-        """
-        super().__init__(
-            title = "Data Explorer",
-            height = 1024,
-            width = 900,
-            verbose = verbose
-        )
-        self.axis_dict = {"Z":0, "Y":1, "X":2}
-        self.all_operations = [
-            "Z Slicer",
-            "Y Slicer", 
-            "X Slicer",
-            "Z max projection",
-            "Z min projection",
-            "Intensity histogram",
-            "Data summary",
-        ]
-        self.calculated_operations = [] # For changing the visibility of results, we keep track what was calculated and thus will be displayed
 
-        self.vol = None # The loaded volume
+        """
+        super().__init__(title='Data Explorer', height=1024, width=900, verbose=verbose)
+        self.axis_dict = {'Z': 0, 'Y': 1, 'X': 2}
+        self.all_operations = [
+            'Z Slicer',
+            'Y Slicer',
+            'X Slicer',
+            'Z max projection',
+            'Z min projection',
+            'Intensity histogram',
+            'Data summary',
+        ]
+        self.calculated_operations = []  # For changing the visibility of results, we keep track what was calculated and thus will be displayed
+
+        self.vol = None  # The loaded volume
 
         # Plotting
         self.figsize = figsize
@@ -79,7 +76,12 @@ class Interface(BaseInterface):
 
         # Spinner state - what phase after clicking run button are we in
         self.spinner_state = -1
-        self.spinner_messages = ["Starting session...", "Loading data...", "Running pipeline...", "Relaunch"]
+        self.spinner_messages = [
+            'Starting session...',
+            'Loading data...',
+            'Running pipeline...',
+            'Relaunch',
+        ]
         # Error message that we want to show, for more details look inside function check error state
         self.error_message = None
 
@@ -87,57 +89,55 @@ class Interface(BaseInterface):
         # File selection and parameters
         with gr.Row():
             with gr.Column(scale=2):
-                gr.Markdown("### File selection")
+                gr.Markdown('### File selection')
                 with gr.Row():
                     with gr.Column(scale=99, min_width=128):
                         base_path = gr.Textbox(
                             max_lines=1,
                             container=False,
-                            label="Base path",
+                            label='Base path',
                             value=os.getcwd(),
                         )
                     with gr.Column(scale=1, min_width=36):
-                        reload_base_path = gr.Button(
-                            value="⟳"
-                        )
+                        reload_base_path = gr.Button(value='⟳')
                 explorer = gr.FileExplorer(
-                    ignore_glob="*/.*",  # ignores hidden files
+                    ignore_glob='*/.*',  # ignores hidden files
                     root_dir=os.getcwd(),
                     label=os.getcwd(),
                     render=True,
-                    file_count="single",
+                    file_count='single',
                     interactive=True,
-                    height = 320,
+                    height=320,
                 )
 
             with gr.Column(scale=1):
-                gr.Markdown("### Parameters")
+                gr.Markdown('### Parameters')
                 cmap = gr.Dropdown(
-                    value="viridis",
+                    value='viridis',
                     choices=plt.colormaps(),
-                    label="Colormap",
+                    label='Colormap',
                     interactive=True,
                 )
 
                 virtual_stack = gr.Checkbox(
                     value=False,
-                    label="Virtual stack",
-                    info="If checked, will use less memory by loading the images on demand.",
+                    label='Virtual stack',
+                    info='If checked, will use less memory by loading the images on demand.',
                 )
                 load_series = gr.Checkbox(
                     value=False,
-                    label="Load series",
-                    info="If checked, will load the whole series of images in the same folder as the selected file.",
+                    label='Load series',
+                    info='If checked, will load the whole series of images in the same folder as the selected file.',
                 )
                 series_contains = gr.Textbox(
-                    label="Specify common part of file names for series",
-                    value="",
+                    label='Specify common part of file names for series',
+                    value='',
                     visible=False,
                 )
 
                 dataset_name = gr.Textbox(
-                    label="Dataset name (in case of H5 files, for example)",
-                    value="exchange/data",
+                    label='Dataset name (in case of H5 files, for example)',
+                    value='exchange/data',
                 )
 
                 def toggle_show(checkbox):
@@ -151,7 +151,7 @@ class Interface(BaseInterface):
                 load_series.change(toggle_show, load_series, series_contains)
 
             with gr.Column(scale=1):
-                gr.Markdown("### Operations")
+                gr.Markdown('### Operations')
                 operations = gr.CheckboxGroup(
                     choices=self.all_operations,
                     value=[self.all_operations[0], self.all_operations[-1]],
@@ -161,11 +161,13 @@ class Interface(BaseInterface):
                 )
                 with gr.Row():
                     btn_run = gr.Button(
-                        value="Load & Run", variant = "primary",
+                        value='Load & Run',
+                        variant='primary',
                     )
 
         # Visualization and results
         with gr.Row():
+
             def create_uniform_image(intensity=1):
                 """
                 Generates a blank image with a single color.
@@ -174,50 +176,50 @@ class Interface(BaseInterface):
                 """
                 pixels = np.zeros((100, 100, 3), dtype=np.uint8) + int(intensity * 255)
                 fig, ax = plt.subplots(figsize=(10, 10))
-                ax.imshow(pixels, interpolation="nearest")
+                ax.imshow(pixels, interpolation='nearest')
 
                 # Adjustments
-                ax.axis("off")
+                ax.axis('off')
                 fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
                 return fig
 
             # Z Slicer
             with gr.Column(visible=False) as result_z_slicer:
-                zslice_plot = gr.Plot(label="Z slice", value=create_uniform_image(1))
+                zslice_plot = gr.Plot(label='Z slice', value=create_uniform_image(1))
                 zpos = gr.Slider(
-                    minimum=0, maximum=1, value=0.5, step=0.01, label="Z position"
+                    minimum=0, maximum=1, value=0.5, step=0.01, label='Z position'
                 )
 
             # Y Slicer
             with gr.Column(visible=False) as result_y_slicer:
-                yslice_plot = gr.Plot(label="Y slice", value=create_uniform_image(1))
+                yslice_plot = gr.Plot(label='Y slice', value=create_uniform_image(1))
 
                 ypos = gr.Slider(
-                    minimum=0, maximum=1, value=0.5, step=0.01, label="Y position"
+                    minimum=0, maximum=1, value=0.5, step=0.01, label='Y position'
                 )
 
             # X Slicer
             with gr.Column(visible=False) as result_x_slicer:
-                xslice_plot = gr.Plot(label="X slice", value=create_uniform_image(1))
+                xslice_plot = gr.Plot(label='X slice', value=create_uniform_image(1))
 
                 xpos = gr.Slider(
-                    minimum=0, maximum=1, value=0.5, step=0.01, label="X position"
+                    minimum=0, maximum=1, value=0.5, step=0.01, label='X position'
                 )
             # Z Max projection
             with gr.Column(visible=False) as result_z_max_projection:
                 max_projection_plot = gr.Plot(
-                    label="Z max projection",
+                    label='Z max projection',
                 )
 
             # Z Min projection
             with gr.Column(visible=False) as result_z_min_projection:
                 min_projection_plot = gr.Plot(
-                    label="Z min projection",
+                    label='Z min projection',
                 )
 
             # Intensity histogram
             with gr.Column(visible=False) as result_intensity_histogram:
-                hist_plot = gr.Plot(label="Volume intensity histogram")
+                hist_plot = gr.Plot(label='Volume intensity histogram')
 
             # Text box with data summary
             with gr.Column(visible=False) as result_data_summary:
@@ -225,11 +227,9 @@ class Interface(BaseInterface):
                     lines=24,
                     label=None,
                     show_label=False,
-
-                    value="Data summary",
+                    value='Data summary',
                 )
             ### Gradio objects lists
-
 
         ####################################
         #       EVENT LISTENERS
@@ -247,29 +247,38 @@ class Interface(BaseInterface):
         ]
 
         results = [
-                result_z_slicer,
-                result_y_slicer,
-                result_x_slicer,
-                result_z_max_projection,
-                result_z_min_projection,
-                result_intensity_histogram,
-                result_data_summary,
-            ]
+            result_z_slicer,
+            result_y_slicer,
+            result_x_slicer,
+            result_z_max_projection,
+            result_z_min_projection,
+            result_intensity_histogram,
+            result_data_summary,
+        ]
 
-        reload_base_path.click(fn=self.update_explorer,inputs=base_path, outputs=explorer)
-        
-        btn_run.click(
-            fn=self.update_run_btn, inputs = [], outputs = btn_run).then(
-            fn=self.start_session, inputs = [load_series, series_contains, explorer, base_path], outputs = []).then( 
-            fn=self.update_run_btn, inputs = [], outputs = btn_run).then(
-            fn=self.check_error_state, inputs = [], outputs = []).success(
-            fn=self.load_data, inputs= [virtual_stack, dataset_name, series_contains], outputs= []).then(
-            fn=self.update_run_btn, inputs = [], outputs = btn_run).then(
-            fn=self.check_error_state, inputs = [], outputs = []).success(
-            fn=self.run_operations, inputs = pipeline_inputs, outputs = pipeline_outputs).then(
-            fn=self.update_run_btn, inputs = [], outputs = btn_run).then(
-            fn=self.check_error_state, inputs = [], outputs = []).success(
-            fn=self.show_results, inputs = operations, outputs = results) # results are columns of images and other component, not just the components
+        reload_base_path.click(
+            fn=self.update_explorer, inputs=base_path, outputs=explorer
+        )
+
+        btn_run.click(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
+            fn=self.start_session,
+            inputs=[load_series, series_contains, explorer, base_path],
+            outputs=[],
+        ).then(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
+            fn=self.check_error_state, inputs=[], outputs=[]
+        ).success(
+            fn=self.load_data,
+            inputs=[virtual_stack, dataset_name, series_contains],
+            outputs=[],
+        ).then(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
+            fn=self.check_error_state, inputs=[], outputs=[]
+        ).success(
+            fn=self.run_operations, inputs=pipeline_inputs, outputs=pipeline_outputs
+        ).then(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
+            fn=self.check_error_state, inputs=[], outputs=[]
+        ).success(
+            fn=self.show_results, inputs=operations, outputs=results
+        )  # results are columns of images and other component, not just the components
 
         """
         Gradio passes only the value to the function, not the whole component.
@@ -278,15 +287,21 @@ class Interface(BaseInterface):
         The self.update_slice_wrapper returns a function.
         """
         sliders = [xpos, ypos, zpos]
-        letters = ["X", "Y", "Z"]
+        letters = ['X', 'Y', 'Z']
         plots = [xslice_plot, yslice_plot, zslice_plot]
         for slider, letter, plot in zip(sliders, letters, plots):
-            slider.change(fn = self.update_slice_wrapper(letter), inputs = [slider, cmap], outputs = plot, show_progress="hidden")
+            slider.change(
+                fn=self.update_slice_wrapper(letter),
+                inputs=[slider, cmap],
+                outputs=plot,
+                show_progress='hidden',
+            )
 
-        
         # Immediate change without the need of pressing the relaunch button
-        operations.change(fn=self.show_results, inputs = operations, outputs = results)
-        cmap.change(fn=self.run_operations, inputs = pipeline_inputs, outputs = pipeline_outputs)
+        operations.change(fn=self.show_results, inputs=operations, outputs=results)
+        cmap.change(
+            fn=self.run_operations, inputs=pipeline_inputs, outputs=pipeline_outputs
+        )
 
     def update_explorer(self, new_path: str):
         new_path = os.path.expanduser(new_path)
@@ -301,51 +316,60 @@ class Interface(BaseInterface):
             return gr.update(root_dir=parent_dir, label=parent_dir, value=file_name)
 
         else:
-            raise ValueError("Invalid path")
+            raise ValueError('Invalid path')
 
     def update_run_btn(self):
         """
         When run_btn is clicked, it becomes uninteractive and displays which operation is now in progress
         When all operations are done, it becomes interactive again with 'Relaunch' label
         """
-        self.spinner_state = (self.spinner_state + 1) % len(self.spinner_messages) if self.error_message is None else len(self.spinner_messages) - 1
+        self.spinner_state = (
+            (self.spinner_state + 1) % len(self.spinner_messages)
+            if self.error_message is None
+            else len(self.spinner_messages) - 1
+        )
         message = self.spinner_messages[self.spinner_state]
-        interactive = (self.spinner_state == len(self.spinner_messages) - 1)
+        interactive = self.spinner_state == len(self.spinner_messages) - 1
         return gr.update(
-            value=f"{message}",
+            value=f'{message}',
             interactive=interactive,
         )
 
     def check_error_state(self):
         """
-        Raising gr.Error doesn't allow us to return anything and thus we can not update the Run button with 
+        Raising gr.Error doesn't allow us to return anything and thus we can not update the Run button with
         progress messages. We have to first update the button and then raise an Error so the button is interactive
         """
         if self.error_message is not None:
             error_message = self.error_message
             self.error_message = None
             raise gr.Error(error_message)
-        
-#######################################################
-#
-#       THE PIPELINE
-#
-#######################################################
 
-    def start_session(self, load_series:bool, series_contains:str, explorer:str, base_path:str):
-        self.projections_calculated = False # Probably new file was loaded, we would need new projections
+    #######################################################
+    #
+    #       THE PIPELINE
+    #
+    #######################################################
 
-        if load_series and series_contains == "":
+    def start_session(
+        self, load_series: bool, series_contains: str, explorer: str, base_path: str
+    ):
+        self.projections_calculated = (
+            False  # Probably new file was loaded, we would need new projections
+        )
+
+        if load_series and series_contains == '':
             # Try to guess the common part of the file names
             try:
-                filename = explorer.split("/")[-1]  # Extract filename from path
-                series_contains = re.search(r"[^0-9]+", filename).group()
-                gr.Info(f"Using '{series_contains}' as common file name part for loading.")
+                filename = explorer.split('/')[-1]  # Extract filename from path
+                series_contains = re.search(r'[^0-9]+', filename).group()
+                gr.Info(
+                    f"Using '{series_contains}' as common file name part for loading."
+                )
                 self.series_contains = series_contains
 
             except:
                 self.error_message = "For series, common part of file name must be provided in 'series_contains' field."
-                
 
         # Get the file path from the explorer or base path
         # priority is given to the explorer if file is selected
@@ -357,20 +381,19 @@ class Interface(BaseInterface):
             self.file_path = base_path
 
         else:
-            self.error_message = "Invalid file path"
+            self.error_message = 'Invalid file path'
 
         # If we are loading a series, we need to get the directory
         if load_series:
             self.file_path = os.path.dirname(self.file_path)
 
-
-    def load_data(self, virtual_stack:bool, dataset_name:str, contains:str):
+    def load_data(self, virtual_stack: bool, dataset_name: str, contains: str):
         try:
             self.vol = load(
-                path = self.file_path,
-                virtual_stack = virtual_stack,
-                dataset_name = dataset_name,
-                contains = contains
+                path=self.file_path,
+                virtual_stack=virtual_stack,
+                dataset_name=dataset_name,
+                contains=contains,
             )
 
             # Incase the data is 4D (RGB for example), we take the mean of the last dimension
@@ -379,54 +402,58 @@ class Interface(BaseInterface):
 
             # The rest of the pipeline expects 3D data
             if self.vol.ndim != 3:
-                self.error_message = F"Invalid data shape should be 3 dimensional, not shape: {self.vol.shape}"
+                self.error_message = f'Invalid data shape should be 3 dimensional, not shape: {self.vol.shape}'
 
         except Exception as error_message:
-            self.error_message = F"Error when loading data: {error_message}"
-    
+            self.error_message = f'Error when loading data: {error_message}'
+
     def run_operations(self, operations: list[str], *args) -> list[Dict[str, Any]]:
         outputs = []
         self.calculated_operations = []
         for operation in self.all_operations:
             if operation in operations:
-                log.info(f"Running {operation}")
+                log.info(f'Running {operation}')
                 try:
                     outputs.append(self.run_operation(operation, *args))
                     self.calculated_operations.append(operation)
 
                 except Exception as err:
-                    self.error_message = F"Error while running operation '{operation}': {err}"
+                    self.error_message = (
+                        f"Error while running operation '{operation}': {err}"
+                    )
 
                     log.info(self.error_message)
                     outputs.append(gr.update())
             else:
-                log.info(f"Skipping {operation}")
-                outputs.append(gr.update())  
-        
+                log.info(f'Skipping {operation}')
+                outputs.append(gr.update())
+
         return outputs
 
-    def run_operation(self, operation:list, zpos:float, ypos:float, xpos:float, cmap:str, *args):
+    def run_operation(
+        self, operation: list, zpos: float, ypos: float, xpos: float, cmap: str, *args
+    ):
         match operation:
-            case "Z Slicer":
-                return self.update_slice_wrapper("Z")(zpos, cmap)
-            case "Y Slicer":
-                return self.update_slice_wrapper("Y")(ypos, cmap)
-            case "X Slicer":
-                return self.update_slice_wrapper("X")(xpos, cmap)
-            case "Z max projection":
+            case 'Z Slicer':
+                return self.update_slice_wrapper('Z')(zpos, cmap)
+            case 'Y Slicer':
+                return self.update_slice_wrapper('Y')(ypos, cmap)
+            case 'X Slicer':
+                return self.update_slice_wrapper('X')(xpos, cmap)
+            case 'Z max projection':
                 return self.create_projections_figs()[0]
-            case "Z min projection":
+            case 'Z min projection':
                 return self.create_projections_figs()[1]
-            case "Intensity histogram":
-                # If the operations are run with the run_button, spinner_state == 2, 
-                #   If we just changed cmap, spinner state would be 3 
+            case 'Intensity histogram':
+                # If the operations are run with the run_button, spinner_state == 2,
+                #   If we just changed cmap, spinner state would be 3
                 #   and we don't have to calculate histogram again
                 #   That saves a lot of time as the histogram takes the most time to calculate
-                return self.plot_histogram() if self.spinner_state == 2 else gr.update() 
-            case "Data summary":
+                return self.plot_histogram() if self.spinner_state == 2 else gr.update()
+            case 'Data summary':
                 return self.show_data_summary()
             case _:
-                raise NotImplementedError(F"Operation '{operation} is not defined")
+                raise NotImplementedError(f"Operation '{operation} is not defined")
 
     def show_results(self, operations: list[str]) -> list[Dict[str, Any]]:
         update_list = []
@@ -437,32 +464,34 @@ class Interface(BaseInterface):
                 update_list.append(gr.update(visible=False))
         return update_list
 
-#######################################################
-#
-#       CALCULATION OF IMAGES
-#
-#######################################################
+    #######################################################
+    #
+    #       CALCULATION OF IMAGES
+    #
+    #######################################################
 
     def create_img_fig(self, img: np.ndarray, **kwargs) -> matplotlib.figure.Figure:
         fig, ax = plt.subplots(figsize=(self.figsize, self.figsize))
 
-        ax.imshow(img, interpolation="nearest", **kwargs)
+        ax.imshow(img, interpolation='nearest', **kwargs)
 
         # Adjustments
-        ax.axis("off")
+        ax.axis('off')
         fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 
         return fig
 
-    def update_slice_wrapper(self, letter: str) -> Callable[[float, str], Dict[str, Any]]:
-        def update_slice(position_slider: float, cmap:str) -> Dict[str, Any]:
+    def update_slice_wrapper(
+        self, letter: str
+    ) -> Callable[[float, str], Dict[str, Any]]:
+        def update_slice(position_slider: float, cmap: str) -> Dict[str, Any]:
             """
             position_slider: float from gradio slider, saying which relative slice we want to see
             cmap: string gradio drop down menu, saying what cmap we want to use for display
             """
             axis = self.axis_dict[letter]
             slice_index = int(position_slider * (self.vol.shape[axis] - 1))
-            
+
             plt.close()
             plt.set_cmap(cmap)
 
@@ -475,14 +504,19 @@ class Interface(BaseInterface):
 
             # The axis we want to slice along is moved to be the last one, could also be the first one, it doesn't matter
             # Then we take out the slice defined in self.position for this axis
-            slice_img = np.moveaxis(self.vol, axis, -1)[:,:,slice_index]
+            slice_img = np.moveaxis(self.vol, axis, -1)[:, :, slice_index]
 
-            fig_img = self.create_img_fig(slice_img, vmin = vmin, vmax = vmax)
-            
-            return gr.update(value = fig_img, label = f"{letter} Slice: {slice_index}", visible = True)
+            fig_img = self.create_img_fig(slice_img, vmin=vmin, vmax=vmax)
+
+            return gr.update(
+                value=fig_img, label=f'{letter} Slice: {slice_index}', visible=True
+            )
+
         return update_slice
-    
-    def vol_histogram(self, nbins: int, min_value: float, max_value: float) -> tuple[np.ndarray, np.ndarray]:
+
+    def vol_histogram(
+        self, nbins: int, min_value: float, max_value: float
+    ) -> tuple[np.ndarray, np.ndarray]:
         # Start histogram
         vol_hist = np.zeros(nbins)
 
@@ -500,22 +534,28 @@ class Interface(BaseInterface):
         if not self.projections_calculated:
             _ = self.get_projections()
 
-        vol_hist, bin_edges = self.vol_histogram(self.nbins, self.min_value, self.max_value)
+        vol_hist, bin_edges = self.vol_histogram(
+            self.nbins, self.min_value, self.max_value
+        )
 
         fig, ax = plt.subplots(figsize=(6, 4))
 
-        ax.bar(bin_edges[:-1], vol_hist, width=np.diff(bin_edges), ec="white", align="edge")
+        ax.bar(
+            bin_edges[:-1], vol_hist, width=np.diff(bin_edges), ec='white', align='edge'
+        )
 
         # Adjustments
-        ax.spines["right"].set_visible(False)
-        ax.spines["top"].set_visible(False)
-        ax.spines["left"].set_visible(True)
-        ax.spines["bottom"].set_visible(True)
-        ax.set_yscale("log")
+        ax.spines['right'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.spines['left'].set_visible(True)
+        ax.spines['bottom'].set_visible(True)
+        ax.set_yscale('log')
 
         return fig
-    
-    def create_projections_figs(self) -> tuple[matplotlib.figure.Figure, matplotlib.figure.Figure]:
+
+    def create_projections_figs(
+        self,
+    ) -> tuple[matplotlib.figure.Figure, matplotlib.figure.Figure]:
         if not self.projections_calculated:
             projections = self.get_projections()
             self.max_projection = projections[0]
@@ -539,7 +579,7 @@ class Interface(BaseInterface):
     def get_projections(self) -> tuple[np.ndarray, np.ndarray]:
         # Create arrays for iteration
         max_projection = np.zeros(np.shape(self.vol[0]))
-        min_projection = np.ones(np.shape(self.vol[0])) * float("inf")
+        min_projection = np.ones(np.shape(self.vol[0])) * float('inf')
         intensity_sum = 0
 
         # Iterate over slices. This is needed in case of virtual stacks.
@@ -566,20 +606,22 @@ class Interface(BaseInterface):
 
     def show_data_summary(self):
         summary_dict = {
-            "Last modified": datetime.datetime.fromtimestamp(os.path.getmtime(self.file_path)).strftime("%Y-%m-%d %H:%M"),
-            "File size": _misc.sizeof(os.path.getsize(self.file_path)),
-            "Z-size": str(self.vol.shape[self.axis_dict["Z"]]),
-            "Y-size": str(self.vol.shape[self.axis_dict["Y"]]),
-            "X-size": str(self.vol.shape[self.axis_dict["X"]]),
-            "Data type": str(self.vol.dtype),
-            "Min value": str(self.vol.min()),
-            "Mean value": str(np.mean(self.vol)),
-            "Max value": str(self.vol.max()),
+            'Last modified': datetime.datetime.fromtimestamp(
+                os.path.getmtime(self.file_path)
+            ).strftime('%Y-%m-%d %H:%M'),
+            'File size': _misc.sizeof(os.path.getsize(self.file_path)),
+            'Z-size': str(self.vol.shape[self.axis_dict['Z']]),
+            'Y-size': str(self.vol.shape[self.axis_dict['Y']]),
+            'X-size': str(self.vol.shape[self.axis_dict['X']]),
+            'Data type': str(self.vol.dtype),
+            'Min value': str(self.vol.min()),
+            'Mean value': str(np.mean(self.vol)),
+            'Max value': str(self.vol.max()),
         }
 
         display_dict = {k: v for k, v in summary_dict.items() if v is not None}
-        return ouf.showdict(display_dict, return_str=True, title="Data summary")
-        
+        return ouf.showdict(display_dict, return_str=True, title='Data summary')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     Interface().run_interface()

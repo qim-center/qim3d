@@ -1,9 +1,9 @@
-import subprocess
-from pathlib import Path
 import os
-import webbrowser
+import subprocess
 import threading
 import time
+import webbrowser
+from pathlib import Path
 
 import qim3d.utils
 from qim3d.utils._logger import log
@@ -11,10 +11,8 @@ from qim3d.utils._logger import log
 from .helpers import *
 from .installation import Installer
 
-
-
 # Start viewer
-START_COMMAND = "itk-vtk-viewer -s"
+START_COMMAND = 'itk-vtk-viewer -s'
 
 # Lock, so two threads can safely read and write to is_installed
 c = threading.Condition()
@@ -23,12 +21,12 @@ is_installed = True
 
 def run_global(port=3000):
     linux_func = lambda: subprocess.run(
-        START_COMMAND+f" -p {port}", shell=True, stderr=subprocess.DEVNULL
+        START_COMMAND + f' -p {port}', shell=True, stderr=subprocess.DEVNULL
     )
 
     # First sourcing the node.js, if sourcing via fnm doesnt help and user would have to do it any other way, it would throw an error and suggest to install viewer to qim library
     windows_func = lambda: subprocess.run(
-        ["powershell.exe", SOURCE_FNM, START_COMMAND+f" -p {port}"],
+        ['powershell.exe', SOURCE_FNM, START_COMMAND + f' -p {port}'],
         shell=True,
         stderr=subprocess.DEVNULL,
     )
@@ -38,7 +36,7 @@ def run_global(port=3000):
     )
 
 
-def run_within_qim_dir(port=3000):  
+def run_within_qim_dir(port=3000):
     dir = get_itk_dir()
     viewer_dir = get_viewer_dir(dir)
     viewer_bin = get_viewer_binaries(viewer_dir)
@@ -48,7 +46,7 @@ def run_within_qim_dir(port=3000):
         node_bin = get_node_binaries_dir(get_nvm_dir(dir))
         if node_bin is None:
             # Didn't find node binaries there so it looks for enviroment variable to tell it where is nvm folder
-            node_bin = get_node_binaries_dir(Path(str(os.getenv("NVM_DIR"))))
+            node_bin = get_node_binaries_dir(Path(str(os.getenv('NVM_DIR'))))
 
         if node_bin is not None:
             subprocess.run(
@@ -62,9 +60,9 @@ def run_within_qim_dir(port=3000):
         if node_bin is not None:
             subprocess.run(
                 [
-                    "powershell.exe",
+                    'powershell.exe',
                     f"$env:PATH = $env:PATH + ';{viewer_bin};{node_bin}';",
-                    START_COMMAND+f" -p {port}",
+                    START_COMMAND + f' -p {port}',
                 ],
                 stderr=subprocess.DEVNULL,
             )
@@ -118,7 +116,7 @@ def try_opening_itk_vtk(
         <pre style="margin-left: 12px; margin-right: 12px; color:#454545">
         Downloading Okinawa_Foram_1.tif
         https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Okinawa_Forams/Okinawa_Foram_1.tif
-        1.85GB [00:17, 111MB/s]                                                         
+        1.85GB [00:17, 111MB/s]
 
         Loading Okinawa_Foram_1.tif
         Loading: 100%
@@ -149,7 +147,7 @@ def try_opening_itk_vtk(
         http://localhost:3000/?rotate=false&fileToLoad=http://localhost:8042/Okinawa_Foram_1.zarr
 
         </pre>
-                
+
         ![itk-vtk-viewer](assets/screenshots/itk-vtk-viewer.gif)
 
     """
@@ -169,7 +167,6 @@ def try_opening_itk_vtk(
         global is_installed
         c.acquire()
         if is_installed:
-
             # Normalize the filename. This is necessary for trailing slashes by the end of the path
             filename_norm = os.path.normpath(os.path.abspath(filename))
 
@@ -178,12 +175,12 @@ def try_opening_itk_vtk(
                 os.path.dirname(filename_norm), port=file_server_port
             )
 
-            viz_url = f"http://localhost:{viewer_port}/?rotate=false&fileToLoad=http://localhost:{file_server_port}/{os.path.basename(filename_norm)}"
+            viz_url = f'http://localhost:{viewer_port}/?rotate=false&fileToLoad=http://localhost:{file_server_port}/{os.path.basename(filename_norm)}'
 
             if open_browser:
                 webbrowser.open_new_tab(viz_url)
 
-            log.info(f"\nVisualization url:\n{viz_url}\n")
+            log.info(f'\nVisualization url:\n{viz_url}\n')
         c.release()
 
     # Start the delayed open in a separate thread
@@ -214,28 +211,32 @@ def itk_vtk(
     filename: str = None,
     open_browser: bool = True,
     file_server_port: int = 8042,
-    viewer_port: int = 3000
-    ):
+    viewer_port: int = 3000,
+):
     """
     Command to run in cli/__init__.py. Tries to run the vizualization,
     if that fails, asks the user to install it. This function is needed
-    here so we don't have to import NotInstalledError and Installer, 
+    here so we don't have to import NotInstalledError and Installer,
     which exposes these to user.
     """
 
     try:
-        try_opening_itk_vtk(filename, 
-                open_browser=open_browser,
-                file_server_port = file_server_port,
-                viewer_port = viewer_port)
+        try_opening_itk_vtk(
+            filename,
+            open_browser=open_browser,
+            file_server_port=file_server_port,
+            viewer_port=viewer_port,
+        )
 
     except NotInstalledError:
         message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let qim3D install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want qim3D to install itk-vtk-viewer now?"
         print(message)
-        answer = input("[Y/n]:")
-        if answer in "Yy":
+        answer = input('[Y/n]:')
+        if answer in 'Yy':
             Installer().install()
-            try_opening_itk_vtk(filename, 
-                    open_browser=open_browser,
-                    file_server_port = file_server_port,
-                    viewer_port = viewer_port)
+            try_opening_itk_vtk(
+                filename,
+                open_browser=open_browser,
+                file_server_port=file_server_port,
+                viewer_port=viewer_port,
+            )

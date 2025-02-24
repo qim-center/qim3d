@@ -1,3 +1,5 @@
+from typing import Any, Tuple
+
 import numpy as np
 from skimage import measure, filters
 from pygel3d import hmesh

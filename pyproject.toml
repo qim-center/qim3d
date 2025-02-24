@@ -1,0 +1,92 @@
+# See list of rules here: https://docs.astral.sh/ruff/rules/
+
+[tool.ruff]
+line-length = 88
+indent-width = 4
+
+[tool.ruff.lint]
+# Allow fix for all enabled rules (when `--fix`) is provided.
+fixable = ["ALL"]
+unfixable = []
+
+# Allow unused variables when underscore-prefixed
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+select = [
+    "F",
+    "E",        # Errors
+    "W",        # Warnings
+    "I",        # Imports
+    "N",        # Naming
+    "D",        # Documentation
+    "UP",       # Upgrades
+    "YTT",
+    "ANN",
+    "ASYNC",
+    "S",
+    "BLE",
+    "B",
+    "A",
+    "COM",
+    "C4",
+    "T10",
+    "DJ",
+    "EM",
+    "EXE",
+    "ISC",
+    "LOG",
+    "PIE",
+    "PYI",
+    "PT",
+    "RSE",
+    "SLF",
+    "SLOT",
+    "SIM",
+    "TID",
+    "TCH",
+    "INT",
+    "ERA",
+    "PGH",
+]
+
+ignore = [
+    "F821",
+    "F841",
+    "E501",
+    "E731",
+    "D100",
+    "D101",
+    "D107",
+    "D201", 
+    "D202",
+    "D205",
+    "D211",
+    "D212",
+    "D401", 
+    "D407", 
+    "ANN002",
+    "ANN003",
+    "ANN101",
+    "ANN201",
+    "ANN204",
+    "S101",
+    "S301",
+    "S311",
+    "S507",
+    "S603",
+    "S605",
+    "S607",
+    "B008",
+    "B026",
+    "B028",
+    "B905",
+    "W291",
+    "W293",
+    "COM812",
+    "ISC001",
+    "SIM113",
+]
+
+[tool.ruff.format]
+# Use single quotes for strings
+quote-style = "single"

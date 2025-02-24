@@ -135,7 +135,7 @@ def sphericity(obj: np.ndarray|hmesh.Manifold) -> float:
     area = qim3d.features.area(obj)
 
     if area == 0:
-        log.warning("Surface area is zero, sphericity is undefined.")
+        log.warning('Surface area is zero, sphericity is undefined.')
         return np.nan
 
     sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
