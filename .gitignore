@@ -13,6 +13,7 @@ build/
 .idea/
 .cache/
 .pytest_cache/
+.ruff_cache/
 *.swp
 *.swo
 *.pyc

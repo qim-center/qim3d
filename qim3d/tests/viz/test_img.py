@@ -1,16 +1,11 @@
-import pytest
-import torch
-import numpy as np
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
+import numpy as np
 import pytest
-from torch import ones
+import torch
 
 import qim3d
 from qim3d.tests import temp_data
-
-import matplotlib.pyplot as plt
-import ipywidgets as widgets
 
 
 # unit tests for grid overview
@@ -26,13 +21,13 @@ def test_grid_overview():
 def test_grid_overview_tuple():
     random_tuple = (torch.ones(256, 256), torch.ones(256, 256))
 
-    with pytest.raises(ValueError, match="Data elements must be tuples"):
+    with pytest.raises(ValueError, match='Data elements must be tuples'):
         qim3d.viz.grid_overview(random_tuple, num_images=1)
 
 
 # unit tests for grid prediction
 def test_grid_pred():
-    folder = "folder_data"
+    folder = 'folder_data'
     n = 4
     temp_data(folder, n=n)
 
@@ -57,8 +52,8 @@ def test_slices_numpy_array_input():
 
 
 def test_slices_wrong_input_format():
-    input = "not_a_volume"
-    with pytest.raises(ValueError, match="Data type not supported"):
+    input = 'not_a_volume'
+    with pytest.raises(ValueError, match='Data type not supported'):
         qim3d.viz.slices_grid(input)
 
 
@@ -66,7 +61,7 @@ def test_slices_not_volume():
     example_volume = np.ones((10, 10))
     with pytest.raises(
         ValueError,
-        match="The provided object is not a volume as it has less than 3 dimensions.",
+        match='The provided object is not a volume as it has less than 3 dimensions.',
     ):
         qim3d.viz.slices_grid(example_volume)
 
@@ -77,7 +72,7 @@ def test_slices_wrong_position_format1():
         ValueError,
         match='Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".',
     ):
-        qim3d.viz.slices_grid(example_volume, slice_positions="invalid_slice")
+        qim3d.viz.slices_grid(example_volume, slice_positions='invalid_slice')
 
 
 def test_slices_wrong_position_format2():
@@ -110,7 +105,7 @@ def test_slices_invalid_axis_value():
 def test_slices_interpolation_option():
     example_volume = np.ones((10, 10, 10))
     img_width = 3
-    interpolation_method = "bilinear"
+    interpolation_method = 'bilinear'
     fig = qim3d.viz.slices_grid(
         example_volume,
         num_slices=1,
@@ -130,7 +125,9 @@ def test_slices_multiple_slices():
     example_volume = np.ones((10, 10, 10))
     image_width = 3
     num_slices = 3
-    fig = qim3d.viz.slices_grid(example_volume, num_slices=num_slices, image_width=image_width)
+    fig = qim3d.viz.slices_grid(
+        example_volume, num_slices=num_slices, image_width=image_width
+    )
     # Add assertions for the expected number of subplots in the figure
     assert len(fig.get_axes()) == num_slices
 
@@ -192,7 +189,7 @@ def test_slicer_with_different_parameters():
         assert isinstance(slicer_obj, widgets.interactive)
 
     # Test with different colormaps
-    for cmap in ["viridis", "gray", "plasma"]:
+    for cmap in ['viridis', 'gray', 'plasma']:
         slicer_obj = qim3d.viz.slicer(np.random.rand(10, 10, 10), cmap=cmap)
         assert isinstance(slicer_obj, widgets.interactive)
 
@@ -232,14 +229,18 @@ def test_orthogonal_with_torch_tensor():
 
 def test_orthogonal_with_different_parameters():
     # Test with different colormaps
-    for color_map in ["viridis", "gray", "plasma"]:
-        orthogonal_obj = qim3d.viz.slicer_orthogonal(np.random.rand(10, 10, 10), color_map=color_map)
+    for color_map in ['viridis', 'gray', 'plasma']:
+        orthogonal_obj = qim3d.viz.slicer_orthogonal(
+            np.random.rand(10, 10, 10), color_map=color_map
+        )
         assert isinstance(orthogonal_obj, widgets.HBox)
 
     # Test with different image sizes
     for image_height, image_width in [(2, 2), (4, 4)]:
         orthogonal_obj = qim3d.viz.slicer_orthogonal(
-            np.random.rand(10, 10, 10), image_height=image_height, image_width=image_width
+            np.random.rand(10, 10, 10),
+            image_height=image_height,
+            image_width=image_width,
         )
         assert isinstance(orthogonal_obj, widgets.HBox)
 
@@ -266,7 +267,7 @@ def test_orthogonal_slider_description():
     # Call the orthogonal function with the NumPy array
     orthogonal_obj = qim3d.viz.slicer_orthogonal(vol)
     for idx, slicer in enumerate(orthogonal_obj.children):
-        assert slicer.children[0].description == ["Z", "Y", "X"][idx]
+        assert slicer.children[0].description == ['Z', 'Y', 'X'][idx]
 
 
 # unit tests for local thickness visualization

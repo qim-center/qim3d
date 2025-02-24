@@ -1,16 +1,16 @@
+from abc import ABC, abstractmethod
+from os import listdir, path
 from pathlib import Path
-from abc import abstractmethod, ABC
-from os import path, listdir
 
 import gradio as gr
-
-from .qim_theme import QimTheme
-import qim3d.gui
 import numpy as np
+
+import qim3d.gui
 
 
 # TODO: when offline it throws an error in cli
 class BaseInterface(ABC):
+
     """
     Annotation tool and Data explorer as those don't need any examples.
     """
@@ -19,7 +19,7 @@ class BaseInterface(ABC):
         self,
         title: str,
         height: int,
-        width: int = "100%",
+        width: int = '100%',
         verbose: bool = False,
         custom_css: str = None,
     ):
@@ -38,7 +38,7 @@ class BaseInterface(ABC):
 
         self.qim_dir = Path(qim3d.__file__).parents[0]
         self.custom_css = (
-            path.join(self.qim_dir, "css", custom_css)
+            path.join(self.qim_dir, 'css', custom_css)
             if custom_css is not None
             else None
         )
@@ -48,9 +48,9 @@ class BaseInterface(ABC):
 
     def set_invisible(self):
         return gr.update(visible=False)
-    
+
     def change_visibility(self, is_visible: bool):
-        return gr.update(visible = is_visible)
+        return gr.update(visible=is_visible)
 
     def launch(self, img: np.ndarray = None, force_light_mode: bool = True, **kwargs):
         """
@@ -72,8 +72,7 @@ class BaseInterface(ABC):
             quiet=not self.verbose,
             height=self.height,
             width=self.width,
-            favicon_path=Path(qim3d.__file__).parents[0]
-            / "gui/assets/qim3d-icon.svg",
+            favicon_path=Path(qim3d.__file__).parents[0] / 'gui/assets/qim3d-icon.svg',
             **kwargs,
         )
 
@@ -88,7 +87,7 @@ class BaseInterface(ABC):
             title=self.title,
             css=self.custom_css,
         ) as gradio_interface:
-            gr.Markdown(f"# {self.title}")
+            gr.Markdown(f'# {self.title}')
             self.define_interface(**kwargs)
         return gradio_interface
 
@@ -96,11 +95,12 @@ class BaseInterface(ABC):
     def define_interface(self, **kwargs):
         pass
 
-    def run_interface(self, host: str = "0.0.0.0"):
+    def run_interface(self, host: str = '0.0.0.0'):
         qim3d.gui.run_gradio_app(self.create_interface(), host)
 
 
 class InterfaceWithExamples(BaseInterface):
+
     """
     For Iso3D and Local Thickness
     """
@@ -117,7 +117,23 @@ class InterfaceWithExamples(BaseInterface):
         self._set_examples_list()
 
     def _set_examples_list(self):
-        valid_sufixes = (".tif", ".tiff", ".h5", ".nii", ".gz", ".dcm", ".DCM", ".vol", ".vgi", ".txrm", ".txm", ".xrm")
+        valid_sufixes = (
+            '.tif',
+            '.tiff',
+            '.h5',
+            '.nii',
+            '.gz',
+            '.dcm',
+            '.DCM',
+            '.vol',
+            '.vgi',
+            '.txrm',
+            '.txm',
+            '.xrm',
+        )
         examples_folder = path.join(self.qim_dir, 'examples')
-        self.img_examples = [path.join(examples_folder, example) for example in listdir(examples_folder) if example.endswith(valid_sufixes)]
-
+        self.img_examples = [
+            path.join(examples_folder, example)
+            for example in listdir(examples_folder)
+            if example.endswith(valid_sufixes)
+        ]
