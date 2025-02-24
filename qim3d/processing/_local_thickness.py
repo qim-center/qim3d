@@ -1,19 +1,23 @@
 """Wrapper for the local thickness function from the localthickness package including visualization functions."""
 
-import numpy as np
 from typing import Optional
-from qim3d.utils import log
-import qim3d
+
+import numpy as np
 from IPython.display import display
+
+import qim3d
+from qim3d.utils import log
+
 
 def local_thickness(
     image: np.ndarray,
     scale: float = 1,
     mask: Optional[np.ndarray] = None,
     visualize: bool = False,
-    **viz_kwargs
+    **viz_kwargs,
 ) -> np.ndarray:
-    """Wrapper for the local thickness function from the [local thickness package](https://github.com/vedranaa/local-thickness)
+    """
+    Wrapper for the local thickness function from the [local thickness package](https://github.com/vedranaa/local-thickness)
 
     The "Fast Local Thickness" by Vedrana Andersen Dahl and Anders Bjorholm Dahl from the Technical University of Denmark is a efficient algorithm for computing local thickness in 2D and 3D images.
     Their method significantly reduces computation time compared to traditional algorithms by utilizing iterative dilation with small structuring elements, rather than the large ones typically used.
@@ -90,9 +94,7 @@ def local_thickness(
         # If not, binarize it using Otsu's method, log the threshold and compute the local thickness
         threshold = threshold_otsu(image=image)
         log.warning(
-            "Input image is not binary. It will be binarized using Otsu's method with threshold: {}".format(
-                threshold
-            )
+            f"Input image is not binary. It will be binarized using Otsu's method with threshold: {threshold}"
         )
         local_thickness = lt.local_thickness(image > threshold, scale=scale, mask=mask)
     else:
