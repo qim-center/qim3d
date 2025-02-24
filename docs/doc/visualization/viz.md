@@ -24,6 +24,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - colormaps
             - fade_mask
             - line_profile
+            - threshold
             
 ::: qim3d.viz.colormaps
     options:
