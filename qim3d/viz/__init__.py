@@ -9,7 +9,8 @@ from ._data_exploration import (
     slices_grid,
     chunks,
     histogram,
-    line_profile
+    line_profile,
+    threshold
 )
 from ._detection import circles
 from ._k3d import mesh, volumetric
