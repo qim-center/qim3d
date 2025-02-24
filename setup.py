@@ -71,7 +71,8 @@ setup(
         "ome_zarr>=0.9.0",
         "dask-image>=2024.5.3",
         "scikit-image>=0.24.0",
-        "trimesh>=4.4.9"
+        "trimesh>=4.4.9",
+        "PyGEL3D>=0.5.2"
     ],
     extras_require={
     "deep-learning": [

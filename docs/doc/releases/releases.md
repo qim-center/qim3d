@@ -11,7 +11,7 @@ hide:
 
 Below, you'll find details about the version history of `qim3d`.
 
-Remember to keep your pip installation [up to date](index.md/#get-the-latest-version) so that you have the latest features!
+Remember to keep your pip installation [up to date](../../index.md/#get-the-latest-version) so that you have the latest features!
 
 ### v1.0.0 (21/01/2025)
 
