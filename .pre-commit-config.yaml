@@ -1,0 +1,22 @@
+﻿# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+    -   id: detect-private-key
+    -   id: check-added-large-files
+    -   id: check-docstring-first
+    -   id: debug-statements
+    -   id: double-quote-string-fixer
+    -   id: name-tests-test
+
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.7
+    hooks:
+      # Run the formatter and fix code styling
+    - id: ruff-format
+
+    # Run the linter and fix what is possible
+    - id: ruff
+      args: ['--fix']

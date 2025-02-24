@@ -1,12 +1,18 @@
-import matplotlib.pyplot as plt
-from qim3d.utils._logger import log
-import numpy as np
 import ipywidgets as widgets
+import matplotlib.pyplot as plt
+import numpy as np
 from IPython.display import clear_output, display
+
 import qim3d
 
 
-def circles(blobs: tuple[float,float,float,float], vol: np.ndarray, alpha: float = 0.5, color: str = "#ff9900", **kwargs)-> widgets.interactive:
+def circles(
+    blobs: tuple[float, float, float, float],
+    vol: np.ndarray,
+    alpha: float = 0.5,
+    color: str = '#ff9900',
+    **kwargs,
+) -> widgets.interactive:
     """
     Plots the blobs found on a slice of the volume.
 
@@ -47,23 +53,23 @@ def circles(blobs: tuple[float,float,float,float], vol: np.ndarray, alpha: float
         qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
         ```
         ![blob detection](../../assets/screenshots/blob_detection.gif)
+
     """
 
     def _slicer(z_slice):
         clear_output(wait=True)
         fig = qim3d.viz.slices_grid(
-            vol[z_slice:z_slice + 1],
+            vol[z_slice : z_slice + 1],
             num_slices=1,
-            color_map="gray",
+            color_map='gray',
             display_figure=False,
             display_positions=False,
-            **kwargs
+            **kwargs,
         )
         # Add circles from deteced blobs
         for detected in blobs:
             z, y, x, s = detected
             if abs(z - z_slice) < s:  # The blob is in the slice
-
                 # Adjust the radius based on the distance from the center of the sphere
                 distance_from_center = abs(z - z_slice)
                 angle = (
@@ -89,10 +95,10 @@ def circles(blobs: tuple[float,float,float,float], vol: np.ndarray, alpha: float
         value=vol.shape[0] // 2,
         min=0,
         max=vol.shape[0] - 1,
-        description="Slice",
+        description='Slice',
         continuous_update=True,
     )
     slicer_obj = widgets.interactive(_slicer, z_slice=position_slider)
-    slicer_obj.layout = widgets.Layout(align_items="flex-start")
+    slicer_obj.layout = widgets.Layout(align_items='flex-start')
 
     return slicer_obj

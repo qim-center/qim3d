@@ -1,13 +1,15 @@
-""" Blob detection using Difference of Gaussian (DoG) method """
+"""Blob detection using Difference of Gaussian (DoG) method"""
 
 import numpy as np
+
 from qim3d.utils._logger import log
 
-__all__ = ["blobs"]
+__all__ = ['blobs']
+
 
 def blobs(
     vol: np.ndarray,
-    background: str = "dark",
+    background: str = 'dark',
     min_sigma: float = 1,
     max_sigma: float = 50,
     sigma_ratio: float = 1.6,
@@ -56,18 +58,19 @@ def blobs(
             # Visualize detected blobs
             qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
             ```
-            ![blob detection](../../assets/screenshots/blob_detection.gif)    
+            ![blob detection](../../assets/screenshots/blob_detection.gif)
 
             ```python
             # Visualize binary binary_volume
             qim3d.viz.slicer(binary_volume)
             ```
             ![blob detection](../../assets/screenshots/blob_get_mask.gif)
+
     """
     from skimage.feature import blob_dog
 
-    if background == "bright":
-        log.info("Bright background selected, volume will be inverted.")
+    if background == 'bright':
+        log.info('Bright background selected, volume will be inverted.')
         vol = np.invert(vol)
 
     blobs = blob_dog(
@@ -109,8 +112,8 @@ def blobs(
             (x_indices - x) ** 2 + (y_indices - y) ** 2 + (z_indices - z) ** 2
         )
 
-        binary_volume[z_start:z_end, y_start:y_end, x_start:x_end][
-            dist <= radius
-        ] = True
+        binary_volume[z_start:z_end, y_start:y_end, x_start:x_end][dist <= radius] = (
+            True
+        )
 
     return blobs, binary_volume

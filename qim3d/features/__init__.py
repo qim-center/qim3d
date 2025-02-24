@@ -1,1 +1,1 @@
-from ._common_features_methods import volume, area, sphericity
+from ._common_features_methods import area, sphericity, volume

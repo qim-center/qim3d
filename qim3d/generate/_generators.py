@@ -4,6 +4,7 @@ from noise import pnoise3
 
 import qim3d.processing
 
+
 def noise_object(
     base_shape: tuple = (128, 128, 128),
     final_shape: tuple = (128, 128, 128),
@@ -14,8 +15,8 @@ def noise_object(
     threshold: float = 0.5,
     smooth_borders: bool = False,
     object_shape: str = None,
-    dtype: str = "uint8",
-    ) -> np.ndarray:
+    dtype: str = 'uint8',
+) -> np.ndarray:
     """
     Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling and gamma correction.
 
@@ -97,18 +98,19 @@ def noise_object(
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_blob_tube.html" width="100%" height="500" frameborder="0"></iframe>
-        
+
         ```python
         # Visualize
         qim3d.viz.slices_grid(vol, num_slices=15)
         ```
-        ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)    
+        ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)
+
     """
 
     if not isinstance(final_shape, tuple) or len(final_shape) != 3:
-        raise TypeError("Size must be a tuple of 3 dimensions")
+        raise TypeError('Size must be a tuple of 3 dimensions')
     if not np.issubdtype(dtype, np.number):
-        raise ValueError("Invalid data type")
+        raise ValueError('Invalid data type')
 
     # Initialize the 3D array for the shape
     volume = np.empty((base_shape[0], base_shape[1], base_shape[2]), dtype=np.float32)
@@ -119,19 +121,18 @@ def noise_object(
     # Calculate the distance from the center of the shape
     center = np.array(base_shape) / 2
 
-    dist = np.sqrt((z - center[0])**2 + 
-                   (y - center[1])**2 + 
-                   (x - center[2])**2)
-    
-    dist /= np.sqrt(3 * (center[0]**2))
+    dist = np.sqrt((z - center[0]) ** 2 + (y - center[1]) ** 2 + (x - center[2]) ** 2)
+
+    dist /= np.sqrt(3 * (center[0] ** 2))
 
     # Generate Perlin noise and adjust the values based on the distance from the center
-    vectorized_pnoise3 = np.vectorize(pnoise3) # Vectorize pnoise3, since it only takes scalar input
+    vectorized_pnoise3 = np.vectorize(
+        pnoise3
+    )  # Vectorize pnoise3, since it only takes scalar input
 
-    noise = vectorized_pnoise3(z.flatten() * noise_scale, 
-                               y.flatten() * noise_scale, 
-                               x.flatten() * noise_scale
-                               ).reshape(base_shape)
+    noise = vectorized_pnoise3(
+        z.flatten() * noise_scale, y.flatten() * noise_scale, x.flatten() * noise_scale
+    ).reshape(base_shape)
 
     volume = (1 + noise) * (1 - dist)
 
@@ -148,17 +149,22 @@ def noise_object(
     if object_shape:
         smooth_borders = False
 
-    if smooth_borders: 
+    if smooth_borders:
         # Maximum value among the six sides of the 3D volume
-        max_border_value = np.max([
-            np.max(volume[0, :, :]), np.max(volume[-1, :, :]),
-            np.max(volume[:, 0, :]), np.max(volume[:, -1, :]),
-            np.max(volume[:, :, 0]), np.max(volume[:, :, -1])
-        ])
+        max_border_value = np.max(
+            [
+                np.max(volume[0, :, :]),
+                np.max(volume[-1, :, :]),
+                np.max(volume[:, 0, :]),
+                np.max(volume[:, -1, :]),
+                np.max(volume[:, :, 0]),
+                np.max(volume[:, :, -1]),
+            ]
+        )
 
         # Compute threshold such that there will be no straight cuts in the blob
         threshold = max_border_value / max_value
- 
+
     # Clip the low values of the volume to create a coherent volume
     volume[volume < threshold * max_value] = 0
 
@@ -171,44 +177,49 @@ def noise_object(
     )
 
     # Fade into a shape if specified
-    if object_shape == "cylinder":
-
+    if object_shape == 'cylinder':
         # Arguments for the fade_mask function
-        geometry = "cylindrical"        # Fade in cylindrical geometry
-        axis = np.argmax(volume.shape)  # Fade along the dimension where the object is the largest
-        target_max_normalized_distance = 1.4   # This value ensures that the object will become cylindrical
+        geometry = 'cylindrical'  # Fade in cylindrical geometry
+        axis = np.argmax(
+            volume.shape
+        )  # Fade along the dimension where the object is the largest
+        target_max_normalized_distance = (
+            1.4  # This value ensures that the object will become cylindrical
+        )
 
-        volume = qim3d.operations.fade_mask(volume, 
-                                                       geometry = geometry, 
-                                                       axis = axis, 
-                                                       target_max_normalized_distance = target_max_normalized_distance
-                                                       )
+        volume = qim3d.operations.fade_mask(
+            volume,
+            geometry=geometry,
+            axis=axis,
+            target_max_normalized_distance=target_max_normalized_distance,
+        )
 
-    elif object_shape == "tube":
-
+    elif object_shape == 'tube':
         # Arguments for the fade_mask function
-        geometry = "cylindrical"        # Fade in cylindrical geometry
-        axis = np.argmax(volume.shape)  # Fade along the dimension where the object is the largest
-        decay_rate = 5                  # Decay rate for the fade operation
-        target_max_normalized_distance = 1.4   # This value ensures that the object will become cylindrical
+        geometry = 'cylindrical'  # Fade in cylindrical geometry
+        axis = np.argmax(
+            volume.shape
+        )  # Fade along the dimension where the object is the largest
+        decay_rate = 5  # Decay rate for the fade operation
+        target_max_normalized_distance = (
+            1.4  # This value ensures that the object will become cylindrical
+        )
 
         # Fade once for making the object cylindrical
-        volume = qim3d.operations.fade_mask(volume, 
-                                                       geometry = geometry, 
-                                                       axis = axis,
-                                                       decay_rate = decay_rate,
-                                                       target_max_normalized_distance = target_max_normalized_distance,
-                                                       invert = False
-                                                       )
+        volume = qim3d.operations.fade_mask(
+            volume,
+            geometry=geometry,
+            axis=axis,
+            decay_rate=decay_rate,
+            target_max_normalized_distance=target_max_normalized_distance,
+            invert=False,
+        )
 
         # Fade again with invert = True for making the object a tube (i.e. with a hole in the middle)
-        volume = qim3d.operations.fade_mask(volume, 
-                                                       geometry = geometry, 
-                                                       axis = axis, 
-                                                       decay_rate = decay_rate,
-                                                       invert = True
-                                                       )
-        
+        volume = qim3d.operations.fade_mask(
+            volume, geometry=geometry, axis=axis, decay_rate=decay_rate, invert=True
+        )
+
     # Convert to desired data type
     volume = volume.astype(dtype)
 

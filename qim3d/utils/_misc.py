@@ -1,19 +1,22 @@
-""" Provides a collection of internal utility functions."""
+"""Provides a collection of internal utility functions."""
 
+import difflib
 import getpass
 import hashlib
 import os
 import socket
+
 import numpy as np
 import outputformat as ouf
 import requests
 from scipy.ndimage import zoom
-import difflib
+
 import qim3d
 
 
 def get_local_ip() -> str:
-    """Retrieves the local IP address of the current machine.
+    """
+    Retrieves the local IP address of the current machine.
 
     The function uses a socket to determine the local IP address.
     Then, it tries to connect to the IP address "192.255.255.255"
@@ -23,20 +26,21 @@ def get_local_ip() -> str:
     network is not available, the function falls back to returning
     the loopback address "127.0.0.1".
 
-    Returns:
+    Returns
         str: The local IP address.
 
     Example usage:
         ip_address = get_local_ip()
+
     """
 
     _socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # doesn't even have to be reachable
-        _socket.connect(("192.255.255.255", 1))
+        _socket.connect(('192.255.255.255', 1))
         ip_address = _socket.getsockname()[0]
-    except socket.error:
-        ip_address = "127.0.0.1"
+    except OSError:
+        ip_address = '127.0.0.1'
     finally:
         _socket.close()
     return ip_address
@@ -61,12 +65,14 @@ def port_from_str(s: str) -> int:
 
     Example usage:
         port = port_from_str("my_specific_app_name")
+
     """
-    return int(hashlib.sha1(s.encode("utf-8")).hexdigest(), 16) % (10**4)
+    return int(hashlib.sha1(s.encode('utf-8')).hexdigest(), 16) % (10**4)
 
 
 def gradio_header(title: str, port: int) -> None:
-    """Display the header for a Gradio server.
+    """
+    Display the header for a Gradio server.
 
     Displays a formatted header containing the provided title,
     the port number being used, and the IP address where the server is running.
@@ -93,14 +99,15 @@ def gradio_header(title: str, port: int) -> None:
     ouf.br(2)
     details = [
         f'{ouf.c(title, color="rainbow", cmap="cool", bold=True, return_str=True)}',
-        f"Using port {port}",
-        f"Running at {get_local_ip()}",
+        f'Using port {port}',
+        f'Running at {get_local_ip()}',
     ]
-    ouf.showlist(details, style="box", title="Starting gradio server")
+    ouf.showlist(details, style='box', title='Starting gradio server')
 
 
-def sizeof(num: float, suffix: str = "B") -> str:
-    """Converts a number to a human-readable string representing its size.
+def sizeof(num: float, suffix: str = 'B') -> str:
+    """
+    Converts a number to a human-readable string representing its size.
 
     Converts the given number to a human-readable string representing its size in
     a more readable format, such as bytes (B), kilobytes (KB), megabytes (MB),
@@ -124,17 +131,18 @@ def sizeof(num: float, suffix: str = "B") -> str:
         '1.0 KB'
         >>> qim3d.utils.sizeof(1234567890)
         '1.1 GB'
+
     """
-    for unit in ["", "K", "M", "G", "T", "P", "E", "Z"]:
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
         if abs(num) < 1024.0:
-            return f"{num:3.1f} {unit}{suffix}"
+            return f'{num:3.1f} {unit}{suffix}'
         num /= 1024.0
-    return f"{num:.1f} Y{suffix}"
+    return f'{num:.1f} Y{suffix}'
 
 
 def find_similar_paths(path: str) -> list[str]:
-    parent_dir = os.path.dirname(path) or "."
-    parent_files = os.listdir(parent_dir) if os.path.isdir(parent_dir) else ""
+    parent_dir = os.path.dirname(path) or '.'
+    parent_files = os.listdir(parent_dir) if os.path.isdir(parent_dir) else ''
     valid_paths = [os.path.join(parent_dir, file) for file in parent_files]
     similar_paths = difflib.get_close_matches(path, valid_paths)
 
@@ -144,12 +152,13 @@ def find_similar_paths(path: str) -> list[str]:
 def get_file_size(file_path: str) -> int:
     """
     Args:
-    -----
+    ----
         filename (str): Specifies full path to file
 
     Returns:
-    ---------
+    -------
         size (int): size of file in bytes
+
     """
     try:
         file_size = os.path.getsize(file_path)
@@ -161,8 +170,8 @@ def get_file_size(file_path: str) -> int:
             message = f"Invalid path. Did you mean '{suggestion}'?"
             raise FileNotFoundError(repr(message))
         else:
-            raise FileNotFoundError("Invalid path")
-    
+            raise FileNotFoundError('Invalid path')
+
     return file_size
 
 
@@ -176,7 +185,7 @@ def stringify_path(path: os.PathLike) -> str:
 def get_port_dict() -> dict:
     # Gets user and port
     username = getpass.getuser()
-    url = f"https://platform.qim.dk/qim-api/get-port/{username}"
+    url = f'https://platform.qim.dk/qim-api/get-port/{username}'
 
     response = requests.get(url, timeout=10)
     # Check if the request was successful (status code 200)
@@ -185,25 +194,25 @@ def get_port_dict() -> dict:
         port_dict = response.json()
     else:
         # Print an error message if the request was not successful
-        raise (f"Error: {response.status_code}")
+        raise (f'Error: {response.status_code}')
 
     return port_dict
 
 
 def get_css() -> str:
-
     current_directory = os.path.dirname(os.path.abspath(__file__))
     parent_directory = os.path.abspath(os.path.join(current_directory, os.pardir))
-    css_path = os.path.join(parent_directory, "css", "gradio.css")
+    css_path = os.path.join(parent_directory, 'css', 'gradio.css')
 
-    with open(css_path, "r") as file:
+    with open(css_path) as file:
         css_content = file.read()
 
     return css_content
 
 
 def downscale_img(img: np.ndarray, max_voxels: int = 512**3) -> np.ndarray:
-    """Downscale image if total number of voxels exceeds 512³.
+    """
+    Downscale image if total number of voxels exceeds 512³.
 
     Args:
         img (np.Array): Input image.
@@ -211,6 +220,7 @@ def downscale_img(img: np.ndarray, max_voxels: int = 512**3) -> np.ndarray:
 
     Returns:
         np.Array: Downscaled image if total number of voxels exceeds 512³.
+
     """
 
     # Calculate total number of pixels in the image
@@ -231,10 +241,10 @@ def scale_to_float16(arr: np.ndarray) -> np.ndarray:
     """
     Scale the input array to the float16 data type.
 
-    Parameters:
+    Parameters
     arr (np.ndarray): Input array to be scaled.
 
-    Returns:
+    Returns
     np.ndarray: Scaled array with dtype=np.float16.
 
     This function scales the input array to the float16 data type, ensuring that the
@@ -242,6 +252,7 @@ def scale_to_float16(arr: np.ndarray) -> np.ndarray:
     for float16. If the maximum value of the input array exceeds the maximum
     representable value for float16, the array is scaled down proportionally
     to fit within the float16 range.
+
     """
 
     # Get the maximum value to comprare with the float16 maximum value

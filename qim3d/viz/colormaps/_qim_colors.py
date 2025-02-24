@@ -1,9 +1,8 @@
 from matplotlib import colormaps
 from matplotlib.colors import LinearSegmentedColormap
 
-
 qim = LinearSegmentedColormap.from_list(
-    "qim",
+    'qim',
     [
         (0.6, 0.0, 0.0),  # 990000
         (1.0, 0.6, 0.0),  # ff9900
