@@ -7,6 +7,9 @@ from ._data_exploration import (
     slicer,
     slicer_orthogonal,
     slices_grid,
+    chunks,
+    histogram,
+    line_profile
 )
 from ._detection import circles
 from ._k3d import mesh, volumetric
