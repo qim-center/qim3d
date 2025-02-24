@@ -1,18 +1,21 @@
-"Helper functions for testing"
+"""Helper functions for testing"""
 
 import os
+import shutil
+import socket
+from pathlib import Path
+
 import matplotlib
 import matplotlib.pyplot as plt
-from pathlib import Path
-import shutil
-from PIL import Image
-import socket
 import numpy as np
+from PIL import Image
+
 from qim3d.utils._logger import log
 
 
 def mock_plot():
-    """Creates a mock plot of a sine wave.
+    """
+    Creates a mock plot of a sine wave.
 
     Returns:
         matplotlib.figure.Figure: The generated plot figure.
@@ -22,9 +25,10 @@ def mock_plot():
 
         >>> fig = mock_plot()
         >>> plt.show()
+
     """
 
-    matplotlib.use("Agg")
+    matplotlib.use('Agg')
 
     fig = plt.figure(figsize=(5, 4))
     axes = fig.add_axes([0.1, 0.1, 0.8, 0.8])
@@ -34,7 +38,7 @@ def mock_plot():
     return fig
 
 
-def mock_write_file(path, content="File created by qim3d"):
+def mock_write_file(path, content='File created by qim3d'):
     """
     Creates a file at the specified path and writes a predefined text into it.
 
@@ -43,8 +47,9 @@ def mock_write_file(path, content="File created by qim3d"):
 
     Example:
         >>> mock_write_file("example.txt")
+
     """
-    _file = open(path, "w", encoding="utf-8")
+    _file = open(path, 'w', encoding='utf-8')
     _file.write(content)
     _file.close()
 
@@ -60,7 +65,8 @@ def is_server_running(ip, port):
 
 
 def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
-    """Creates a temporary folder to test deep learning tools.
+    """
+    Creates a temporary folder to test deep learning tools.
 
     Creates two folders, 'train' and 'test', who each also have two subfolders 'images' and 'labels'.
     n random images are then added to all four subfolders.
@@ -74,9 +80,10 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
 
     Example:
         >>> tempdata('temporary_folder',n = 10, img_shape = (16,16))
+
     """
-    folder_trte = ["train", "test"]
-    sub_folders = ["images", "labels"]
+    folder_trte = ['train', 'test']
+    sub_folders = ['images', 'labels']
 
     # Creating train/test folder
     path_train = Path(folder) / folder_trte[0]
@@ -98,10 +105,10 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
         os.makedirs(path_train_lab)
         os.makedirs(path_test_lab)
         for i in range(n):
-            img.save(path_train_im / f"img_train{i}.png")
-            img.save(path_train_lab / f"img_train{i}.png")
-            img.save(path_test_im / f"img_test{i}.png")
-            img.save(path_test_lab / f"img_test{i}.png")
+            img.save(path_train_im / f'img_train{i}.png')
+            img.save(path_train_lab / f'img_train{i}.png')
+            img.save(path_test_im / f'img_test{i}.png')
+            img.save(path_test_lab / f'img_test{i}.png')
 
     if remove:
         for filename in os.listdir(folder):
@@ -112,6 +119,6 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                log.warning("Failed to delete %s. Reason: %s" % (file_path, e))
+                log.warning('Failed to delete %s. Reason: %s' % (file_path, e))
 
         os.rmdir(folder)

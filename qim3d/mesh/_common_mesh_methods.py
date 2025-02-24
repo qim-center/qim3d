@@ -1,7 +1,9 @@
+from typing import Any, Tuple
+
 import numpy as np
-from skimage import measure, filters
 import trimesh
-from typing import Tuple, Any
+from skimage import filters, measure
+
 from qim3d.utils._logger import log
 
 
@@ -43,9 +45,10 @@ def from_volume(
         qim3d.viz.mesh(mesh.vertices, mesh.faces)
         ```
         <iframe src="https://platform.qim.dk/k3d/mesh_visualization.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     if volume.ndim != 3:
-        raise ValueError("The input volume must be a 3D numpy array.")
+        raise ValueError('The input volume must be a 3D numpy array.')
 
     # Compute the threshold level if not provided
     if level is None:
@@ -59,20 +62,24 @@ def from_volume(
         volume = np.pad(
             volume,
             ((pad_z, pad_z), (pad_y, pad_y), (pad_x, pad_x)),
-            mode="constant",
+            mode='constant',
             constant_values=padding_value,
         )
-        log.info(f"Padded volume with {padding} to shape: {volume.shape}")
+        log.info(f'Padded volume with {padding} to shape: {volume.shape}')
 
     # Call skimage.measure.marching_cubes with user-provided kwargs
     verts, faces, normals, values = measure.marching_cubes(
-        volume, level=level, step_size=step_size, allow_degenerate=allow_degenerate, **kwargs
+        volume,
+        level=level,
+        step_size=step_size,
+        allow_degenerate=allow_degenerate,
+        **kwargs,
     )
 
     # Create the Trimesh object
     mesh = trimesh.Trimesh(vertices=verts, faces=faces)
 
     # Fix face orientation to ensure normals point outwards
-    trimesh.repair.fix_inversion(mesh, multibody=True) 
+    trimesh.repair.fix_inversion(mesh, multibody=True)
 
     return mesh

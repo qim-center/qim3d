@@ -1,14 +1,15 @@
 import numpy as np
-import qim3d.filters as filters
-from qim3d.utils import log
 
-__all__ = ["remove_background", "fade_mask", "overlay_rgb_images"]
+import qim3d.filters as filters
+
+__all__ = ['remove_background', 'fade_mask', 'overlay_rgb_images']
+
 
 def remove_background(
     vol: np.ndarray,
     median_filter_size: int = 2,
     min_object_radius: int = 3,
-    background: str = "dark",
+    background: str = 'dark',
     **median_kwargs,
 ) -> np.ndarray:
     """
@@ -41,6 +42,7 @@ def remove_background(
         fig2 = qim3d.viz.slices_grid(vol_filtered, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
         ![operations-remove_background_after](../../assets/screenshots/operations-remove_background_after.png)
+
     """
 
     # Create a pipeline with a median filter and a tophat filter
@@ -53,12 +55,11 @@ def remove_background(
     return pipeline(vol)
 
 
-
 def fade_mask(
     vol: np.ndarray,
     decay_rate: float = 10,
     ratio: float = 0.5,
-    geometry: str = "spherical",
+    geometry: str = 'spherical',
     invert: bool = False,
     axis: int = 0,
     **kwargs,
@@ -96,9 +97,9 @@ def fade_mask(
         ![operations-edge_fade_after](../../assets/screenshots/operations-edge_fade_after.png)
 
     """
-    if 0 > axis or axis >= vol.ndim:
+    if axis < 0 or axis >= vol.ndim:
         raise ValueError(
-            "Axis must be between 0 and the number of dimensions of the volume"
+            'Axis must be between 0 and the number of dimensions of the volume'
         )
 
     # Generate the coordinates of each point in the array
@@ -112,23 +113,23 @@ def fade_mask(
     center = np.array([(s - 1) / 2 for s in shape])
 
     # Calculate the distance of each point from the center
-    if geometry == "spherical":
+    if geometry == 'spherical':
         distance = np.linalg.norm([z - center[0], y - center[1], x - center[2]], axis=0)
-    elif geometry == "cylindrical":
+    elif geometry == 'cylindrical':
         distance_list = np.array([z - center[0], y - center[1], x - center[2]])
         # remove the axis along which the fading is not applied
         distance_list = np.delete(distance_list, axis, axis=0)
         distance = np.linalg.norm(distance_list, axis=0)
     else:
         raise ValueError("Geometry must be 'spherical' or 'cylindrical'")
-    
+
     # Compute the maximum distance from the center
     max_distance = np.linalg.norm(center)
-    
+
     # Compute ratio to make synthetic blobs exactly cylindrical
     # target_max_normalized_distance = 1.4 works well to make the blobs cylindrical
-    if "target_max_normalized_distance" in kwargs:
-        target_max_normalized_distance = kwargs["target_max_normalized_distance"]
+    if 'target_max_normalized_distance' in kwargs:
+        target_max_normalized_distance = kwargs['target_max_normalized_distance']
         ratio = np.max(distance) / (target_max_normalized_distance * max_distance)
 
     # Normalize the distances so that they go from 0 at the center to 1 at the farthest point
@@ -154,7 +155,10 @@ def fade_mask(
 
 
 def overlay_rgb_images(
-    background: np.ndarray, foreground: np.ndarray, alpha: float = 0.5, hide_black: bool = True,
+    background: np.ndarray,
+    foreground: np.ndarray,
+    alpha: float = 0.5,
+    hide_black: bool = True,
 ) -> np.ndarray:
     """
     Overlay an RGB foreground onto an RGB background using alpha blending.
@@ -176,33 +180,38 @@ def overlay_rgb_images(
         - It ensures that the background and foreground have the same first two dimensions (image size matches).
         - It can handle greyscale images, values from 0 to 1, raw values which are negative or bigger than 255.
         - It calculates the maximum projection of the foreground and blends them onto the background.
+
     """
 
-    def to_uint8(image:np.ndarray):
+    def to_uint8(image: np.ndarray):
         if np.min(image) < 0:
             image = image - np.min(image)
 
         maxim = np.max(image)
         if maxim > 255:
-            image = (image / maxim)*255
+            image = (image / maxim) * 255
         elif maxim <= 1:
-            image = image*255
+            image = image * 255
 
         if image.ndim == 2:
             image = np.repeat(image[..., None], 3, -1)
         elif image.ndim == 3:
-            image = image[..., :3] # Ignoring alpha channel
+            image = image[..., :3]  # Ignoring alpha channel
         else:
-            raise ValueError(F'Input image can not have higher dimension than 3. Yours have {image.ndim}')
-        
+            raise ValueError(
+                f'Input image can not have higher dimension than 3. Yours have {image.ndim}'
+            )
+
         return image.astype(np.uint8)
-        
+
     background = to_uint8(background)
     foreground = to_uint8(foreground)
 
     # Ensure both images have the same shape
     if background.shape != foreground.shape:
-        raise ValueError(F"Input images must have the same first two dimensions. But background is of shape {background.shape} and foreground is of shape {foreground.shape}")
+        raise ValueError(
+            f'Input images must have the same first two dimensions. But background is of shape {background.shape} and foreground is of shape {foreground.shape}'
+        )
 
     # Perform alpha blending
     foreground_max_projection = np.amax(foreground, axis=2)
@@ -215,16 +224,20 @@ def overlay_rgb_images(
         )
     # Check alpha validity
     if alpha < 0:
-        raise ValueError(F'Alpha has to be positive number. You used {alpha}')
+        raise ValueError(f'Alpha has to be positive number. You used {alpha}')
     elif alpha > 1:
         alpha = 1
-    
+
     # If the pixel is black, its alpha value is set to 0, so it has no effect on the image
     if hide_black:
-        alpha = np.full((background.shape[0], background.shape[1],1), alpha)
-        alpha[np.apply_along_axis(lambda x: (x == [0,0,0]).all(), axis = 2, arr = foreground)] = 0
+        alpha = np.full((background.shape[0], background.shape[1], 1), alpha)
+        alpha[
+            np.apply_along_axis(
+                lambda x: (x == [0, 0, 0]).all(), axis=2, arr=foreground
+            )
+        ] = 0
 
     composite = background * (1 - alpha) + foreground * alpha
-    composite = np.clip(composite, 0, 255).astype("uint8")
+    composite = np.clip(composite, 0, 255).astype('uint8')
 
-    return composite.astype("uint8")
+    return composite.astype('uint8')

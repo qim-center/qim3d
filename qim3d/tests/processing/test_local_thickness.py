@@ -1,7 +1,8 @@
-import qim3d
 import numpy as np
 from skimage.draw import disk, ellipsoid
-import pytest
+
+import qim3d
+
 
 def test_local_thickness_2d():
     # Create a binary 2D image
@@ -21,12 +22,17 @@ def test_local_thickness_2d():
 
     assert np.allclose(lt, lt_manual, rtol=1e-1)
 
+
 def test_local_thickness_3d():
-    disk3d = ellipsoid(15,15,15)
+    disk3d = ellipsoid(15, 15, 15)
 
     # Remove weird border pixels
     border_thickness = 2
-    disk3d = disk3d[border_thickness:-border_thickness, border_thickness:-border_thickness, border_thickness:-border_thickness]
+    disk3d = disk3d[
+        border_thickness:-border_thickness,
+        border_thickness:-border_thickness,
+        border_thickness:-border_thickness,
+    ]
     disk3d = np.pad(disk3d, border_thickness, mode='constant')
 
     lt = qim3d.processing.local_thickness(disk3d)
