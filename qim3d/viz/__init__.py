@@ -4,13 +4,11 @@ from ._data_exploration import (
     chunks,
     fade_mask,
     histogram,
+    line_profile,
     slicer,
     slicer_orthogonal,
     slices_grid,
-    chunks,
-    histogram,
-    line_profile,
-    threshold
+    threshold,
 )
 from ._detection import circles
 from ._k3d import mesh, volumetric
