@@ -6,6 +6,7 @@ from qim3d.utils import log
 
 
 class UNet(nn.Module):
+
     """
     2D UNet model for QIM imaging.
 
@@ -22,20 +23,21 @@ class UNet(nn.Module):
 
     Raises:
         ValueError: If `size` is not one of 'small', 'medium', or 'large'.
+
     """
 
     def __init__(
         self,
-        size="medium",
+        size='medium',
         dropout=0,
         kernel_size=3,
         up_kernel_size=3,
-        activation="PReLU",
+        activation='PReLU',
         bias=True,
-        adn_order="NDA",
+        adn_order='NDA',
     ):
         super().__init__()
-        if size not in ["small", "medium", "large"]:
+        if size not in ['small', 'medium', 'large']:
             raise ValueError(
                 f"Invalid model size: {size}. Size must be one of the following: 'small', 'medium', 'large'."
             )
@@ -53,11 +55,11 @@ class UNet(nn.Module):
     def _model_choice(self):
         from monai.networks.nets import UNet as monai_UNet
 
-        if self.size == "small":
+        if self.size == 'small':
             self.channels = (64, 128, 256)
-        elif self.size == "medium":
+        elif self.size == 'medium':
             self.channels = (64, 128, 256, 512, 1024)
-        elif self.size == "large":
+        elif self.size == 'large':
             self.channels = (64, 128, 256, 512, 1024, 2048)
 
         model = monai_UNet(
@@ -81,6 +83,7 @@ class UNet(nn.Module):
 
 
 class Hyperparameters:
+
     """
     Hyperparameters for QIM segmentation.
 
@@ -115,6 +118,7 @@ class Hyperparameters:
         n_epochs  = params_dict['n_epochs']
 
         ```
+
     """
 
     def __init__(
@@ -122,26 +126,25 @@ class Hyperparameters:
         model: nn.Module,
         n_epochs: int = 10,
         learning_rate: float = 1e-3,
-        optimizer: str = "Adam",
+        optimizer: str = 'Adam',
         momentum: float = 0,
         weight_decay: float = 0,
-        loss_function: str = "Focal",
+        loss_function: str = 'Focal',
     ):
-
         # TODO: implement custom loss_functions? then add a check to see if loss works for segmentation.
-        if loss_function not in ["BCE", "Dice", "Focal", "DiceCE"]:
+        if loss_function not in ['BCE', 'Dice', 'Focal', 'DiceCE']:
             raise ValueError(
-                f"Invalid loss function: {loss_function}. Loss criterion must "
+                f'Invalid loss function: {loss_function}. Loss criterion must '
                 "be one of the following: 'BCE','Dice','Focal','DiceCE'."
             )
         # TODO: implement custom optimizer? and add check to see if valid.
-        if optimizer not in ["Adam", "SGD", "RMSprop"]:
+        if optimizer not in ['Adam', 'SGD', 'RMSprop']:
             raise ValueError(
-                f"Invalid optimizer: {optimizer}. Optimizer must "
+                f'Invalid optimizer: {optimizer}. Optimizer must '
                 "be one of the following: 'Adam', 'SGD', 'RMSprop'."
             )
 
-        if (momentum != 0) and optimizer == "Adam":
+        if (momentum != 0) and optimizer == 'Adam':
             log.info(
                 "Momentum isn't an input in the 'Adam' optimizer. "
                 "Change optimizer to 'SGD' or 'RMSprop' to use momentum."
@@ -176,38 +179,39 @@ class Hyperparameters:
         momentum: float,
         loss_function: str,
     ):
-
         optim = self._optimizer(model, optimizer, learning_rate, weight_decay, momentum)
         criterion = self._loss_functions(loss_function)
 
         hyper_dict = {
-            "optimizer": optim,
-            "criterion": criterion,
-            "n_epochs": n_epochs,
+            'optimizer': optim,
+            'criterion': criterion,
+            'n_epochs': n_epochs,
         }
         return hyper_dict
 
     # selecting the optimizer
-    def _optimizer(self, 
-        model: nn.Module, 
-        optimizer: str, 
-        learning_rate: float, 
-        weight_decay: float, 
-        momentum: float):
-        from torch.optim import Adam, SGD, RMSprop
+    def _optimizer(
+        self,
+        model: nn.Module,
+        optimizer: str,
+        learning_rate: float,
+        weight_decay: float,
+        momentum: float,
+    ):
+        from torch.optim import SGD, Adam, RMSprop
 
-        if optimizer == "Adam":
+        if optimizer == 'Adam':
             optim = Adam(
                 model.parameters(), lr=learning_rate, weight_decay=weight_decay
             )
-        elif optimizer == "SGD":
+        elif optimizer == 'SGD':
             optim = SGD(
                 model.parameters(),
                 lr=learning_rate,
                 momentum=momentum,
                 weight_decay=weight_decay,
             )
-        elif optimizer == "RMSprop":
+        elif optimizer == 'RMSprop':
             optim = RMSprop(
                 model.parameters(),
                 lr=learning_rate,
@@ -218,15 +222,15 @@ class Hyperparameters:
 
     # selecting the loss function
     def _loss_functions(self, loss_function: str):
-        from monai.losses import FocalLoss, DiceLoss, DiceCELoss
+        from monai.losses import DiceCELoss, DiceLoss, FocalLoss
         from torch.nn import BCEWithLogitsLoss
 
-        if loss_function == "BCE":
-            criterion = BCEWithLogitsLoss(reduction="mean")
-        elif loss_function == "Dice":
-            criterion = DiceLoss(sigmoid=True, reduction="mean")
-        elif loss_function == "Focal":
-            criterion = FocalLoss(reduction="mean")
-        elif loss_function == "DiceCE":
-            criterion = DiceCELoss(sigmoid=True, reduction="mean")
+        if loss_function == 'BCE':
+            criterion = BCEWithLogitsLoss(reduction='mean')
+        elif loss_function == 'Dice':
+            criterion = DiceLoss(sigmoid=True, reduction='mean')
+        elif loss_function == 'Focal':
+            criterion = FocalLoss(reduction='mean')
+        elif loss_function == 'DiceCE':
+            criterion = DiceCELoss(sigmoid=True, reduction='mean')
         return criterion

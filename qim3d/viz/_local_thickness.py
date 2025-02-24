@@ -1,8 +1,11 @@
-from qim3d.utils._logger import log
-import numpy as np
-import matplotlib.pyplot as plt
-from typing import Optional, Union, Tuple
+from typing import Optional, Tuple, Union
+
 import ipywidgets as widgets
+import matplotlib.pyplot as plt
+import numpy as np
+
+from qim3d.utils._logger import log
+
 
 def local_thickness(
     image: np.ndarray,
@@ -13,7 +16,8 @@ def local_thickness(
     show: bool = False,
     figsize: Tuple[int, int] = (15, 5),
 ) -> Union[plt.Figure, widgets.interactive]:
-    """Visualizes the local thickness of a 2D or 3D image.
+    """
+    Visualizes the local thickness of a 2D or 3D image.
 
     Args:
         image (np.ndarray): 2D or 3D NumPy array representing the image/volume.
@@ -48,7 +52,7 @@ def local_thickness(
         ```
         ![local thickness 3d](../../assets/screenshots/local_thickness_3d.gif)
 
-        
+
     """
 
     def _local_thickness(image, image_lt, show, figsize, axis=None, slice_idx=None):
@@ -56,24 +60,24 @@ def local_thickness(
             image = image.take(slice_idx, axis=axis)
             image_lt = image_lt.take(slice_idx, axis=axis)
 
-        fig, axs = plt.subplots(1, 3, figsize=figsize, layout="constrained")
+        fig, axs = plt.subplots(1, 3, figsize=figsize, layout='constrained')
 
-        axs[0].imshow(image, cmap="gray")
-        axs[0].set_title("Original image")
-        axs[0].axis("off")
+        axs[0].imshow(image, cmap='gray')
+        axs[0].set_title('Original image')
+        axs[0].axis('off')
 
-        axs[1].imshow(image_lt, cmap="viridis")
-        axs[1].set_title("Local thickness")
-        axs[1].axis("off")
+        axs[1].imshow(image_lt, cmap='viridis')
+        axs[1].set_title('Local thickness')
+        axs[1].axis('off')
 
         plt.colorbar(
-            axs[1].imshow(image_lt, cmap="viridis"), ax=axs[1], orientation="vertical"
+            axs[1].imshow(image_lt, cmap='viridis'), ax=axs[1], orientation='vertical'
         )
 
-        axs[2].hist(image_lt[image_lt > 0].ravel(), bins=32, edgecolor="black")
-        axs[2].set_title("Local thickness histogram")
-        axs[2].set_xlabel("Local thickness")
-        axs[2].set_ylabel("Count")
+        axs[2].hist(image_lt[image_lt > 0].ravel(), bins=32, edgecolor='black')
+        axs[2].set_title('Local thickness histogram')
+        axs[2].set_xlabel('Local thickness')
+        axs[2].set_ylabel('Count')
 
         if show:
             plt.show()
@@ -87,7 +91,7 @@ def local_thickness(
         if max_projection:
             if slice_idx is not None:
                 log.warning(
-                    "slice_idx is not used for max_projection. It will be ignored."
+                    'slice_idx is not used for max_projection. It will be ignored.'
                 )
             image = image.max(axis=axis)
             image_lt = image_lt.max(axis=axis)
@@ -98,7 +102,7 @@ def local_thickness(
             elif isinstance(slice_idx, float):
                 if slice_idx < 0 or slice_idx > 1:
                     raise ValueError(
-                        "Values of slice_idx of float type must be between 0 and 1."
+                        'Values of slice_idx of float type must be between 0 and 1.'
                     )
                 slice_idx = int(slice_idx * image.shape[0]) - 1
             slide_idx_slider = widgets.IntSlider(
@@ -106,8 +110,8 @@ def local_thickness(
                 max=image.shape[axis] - 1,
                 step=1,
                 value=slice_idx,
-                description="Slice index",
-                layout=widgets.Layout(width="450px"),
+                description='Slice index',
+                layout=widgets.Layout(width='450px'),
             )
             widget_obj = widgets.interactive(
                 _local_thickness,
@@ -118,15 +122,15 @@ def local_thickness(
                 axis=widgets.fixed(axis),
                 slice_idx=slide_idx_slider,
             )
-            widget_obj.layout = widgets.Layout(align_items="center")
+            widget_obj.layout = widgets.Layout(align_items='center')
             if show:
                 display(widget_obj)
             return widget_obj
     else:
         if max_projection:
             log.warning(
-                "max_projection is only used for 3D images. It will be ignored."
+                'max_projection is only used for 3D images. It will be ignored.'
             )
         if slice_idx is not None:
-            log.warning("slice_idx is only used for 3D images. It will be ignored.")
+            log.warning('slice_idx is only used for 3D images. It will be ignored.')
         return _local_thickness(image, image_lt, show, figsize)

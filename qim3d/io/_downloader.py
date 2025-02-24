@@ -1,23 +1,24 @@
-"Manages downloads and access to data"
+"""Manages downloads and access to data"""
 
 import os
 import urllib.request
-
 from urllib.parse import quote
+
+import outputformat as ouf
 from tqdm import tqdm
-from pathlib import Path
 
 from qim3d.io import load
 from qim3d.utils import log
-import outputformat as ouf
 
 
 class Downloader:
-    """Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
+
+    """
+    Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
 
     Attributes:
         folder_name (str or os.PathLike): Folder class with the name of the folder in <https://data.qim.dk/>
-    
+
     Methods:
         list_files(): Prints the downloadable files from the QIM data repository.
 
@@ -51,25 +52,26 @@ class Downloader:
     Example:
         ```python
         import qim3d
-        
+
         downloader = qim3d.io.Downloader()
-        downloader.list_files()        
+        downloader.list_files()
         data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
 
         qim3d.viz.slicer_orthogonal(data, color_map="magma")
         ```
         ![cowry shell](../../assets/screenshots/cowry_shell_slicer.gif)
+
     """
 
     def __init__(self):
         folders = _extract_names()
         for idx, folder in enumerate(folders):
-            exec(f"self.{folder} = self._Myfolder(folder)")
+            exec(f'self.{folder} = self._Myfolder(folder)')
 
     def list_files(self):
         """Generate and print formatted folder, file, and size information."""
 
-        url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
+        url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
 
         folders = _extract_names()
 
@@ -78,17 +80,20 @@ class Downloader:
             files = _extract_names(folder)
 
             for file in files:
-                url = os.path.join(url_dl, folder, file).replace("\\", "/")
+                url = os.path.join(url_dl, folder, file).replace('\\', '/')
                 file_size = _get_file_size(url)
-                formatted_file = f"{file[:-len(file.split('.')[-1])-1].replace('%20', '_')}"
+                formatted_file = (
+                    f"{file[:-len(file.split('.')[-1])-1].replace('%20', '_')}"
+                )
                 formatted_size = _format_file_size(file_size)
                 path_string = f'{folder}.{formatted_file}'
 
                 log.info(f'{path_string:<50}({formatted_size})')
-            
-        
+
     class _Myfolder:
-        """Class for extracting the files from each folder in the Downloader class.
+
+        """
+        Class for extracting the files from each folder in the Downloader class.
 
         Args:
             folder(str): name of the folder of interest in the QIM data repository.
@@ -99,6 +104,7 @@ class Downloader:
             [file_name_2](load_file,optional): Function to download file number 2 in the given folder.
             ...
             [file_name_n](load_file,optional): Function to download file number n in the given folder.
+
         """
 
         def __init__(self, folder: str):
@@ -107,14 +113,15 @@ class Downloader:
             for idx, file in enumerate(files):
                 # Changes names to usable function name.
                 file_name = file
-                if ("%20" in file) or ("-" in file):
-                    file_name = file_name.replace("%20", "_")
-                    file_name = file_name.replace("-", "_")
+                if ('%20' in file) or ('-' in file):
+                    file_name = file_name.replace('%20', '_')
+                    file_name = file_name.replace('-', '_')
 
                 setattr(self, f'{file_name.split(".")[0]}', self._make_fn(folder, file))
 
         def _make_fn(self, folder: str, file: str):
-            """Private method that returns a function. The function downloads the chosen file from the folder.
+            """
+            Private method that returns a function. The function downloads the chosen file from the folder.
 
             Args:
                 folder(str): Folder where the file is located.
@@ -122,23 +129,26 @@ class Downloader:
 
             Returns:
                     function: the function used to download the file.
+
             """
 
-            url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
+            url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
 
             def _download(load_file: bool = False, virtual_stack: bool = True):
-                """Downloads the file and optionally also loads it.
+                """
+                Downloads the file and optionally also loads it.
 
                 Args:
                     load_file(bool,optional): Whether to simply download or also load the file.
 
                 Returns:
                     virtual_stack: The loaded image.
+
                 """
 
                 download_file(url_dl, folder, file)
                 if load_file == True:
-                    log.info(f"\nLoading {file}")
+                    log.info(f'\nLoading {file}')
                     file_path = os.path.join(folder, file)
 
                     return load(path=file_path, virtual_stack=virtual_stack)
@@ -159,38 +169,40 @@ def _get_file_size(url: str):
     Helper function for the ´download_file()´ function. Finds the size of the file.
     """
 
-    return int(urllib.request.urlopen(url).info().get("Content-Length", -1))
+    return int(urllib.request.urlopen(url).info().get('Content-Length', -1))
 
 
 def download_file(path: str, name: str, file: str):
-    """Downloads the file from path / name / file.
+    """
+    Downloads the file from path / name / file.
 
     Args:
         path(str): path to the folders available.
         name(str): name of the folder of interest.
         file(str): name of the file to be downloaded.
+
     """
 
     if not os.path.exists(name):
         os.makedirs(name)
 
-    url = os.path.join(path, name, file).replace("\\", "/")  # if user is on windows
+    url = os.path.join(path, name, file).replace('\\', '/')  # if user is on windows
     file_path = os.path.join(name, file)
 
     if os.path.exists(file_path):
-        log.warning(f"File already downloaded:\n{os.path.abspath(file_path)}")
+        log.warning(f'File already downloaded:\n{os.path.abspath(file_path)}')
         return
     else:
         log.info(
-            f"Downloading {ouf.b(file, return_str=True)}\n{os.path.join(path,name,file)}"
+            f'Downloading {ouf.b(file, return_str=True)}\n{os.path.join(path,name,file)}'
         )
 
-    if " " in url:
-        url = quote(url, safe=":/")
+    if ' ' in url:
+        url = quote(url, safe=':/')
 
     with tqdm(
         total=_get_file_size(url),
-        unit="B",
+        unit='B',
         unit_scale=True,
         unit_divisor=1024,
         ncols=80,
@@ -203,28 +215,31 @@ def download_file(path: str, name: str, file: str):
 
 
 def _extract_html(url: str):
-    """Extracts the html content of a webpage in "utf-8"
+    """
+    Extracts the html content of a webpage in "utf-8"
 
     Args:
         url(str): url to the location where all the data is stored.
 
     Returns:
         html_content(str): decoded html.
+
     """
 
     try:
         with urllib.request.urlopen(url) as response:
             html_content = response.read().decode(
-                "utf-8"
+                'utf-8'
             )  # Assuming the content is in UTF-8 encoding
     except urllib.error.URLError as e:
-        log.warning(f"Failed to retrieve data from {url}. Error: {e}")
+        log.warning(f'Failed to retrieve data from {url}. Error: {e}')
 
     return html_content
 
 
 def _extract_names(name: str = None):
-    """Extracts the names of the folders and files.
+    """
+    Extracts the names of the folders and files.
 
     Finds the names of either the folders if no name is given,
     or all the names of all files in the given folder.
@@ -235,31 +250,33 @@ def _extract_names(name: str = None):
     Returns:
         list: If name is None, returns a list of all folders available.
               If name is not None, returns a list of all files available in the given 'name' folder.
+
     """
 
-    url = "https://archive.compute.dtu.dk/files/public/projects/viscomp_data_repository"
+    url = 'https://archive.compute.dtu.dk/files/public/projects/viscomp_data_repository'
     if name:
-        datapath = os.path.join(url, name).replace("\\", "/")
+        datapath = os.path.join(url, name).replace('\\', '/')
         html_content = _extract_html(datapath)
 
         data_split = html_content.split(
-            "files/public/projects/viscomp_data_repository/"
+            'files/public/projects/viscomp_data_repository/'
         )[3:]
         data_files = [
-            element.split(" ")[0][(len(name) + 1) : -3] for element in data_split
+            element.split(' ')[0][(len(name) + 1) : -3] for element in data_split
         ]
 
         return data_files
     else:
         html_content = _extract_html(url)
         split = html_content.split('"icon-folder-open">')[2:]
-        folders = [element.split(" ")[0][4:-4] for element in split]
+        folders = [element.split(' ')[0][4:-4] for element in split]
 
         return folders
 
+
 def _format_file_size(size_in_bytes):
     # Define size units
-    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
     size = float(size_in_bytes)
     unit_index = 0
 
@@ -269,4 +286,4 @@ def _format_file_size(size_in_bytes):
         unit_index += 1
 
     # Format the size with 1 decimal place
-    return f"{size:.2f}{units[unit_index]}"
+    return f'{size:.2f}{units[unit_index]}'

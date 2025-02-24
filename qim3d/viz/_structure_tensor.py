@@ -1,15 +1,14 @@
-import numpy as np
-from typing import Optional, Union, Tuple
-import matplotlib.pyplot as plt
-from matplotlib.gridspec import GridSpec
-import ipywidgets as widgets
 import logging
-from qim3d.utils._logger import log
+from typing import Tuple, Union
 
+import ipywidgets as widgets
+import matplotlib.pyplot as plt
+import numpy as np
+
+from qim3d.utils._logger import log
 
 previous_logging_level = logging.getLogger().getEffectiveLevel()
 logging.getLogger().setLevel(logging.CRITICAL)
-import structure_tensor as st
 
 logging.getLogger().setLevel(previous_logging_level)
 
@@ -18,10 +17,10 @@ def vectors(
     volume: np.ndarray,
     vec: np.ndarray,
     axis: int = 0,
-    volume_cmap:str = 'grey',
-    vmin: float|None = None,
-    vmax: float|None = None,
-    slice_idx: Union[int, float]|None = None,
+    volume_cmap: str = 'grey',
+    vmin: float | None = None,
+    vmax: float | None = None,
+    slice_idx: Union[int, float] | None = None,
     grid_size: int = 10,
     interactive: bool = True,
     figsize: Tuple[int, int] = (10, 5),
@@ -94,10 +93,9 @@ def vectors(
     if grid_size < min_grid_size or grid_size > max_grid_size:
         # Adjust grid size as little as possible to be within the limits
         grid_size = min(max(min_grid_size, grid_size), max_grid_size)
-        log.warning(f"Adjusting grid size to {grid_size} as it is out of bounds.")
+        log.warning(f'Adjusting grid size to {grid_size} as it is out of bounds.')
 
     def _structure_tensor(volume, vec, axis, slice_idx, grid_size, figsize, show):
-
         # Choose the appropriate slice based on the specified dimension
         if axis == 0:
             data_slice = volume[slice_idx, :, :]
@@ -118,10 +116,10 @@ def vectors(
             vectors_slice_z = vec[0, :, :, slice_idx]
 
         else:
-            raise ValueError("Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.")
+            raise ValueError('Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.')
 
         # Create three subplots
-        fig, ax = plt.subplots(1, 3, figsize=figsize, layout="constrained")
+        fig, ax = plt.subplots(1, 3, figsize=figsize, layout='constrained')
 
         blend_hue_saturation = (
             lambda hue, sat: hue * (1 - sat) + 0.5 * sat
@@ -164,7 +162,7 @@ def vectors(
             vectors_slice_x[g, g],
             vectors_slice_y[g, g],
             color=rgba_quiver_flat,
-            angles="xy",
+            angles='xy',
         )
         ax[0].quiver(
             ymesh[g, g],
@@ -172,14 +170,14 @@ def vectors(
             -vectors_slice_x[g, g],
             -vectors_slice_y[g, g],
             color=rgba_quiver_flat,
-            angles="xy",
+            angles='xy',
         )
 
-        ax[0].imshow(data_slice, cmap = volume_cmap, vmin = vmin, vmax = vmax)
+        ax[0].imshow(data_slice, cmap=volume_cmap, vmin=vmin, vmax=vmax)
         ax[0].set_title(
-            f"Orientation vectors (slice {slice_idx})"
+            f'Orientation vectors (slice {slice_idx})'
             if not interactive
-            else "Orientation vectors"
+            else 'Orientation vectors'
         )
         ax[0].set_axis_off()
 
@@ -218,14 +216,14 @@ def vectors(
         )
 
         ax[1].bar(bin_centers, distribution, width=np.pi / nbins, color=rgba_bin)
-        ax[1].set_xlabel("Angle [radians]")
+        ax[1].set_xlabel('Angle [radians]')
         ax[1].set_xlim([0, np.pi])
         ax[1].set_aspect(np.pi / ax[1].get_ylim()[1])
         ax[1].set_xticks([0, np.pi / 2, np.pi])
-        ax[1].set_xticklabels(["0", "$\\frac{\\pi}{2}$", "$\\pi$"])
+        ax[1].set_xticklabels(['0', '$\\frac{\\pi}{2}$', '$\\pi$'])
         ax[1].set_yticks([])
-        ax[1].set_ylabel("Frequency")
-        ax[1].set_title(f"Histogram over orientation angles")
+        ax[1].set_ylabel('Frequency')
+        ax[1].set_title('Histogram over orientation angles')
 
         # ----- Subplot 3: Image slice colored according to orientation ----- #
         # Calculate z-component (saturation)
@@ -240,13 +238,13 @@ def vectors(
         # Grayscale image slice blended with orientation colors
         data_slice_orientation_colored = (
             blend_slice_colors(plt.cm.gray(data_slice), rgba) * 255
-        ).astype("uint8")
+        ).astype('uint8')
 
         ax[2].imshow(data_slice_orientation_colored)
         ax[2].set_title(
-            f"Colored orientations (slice {slice_idx})"
+            f'Colored orientations (slice {slice_idx})'
             if not interactive
-            else "Colored orientations"
+            else 'Colored orientations'
         )
         ax[2].set_axis_off()
 
@@ -260,7 +258,7 @@ def vectors(
     if vec.ndim == 5:
         vec = vec[0, ...]
         log.warning(
-            "Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used."
+            'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         )
 
     if slice_idx is None:
@@ -269,7 +267,7 @@ def vectors(
     elif isinstance(slice_idx, float):
         if slice_idx < 0 or slice_idx > 1:
             raise ValueError(
-                "Values of slice_idx of float type must be between 0 and 1."
+                'Values of slice_idx of float type must be between 0 and 1.'
             )
         slice_idx = int(slice_idx * volume.shape[0]) - 1
 
@@ -279,8 +277,8 @@ def vectors(
             max=volume.shape[axis] - 1,
             step=1,
             value=slice_idx,
-            description="Slice index",
-            layout=widgets.Layout(width="450px"),
+            description='Slice index',
+            layout=widgets.Layout(width='450px'),
         )
 
         grid_size_slider = widgets.IntSlider(
@@ -288,8 +286,8 @@ def vectors(
             max=max_grid_size,
             step=1,
             value=grid_size,
-            description="Grid size",
-            layout=widgets.Layout(width="450px"),
+            description='Grid size',
+            layout=widgets.Layout(width='450px'),
         )
 
         widget_obj = widgets.interactive(
@@ -305,7 +303,7 @@ def vectors(
         # Arrange sliders horizontally
         sliders_box = widgets.HBox([slide_idx_slider, grid_size_slider])
         widget_obj = widgets.VBox([sliders_box, widget_obj.children[-1]])
-        widget_obj.layout.align_items = "center"
+        widget_obj.layout.align_items = 'center'
 
         if show:
             display(widget_obj)
