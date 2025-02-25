@@ -6,9 +6,7 @@ from qim3d.utils import log
 
 class UNet(nn.Module):
     """
-    3D UNet model for QIM imaging.
-
-    This class represents a 3D UNet model designed for imaging segmentation tasks.
+    3D UNet model designed for imaging segmentation tasks.
 
     Args:
         size ('small' or 'medium' or 'large', optional): Size of the UNet model. Must be one of 'small', 'medium', or 'large'. Defaults to 'medium'.
@@ -21,6 +19,13 @@ class UNet(nn.Module):
 
     Raises:
         ValueError: If `size` is not one of 'small', 'medium', or 'large'.
+    
+    Example:
+        ```python
+        import qim3d
+
+        model = qim3d.ml.models.UNet(size = 'small')
+        ```
     """
 
     def __init__(
