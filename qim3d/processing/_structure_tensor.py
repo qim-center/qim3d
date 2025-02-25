@@ -1,10 +1,11 @@
 """Wrapper for the structure tensor function from the structure_tensor package"""
 
-from typing import Tuple
 import logging
+from typing import Tuple
+
 import numpy as np
-from qim3d.utils._logger import log
 from IPython.display import display
+
 
 def structure_tensor(
     vol: np.ndarray,
@@ -13,9 +14,10 @@ def structure_tensor(
     base_noise: bool = True,
     full: bool = False,
     visualize: bool = False,
-    **viz_kwargs
+    **viz_kwargs,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """Wrapper for the 3D structure tensor implementation from the [structure_tensor package](https://github.com/Skielex/structure-tensor/).
+    """
+    Wrapper for the 3D structure tensor implementation from the [structure_tensor package](https://github.com/Skielex/structure-tensor/).
 
 
     The structure tensor algorithm is a method for analyzing the orientation of fiber-like structures in 3D images.
@@ -83,7 +85,7 @@ def structure_tensor(
     logging.getLogger().setLevel(previous_logging_level)
 
     if vol.ndim != 3:
-        raise ValueError("The input volume must be 3D")
+        raise ValueError('The input volume must be 3D')
 
     # Ensure volume is a float
     if vol.dtype != np.float32 and vol.dtype != np.float64:

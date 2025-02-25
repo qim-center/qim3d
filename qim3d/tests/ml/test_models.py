@@ -1,7 +1,7 @@
-import qim3d
 import pytest
 from torch import ones
 
+import qim3d
 from qim3d.tests import temp_data
 
 
@@ -9,10 +9,10 @@ from qim3d.tests import temp_data
 def test_model_summary():
     n = 10
     img_shape = (32, 32)
-    folder = "folder_data"
+    folder = 'folder_data'
     temp_data(folder, img_shape=img_shape, n=n)
 
-    unet = qim3d.ml.models.UNet(size="small")
+    unet = qim3d.ml.models.UNet(size='small')
     augment = qim3d.ml.Augmentation(transform_train=None)
     train_set, val_set, test_set = qim3d.ml.prepare_datasets(
         folder, 1 / 3, unet, augment
@@ -30,10 +30,10 @@ def test_model_summary():
 
 # unit test for inference()
 def test_inference():
-    folder = "folder_data"
+    folder = 'folder_data'
     temp_data(folder)
 
-    unet = qim3d.ml.models.UNet(size="small")
+    unet = qim3d.ml.models.UNet(size='small')
     augment = qim3d.ml.Augmentation(transform_train=None)
     train_set, _, _ = qim3d.ml.prepare_datasets(folder, 1 / 3, unet, augment)
 
@@ -46,13 +46,13 @@ def test_inference():
 
 # unit test for tuple ValueError().
 def test_inference_tuple():
-    folder = "folder_data"
+    folder = 'folder_data'
     temp_data(folder)
 
-    unet = qim3d.ml.models.UNet(size="small")
+    unet = qim3d.ml.models.UNet(size='small')
 
     data = [1, 2, 3]
-    with pytest.raises(ValueError, match="Data items must be tuples"):
+    with pytest.raises(ValueError, match='Data items must be tuples'):
         qim3d.ml.inference(data, unet)
 
     temp_data(folder, remove=True)
@@ -60,13 +60,13 @@ def test_inference_tuple():
 
 # unit test for tensor ValueError().
 def test_inference_tensor():
-    folder = "folder_data"
+    folder = 'folder_data'
     temp_data(folder)
 
-    unet = qim3d.ml.models.UNet(size="small")
+    unet = qim3d.ml.models.UNet(size='small')
 
     data = [(1, 2)]
-    with pytest.raises(ValueError, match="Data items must consist of tensors"):
+    with pytest.raises(ValueError, match='Data items must consist of tensors'):
         qim3d.ml.inference(data, unet)
 
     temp_data(folder, remove=True)
@@ -74,14 +74,14 @@ def test_inference_tensor():
 
 # unit test for dimension ValueError().
 def test_inference_dim():
-    folder = "folder_data"
+    folder = 'folder_data'
     temp_data(folder)
 
-    unet = qim3d.ml.models.UNet(size="small")
+    unet = qim3d.ml.models.UNet(size='small')
 
     data = [(ones(1), ones(1))]
     # need the r"" for special characters
-    with pytest.raises(ValueError, match=r"Input image must be \(C,H,W\) format"):
+    with pytest.raises(ValueError, match=r'Input image must be \(C,H,W\) format'):
         qim3d.ml.inference(data, unet)
 
     temp_data(folder, remove=True)
@@ -89,12 +89,12 @@ def test_inference_dim():
 
 # unit test for train_model()
 def test_train_model():
-    folder = "folder_data"
+    folder = 'folder_data'
     temp_data(folder)
 
     n_epochs = 1
 
-    unet = qim3d.ml.models.UNet(size="small")
+    unet = qim3d.ml.models.UNet(size='small')
     augment = qim3d.ml.Augmentation(transform_train=None)
     hyperparams = qim3d.ml.Hyperparameters(unet, n_epochs=n_epochs)
     train_set, val_set, test_set = qim3d.ml.prepare_datasets(
@@ -108,6 +108,6 @@ def test_train_model():
         unet, hyperparams, train_loader, val_loader, plot=False, return_loss=True
     )
 
-    assert len(train_loss["loss"]) == n_epochs
+    assert len(train_loss['loss']) == n_epochs
 
     temp_data(folder, remove=True)

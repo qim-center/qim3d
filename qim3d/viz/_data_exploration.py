@@ -1,25 +1,33 @@
-""" 
+"""
 Provides a collection of visualization functions.
 """
 
 import math
 import warnings
-
-from typing import List, Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import dask.array as da
 import ipywidgets as widgets
+import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
-import matplotlib
-from IPython.display import SVG, display
-import matplotlib
 import numpy as np
-import zarr
-from qim3d.utils._logger import log
 import seaborn as sns
+import skimage.measure
+from skimage.filters import (
+    threshold_otsu,
+    threshold_isodata,
+    threshold_li,
+    threshold_mean,
+    threshold_minimum,
+    threshold_triangle,
+    threshold_yen,
+)
+
+from IPython.display import clear_output, display
 
 import qim3d
+from qim3d.utils._logger import log
 
 
 def slices_grid(
@@ -41,7 +49,8 @@ def slices_grid(
     color_bar_style: str = "small",
     **matplotlib_imshow_kwargs,
 ) -> matplotlib.figure.Figure:
-    """Displays one or several slices from a 3d volume.
+    """
+    Displays one or several slices from a 3d volume.
 
     By default if `slice_positions` is None, slices_grid plots `num_slices` linearly spaced slices.
     If `slice_positions` is given as a string or integer, slices_grid will plot an overview with `num_slices` figures around that position.
@@ -82,6 +91,7 @@ def slices_grid(
         qim3d.viz.slices_grid(vol, num_slices=15)
         ```
         ![Grid of slices](../../assets/screenshots/viz-slices.png)
+
     """
     if image_size:
         image_height = image_size
@@ -330,7 +340,8 @@ def slicer(
     color_bar: str = None,
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
-    """Interactive widget for visualizing slices of a 3D volume.
+    """
+    Interactive widget for visualizing slices of a 3D volume.
 
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
@@ -355,34 +366,35 @@ def slicer(
         qim3d.viz.slicer(vol)
         ```
         ![viz slicer](../../assets/screenshots/viz-slicer.gif)
+
     """
 
     if image_size:
         image_height = image_size
         image_width = image_size
 
-    color_bar_options = [None, 'slices', 'volume']
+    color_bar_options = [None, "slices", "volume"]
     if color_bar not in color_bar_options:
         raise ValueError(
             f"Unrecognized value '{color_bar}' for parameter color_bar. "
             f"Expected one of {color_bar_options}."
         )
     show_color_bar = color_bar is not None
-    if color_bar == 'slices':
+    if color_bar == "slices":
         # Precompute the minimum and maximum along each slice for faster widget sliding.
         non_slice_axes = tuple(i for i in range(volume.ndim) if i != slice_axis)
         slice_mins = np.min(volume, axis=non_slice_axes)
         slice_maxs = np.max(volume, axis=non_slice_axes)
-    
+
     # Create the interactive widget
     def _slicer(slice_positions):
-        if color_bar == 'slices':
+        if color_bar == "slices":
             dynamic_min = slice_mins[slice_positions]
             dynamic_max = slice_maxs[slice_positions]
         else:
             dynamic_min = value_min
             dynamic_max = value_max
-        
+
         fig = slices_grid(
             volume,
             slice_axis=slice_axis,
@@ -424,8 +436,9 @@ def slicer_orthogonal(
     display_positions: bool = False,
     interpolation: Optional[str] = None,
     image_size: int = None,
-)-> widgets.interactive:
-    """Interactive widget for visualizing orthogonal slices of a 3D volume.
+) -> widgets.interactive:
+    """
+    Interactive widget for visualizing orthogonal slices of a 3D volume.
 
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
@@ -448,6 +461,7 @@ def slicer_orthogonal(
         qim3d.viz.slicer_orthogonal(vol, color_map="magma")
         ```
         ![viz slicer_orthogonal](../../assets/screenshots/viz-orthogonal.gif)
+
     """
 
     if image_size:
@@ -483,8 +497,9 @@ def fade_mask(
     color_map: str = "magma",
     value_min: float = None,
     value_max: float = None,
-)-> widgets.interactive:
-    """Interactive widget for visualizing the effect of edge fading on a 3D volume.
+) -> widgets.interactive:
+    """
+    Interactive widget for visualizing the effect of edge fading on a 3D volume.
 
     This can be used to select the best parameters before applying the mask.
 
@@ -497,7 +512,7 @@ def fade_mask(
 
     Returns:
         slicer_obj (widgets.HBox): The interactive widget for visualizing fade mask on slices of a 3D volume.
-    
+
     Example:
         ```python
         import qim3d
@@ -605,7 +620,8 @@ def fade_mask(
 
     # Create the Checkbox widget
     invert_checkbox = widgets.Checkbox(
-        value=False, description="Invert"  # default value
+        value=False,
+        description="Invert",  # default value
     )
 
     slicer_obj = widgets.interactive(
@@ -621,7 +637,7 @@ def fade_mask(
     return slicer_obj
 
 
-def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
+def chunks(zarr_path: str, **kwargs) -> widgets.interactive:
     """
     Function to visualize chunks of a Zarr dataset using the specified visualization method.
 
@@ -644,6 +660,7 @@ def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
         qim3d.viz.chunks("Escargot.zarr")
         ```
         ![chunks-visualization](../../assets/screenshots/chunks_visualization.gif)
+
     """
 
     # Load the Zarr dataset
@@ -794,7 +811,6 @@ def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
 
     # Function to update the x, y, z dropdowns when the scale changes and reset the coordinates to 0
     def update_coordinate_dropdowns(scale):
-
         disable_observers()  # to avoid multiple reload of the visualization when updating the dropdowns
 
         multiscale_shape = zarr_data[scale].shape
@@ -873,75 +889,64 @@ def chunks(zarr_path: str, **kwargs)-> widgets.interactive:
 def histogram(
     volume: np.ndarray,
     bins: Union[int, str] = "auto",
-    slice_idx: Union[int, str] = None,
+    slice_idx: Union[int, str, None] = None,
+    vertical_line: int = None,
     axis: int = 0,
     kde: bool = True,
     log_scale: bool = False,
     despine: bool = True,
     show_title: bool = True,
     color: str = "qim3d",
-    edgecolor: str|None = None,
-    figsize: tuple[float, float] = (8, 4.5),
+    edgecolor: Optional[str] = None,
+    figsize: Tuple[float, float] = (8, 4.5),
     element: str = "step",
     return_fig: bool = False,
     show: bool = True,
-    **sns_kwargs,
-) -> None|matplotlib.figure.Figure:
+    ax: Optional[plt.Axes] = None,
+    **sns_kwargs: Union[str, float, int, bool]
+) -> Optional[Union[plt.Figure, plt.Axes]]:
     """
     Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
-
+    
     Utilizes [seaborn.histplot](https://seaborn.pydata.org/generated/seaborn.histplot.html) for visualization.
 
     Args:
         volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
-        bins (int or str, optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
+        bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
         axis (int, optional): Axis along which to take a slice. Default is 0.
-        slice_idx (int or str or None, optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
+        slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
+        vertical_line (int, optional): Intensity value for a vertical line to be drawn on the histogram. Default is None.
         kde (bool, optional): Whether to overlay a kernel density estimate. Default is True.
         log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
         despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
         show_title (bool, optional): If True, displays a title with slice information. Default is True.
         color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
         edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
-        figsize (tuple of floats, optional): Size of the figure (width, height). Default is (8, 4.5).
+        figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
         element (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
         return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
         show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
-        **sns_kwargs (Any): Additional keyword arguments for `seaborn.histplot`.
+        ax (matplotlib.axes.Axes, optional): Axes object where the histogram will be plotted. Default is None.
+        **sns_kwargs: Additional keyword arguments for `seaborn.histplot`.
 
     Returns:
-        fig (Optional[matplotlib.figure.Figure]): If `return_fig` is True, returns the generated figure object. Otherwise, returns None.
+        Optional[matplotlib.figure.Figure or matplotlib.axes.Axes]: 
+            If `return_fig` is True, returns the generated figure object. 
+            If `return_fig` is False and `ax` is provided, returns the `Axes` object.
+            Otherwise, returns None.
 
     Raises:
         ValueError: If `axis` is not a valid axis index (0, 1, or 2).
         ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
-
-    Example:
-        ```python
-        import qim3d
-
-        vol = qim3d.examples.bone_128x128x128
-        qim3d.viz.histogram(vol)
-        ```
-        ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
-
-        ```python
-        import qim3d
-
-        vol = qim3d.examples.bone_128x128x128
-        qim3d.viz.histogram(vol, bins=32, slice_idx="middle", axis=1, kde=False, log_scale=True)
-        ```
-        ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
     """
-
     if not (0 <= axis < volume.ndim):
         raise ValueError(f"Axis must be an integer between 0 and {volume.ndim - 1}.")
 
     if slice_idx == "middle":
         slice_idx = volume.shape[axis] // 2
 
-    if slice_idx:
+    if slice_idx is not None:
         if 0 <= slice_idx < volume.shape[axis]:
             img_slice = np.take(volume, indices=slice_idx, axis=axis)
             data = img_slice.ravel()
@@ -954,10 +959,14 @@ def histogram(
         data = volume.ravel()
         title = f"Intensity histogram for whole volume {volume.shape}"
 
-    fig, ax = plt.subplots(figsize=figsize)
+    # Use provided Axes or create new figure
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    else:
+        fig = None
 
     if log_scale:
-        plt.yscale("log")
+        ax.set_yscale("log")
 
     if color == "qim3d":
         color = qim3d.viz.colormaps.qim(1.0)
@@ -969,13 +978,23 @@ def histogram(
         color=color,
         element=element,
         edgecolor=edgecolor,
+        ax=ax,  # Plot directly on the specified Axes
         **sns_kwargs,
     )
+
+    if vertical_line is not None:
+        ax.axvline(
+            x=vertical_line,
+            color='red',
+            linestyle="--",
+            linewidth=2,
+
+        )
 
     if despine:
         sns.despine(
             fig=None,
-            ax=None,
+            ax=ax,
             top=True,
             right=True,
             left=False,
@@ -984,17 +1003,521 @@ def histogram(
             trim=True,
         )
 
-    plt.xlabel("Voxel Intensity")
-    plt.ylabel("Frequency")
+    ax.set_xlabel("Voxel Intensity")
+    ax.set_ylabel("Frequency")
 
     if show_title:
-        plt.title(title, fontsize=10)
+        ax.set_title(title, fontsize=10)
 
     # Handle show and return
-    if show:
+    if show and fig is not None:
         plt.show()
-    else:
-        plt.close(fig)
 
     if return_fig:
         return fig
+    elif ax is not None:
+        return ax
+
+
+
+class _LineProfile:
+    def __init__(
+        self,
+        volume,
+        slice_axis,
+        slice_index,
+        vertical_position,
+        horizontal_position,
+        angle,
+        fraction_range,
+    ):
+        self.volume = volume
+        self.slice_axis = slice_axis
+
+        self.dims = np.array(volume.shape)
+        self.pad = 1  # Padding on pivot point to avoid border issues
+        self.cmap = [matplotlib.cm.plasma, matplotlib.cm.spring][1]
+
+        self.initialize_widgets()
+        self.update_slice_axis(slice_axis)
+        self.slice_index_widget.value = slice_index
+        self.x_widget.value = horizontal_position
+        self.y_widget.value = vertical_position
+        self.angle_widget.value = angle
+        self.line_fraction_widget.value = [fraction_range[0], fraction_range[1]]
+
+    def update_slice_axis(self, slice_axis):
+        self.slice_axis = slice_axis
+        self.slice_index_widget.max = self.volume.shape[slice_axis] - 1
+        self.slice_index_widget.value = self.volume.shape[slice_axis] // 2
+
+        self.x_max, self.y_max = np.delete(self.dims, self.slice_axis) - 1
+        self.x_widget.max = self.x_max - self.pad
+        self.x_widget.value = self.x_max // 2
+        self.y_widget.max = self.y_max - self.pad
+        self.y_widget.value = self.y_max // 2
+
+    def initialize_widgets(self):
+        layout = widgets.Layout(width="300px", height="auto")
+        self.x_widget = widgets.IntSlider(
+            min=self.pad, step=1, description="", layout=layout
+        )
+        self.y_widget = widgets.IntSlider(
+            min=self.pad, step=1, description="", layout=layout
+        )
+        self.angle_widget = widgets.IntSlider(
+            min=0, max=360, step=1, value=0, description="", layout=layout
+        )
+        self.line_fraction_widget = widgets.FloatRangeSlider(
+            min=0, max=1, step=0.01, value=[0, 1], description="", layout=layout
+        )
+
+        self.slice_axis_widget = widgets.Dropdown(
+            options=[0, 1, 2], value=self.slice_axis, description="Slice axis"
+        )
+        self.slice_axis_widget.layout.width = "250px"
+
+        self.slice_index_widget = widgets.IntSlider(
+            min=0, step=1, description="Slice index", layout=layout
+        )
+        self.slice_index_widget.layout.width = "400px"
+
+    def calculate_line_endpoints(self, x, y, angle):
+        """
+        Line is parameterized as: [x + t*np.cos(angle), y + t*np.sin(angle)]
+        """
+        if np.isclose(angle, 0):
+            return [0, y], [self.x_max, y]
+        elif np.isclose(angle, np.pi / 2):
+            return [x, 0], [x, self.y_max]
+        elif np.isclose(angle, np.pi):
+            return [self.x_max, y], [0, y]
+        elif np.isclose(angle, 3 * np.pi / 2):
+            return [x, self.y_max], [x, 0]
+        elif np.isclose(angle, 2 * np.pi):
+            return [0, y], [self.x_max, y]
+
+        t_left = -x / np.cos(angle)
+        t_bottom = -y / np.sin(angle)
+        t_right = (self.x_max - x) / np.cos(angle)
+        t_top = (self.y_max - y) / np.sin(angle)
+        t_values = np.array([t_left, t_top, t_right, t_bottom])
+        t_pos = np.min(t_values[t_values > 0])
+        t_neg = np.max(t_values[t_values < 0])
+
+        src = [x + t_neg * np.cos(angle), y + t_neg * np.sin(angle)]
+        dst = [x + t_pos * np.cos(angle), y + t_pos * np.sin(angle)]
+        return src, dst
+
+    def update(self, slice_axis, slice_index, x, y, angle_deg, fraction_range):
+        if slice_axis != self.slice_axis:
+            self.update_slice_axis(slice_axis)
+            x = self.x_widget.value
+            y = self.y_widget.value
+            slice_index = self.slice_index_widget.value
+
+        clear_output(wait=True)
+
+        image = np.take(self.volume, slice_index, slice_axis)
+        angle = np.radians(angle_deg)
+        src, dst = (
+            np.array(point, dtype="float32")
+            for point in self.calculate_line_endpoints(x, y, angle)
+        )
+
+        # Rescale endpoints
+        line_vec = dst - src
+        dst = src + fraction_range[1] * line_vec
+        src = src + fraction_range[0] * line_vec
+
+        y_pline = skimage.measure.profile_line(image, src, dst)
+
+        fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+
+        # Image with color-gradiented line
+        num_segments = 100
+        x_seg = np.linspace(src[0], dst[0], num_segments)
+        y_seg = np.linspace(src[1], dst[1], num_segments)
+        segments = np.stack(
+            [
+                np.column_stack([y_seg[:-2], x_seg[:-2]]),
+                np.column_stack([y_seg[2:], x_seg[2:]]),
+            ],
+            axis=1,
+        )
+        norm = plt.Normalize(vmin=0, vmax=num_segments - 1)
+        colors = self.cmap(norm(np.arange(num_segments - 1)))
+        lc = matplotlib.collections.LineCollection(segments, colors=colors, linewidth=2)
+
+        ax[0].imshow(image, cmap="gray")
+        ax[0].add_collection(lc)
+        # pivot point
+        ax[0].plot(y, x, marker="s", linestyle="", color="cyan", markersize=4)
+        ax[0].set_xlabel(f"axis {np.delete(np.arange(3), self.slice_axis)[1]}")
+        ax[0].set_ylabel(f"axis {np.delete(np.arange(3), self.slice_axis)[0]}")
+
+        # Profile intensity plot
+        norm = plt.Normalize(0, vmax=len(y_pline) - 1)
+        x_pline = np.arange(len(y_pline))
+        points = np.column_stack((x_pline, y_pline))[:, np.newaxis, :]
+        segments = np.concatenate([points[:-1], points[1:]], axis=1)
+        lc = matplotlib.collections.LineCollection(
+            segments, cmap=self.cmap, norm=norm, array=x_pline[:-1], linewidth=2
+        )
+
+        ax[1].add_collection(lc)
+        ax[1].autoscale()
+        ax[1].set_xlabel("Distance along line")
+        ax[1].grid(True)
+        plt.tight_layout()
+        plt.show()
+
+    def build_interactive(self):
+        # Group widgets into two columns
+        title_style = (
+            "text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;"
+        )
+        title_column1 = widgets.HTML(
+            f"<div style='{title_style}'>Line parameterization</div>"
+        )
+        title_column2 = widgets.HTML(
+            f"<div style='{title_style}'>Slice selection</div>"
+        )
+
+        # Make label widgets instead of descriptions which have different lengths.
+        label_layout = widgets.Layout(width="120px")
+        label_x = widgets.Label("Vertical position", layout=label_layout)
+        label_y = widgets.Label("Horizontal position", layout=label_layout)
+        label_angle = widgets.Label("Angle (°)", layout=label_layout)
+        label_fraction = widgets.Label("Fraction range", layout=label_layout)
+
+        row_x = widgets.HBox([label_x, self.x_widget])
+        row_y = widgets.HBox([label_y, self.y_widget])
+        row_angle = widgets.HBox([label_angle, self.angle_widget])
+        row_fraction = widgets.HBox([label_fraction, self.line_fraction_widget])
+
+        controls_column1 = widgets.VBox(
+            [title_column1, row_x, row_y, row_angle, row_fraction]
+        )
+        controls_column2 = widgets.VBox(
+            [title_column2, self.slice_axis_widget, self.slice_index_widget]
+        )
+        controls = widgets.HBox([controls_column1, controls_column2])
+
+        interactive_plot = widgets.interactive_output(
+            self.update,
+            {
+                "slice_axis": self.slice_axis_widget,
+                "slice_index": self.slice_index_widget,
+                "x": self.x_widget,
+                "y": self.y_widget,
+                "angle_deg": self.angle_widget,
+                "fraction_range": self.line_fraction_widget,
+            },
+        )
+
+        return widgets.VBox([controls, interactive_plot])
+
+
+def line_profile(
+    volume: np.ndarray,
+    slice_axis: int = 0,
+    slice_index: int | str = "middle",
+    vertical_position: int | str = "middle",
+    horizontal_position: int | str = "middle",
+    angle: int = 0,
+    fraction_range: Tuple[float, float] = (0.00, 1.00),
+) -> widgets.interactive:
+    """
+    Returns an interactive widget for visualizing the intensity profiles of lines on slices.
+
+    Args:
+        volume (np.ndarray): The 3D volume of interest.
+        slice_axis (int, optional): Specifies the initial axis along which to slice.
+        slice_index (int or str, optional): Specifies the initial slice index along slice_axis.
+        vertical_position (int or str, optional): Specifies the initial vertical position of the line's pivot point.
+        horizontal_position (int or str, optional): Specifies the initial horizontal position of the line's pivot point.
+        angle (int or float, optional): Specifies the initial angle (°) of the line around the pivot point. A float will be converted to an int. A value outside the range will be wrapped modulo.
+        fraction_range (tuple or list, optional): Specifies the fraction of the line segment to use from border to border. Both the start and the end should be in the range [0.0, 1.0].
+
+    Returns:
+        widget (widgets.widget_box.VBox): The interactive widget.
+
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.line_profile(vol)
+        ```
+        ![viz histogram](../../assets/screenshots/viz-line_profile.gif)
+
+    """
+
+    def parse_position(pos, pos_range, name):
+        if isinstance(pos, int):
+            if not pos_range[0] <= pos < pos_range[1]:
+                raise ValueError(
+                    f"Value for {name} must be inside [{pos_range[0]}, {pos_range[1]}]"
+                )
+            return pos
+        elif isinstance(pos, str):
+            pos = pos.lower()
+            if pos == "start":
+                return pos_range[0]
+            elif pos == "middle":
+                return pos_range[0] + (pos_range[1] - pos_range[0]) // 2
+            elif pos == "end":
+                return pos_range[1]
+            else:
+                raise ValueError(
+                    f"Invalid string '{pos}' for {name}. "
+                    "Must be 'start', 'middle', or 'end'."
+                )
+        else:
+            raise TypeError("Axis position must be of type int or str.")
+
+    if not isinstance(volume, (np.ndarray, da.core.Array)):
+        raise ValueError("Data type for volume not supported.")
+    if volume.ndim != 3:
+        raise ValueError("Volume must be 3D.")
+
+    dims = volume.shape
+    slice_index = parse_position(slice_index, (0, dims[slice_axis] - 1), "slice_index")
+    # the omission of the ends for the pivot point is due to border issues.
+    vertical_position = parse_position(
+        vertical_position, (1, np.delete(dims, slice_axis)[0] - 2), "vertical_position"
+    )
+    horizontal_position = parse_position(
+        horizontal_position,
+        (1, np.delete(dims, slice_axis)[1] - 2),
+        "horizontal_position",
+    )
+
+    if not isinstance(angle, int | float):
+        raise ValueError("Invalid type for angle.")
+    angle = round(angle) % 360
+
+    if not (
+        0.0 <= fraction_range[0] <= 1.0
+        and 0.0 <= fraction_range[1] <= 1.0
+        and fraction_range[0] <= fraction_range[1]
+    ):
+        raise ValueError("Invalid values for fraction_range.")
+
+    lp = _LineProfile(
+        volume,
+        slice_axis,
+        slice_index,
+        vertical_position,
+        horizontal_position,
+        angle,
+        fraction_range,
+    )
+    return lp.build_interactive()
+
+
+def threshold(
+    volume: np.ndarray,
+    cmap_image: str = 'magma',
+    vmin: float = None,
+    vmax: float = None,
+) -> widgets.VBox:
+    """
+    This function provides an interactive interface to explore thresholding on a
+    3D volume slice-by-slice. Users can either manually set the threshold value
+    using a slider or select an automatic thresholding method from `skimage`.
+
+    The visualization includes the original image slice, a binary mask showing regions above the
+    threshold and an overlay combining the binary mask and the original image.
+
+    Args:
+        volume (np.ndarray): 3D volume to threshold.
+        cmap_image (str, optional): Colormap for the original image. Defaults to 'viridis'.
+        cmap_threshold (str, optional): Colormap for the binary image. Defaults to 'gray'.
+        vmin (float, optional): Minimum value for the colormap. Defaults to None.
+        vmax (float, optional): Maximum value for the colormap. Defaults to None.
+
+    Returns:
+        slicer_obj (widgets.VBox): The interactive widget for thresholding a 3D volume.
+
+    Interactivity:
+        - **Manual Thresholding**:
+            Select 'Manual' from the dropdown menu to manually adjust the threshold
+            using the slider.
+        - **Automatic Thresholding**:
+            Choose a method from the dropdown menu to apply an automatic thresholding
+            algorithm. Available methods include:
+            - Otsu
+            - Isodata
+            - Li
+            - Mean
+            - Minimum
+            - Triangle
+            - Yen
+
+            The threshold slider will display the computed value and will be disabled
+            in this mode.
+
+
+        ```python
+        import qim3d
+
+        # Load a sample volume
+        vol = qim3d.examples.bone_128x128x128
+
+        # Visualize interactive thresholding
+        qim3d.viz.threshold(vol)
+        ```
+        ![interactive threshold](../../assets/screenshots/interactive_thresholding.gif)
+
+    """
+
+    # Centralized state dictionary to track current parameters
+    state = {
+        "position": volume.shape[0] // 2,
+        "threshold": int((volume.min() + volume.max()) / 2),
+        "method": "Manual",
+    }
+
+    threshold_methods = {
+        "Otsu": threshold_otsu,
+        "Isodata": threshold_isodata,
+        "Li": threshold_li,
+        "Mean": threshold_mean,
+        "Minimum": threshold_minimum,
+        "Triangle": threshold_triangle,
+        "Yen": threshold_yen,
+    }
+
+    # Create an output widget to display the plot
+    output = widgets.Output()
+
+    # Function to update the state and trigger visualization
+    def update_state(change):
+        # Update state based on widget values
+        state["position"] = position_slider.value
+        state["method"] = method_dropdown.value
+
+        if state["method"] == "Manual":
+            state["threshold"] = threshold_slider.value
+            threshold_slider.disabled = False
+        else:
+            threshold_func = threshold_methods.get(state["method"])
+            if threshold_func:
+                slice_img = volume[state["position"], :, :]
+                computed_threshold = threshold_func(slice_img)
+                state["threshold"] = computed_threshold
+
+                # Programmatically update the slider without triggering callbacks
+                threshold_slider.unobserve_all()
+                threshold_slider.value = computed_threshold
+                threshold_slider.disabled = True
+                threshold_slider.observe(update_state, names="value")
+            else:
+                raise ValueError(f"Unsupported thresholding method: {state['method']}")
+
+        # Trigger visualization
+        update_visualization()
+
+    # Visualization function
+    def update_visualization():
+        slice_img = volume[state["position"], :, :]
+        with output:
+            output.clear_output(wait=True)  # Clear previous plot
+            fig, axes = plt.subplots(1, 4, figsize=(25, 5))
+
+            # Original image
+            new_vmin = (
+                None
+                if (isinstance(vmin, (float, int)) and vmin > np.max(slice_img))
+                else vmin
+            )
+            new_vmax = (
+                None
+                if (isinstance(vmax, (float, int)) and vmax < np.min(slice_img))
+                else vmax
+            )
+            axes[0].imshow(slice_img, cmap=cmap_image, vmin=new_vmin, vmax=new_vmax)
+            axes[0].set_title("Original")
+            axes[0].axis("off")
+
+            # Histogram
+            histogram(
+                volume=volume,
+                bins=32,
+                slice_idx=state["position"],
+                vertical_line=state["threshold"],
+                axis=1,
+                kde=False,
+                ax=axes[1],
+                show=False,
+            )
+            axes[1].set_title(f"Histogram with Threshold = {int(state['threshold'])}")
+
+            # Binary mask
+            mask = slice_img > state["threshold"]
+            axes[2].imshow(mask, cmap="gray")
+            axes[2].set_title("Binary mask")
+            axes[2].axis("off")
+
+            # Overlay
+            mask_rgb = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)
+            mask_rgb[:, :, 0] = mask
+            masked_volume = qim3d.operations.overlay_rgb_images(
+                background=slice_img,
+                foreground=mask_rgb,
+            )
+            axes[3].imshow(masked_volume, vmin=new_vmin, vmax=new_vmax)
+            axes[3].set_title("Overlay")
+            axes[3].axis("off")
+
+            plt.show()
+
+    # Widgets
+    position_slider = widgets.IntSlider(
+        value=state["position"],
+        min=0,
+        max=volume.shape[0] - 1,
+        description="Slice",
+    )
+
+    threshold_slider = widgets.IntSlider(
+        value=state["threshold"],
+        min=volume.min(),
+        max=volume.max(),
+        description="Threshold",
+    )
+
+    method_dropdown = widgets.Dropdown(
+        options=[
+            "Manual",
+            "Otsu",
+            "Isodata",
+            "Li",
+            "Mean",
+            "Minimum",
+            "Triangle",
+            "Yen",
+        ],
+        value=state["method"],
+        description="Method",
+    )
+
+    # Attach the state update function to widgets
+    position_slider.observe(update_state, names="value")
+    threshold_slider.observe(update_state, names="value")
+    method_dropdown.observe(update_state, names="value")
+
+    # Layout
+    controls_left = widgets.VBox([position_slider, threshold_slider])
+    controls_right = widgets.VBox([method_dropdown])
+    controls_layout = widgets.HBox(
+        [controls_left, controls_right],
+        layout=widgets.Layout(justify_content="flex-start"),
+    )
+    interactive_ui = widgets.VBox([controls_layout, output])
+    update_visualization()
+
+    return interactive_ui

@@ -22,6 +22,7 @@ def random_placement(
     Returns:
         collection (numpy.ndarray): 3D volume of the collection with the blob placed.
         placed (bool): Flag for placement success.
+
     """
     # Find available (zero) elements in collection
     available_z, available_y, available_x = np.where(collection == 0)
@@ -44,14 +45,12 @@ def random_placement(
         if np.all(
             collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] == 0
         ):
-
             # Check if placement is within bounds (bool)
             within_bounds = np.all(start >= 0) and np.all(
                 end <= np.array(collection.shape)
             )
 
             if within_bounds:
-
                 # Place blob
                 collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] = (
                     blob
@@ -81,6 +80,7 @@ def specific_placement(
         collection (numpy.ndarray): 3D volume of the collection with the blob placed.
         placed (bool): Flag for placement success.
         positions (list[tuple]): List of remaining positions to place blobs.
+
     """
     # Flag for placement success
     placed = False
@@ -99,14 +99,12 @@ def specific_placement(
         if np.all(
             collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] == 0
         ):
-
             # Check if placement is within bounds (bool)
             within_bounds = np.all(start >= 0) and np.all(
                 end <= np.array(collection.shape)
             )
 
             if within_bounds:
-
                 # Place blob
                 collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] = (
                     blob
@@ -253,13 +251,13 @@ def noise_object_collection(
 
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_cylinder.html" width="100%" height="500" frameborder="0"></iframe>
-        
+
         ```python
         # Visualize slices
         qim3d.viz.slices_grid(vol, num_slices=15)
         ```
-        ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)    
-        
+        ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
+
     Example:
         ```python
         import qim3d
@@ -283,29 +281,30 @@ def noise_object_collection(
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tube.html" width="100%" height="500" frameborder="0"></iframe>
-        
+
         ```python
         # Visualize slices
         qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
         ```
         ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
+
     """
     if verbose:
         original_log_level = log.getEffectiveLevel()
-        log.setLevel("DEBUG")
+        log.setLevel('DEBUG')
 
     # Check valid input types
     if not isinstance(collection_shape, tuple) or len(collection_shape) != 3:
         raise TypeError(
-            "Shape of collection must be a tuple with three dimensions (z, y, x)"
+            'Shape of collection must be a tuple with three dimensions (z, y, x)'
         )
 
     if len(min_shape) != len(max_shape):
-        raise ValueError("Object shapes must be tuples of the same length")
+        raise ValueError('Object shapes must be tuples of the same length')
 
     if (positions is not None) and (len(positions) != num_objects):
         raise ValueError(
-            "Number of objects must match number of positions, otherwise set positions = None"
+            'Number of objects must match number of positions, otherwise set positions = None'
         )
 
     # Set seed for random number generator
@@ -318,8 +317,8 @@ def noise_object_collection(
     labels = np.zeros_like(collection_array)
 
     # Fill the 3D array with synthetic blobs
-    for i in tqdm(range(num_objects), desc="Objects placed"):
-        log.debug(f"\nObject #{i+1}")
+    for i in tqdm(range(num_objects), desc='Objects placed'):
+        log.debug(f'\nObject #{i+1}')
 
         # Sample from blob parameter ranges
         if min_shape == max_shape:
@@ -328,27 +327,27 @@ def noise_object_collection(
             blob_shape = tuple(
                 rng.integers(low=min_shape[i], high=max_shape[i]) for i in range(3)
             )
-        log.debug(f"- Blob shape: {blob_shape}")
+        log.debug(f'- Blob shape: {blob_shape}')
 
         # Scale object shape
         final_shape = tuple(l * r for l, r in zip(blob_shape, object_shape_zoom))
-        final_shape = tuple(int(x) for x in final_shape) # NOTE: Added this 
+        final_shape = tuple(int(x) for x in final_shape)  # NOTE: Added this
 
         # Sample noise scale
         noise_scale = rng.uniform(low=min_object_noise, high=max_object_noise)
-        log.debug(f"- Object noise scale: {noise_scale:.4f}")
+        log.debug(f'- Object noise scale: {noise_scale:.4f}')
 
         gamma = rng.uniform(low=min_gamma, high=max_gamma)
-        log.debug(f"- Gamma correction: {gamma:.3f}")
+        log.debug(f'- Gamma correction: {gamma:.3f}')
 
         if max_high_value > min_high_value:
             max_value = rng.integers(low=min_high_value, high=max_high_value)
         else:
             max_value = min_high_value
-        log.debug(f"- Max value: {max_value}")
+        log.debug(f'- Max value: {max_value}')
 
         threshold = rng.uniform(low=min_threshold, high=max_threshold)
-        log.debug(f"- Threshold: {threshold:.3f}")
+        log.debug(f'- Threshold: {threshold:.3f}')
 
         # Generate synthetic object
         blob = qim3d.generate.noise_object(
@@ -368,7 +367,7 @@ def noise_object_collection(
                 low=min_rotation_degrees, high=max_rotation_degrees
             )  # Sample rotation angle
             axes = rng.choice(rotation_axes)  # Sample the two axes to rotate around
-            log.debug(f"- Rotation angle: {angle:.2f} at axes: {axes}")
+            log.debug(f'- Rotation angle: {angle:.2f} at axes: {axes}')
 
             blob = scipy.ndimage.rotate(blob, angle, axes, order=1)
 
@@ -397,7 +396,7 @@ def noise_object_collection(
     if not placed:
         # Log error if not all num_objects could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
         log.error(
-            f"Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_objects} objects."
+            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_objects} objects.'
         )
 
     if verbose:

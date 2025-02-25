@@ -1,6 +1,7 @@
-"""qim3d: A Python package for 3D image processing and visualization.
+"""
+qim3d: A Python package for 3D image processing and visualization.
 
-The qim3d library is designed to make it easier to work with 3D imaging data in Python. 
+The qim3d library is designed to make it easier to work with 3D imaging data in Python.
 It offers a range of features, including data loading and manipulation,
 image processing and filtering, visualization of 3D data, and analysis of imaging results.
 
@@ -8,13 +9,14 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = "1.0.0"
+__version__ = '1.1.0'
 
 
 import importlib as _importlib
 
 
 class _LazyLoader:
+
     """Lazy loader to load submodules only when they are accessed"""
 
     def __init__(self, module_name):
@@ -48,7 +50,7 @@ _submodules = [
     'mesh',
     'features',
     'operations',
-    'detection'
+    'detection',
 ]
 
 # Creating lazy loaders for each submodule

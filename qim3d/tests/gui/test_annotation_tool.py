@@ -1,12 +1,13 @@
-import qim3d
 import multiprocessing
 import time
+
+import qim3d
 
 
 def test_starting_class():
     app = qim3d.gui.annotation_tool.Interface()
 
-    assert app.title == "Annotation Tool"
+    assert app.title == 'Annotation Tool'
 
 
 def start_server(ip, port):
@@ -15,7 +16,7 @@ def start_server(ip, port):
 
 
 def test_app_launch():
-    ip = "localhost"
+    ip = 'localhost'
     port = 65432
 
     proc = multiprocessing.Process(target=start_server, args=(ip, port))
