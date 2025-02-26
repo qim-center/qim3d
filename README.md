@@ -1,6 +1,6 @@
 # Quantitative Imaging in 3D
 
-![qim3d logo](docs/assets/qim3d-logo.png)
+<img src="docs/assets/qim3d-logo.png" alt="qim3d logo" style="width:25%">
 
 [![PyPI version](https://badge.fury.io/py/qim3d.svg)](https://badge.fury.io/py/qim3d)
 [![Downloads](https://static.pepy.tech/badge/qim3d)](https://pepy.tech/project/qim3d)
@@ -38,17 +38,63 @@ Remember that the enviroment needs to be activated each time you use `qim3d`!
 
 For more detailed instructions and troubleshooting, please refer to the [documentation](https://platform.qim.dk/qim3d/#installation).
 
+## Examples
+
+### Interactive volume slicer
+
+```python
+import qim3d
+
+vol = qim3d.examples.bone_128x128x128
+qim3d.viz.slicer(vol)
+```
+![viz slicer](docs/assets/screenshots/viz-slicer.gif)
+
+### Line profile
+
+```python
+import qim3d
+
+vol = qim3d.examples.bone_128x128x128
+qim3d.viz.line_profile(vol)
+```
+![line profile](docs/assets/screenshots/viz-line_profile.gif)
+
+
+
+### Synthetic data generation
+
+```python
+import qim3d
+
+# Generate synthetic collection of blobs
+num_objects = 15
+synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
+
+# Visualize synthetic collection
+qim3d.viz.vol(synthetic_collection)
+```
+![synthetic collection](docs/assets/screenshots/synthetic_collection_default_rotation.gif )
+
+### Structure tensor analysis
+
+```python
+import qim3d
+
+vol = qim3d.examples.NT_128x128x128
+val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 2)
+```
+
+![structure tensor](docs/assets/screenshots/structure_tensor_visualization.gif)
 
 ## Support
 
 The development of the `qim3d` is supported by the Infrastructure for Quantitative AI-based Tomography QUAITOM which is supported by a Novo Nordisk Foundation Data Science Programme grant (Grant number NNF21OC0069766).
 
-<img src="https://platform.qim.dk/static/images/QIM-logo.svg", alt="QIM logo", style="width:148px">
+<img src="https://platform.qim.dk/static/images/QIM-logo.svg" alt="QIM logo" style="width:148px">
 
+<img src="https://novonordiskfonden.dk//app/uploads/NNF-INT_logo_tagline_blue_RGB_solid.png" alt="NNF" style="width:256px">
 
-![QIM](https://platform.qim.dk/static/images/QIM-logo.svg | width=148 )
-
-![Novo Nordisk Foundation](https://novonordiskfonden.dk//app/uploads/NNF-INT_logo_tagline_blue_RGB_solid.png){ width="256" }
 
 ## License
 This project is licensed under the MIT License.
