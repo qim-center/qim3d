@@ -1,7 +1,7 @@
 ---
 hide:
   - navigation
-  
+  - toc
 ---
 
 # Release History
@@ -12,6 +12,23 @@ hide:
 Below, you'll find details about the version history of `qim3d`.
 
 Remember to keep your pip installation [up to date](../../index.md/#get-the-latest-version) so that you have the latest features!
+
+### v1.1.0 (26/02/2025)
+
+- Source repo moved to [GitHub](https://github.com/qim-center/qim3d)
+
+- Line profile tool 
+
+![line profile](../../assets/screenshots/viz-line_profile.gif)
+
+- Threshold exploration tool 
+
+![threshold exploration](../../assets/screenshots/interactive_thresholding.gif)
+
+
+### v1.0.1 (10/02/2025)
+
+- Fixed missing requirements
 
 ### v1.0.0 (21/01/2025)
 

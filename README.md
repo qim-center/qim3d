@@ -1,6 +1,6 @@
 # Quantitative Imaging in 3D
 
-<img src="docs/assets/qim3d-logo.png" alt="qim3d logo" style="width:25%">
+<img src="docs/assets/qim3d-logo.png" alt="qim3d logo" style="width:384px">
 
 [![PyPI version](https://badge.fury.io/py/qim3d.svg)](https://badge.fury.io/py/qim3d)
 [![Downloads](https://static.pepy.tech/badge/qim3d)](https://pepy.tech/project/qim3d)
@@ -18,7 +18,7 @@ For more information on the QIM center visit https://qim.dk/
 
 ## Installation
 
-We recommned the usage of a conda enviroment:
+We recommned using a conda enviroment:
 
 ```bash
 conda create -n qim3d python=3.11
@@ -60,6 +60,18 @@ qim3d.viz.line_profile(vol)
 ```
 ![line profile](docs/assets/screenshots/viz-line_profile.gif)
 
+### Threshold exploration
+```python
+import qim3d
+
+# Load a sample volume
+vol = qim3d.examples.bone_128x128x128
+
+# Visualize interactive thresholding
+qim3d.viz.threshold(vol)
+```
+![threshold exploration](docs/assets/screenshots/interactive_thresholding.gif)
+
 
 
 ### Synthetic data generation
@@ -89,12 +101,6 @@ val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 2)
 
 ## Support
 
-The development of the `qim3d` is supported by the Infrastructure for Quantitative AI-based Tomography QUAITOM which is supported by a Novo Nordisk Foundation Data Science Programme grant (Grant number NNF21OC0069766).
-
-<img src="https://platform.qim.dk/static/images/QIM-logo.svg" alt="QIM logo" style="width:148px">
+The development of the `qim3d` is supported by the Infrastructure for Quantitative AI-based Tomography **QUAITOM** which is supported by a Novo Nordisk Foundation Data Science Programme grant (Grant number NNF21OC0069766).
 
 <img src="https://novonordiskfonden.dk//app/uploads/NNF-INT_logo_tagline_blue_RGB_solid.png" alt="NNF" style="width:256px">
-
-
-## License
-This project is licensed under the MIT License.
