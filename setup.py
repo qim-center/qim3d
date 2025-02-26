@@ -72,7 +72,8 @@ setup(
         "dask-image>=2024.5.3",
         "scikit-image>=0.24.0",
         "trimesh>=4.4.9",
-        "PyGEL3D>=0.5.2"
+        "PyGEL3D>=0.5.2",
+        "slgbuilder>=0.2.1"
     ],
     extras_require={
     "deep-learning": [
