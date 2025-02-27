@@ -112,8 +112,8 @@ def blobs(
             (x_indices - x) ** 2 + (y_indices - y) ** 2 + (z_indices - z) ** 2
         )
 
-        binary_volume[z_start:z_end, y_start:y_end, x_start:x_end][
-            dist <= radius
-        ] = True
+        binary_volume[z_start:z_end, y_start:y_end, x_start:x_end][dist <= radius] = (
+            True
+        )
 
     return blobs, binary_volume

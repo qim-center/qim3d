@@ -14,17 +14,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import skimage.measure
+from IPython.display import clear_output, display
 from skimage.filters import (
-    threshold_otsu,
     threshold_isodata,
     threshold_li,
     threshold_mean,
     threshold_minimum,
+    threshold_otsu,
     threshold_triangle,
     threshold_yen,
 )
-
-from IPython.display import clear_output, display
 
 import qim3d
 from qim3d.utils._logger import log
@@ -939,6 +938,7 @@ def histogram(
     Raises:
         ValueError: If `axis` is not a valid axis index (0, 1, or 2).
         ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
+
     """
     if not (0 <= axis < volume.ndim):
         raise ValueError(f'Axis must be an integer between 0 and {volume.ndim - 1}.')

@@ -1,6 +1,7 @@
-import pytest
 import numpy as np
+import pytest
 from pygel3d import hmesh
+
 import qim3d
 
 

@@ -7,16 +7,16 @@ Volumetric visualization using K3D
 
 """
 
+from typing import Optional
+
+import k3d
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import Colormap
+from pygel3d import jupyter_display as jd
 
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
-from pygel3d import hmesh
-from pygel3d import jupyter_display as jd
-import k3d
-from typing import Optional
 
 
 def volumetric(
@@ -186,7 +186,8 @@ def mesh(
     save: bool = False,
     **kwargs,
 ) -> Optional[k3d.Plot]:
-    """Visualize a 3D mesh using `pygel3d` or `k3d`.
+    """
+    Visualize a 3D mesh using `pygel3d` or `k3d`.
 
     Args:
         mesh (pygel3d.hmesh.Manifold): The input mesh object.
@@ -226,6 +227,7 @@ def mesh(
         qim3d.viz.mesh(mesh, backend="pygel3d") # or qim3d.viz.mesh(mesh, backend="k3d")
         ```
     ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
+
     """
 
     if backend not in ['k3d', 'pygel3d']:

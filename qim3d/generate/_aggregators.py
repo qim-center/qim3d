@@ -54,9 +54,9 @@ def random_placement(
 
             if within_bounds:
                 # Place blob
-                collection[
-                    start[0] : end[0], start[1] : end[1], start[2] : end[2]
-                ] = blob
+                collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] = (
+                    blob
+                )
                 placed = True
 
         # Increment attempt counter
@@ -108,9 +108,9 @@ def specific_placement(
 
             if within_bounds:
                 # Place blob
-                collection[
-                    start[0] : end[0], start[1] : end[1], start[2] : end[2]
-                ] = blob
+                collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] = (
+                    blob
+                )
                 placed = True
 
                 # Remove position from list

@@ -126,7 +126,6 @@ def grid_overview(
         - The grid layout and dimensions vary based on the presence of a mask.
 
     """
-    import torch
 
     # Check if data has a mask
     has_mask = len(data[0]) > 2 and data[0][-1] is not None

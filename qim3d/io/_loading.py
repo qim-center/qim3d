@@ -19,17 +19,14 @@ import dask
 import dask.array as da
 import numpy as np
 import tifffile
-import trimesh
 from dask import delayed
 from PIL import Image, UnidentifiedImageError
+from pygel3d import hmesh
 
 import qim3d
 from qim3d.utils import Memory, log
 from qim3d.utils._misc import get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
-import trimesh
-from pygel3d import hmesh
-from typing import Optional, Dict
 
 dask.config.set(scheduler='processes')
 

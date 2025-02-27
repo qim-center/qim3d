@@ -1,8 +1,8 @@
 import numpy as np
+from pygel3d import hmesh
+
 import qim3d
 from qim3d.utils._logger import log
-import qim3d
-from pygel3d import hmesh
 
 
 def volume(obj: np.ndarray | hmesh.Manifold) -> float:

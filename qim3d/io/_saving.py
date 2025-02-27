@@ -33,12 +33,11 @@ import nibabel as nib
 import numpy as np
 import PIL
 import tifffile
-import trimesh
 import zarr
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
-import trimesh
 from pygel3d import hmesh
+
 from qim3d.utils import log
 from qim3d.utils._misc import stringify_path
 
