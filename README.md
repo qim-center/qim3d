@@ -79,12 +79,12 @@ qim3d.viz.threshold(vol)
 ```python
 import qim3d
 
-# Generate synthetic collection of blobs
-num_objects = 15
-synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
+# Generate synthetic collection of volumes
+num_volumes = 15
+volume_collection, labels = qim3d.generate.volume_collection(num_volumes = num_volumes)
 
-# Visualize synthetic collection
-qim3d.viz.vol(synthetic_collection)
+# Visualize the collection
+qim3d.viz.volumetric(volume_collection)
 ```
 ![synthetic collection](docs/assets/screenshots/synthetic_collection_default_rotation.gif )
 
