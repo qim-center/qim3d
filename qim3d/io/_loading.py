@@ -31,7 +31,7 @@ import trimesh
 from pygel3d import hmesh
 from typing import Optional, Dict
 
-dask.config.set(scheduler="processes") 
+dask.config.set(scheduler='processes')
 
 
 class DataLoader:

@@ -13,6 +13,10 @@ Below, you'll find details about the version history of `qim3d`.
 
 Remember to keep your pip installation [up to date](../../index.md/#get-the-latest-version) so that you have the latest features!
 
+### v1.1.1 (27/02/2025)
+
+- Refactoring of the synthetic data generation module
+
 ### v1.1.0 (26/02/2025)
 
 - Source repo moved to [GitHub](https://github.com/qim-center/qim3d)

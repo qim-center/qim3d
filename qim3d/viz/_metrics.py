@@ -11,7 +11,6 @@ from matplotlib.colors import LinearSegmentedColormap
 from qim3d.utils._logger import log
 
 
-
 def plot_metrics(
     *metrics: tuple[dict[str, float]],
     linestyle: str = '-',
