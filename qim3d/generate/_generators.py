@@ -4,8 +4,10 @@ from noise import pnoise3
 
 import qim3d.processing
 
+__all__ = ['volume']
 
-def noise_object(
+
+def volume(
     base_shape: tuple = (128, 128, 128),
     final_shape: tuple = (128, 128, 128),
     noise_scale: float = 0.05,
@@ -14,7 +16,7 @@ def noise_object(
     max_value: int = 255,
     threshold: float = 0.5,
     smooth_borders: bool = False,
-    object_shape: str = None,
+    volume_shape: str = None,
     dtype: str = 'uint8',
 ) -> np.ndarray:
     """
@@ -29,11 +31,11 @@ def noise_object(
         max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
         threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
         smooth_borders (bool, optional): Flag for automatic computation of the threshold value to ensure a blob with no straight edges. If True, the `threshold` parameter is ignored. Defaults to False.
-        object_shape (str, optional): Shape of the object to generate, either "cylinder", or "tube". Defaults to None.
+        volume_shape (str, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
         dtype (data-type, optional): Desired data type of the output volume. Defaults to "uint8".
 
     Returns:
-        noise_object (numpy.ndarray): Generated 3D volume with specified parameters.
+        noise_volume (numpy.ndarray): Generated 3D volume with specified parameters.
 
     Raises:
         TypeError: If `final_shape` is not a tuple or does not have three elements.
@@ -44,7 +46,7 @@ def noise_object(
         import qim3d
 
         # Generate synthetic blob
-        vol = qim3d.generate.noise_object(noise_scale = 0.015)
+        vol = qim3d.generate.volume(noise_scale = 0.015)
 
         # Visualize 3D volume
         qim3d.viz.volumetric(vol)
@@ -62,15 +64,15 @@ def noise_object(
         import qim3d
 
         # Generate tubular synthetic blob
-        vol = qim3d.generate.noise_object(base_shape = (10, 300, 300),
+        vol = qim3d.generate.volume(base_shape = (10, 300, 300),
                                 final_shape = (100, 100, 100),
                                 noise_scale = 0.3,
                                 gamma = 2,
                                 threshold = 0.0,
-                                object_shape = "cylinder"
+                                volume_shape = "cylinder"
                                 )
 
-        # Visualize synthetic object
+        # Visualize synthetic volume
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_blob_cylinder.html" width="100%" height="500" frameborder="0"></iframe>
@@ -86,12 +88,12 @@ def noise_object(
         import qim3d
 
         # Generate tubular synthetic blob
-        vol = qim3d.generate.noise_object(base_shape = (200, 100, 100),
+        vol = qim3d.generate.volume(base_shape = (200, 100, 100),
                                 final_shape = (400, 100, 100),
                                 noise_scale = 0.03,
                                 gamma = 0.12,
                                 threshold = 0.85,
-                                object_shape = "tube"
+                                volume_shape = "tube"
                                 )
 
         # Visualize synthetic blob
@@ -108,9 +110,11 @@ def noise_object(
     """
 
     if not isinstance(final_shape, tuple) or len(final_shape) != 3:
-        raise TypeError('Size must be a tuple of 3 dimensions')
+        message = 'Size must be a tuple of 3 dimensions'
+        raise TypeError(message)
     if not np.issubdtype(dtype, np.number):
-        raise ValueError('Invalid data type')
+        message = 'Invalid data type'
+        raise ValueError(message)
 
     # Initialize the 3D array for the shape
     volume = np.empty((base_shape[0], base_shape[1], base_shape[2]), dtype=np.float32)
@@ -145,8 +149,8 @@ def noise_object(
     # Scale the volume to the maximum value
     volume = volume * max_value
 
-    # If object shape is specified, smooth borders are disabled
-    if object_shape:
+    # If volume shape is specified, smooth borders are disabled
+    if volume_shape:
         smooth_borders = False
 
     if smooth_borders:
@@ -177,14 +181,14 @@ def noise_object(
     )
 
     # Fade into a shape if specified
-    if object_shape == 'cylinder':
+    if volume_shape == 'cylinder':
         # Arguments for the fade_mask function
         geometry = 'cylindrical'  # Fade in cylindrical geometry
         axis = np.argmax(
             volume.shape
-        )  # Fade along the dimension where the object is the largest
+        )  # Fade along the dimension where the volume is the largest
         target_max_normalized_distance = (
-            1.4  # This value ensures that the object will become cylindrical
+            1.4  # This value ensures that the volume will become cylindrical
         )
 
         volume = qim3d.operations.fade_mask(
@@ -194,18 +198,18 @@ def noise_object(
             target_max_normalized_distance=target_max_normalized_distance,
         )
 
-    elif object_shape == 'tube':
+    elif volume_shape == 'tube':
         # Arguments for the fade_mask function
         geometry = 'cylindrical'  # Fade in cylindrical geometry
         axis = np.argmax(
             volume.shape
-        )  # Fade along the dimension where the object is the largest
+        )  # Fade along the dimension where the volume is the largest
         decay_rate = 5  # Decay rate for the fade operation
         target_max_normalized_distance = (
-            1.4  # This value ensures that the object will become cylindrical
+            1.4  # This value ensures that the volume will become cylindrical
         )
 
-        # Fade once for making the object cylindrical
+        # Fade once for making the volume cylindrical
         volume = qim3d.operations.fade_mask(
             volume,
             geometry=geometry,
@@ -215,7 +219,7 @@ def noise_object(
             invert=False,
         )
 
-        # Fade again with invert = True for making the object a tube (i.e. with a hole in the middle)
+        # Fade again with invert = True for making the volume a tube (i.e. with a hole in the middle)
         volume = qim3d.operations.fade_mask(
             volume, geometry=geometry, axis=axis, decay_rate=decay_rate, invert=True
         )
