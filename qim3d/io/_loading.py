@@ -101,8 +101,6 @@ class DataLoader:
         else:
             vol = tifffile.imread(path, key=range(series) if series > 1 else None)
 
-        log.info('Loaded shape: %s', vol.shape)
-
         return vol
 
     def load_h5(self, path: str | os.PathLike) -> tuple[np.ndarray, Optional[Dict]]:
@@ -182,9 +180,6 @@ class DataLoader:
             vol = vol[()]  # Load dataset into memory
             f.close()
 
-        log.info('Loaded the following dataset: %s', name)
-        log.info('Loaded shape: %s', vol.shape)
-
         if self.return_metadata:
             return vol, metadata
         else:
@@ -240,9 +235,6 @@ class DataLoader:
 
         if not self.virtual_stack:
             vol = np.copy(vol)  # Copy to memory
-
-        log.info('Found %s file(s)', len(tiff_stack))
-        log.info('Loaded shape: %s', vol.shape)
 
         return vol
 
@@ -445,9 +437,6 @@ class DataLoader:
             for idx, file_name in enumerate(PIL_stack):
                 vol[idx] = self.load_pil(os.path.join(path, file_name))
             return vol
-
-        # log.info("Found %s file(s)", len(PIL_stack))
-        # log.info("Loaded shape: %s", vol.shape)
 
     def _load_vgi_metadata(self, path: str | os.PathLike):
         """
@@ -792,9 +781,10 @@ def load(
     dataset_name: bool = None,
     return_metadata: bool = False,
     contains: bool = None,
-    progress_bar: bool = True,
     force_load: bool = False,
     dim_order: tuple = (2, 1, 0),
+    progress_bar: bool = False,
+    display_memory_usage: bool = False,
     **kwargs,
 ) -> np.ndarray:
     """
@@ -877,7 +867,8 @@ def load(
         log.warning('The file format does not contain metadata')
 
     if not virtual_stack:
-        log_memory_info(data)
+        if display_memory_usage:
+            log_memory_info(data)
     else:
         # Only log if file type is not a np.ndarray, i.e., it is some kind of memmap object
         if not isinstance(
@@ -886,7 +877,8 @@ def load(
             log.info('Using virtual stack')
         else:
             log.warning('Virtual stack is not supported for this file format')
-            log_memory_info(data)
+            if display_memory_usage:
+                log_memory_info(data)
 
     return data
 
