@@ -809,10 +809,11 @@ def load(
         return_metadata (bool, optional): Specifies whether to return metadata or not. Default is False (only for HDF5 and TXRM/TXM/XRM files)
         contains (str, optional): Specifies a part of the name that is common for the TIFF file stack to be loaded (only for TIFF stacks).
             Default is None.
-        progress_bar (bool, optional): Displays tqdm progress bar. Useful for large files. So far works only for linux. Default is False.
         force_load (bool, optional): If the file size exceeds available memory, a MemoryError is raised.
             If force_load is True, the error is changed to warning and the loader tries to load it anyway. Default is False.
         dim_order (tuple, optional): The order of the dimensions in the volume for .vol files. Default is (2,1,0) which corresponds to (z,y,x)
+        progress_bar (bool, optional): Displays tqdm progress bar. Useful for large files. So far works only for linux. Default is False.
+        display_memory_usage (bool, optional): If true, prints used memory and available memory after loading file. Default is False.
         **kwargs (Any): Additional keyword arguments supported by `DataLoader`:
             - `virtual_stack` (bool)
             - `dataset_name` (str)
