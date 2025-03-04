@@ -7,11 +7,6 @@ hide:
 
 The `qim3d` library aims to ease the creation of ML models for volumetric images.
 
-::: qim3d.ml.Augmentation
-    options:
-        members:
-            - augment
-
 ::: qim3d.ml.models
     options:
         members:
@@ -20,5 +15,11 @@ The `qim3d` library aims to ease the creation of ML models for volumetric images
 ::: qim3d.ml
     options: 
         members:
+            - Augmentation
             - prepare_datasets
             - prepare_dataloaders
+            - Hyperparameters
+            - model_summary
+            - train_model
+            - load_checkpoint
+            - test_model

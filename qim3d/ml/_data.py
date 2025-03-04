@@ -175,6 +175,11 @@ def prepare_datasets(
         model (torch.nn.Module): PyTorch Model.
         augmentation (monai.transforms.Compose): Augmentation class for the dataset with predefined augmentation levels.
 
+    Returns: 
+        train_set (torch.utils.data.Subset): Training dataset.
+        val_set (torch.utils.data.Subset): Validation dataset.
+        test_set (torch.utils.data.Subset): Testing dataset.
+
     Raises:
         ValueError: If the validation fraction is not a float, and is not between 0 and 1. 
     
@@ -186,6 +191,7 @@ def prepare_datasets(
         model = qim3d.ml.models.UNet(size = 'small')
         augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
 
+        # Set up datasets
         train_set, val_set, test_set = qim3d.ml.prepare_datasets(
             path = base_path,
             val_fraction = 0.5,
@@ -243,6 +249,11 @@ def prepare_dataloaders(train_set: torch.utils.data,
         num_workers (int, optional): Defines how many processes should be run in parallel. Default is 8.
         pin_memory (bool, optional): Loads the datasets as CUDA tensors. Default is False.
     
+    Returns: 
+        train_loader (torch.utils.data.DataLoader): Training dataloader.
+        val_loader (torch.utils.data.DataLoader): Validation dataloader.
+        test_loader (torch.utils.data.DataLoader): Testing dataloader.
+        
     Example:
         ```python
         import qim3d
@@ -251,6 +262,7 @@ def prepare_dataloaders(train_set: torch.utils.data,
         model = qim3d.ml.models.UNet(size = 'small')
         augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
 
+        # Set up datasets
         train_set, val_set, test_set = qim3d.ml.prepare_datasets(
             path = base_path,
             val_fraction = 0.5,
@@ -258,6 +270,7 @@ def prepare_dataloaders(train_set: torch.utils.data,
             augmentation = augmentation
             )
 
+        # Set up dataloaders
         train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
             train_set = train_set, 
             val_set = val_set,

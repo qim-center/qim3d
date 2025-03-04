@@ -50,6 +50,9 @@ class Augmentation:
             img_shape (tuple): Dimensions of the volume as (D, W, H).
             level (str, optional): Level of augmentation, either 'light', 'moderate', 'heavy' or None. Defaults to None.
 
+        Returns: 
+            Compose (monai.transforms.Compose): Compose object with the specified augmentations.
+            
         Raises:
             ValueError: If `img_shape` is not 3D.
             ValueError: If `level` is neither None, 'light', 'moderate' nor 'heavy'.
