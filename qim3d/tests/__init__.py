@@ -8,9 +8,9 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
 
 from qim3d.utils._logger import log
+from qim3d.io import save
 
 
 def mock_plot():
@@ -64,7 +64,7 @@ def is_server_running(ip, port):
         return False
 
 
-def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
+def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
     """
     Creates a temporary folder to test deep learning tools.
 
@@ -79,7 +79,7 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
         img_shape (tuple, options): Tuple with the height and width of the images and labels.
 
     Example:
-        >>> tempdata('temporary_folder',n = 10, img_shape = (16,16))
+        >>> tempdata('temporary_folder', n = 10, img_shape = (16, 16, 16))
 
     """
     folder_trte = ['train', 'test']
@@ -97,7 +97,6 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
 
     # Random image
     img = np.random.randint(2, size=img_shape, dtype=np.uint8)
-    img = Image.fromarray(img)
 
     if not os.path.exists(path_train):
         os.makedirs(path_train_im)
@@ -105,10 +104,11 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32)):
         os.makedirs(path_train_lab)
         os.makedirs(path_test_lab)
         for i in range(n):
-            img.save(path_train_im / f'img_train{i}.png')
-            img.save(path_train_lab / f'img_train{i}.png')
-            img.save(path_test_im / f'img_test{i}.png')
-            img.save(path_test_lab / f'img_test{i}.png')
+
+            save(os.path.join(path_train_im, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
+            save(os.path.join(path_train_lab, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
+            save(os.path.join(path_test_im, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
+            save(os.path.join(path_test_lab, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
 
     if remove:
         for filename in os.listdir(folder):
