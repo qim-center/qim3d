@@ -33,12 +33,11 @@ import nibabel as nib
 import numpy as np
 import PIL
 import tifffile
-import trimesh
 import zarr
 from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
-import trimesh
 from pygel3d import hmesh
+
 from qim3d.utils import log
 from qim3d.utils._misc import stringify_path
 
@@ -486,7 +485,7 @@ def save(
 
 
 # def save_mesh(
-#         filename: str, 
+#         filename: str,
 #         mesh: trimesh.Trimesh
 #         ) -> None:
 #     """
@@ -513,7 +512,8 @@ def save(
 #     """
 #     # Export the mesh to the specified filename
 #     mesh.export(filename)
-    
+
+
 def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
     """
     Save a mesh object to a specific file.
@@ -530,7 +530,7 @@ def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
 
         synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
         mesh = qim3d.mesh.from_volume(synthetic_blob)
-        qim3d.io.save_mesh("mesh.obj", mesh) 
+        qim3d.io.save_mesh("mesh.obj", mesh)
         ```
 
     """

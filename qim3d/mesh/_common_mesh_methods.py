@@ -1,17 +1,11 @@
-from typing import Any, Tuple
 
 import numpy as np
-from skimage import measure, filters
 from pygel3d import hmesh
-from typing import Tuple, Any
-from qim3d.utils._logger import log
 
 
-def from_volume(
-    volume: np.ndarray,
-    **kwargs: any
-) -> hmesh.Manifold:
-    """ Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour) function from Pygel3D.
+def from_volume(volume: np.ndarray, **kwargs: any) -> hmesh.Manifold:
+    """
+    Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour) function from Pygel3D.
 
     Args:
         volume (np.ndarray): A 3D numpy array representing a volume.
@@ -34,13 +28,14 @@ def from_volume(
         # Convert the 3D numpy array to a Pygel3D mesh object
         mesh = qim3d.mesh.from_volume(synthetic_blob)
         ```
+
     """
-    
+
     if volume.ndim != 3:
-        raise ValueError("The input volume must be a 3D numpy array.")
-    
+        raise ValueError('The input volume must be a 3D numpy array.')
+
     if volume.size == 0:
-        raise ValueError("The input volume must not be empty.")
+        raise ValueError('The input volume must not be empty.')
 
     mesh = hmesh.volumetric_isocontour(volume, **kwargs)
     return mesh

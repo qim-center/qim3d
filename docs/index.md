@@ -59,10 +59,10 @@ Whether you are working with medical imaging data, materials science data, or an
 
     # Generate synthetic collection of blobs
     num_objects = 15
-    synthetic_collection, labels = qim3d.generate.collection(num_objects = num_objects)
+    volume_collection, labels = qim3d.generate.volume_collection(num_objects = num_objects)
 
-    # Visualize synthetic collection
-    qim3d.viz.vol(synthetic_collection)
+    # Visualize the collection
+    qim3d.viz.vol(volume_collection)
     ```
     <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default.html" width="100%" height="500" frameborder="0"></iframe>
 

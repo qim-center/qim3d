@@ -7,16 +7,17 @@ Volumetric visualization using K3D
 
 """
 
+from typing import Optional
+
+import k3d
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import Colormap
+from pygel3d import jupyter_display as jd
 
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
-from pygel3d import hmesh
-from pygel3d import jupyter_display as jd
-import k3d
-from typing import Optional
+
 
 def volumetric(
     img: np.ndarray,
@@ -174,21 +175,23 @@ def volumetric(
     else:
         return plot
 
+
 def mesh(
     mesh,
-    backend: str = "pygel3d",
+    backend: str = 'pygel3d',
     wireframe: bool = True,
     flat_shading: bool = True,
     grid_visible: bool = False,
     show: bool = True,
     save: bool = False,
     **kwargs,
-)-> Optional[k3d.Plot]:
-    """Visualize a 3D mesh using `pygel3d` or `k3d`.
-    
+) -> Optional[k3d.Plot]:
+    """
+    Visualize a 3D mesh using `pygel3d` or `k3d`.
+
     Args:
         mesh (pygel3d.hmesh.Manifold): The input mesh object.
-        backend (str, optional): The visualization backend to use. 
+        backend (str, optional): The visualization backend to use.
             Choose between `pygel3d` (default) and `k3d`.
         wireframe (bool, optional): If True, displays the mesh as a wireframe.
             Works both with `pygel3d` and `k3d`. Defaults to True.
@@ -202,17 +205,17 @@ def mesh(
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Works only with `k3d`. Defaults to False.
         **kwargs (Any): Additional keyword arguments specific to the chosen backend:
-            
-            - `k3d.plot` kwargs: Arguments that customize the [`k3d.plot`](https://k3d-jupyter.org/reference/factory.plot.html) visualization. 
-            
+
+            - `k3d.plot` kwargs: Arguments that customize the [`k3d.plot`](https://k3d-jupyter.org/reference/factory.plot.html) visualization.
+
             - `pygel3d.display` kwargs: Arguments that customize the [`pygel3d.display`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display) visualization.
-    
+
     Returns:
         k3d.Plot or None:
-        
+
             - If `backend="k3d"`, returns a `k3d.Plot` object.
             - If `backend="pygel3d"`, the function displays the mesh but does not return a plot object.
-    
+
     Raises:
         ValueError: If `backend` is not `pygel3d` or `k3d`.
 
@@ -224,10 +227,10 @@ def mesh(
         qim3d.viz.mesh(mesh, backend="pygel3d") # or qim3d.viz.mesh(mesh, backend="k3d")
         ```
     ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
+
     """
 
-
-    if backend not in ["k3d", "pygel3d"]:
+    if backend not in ['k3d', 'pygel3d']:
         raise ValueError("Invalid backend. Choose 'pygel3d' or 'k3d'.")
 
     # Extract vertex positions and face indices
@@ -236,19 +239,19 @@ def mesh(
 
     # Extract face vertex indices
     face_vertices = [
-        list(mesh.circulate_face(int(fid), mode="v"))[:3] for fid in face_indices
+        list(mesh.circulate_face(int(fid), mode='v'))[:3] for fid in face_indices
     ]
     face_vertices = np.array(face_vertices, dtype=np.uint32)
 
     # Validate the mesh structure
     if vertices_array.shape[1] != 3 or face_vertices.shape[1] != 3:
-        raise ValueError("Vertices must have shape (N, 3) and faces (M, 3)")
+        raise ValueError('Vertices must have shape (N, 3) and faces (M, 3)')
 
     # Separate valid kwargs for each backend
-    valid_k3d_kwargs = {k: v for k, v in kwargs.items() if k not in ["smooth", "data"]}
-    valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ["smooth", "data"]}
+    valid_k3d_kwargs = {k: v for k, v in kwargs.items() if k not in ['smooth', 'data']}
+    valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ['smooth', 'data']}
 
-    if backend == "k3d":
+    if backend == 'k3d':
         vertices_array = np.ascontiguousarray(vertices_array.astype(np.float32))
         face_vertices = np.ascontiguousarray(face_vertices)
 
@@ -265,7 +268,7 @@ def mesh(
 
         if save:
             # Save html to disk
-            with open(str(save), "w", encoding="utf-8") as fp:
+            with open(str(save), 'w', encoding='utf-8') as fp:
                 fp.write(plot.get_snapshot())
 
         if show:
@@ -273,7 +276,6 @@ def mesh(
         else:
             return plot
 
-
-    elif backend == "pygel3d":
+    elif backend == 'pygel3d':
         jd.set_export_mode(True)
         return jd.display(mesh, wireframe=wireframe, **valid_pygel_kwargs)

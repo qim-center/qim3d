@@ -1,2 +1,6 @@
-from ._aggregators import noise_object_collection
-from ._generators import noise_object
+"""Generation fo synthetic datasets."""
+
+from ._aggregators import volume_collection
+from ._generators import volume
+
+__all__ = ['volume', 'volume_collection']
