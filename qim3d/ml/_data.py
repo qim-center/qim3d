@@ -207,7 +207,7 @@ def prepare_datasets(
     resize = augmentation.resize
     n_channels = len(model.channels)
 
-    # Determine if the dataset is 2D or 3D by checking the first image
+    # Get the first image to check the shape
     im_path = Path(path) / 'train'
     first_img = sorted((im_path / "images").iterdir())[0]
 

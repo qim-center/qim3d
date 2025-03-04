@@ -346,7 +346,7 @@ def test_model(
             target = target.squeeze().cpu().numpy()
             pred = pred.squeeze().cpu().numpy()
 
-        # TODO: Compute DICE score between target and prediction
+        # TODO: Compute DICE score between target and prediction?
         
         # Append results to list
         results.append((volume, target, pred))
