@@ -216,8 +216,8 @@ def volume_collection(
         vol, labels = qim3d.generate.volume_collection(
             min_high_value = 255,
             max_high_value = 255,
-            min_object_noise = 0.05,
-            max_object_noise = 0.05,
+            min_volume_noise = 0.05,
+            max_volume_noise = 0.05,
             min_threshold = 0.99,
             max_threshold = 0.99,
             min_gamma = 0.02,
