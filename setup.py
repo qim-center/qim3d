@@ -77,7 +77,6 @@ setup(
     ],
     extras_require={
         'deep-learning': [
-            'albumentations>=1.3.1',
             'torch>=2.0.1',
             'torchvision>=0.15.2',
             'torchinfo>=1.8.0',
