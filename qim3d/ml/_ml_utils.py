@@ -265,8 +265,7 @@ def test_model(
         results (list): List of tuples (volume, target, pred) containing the input images, target labels, and predicted labels.
 
     Raises:
-        ValueError: If the data items are not tuples or data items do not consist of tensors.
-        ValueError: If the input image is not in (C, H, W) format.
+        ValueError: If the data items do not consist of tensors.
 
     Notes:
         - The function assumes that the model is not already in evaluation mode (`model.eval()`).
