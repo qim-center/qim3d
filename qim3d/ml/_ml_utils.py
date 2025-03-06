@@ -20,7 +20,7 @@ def train_model(
     val_loader: torch.utils.data.DataLoader,
     checkpoint_directory: str = None,
     eval_every: int = 1,
-    print_every: int = 5,
+    print_every: int = 1,
     plot: bool = True,
     return_loss: bool = False,
 ) -> tuple[tuple[float], tuple[float]]:

@@ -45,9 +45,6 @@ class UNet(nn.Module):
         adn_order: str = 'NDA',
     ):
         super().__init__()
-        if size not in ['small', 'medium', 'large']:
-            msg = f"Invalid model size: {size}. Size must be one of the following: 'small', 'medium', 'large'."
-            raise ValueError(msg)
 
         self.size = size
         self.dropout = dropout
@@ -62,17 +59,23 @@ class UNet(nn.Module):
     def _model_choice(self) -> nn.Module:
         from monai.networks.nets import UNet as monai_UNet
 
-        if self.size == 'small':
-            # 3 layers
-            self.channels = (64, 128, 256)
+        size_options = {
+            'xxsmall': (4, 8),  # 2 layers
+            'xsmall': (16, 32),  # 2 layers
+            'small': (32, 64, 128),  # 3 layers
+            'medium': (64, 128, 256),  # 3 layers
+            'large': (64, 128, 256, 512, 1024),  # 5 layers
+            'xlarge': (64, 128, 256, 512, 1024, 2048),  # 6 layers
+            'xxlarge': (64, 128, 256, 512, 1024, 2048, 4096),  # 7 layers
+        }
 
-        elif self.size == 'medium':
-            # 5 layers
-            self.channels = (64, 128, 256, 512, 1024)
-
-        elif self.size == 'large':
-            # 6 layers
-            self.channels = (64, 128, 256, 512, 1024, 2048)
+        if self.size in size_options:
+            self.channels = size_options[self.size]
+        else:
+            message = (
+                f"Unknown size '{self.size}'. Choose from {list(size_options.keys())}"
+            )
+            raise ValueError(message)
 
         model = monai_UNet(
             spatial_dims=3,

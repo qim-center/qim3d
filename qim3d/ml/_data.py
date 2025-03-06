@@ -3,10 +3,10 @@
 from pathlib import Path
 from typing import Callable, Optional
 
-import nibabel as nib
 import numpy as np
 import torch
 
+import qim3d
 from qim3d.utils import log
 
 from ._augmentations import Augmentation
@@ -69,12 +69,8 @@ class Dataset(torch.utils.data.Dataset):
         target_path = self.sample_targets[idx]
 
         # Load 3D volume
-        image_data = nib.load(str(image_path))
-        target_data = nib.load(str(target_path))
-
-        # Get data from volume
-        image = np.asarray(image_data.dataobj, dtype=image_data.get_data_dtype())
-        target = np.asarray(target_data.dataobj, dtype=target_data.get_data_dtype())
+        image = qim3d.io.load(image_path)
+        target = qim3d.io.load(target_path)
 
         # Add extra channel dimension
         image = np.expand_dims(image, axis=0)
@@ -110,7 +106,7 @@ class Dataset(torch.utils.data.Dataset):
 
     def _get_shape(self, image_path: str) -> tuple:
         # Load 3D volume
-        image = nib.load(str(image_path)).get_fdata()
+        image = qim3d.io.load(image_path)
         return image.shape
 
 
@@ -223,7 +219,7 @@ def prepare_datasets(
     first_img = sorted((im_path / 'images').iterdir())[0]
 
     # Load 3D volume
-    image = nib.load(str(first_img)).get_fdata()
+    image = qim3d.io.load(first_img)
     orig_shape = image.shape
 
     final_shape = check_resize(orig_shape, resize, n_channels)
