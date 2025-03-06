@@ -5,16 +5,14 @@ from typing import Callable, Optional
 
 import numpy as np
 import torch
-import torch.nn as nn
-from PIL import Image
 
+import qim3d
 from qim3d.utils import log
 
 from ._augmentations import Augmentation
 
 
 class Dataset(torch.utils.data.Dataset):
-
     """
     Custom Dataset class for building a PyTorch dataset.
 
@@ -39,11 +37,6 @@ class Dataset(torch.utils.data.Dataset):
         __len__(): Returns the total number of samples in the dataset.
         __getitem__(idx): Returns the image and its target segmentation at the given index.
 
-    Usage:
-        dataset = Dataset(root_path="path/to/dataset", split="train",
-            transform=albumentations.Compose([ToTensorV2()]))
-        image, target = dataset[idx]
-
     """
 
     def __init__(
@@ -53,18 +46,19 @@ class Dataset(torch.utils.data.Dataset):
 
         # Check if split is valid
         if split not in ['train', 'test']:
-            raise ValueError('Split must be either train or test')
+            msg = f"Invalid split: {split}. Use either 'train' or 'test'."
+            raise ValueError(msg)
 
         self.split = split
         self.transform = transform
 
         path = Path(root_path) / split
 
-        self.sample_images = [file for file in sorted((path / 'images').iterdir())]
-        self.sample_targets = [file for file in sorted((path / 'labels').iterdir())]
+        self.sample_images = sorted((path / 'images').iterdir())
+        self.sample_targets = sorted((path / 'labels').iterdir())
         assert len(self.sample_images) == len(self.sample_targets)
 
-        # checking the characteristics of the dataset
+        # Checking the characteristics of the dataset
         self.check_shape_consistency(self.sample_images)
 
     def __len__(self):
@@ -74,87 +68,108 @@ class Dataset(torch.utils.data.Dataset):
         image_path = self.sample_images[idx]
         target_path = self.sample_targets[idx]
 
-        image = Image.open(str(image_path))
-        image = np.array(image)
-        target = Image.open(str(target_path))
-        target = np.array(target)
+        # Load 3D volume
+        image = qim3d.io.load(image_path)
+        target = qim3d.io.load(target_path)
+
+        # Add extra channel dimension
+        image = np.expand_dims(image, axis=0)
+        target = np.expand_dims(target, axis=0)
 
         if self.transform:
-            transformed = self.transform(image=image, mask=target)
+            # Apply augmentation
+            transformed = self.transform({'image': image, 'label': target})
             image = transformed['image']
-            target = transformed['mask']
+            target = transformed['label']
+
+        image = image.clone().detach().to(dtype=torch.float32)
+        target = target.clone().detach().to(dtype=torch.float32)
 
         return image, target
 
     # TODO: working with images of different sizes
-    def check_shape_consistency(self, sample_images: tuple[str]):
+    def check_shape_consistency(self, sample_images: tuple[str]) -> bool:
         image_shapes = []
         for image_path in sample_images:
             image_shape = self._get_shape(image_path)
             image_shapes.append(image_shape)
 
-        # check if all images have the same size.
+        # Check if all images have the same size
         consistency_check = all(i == image_shapes[0] for i in image_shapes)
 
         if not consistency_check:
-            raise NotImplementedError(
-                'Only images of all the same size can be processed at the moment'
-            )
+            msg = 'Only images of all the same size can be processed at the moment'
+            raise NotImplementedError(msg)
         else:
             log.debug('Images are all the same size!')
         return consistency_check
 
-    def _get_shape(self, image_path):
-        return Image.open(str(image_path)).size
+    def _get_shape(self, image_path: str) -> tuple:
+        # Load 3D volume
+        image = qim3d.io.load(image_path)
+        return image.shape
 
 
 def check_resize(
-    im_height: int, im_width: int, resize: str, n_channels: int
-) -> tuple[int, int]:
+    orig_shape: tuple,
+    resize: tuple,
+    n_channels: int,
+) -> tuple:
     """
-    Checks the compatibility of the image shape with the depth of the model.
-    If the image height and width cannot be divided by 2 `n_channels` times, then the image size is inappropriate.
-    If so, the image is changed to the closest appropriate dimension, and the user is notified with a warning.
+    Checks and adjusts the resize dimensions based on the original shape and the number of channels.
 
     Args:
-        im_height (int) : Height of the original image from the dataset.
-        im_width (int)  : Width of the original image from the dataset.
-        resize (str)    : Type of resize to be used on the image if the size doesn't fit the model.
+        orig_shape (tuple): Original shape of the image.
+        resize (tuple): Desired resize dimensions.
         n_channels (int): Number of channels in the model.
+
+    Returns:
+        tuple: Final resize dimensions.
 
     Raises:
         ValueError: If the image size is smaller than minimum required for the model's depth.
 
     """
-    # finding suitable size to upsize with padding
+
+    # 3D images
+    orig_d, orig_h, orig_w = orig_shape
+    final_d = resize[0] if resize[0] else orig_d
+    final_h = resize[1] if resize[1] else orig_h
+    final_w = resize[2] if resize[2] else orig_w
+
+    # Finding suitable size to upsize with padding
     if resize == 'padding':
-        h_adjust, w_adjust = (
-            (im_height // 2**n_channels + 1) * 2**n_channels,
-            (im_width // 2**n_channels + 1) * 2**n_channels,
-        )
+        final_d = (orig_d // 2**n_channels + 1) * 2**n_channels
+        final_h = (orig_h // 2**n_channels + 1) * 2**n_channels
+        final_w = (orig_w // 2**n_channels + 1) * 2**n_channels
 
-    # finding suitable size to downsize with crop / resize
+    # Finding suitable size to downsize with crop / resize
     else:
-        h_adjust, w_adjust = (
-            (im_height // 2**n_channels) * 2**n_channels,
-            (im_width // 2**n_channels) * 2**n_channels,
-        )
+        final_d = (orig_d // 2**n_channels) * 2**n_channels
+        final_h = (orig_h // 2**n_channels) * 2**n_channels
+        final_w = (orig_w // 2**n_channels) * 2**n_channels
 
-    if h_adjust == 0 or w_adjust == 0:
-        raise ValueError(
-            "The size of the image is too small compared to the depth of the UNet. Choose a different 'resize' and/or a smaller model."
-        )
+        # Check if the image size is too small compared to the model's depth
+        if final_d == 0 or final_h == 0 or final_w == 0:
+            msg = (
+                "The size of the image is too small compared to the depth of the UNet. \
+                   Choose a different 'resize' and/or a smaller model."
+            )
 
-    elif h_adjust != im_height or w_adjust != im_width:
-        log.warning(
-            f"The image size doesn't match the Unet model's depth. The image is changed with '{resize}', from {im_height, im_width} to {h_adjust, w_adjust}."
-        )
+            raise ValueError(msg)
 
-    return h_adjust, w_adjust
+        if final_d != orig_d or final_h != orig_h or final_w != orig_w:
+            log.warning(f"The image size doesn't match the Unet model's depth. \
+                          The image is changed with '{resize}', from {orig_h, orig_w} to {final_h, final_w}.")
+
+        return final_d, final_h, final_w
 
 
 def prepare_datasets(
-    path: str, val_fraction: float, model: nn.Module, augmentation: Augmentation
+    path: str,
+    val_fraction: float,
+    model: torch.nn.Module,
+    augmentation: Augmentation,
 ) -> tuple[torch.utils.data.Subset, torch.utils.data.Subset, torch.utils.data.Subset]:
     """
     Splits and augments the train/validation/test datasets.
@@ -163,41 +178,66 @@ def prepare_datasets(
         path (str): Path to the dataset.
         val_fraction (float): Fraction of the data for the validation set.
         model (torch.nn.Module): PyTorch Model.
-        augmentation (albumentations.core.composition.Compose): Augmentation class for the dataset with predefined augmentation levels.
+        augmentation (monai.transforms.Compose): Augmentation class for the dataset with predefined augmentation levels.
+
+    Returns:
+        train_set (torch.utils.data.Subset): Training dataset.
+        val_set (torch.utils.data.Subset): Validation dataset.
+        test_set (torch.utils.data.Subset): Testing dataset.
 
     Raises:
-        ValueError: if the validation fraction is not a float, and is not between 0 and 1.
+        ValueError: If the validation fraction is not a float, and is not between 0 and 1.
+
+    Example:
+        ```python
+        import qim3d
+
+        base_path = "C:/dataset/"
+        model = qim3d.ml.models.UNet(size = 'small')
+        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
+
+        # Set up datasets
+        train_set, val_set, test_set = qim3d.ml.prepare_datasets(
+            path = base_path,
+            val_fraction = 0.5,
+            model = model,
+            augmentation = augmentation
+            )
+        ```
 
     """
 
     if not isinstance(val_fraction, float) or not (0 <= val_fraction < 1):
-        raise ValueError('The validation fraction must be a float between 0 and 1.')
+        msg = 'The validation fraction must be a float between 0 and 1.'
+        raise ValueError(msg)
 
     resize = augmentation.resize
     n_channels = len(model.channels)
 
-    # taking the size of the 1st image in the dataset
+    # Get the first image to check the shape
     im_path = Path(path) / 'train'
     first_img = sorted((im_path / 'images').iterdir())[0]
-    image = Image.open(str(first_img))
-    orig_h, orig_w = image.size[:2]
 
-    final_h, final_w = check_resize(orig_h, orig_w, resize, n_channels)
+    # Load 3D volume
+    image = qim3d.io.load(first_img)
+    orig_shape = image.shape
+
+    final_shape = check_resize(orig_shape, resize, n_channels)
 
     train_set = Dataset(
         root_path=path,
-        transform=augmentation.augment(final_h, final_w, augmentation.transform_train),
+        transform=augmentation.augment(final_shape, level=augmentation.transform_train),
     )
     val_set = Dataset(
         root_path=path,
         transform=augmentation.augment(
-            final_h, final_w, augmentation.transform_validation
+            final_shape, level=augmentation.transform_validation
         ),
     )
     test_set = Dataset(
         root_path=path,
         split='test',
-        transform=augmentation.augment(final_h, final_w, augmentation.transform_test),
+        transform=augmentation.augment(final_shape, level=augmentation.transform_test),
     )
 
     split_idx = int(np.floor(val_fraction * len(train_set)))
@@ -227,12 +267,42 @@ def prepare_dataloaders(
 
     Args:
         train_set (torch.utils.data): Training dataset.
-        val_set (torch.utils.data):   Validation dataset.
-        test_set (torch.utils.data):  Testing dataset.
+        val_set (torch.utils.data): Validation dataset.
+        test_set (torch.utils.data): Testing dataset.
         batch_size (int): Size of the batches that should be trained upon.
         shuffle_train (bool, optional): Optional input to shuffle the training data (training robustness).
-        num_workers (int, optional): Defines how many processes should be run in parallel.
-        pin_memory (bool, optional): Loads the datasets as CUDA tensors.
+        num_workers (int, optional): Defines how many processes should be run in parallel. Default is 8.
+        pin_memory (bool, optional): Loads the datasets as CUDA tensors. Default is False.
+
+    Returns:
+        train_loader (torch.utils.data.DataLoader): Training dataloader.
+        val_loader (torch.utils.data.DataLoader): Validation dataloader.
+        test_loader (torch.utils.data.DataLoader): Testing dataloader.
+
+    Example:
+        ```python
+        import qim3d
+
+        base_path = "C:/dataset/"
+        model = qim3d.ml.models.UNet(size = 'small')
+        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
+
+        # Set up datasets
+        train_set, val_set, test_set = qim3d.ml.prepare_datasets(
+            path = base_path,
+            val_fraction = 0.5,
+            model = model,
+            augmentation = augmentation
+            )
+
+        # Set up dataloaders
+        train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
+            train_set = train_set,
+            val_set = val_set,
+            test_set = test_set,
+            batch_size = 1,
+            )
+        ```
 
     """
     from torch.utils.data import DataLoader

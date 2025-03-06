@@ -212,16 +212,17 @@ def volume_collection(
         ```python
         import qim3d
 
-        # Generate synthetic collection of dense volumes
-        volume_collection, labels = qim3d.generate.collection(
-                                    min_high_value = 255,
-                                    max_high_value = 255,
-                                    min_volume_noise = 0.05,
-                                    max_volume_noise = 0.05,
-                                    min_threshold = 0.99,
-                                    max_threshold = 0.99,
-                                    min_gamma = 0.02,
-                                    max_gamma = 0.02)
+        # Generate synthetic collection of dense objects
+        vol, labels = qim3d.generate.volume_collection(
+            min_high_value = 255,
+            max_high_value = 255,
+            min_volume_noise = 0.05,
+            max_volume_noise = 0.05,
+            min_threshold = 0.99,
+            max_threshold = 0.99,
+            min_gamma = 0.02,
+            max_gamma = 0.02
+            )
 
         # Visualize the collection
         qim3d.viz.vol(volume_collection)
@@ -233,19 +234,20 @@ def volume_collection(
         import qim3d
 
         # Generate synthetic collection of cylindrical structures
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 40,
-                                                collection_shape = (300, 150, 150),
-                                                min_shape = (280, 10, 10),
-                                                max_shape = (290, 15, 15),
-                                                min_volume_noise = 0.08,
-                                                max_volume_noise = 0.09,
-                                                max_rotation_degrees = 5,
-                                                min_threshold = 0.7,
-                                                max_threshold = 0.9,
-                                                min_gamma = 0.10,
-                                                max_gamma = 0.11,
-                                                volume_shape = "cylinder"
-                                                )
+        volume_collection, labels = qim3d.generate.volume_collection(
+            num_volumes = 40,
+            collection_shape = (300, 150, 150),
+            min_shape = (280, 10, 10),
+            max_shape = (290, 15, 15),
+            min_volume_noise = 0.08,
+            max_volume_noise = 0.09,
+            max_rotation_degrees = 5,
+            min_threshold = 0.7,
+            max_threshold = 0.9,
+            min_gamma = 0.10,
+            max_gamma = 0.11,
+            volume_shape = "cylinder"
+            )
 
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection)

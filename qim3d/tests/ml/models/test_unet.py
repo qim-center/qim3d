@@ -13,8 +13,8 @@ def test_starting_unet():
 def test_forward_pass():
     unet = qim3d.ml.models.UNet()
 
-    # Size: B x C x H x W
-    x = torch.ones([1, 1, 256, 256])
+    # Size: B x C x D x H x W
+    x = torch.ones([1, 1, 128, 128, 128])
 
     output = unet(x)
     assert x.shape == output.shape

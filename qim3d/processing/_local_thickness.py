@@ -53,9 +53,9 @@ def local_thickness(
         import qim3d
 
         # Generate synthetic collection of blobs
-        vol, labels = qim3d.generate.noise_object_collection(num_objects=15)
+        vol, labels = qim3d.generate.noise_object_collection(num_volumes=15)
 
-        # Extract one slice to show that localthickness works on 2D slices too
+        # Extract one slice to show that local thickness works on 2D slices too
         slice = vol[:,:,50]
         lt_blobs = qim3d.processing.local_thickness(slice, visualize=True)
 

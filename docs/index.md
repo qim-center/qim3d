@@ -58,8 +58,8 @@ Whether you are working with medical imaging data, materials science data, or an
     import qim3d
 
     # Generate synthetic collection of blobs
-    num_objects = 15
-    volume_collection, labels = qim3d.generate.volume_collection(num_objects = num_objects)
+    num_volumes = 15
+    volume_collection, labels = qim3d.generate.volume_collection(num_volumes = num_volumes)
 
     # Visualize the collection
     qim3d.viz.vol(volume_collection)

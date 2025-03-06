@@ -1,4 +1,4 @@
 from ._augmentations import Augmentation
-from ._data import Dataset, prepare_dataloaders, prepare_datasets
-from ._ml_utils import inference, model_summary, train_model, volume_inference
+from ._data import Dataset, prepare_datasets, prepare_dataloaders
+from ._ml_utils import model_summary, train_model, load_checkpoint, test_model
 from .models import *
