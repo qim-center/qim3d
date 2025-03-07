@@ -10,6 +10,7 @@ from tqdm import tqdm
 from qim3d.io import load
 from qim3d.utils import log
 
+__all__ = ['Downloader', 'download_file']
 
 class Downloader:
 
