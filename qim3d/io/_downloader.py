@@ -12,6 +12,71 @@ from qim3d.utils import log
 
 __all__ = ['Downloader', 'download_file']
 
+class _Myfolder:
+
+    """
+    Class for extracting the files from each folder in the Downloader class.
+
+    Args:
+        folder(str): name of the folder of interest in the QIM data repository.
+
+    Methods:
+            _make_fn(folder,file): creates custom functions for each file found in the folder.
+        [file_name_1](load_file,optional): Function to download file number 1 in the given folder.
+        [file_name_2](load_file,optional): Function to download file number 2 in the given folder.
+        ...
+        [file_name_n](load_file,optional): Function to download file number n in the given folder.
+
+    """
+
+    def __init__(self, folder: str):
+        files = _extract_names(folder)
+
+        for idx, file in enumerate(files):
+            # Changes names to usable function name.
+            file_name = file
+            if ('%20' in file) or ('-' in file):
+                file_name = file_name.replace('%20', '_')
+                file_name = file_name.replace('-', '_')
+
+            setattr(self, f'{file_name.split(".")[0]}', self._make_fn(folder, file))
+
+    def _make_fn(self, folder: str, file: str):
+        """
+        Private method that returns a function. The function downloads the chosen file from the folder.
+
+        Args:
+            folder(str): Folder where the file is located.
+            file(str): Name of the file to be downloaded.
+
+        Returns:
+                function: the function used to download the file.
+
+        """
+
+        url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
+
+        def _download(load_file: bool = False, virtual_stack: bool = True):
+            """
+            Downloads the file and optionally also loads it.
+
+            Args:
+                load_file(bool,optional): Whether to simply download or also load the file.
+
+            Returns:
+                virtual_stack: The loaded image.
+
+            """
+
+            download_file(url_dl, folder, file)
+            if load_file == True:
+                log.info(f'\nLoading {file}')
+                file_path = os.path.join(folder, file)
+
+                return load(path=file_path, virtual_stack=virtual_stack)
+
+        return _download
+
 class Downloader:
 
     """
@@ -67,7 +132,7 @@ class Downloader:
     def __init__(self):
         folders = _extract_names()
         for idx, folder in enumerate(folders):
-            exec(f'self.{folder} = self._Myfolder(folder)')
+            exec(f'self.{folder} = _Myfolder(folder)')
 
     def list_files(self):
         """Generate and print formatted folder, file, and size information."""
@@ -90,71 +155,6 @@ class Downloader:
                 path_string = f'{folder}.{formatted_file}'
 
                 log.info(f'{path_string:<50}({formatted_size})')
-
-    class _Myfolder:
-
-        """
-        Class for extracting the files from each folder in the Downloader class.
-
-        Args:
-            folder(str): name of the folder of interest in the QIM data repository.
-
-        Methods:
-             _make_fn(folder,file): creates custom functions for each file found in the folder.
-            [file_name_1](load_file,optional): Function to download file number 1 in the given folder.
-            [file_name_2](load_file,optional): Function to download file number 2 in the given folder.
-            ...
-            [file_name_n](load_file,optional): Function to download file number n in the given folder.
-
-        """
-
-        def __init__(self, folder: str):
-            files = _extract_names(folder)
-
-            for idx, file in enumerate(files):
-                # Changes names to usable function name.
-                file_name = file
-                if ('%20' in file) or ('-' in file):
-                    file_name = file_name.replace('%20', '_')
-                    file_name = file_name.replace('-', '_')
-
-                setattr(self, f'{file_name.split(".")[0]}', self._make_fn(folder, file))
-
-        def _make_fn(self, folder: str, file: str):
-            """
-            Private method that returns a function. The function downloads the chosen file from the folder.
-
-            Args:
-                folder(str): Folder where the file is located.
-                file(str): Name of the file to be downloaded.
-
-            Returns:
-                    function: the function used to download the file.
-
-            """
-
-            url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
-
-            def _download(load_file: bool = False, virtual_stack: bool = True):
-                """
-                Downloads the file and optionally also loads it.
-
-                Args:
-                    load_file(bool,optional): Whether to simply download or also load the file.
-
-                Returns:
-                    virtual_stack: The loaded image.
-
-                """
-
-                download_file(url_dl, folder, file)
-                if load_file == True:
-                    log.info(f'\nLoading {file}')
-                    file_path = os.path.join(folder, file)
-
-                    return load(path=file_path, virtual_stack=virtual_stack)
-
-            return _download
 
 
 def _update_progress(pbar: tqdm, blocknum: int, bs: int):

@@ -92,4 +92,3 @@ plugins:
               show_symbol_type_heading: false
               show_symbol_type_toc: false
               separate_signature: true
-              show-private-members: false

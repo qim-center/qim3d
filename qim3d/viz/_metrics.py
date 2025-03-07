@@ -4,7 +4,6 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
-import torch
 from matplotlib import colormaps
 from matplotlib.colors import LinearSegmentedColormap
 
@@ -84,7 +83,7 @@ def plot_metrics(
 
 
 def grid_overview(
-    data: list | torch.utils.data.Dataset,
+    data: list ,
     num_images: int = 7,
     cmap_im: str = 'gray',
     cmap_segm: str = 'viridis',
