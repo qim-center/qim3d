@@ -3,7 +3,7 @@ site_url: https://platform.qim.dk/qim3d/
 site_author: qim3d contributors
 site_description: Documentation for the qim3d python library
 repo_url: https://github.com/qim-center/qim3d
-repo_name: GitHub
+repo_name: qim-center/qim3d
 
 
 nav:
