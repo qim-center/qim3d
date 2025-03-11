@@ -1,7 +1,9 @@
 import pytest
+import matplotlib
 
 import qim3d
 
+matplotlib.use('Agg')
 
 # unit test for plot_metrics()
 def test_plot_metrics():
