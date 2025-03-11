@@ -162,7 +162,7 @@ def check_resize(
             log.warning(f"The image size doesn't match the Unet model's depth. \
                           The image is changed with '{resize}', from {orig_h, orig_w} to {final_h, final_w}.")
 
-        return final_d, final_h, final_w
+    return final_d, final_h, final_w
 
 
 def prepare_datasets(
