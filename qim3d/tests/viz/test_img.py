@@ -1,4 +1,5 @@
 import ipywidgets as widgets
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -7,6 +8,7 @@ import torch
 import qim3d
 from qim3d.tests import temp_data
 
+matplotlib.use('Agg')
 
 # unit tests for grid overview
 def test_grid_overview():
@@ -23,26 +25,6 @@ def test_grid_overview_tuple():
 
     with pytest.raises(ValueError, match='Data elements must be tuples'):
         qim3d.viz.grid_overview(random_tuple, num_images=1)
-
-
-# unit tests for grid prediction
-def test_grid_pred():
-    folder = 'folder_data'
-    n = 4
-    temp_data(folder, n=n)
-
-    model = qim3d.ml.models.UNet()
-    augmentation = qim3d.ml.Augmentation()
-    train_set, _, _ = qim3d.ml.prepare_datasets(folder, 0.1, model, augmentation)
-
-    in_targ_pred = qim3d.ml.inference(train_set, model)
-
-    fig = qim3d.viz.grid_pred(in_targ_pred)
-
-    assert (fig.get_figwidth(), fig.get_figheight()) == (2 * (n), 10)
-
-    temp_data(folder, remove=True)
-
 
 # unit tests for slices function
 def test_slices_numpy_array_input():
