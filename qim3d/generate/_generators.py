@@ -35,7 +35,7 @@ def volume(
         dtype (data-type, optional): Desired data type of the output volume. Defaults to "uint8".
 
     Returns:
-        noise_volume (numpy.ndarray): Generated 3D volume with specified parameters.
+        volume (numpy.ndarray): Generated 3D volume with specified parameters.
 
     Raises:
         TypeError: If `final_shape` is not a tuple or does not have three elements.
@@ -228,3 +228,93 @@ def volume(
     volume = volume.astype(dtype)
 
     return volume
+
+
+def noise_volume(
+    noise_volume_shape: tuple,
+    baseline_value: float = 0,
+    min_noise_value: float = 0,
+    max_noise_value: float = 20,
+    seed: int = 0,
+    dtype: str = 'uint8',
+    apply_to: np.ndarray = None,
+) -> np.ndarray:
+    """
+    Generate a noise volume with random intensity values from a uniform distribution.
+
+    Args:
+        noise_volume_shape (tuple): The shape of the noise volume to generate.
+        baseline_value (float, optional): The baseline intensity of the noise volume. Default is 0.
+        min_noise_value (float, optional): The minimum intensity of the noise. Default is 0.
+        max_noise_value (float, optional): The maximum intensity of the noise. Default is 100.
+        seed (int, optional): The seed for the random number generator. Default is 0.
+        dtype (data-type, optional): Desired data type of the output volume. Defaults to 'uint8'.
+        apply_to (np.ndarray, optional): The input volume to add noise to. If None, the noise volume is returned. Otherwise, the input volume with the added noise is returned. Default is None.
+
+    Returns:
+        noise_volume (np.ndarray): The generated noise volume (if `apply_to` is None) or the input volume with added noise (if `apply_to` is not None).
+
+    Raises:
+        ValueError: If the shape of `apply_to` input volume does not match `noise_volume_shape`.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate noise volume
+        noise_volume = qim3d.generate.noise_volume(
+            noise_volume_shape = (128, 128, 128),
+            baseline_value = 20,
+            min_noise_value = 100,
+            max_noise_value = 200,
+        )
+
+        qim3d.viz.volumetric(noise_volume)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/noise_volume.html" width="100%" height="500" frameborder="0"></iframe>
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+
+        # Apply noise to the synthetic collection
+        noisy_collection = qim3d.generate.noise_volume(
+            noise_volume_shape = volume_collection.shape,
+            min_noise_value = 0,
+            max_noise_value = 20,
+            apply_to = volume_collection
+        )
+
+        qim3d.viz.volumetric(noisy_collection)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/noisy_collection.html" width="100%" height="500" frameborder="0"></iframe>
+
+    """
+    # Check for shape mismatch
+    if (apply_to is not None) and (apply_to.shape != noise_volume_shape):
+        msg = f'Shape of input volume {apply_to.shape} does not match noise_volume_shape {noise_volume_shape}.'
+        raise ValueError(msg)
+
+    # Generate the noise volume
+    baseline = np.full(shape=noise_volume_shape, fill_value=baseline_value)
+
+    noise = np.random.default_rng(seed=seed).uniform(
+        low=min_noise_value, high=max_noise_value, size=noise_volume_shape
+    )
+
+    noise_volume = baseline + noise
+
+    # Convert to desired data type
+    noise_volume = noise_volume.astype(dtype)
+
+    # If specified, add the noise volume to the input volume
+    if apply_to is not None:
+        noise_volume = apply_to + noise_volume
+        return noise_volume
+
+    # Otherwise, return the noise volume
+    else:
+        return noise_volume

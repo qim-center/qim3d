@@ -5,3 +5,4 @@
         members:
             - volume
             - volume_collection
+            - noise_volume
