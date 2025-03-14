@@ -661,6 +661,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.interactive:
         ![chunks-visualization](../../assets/screenshots/chunks_visualization.gif)
 
     """
+    import zarr
 
     # Load the Zarr dataset
     zarr_data = zarr.open(zarr_path, mode='r')
