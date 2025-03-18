@@ -297,7 +297,55 @@ def background(
 
         qim3d.viz.volumetric(noisy_collection)
         ```
-        <iframe src="https://platform.qim.dk/k3d/noisy_collection.html" width="100%" height="500" frameborder="0"></iframe>
+        <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_1.html" width="100%" height="500" frameborder="0"></iframe>
+   
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+
+        # Apply noise to the synthetic collection
+        noisy_collection = qim3d.generate.background(
+            background_shape = volume_collection.shape,
+            baseline_value = 0,
+            min_noise_value = 0,
+            max_noise_value = 30,
+            generate_method = 'add',
+            apply_method = 'divide',
+            apply_to = volume_collection
+        )
+
+        qim3d.viz.volumetric(noisy_collection)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_2.html" width="100%" height="500" frameborder="0"></iframe>
+        ```python
+        qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
+        ```
+        ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_2.png)
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+
+        # Apply noise to the synthetic collection
+        noisy_collection = qim3d.generate.background(
+            background_shape = (200, 200, 200),
+            baseline_value = 100,
+            min_noise_value = 0.8,
+            max_noise_value = 1.2,
+            generate_method = "multiply",
+            apply_method = "add",
+            apply_to = volume_collection
+        )
+
+        qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
+        ```
+        ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_3.png)
 
     """
     # Ensure dtype is a valid NumPy type
