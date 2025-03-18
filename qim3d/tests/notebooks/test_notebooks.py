@@ -29,3 +29,7 @@ def test_references_from_doi_notebook():
 def test_structure_tensor_notebook():
     with testbook('./docs/notebooks/structure_tensor.ipynb', execute=True) as tb:
         pass
+
+def test_segmentation_pipeline_notebook():
+    with testbook('./docs/notebooks/segmentation_pipeline_3D.ipynb', execute=True, timeout=180) as tb:
+        pass
