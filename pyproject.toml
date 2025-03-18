@@ -3,6 +3,10 @@
 [tool.ruff]
 line-length = 88
 indent-width = 4
+exclude = [
+    "docs", 
+    "qim3d/tests", 
+]
 
 [tool.ruff.lint]
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -98,6 +102,7 @@ omit = [
     "qim3d/examples/*",
     "qim3d/css/*",
     "docs/*",
+    "**/__init__.py", 
     "config.py",
     "config-3.py",
 ]
