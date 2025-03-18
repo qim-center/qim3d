@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import Colormap
 from pygel3d import jupyter_display as jd
+import pygel3d
 
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
@@ -177,7 +178,7 @@ def volumetric(
 
 
 def mesh(
-    mesh,
+    mesh: pygel3d.hmesh.Manifold,
     backend: str = 'pygel3d',
     wireframe: bool = True,
     flat_shading: bool = True,
@@ -187,7 +188,7 @@ def mesh(
     **kwargs,
 ) -> Optional[k3d.Plot]:
     """
-    Visualize a 3D mesh using `pygel3d` or `k3d`.
+    Visualize a 3D mesh using `pygel3d` or `k3d`. The visualization with the pygel3d backend provides higher-quality rendering, but it may take more time compared to using the k3d backend.
 
     Args:
         mesh (pygel3d.hmesh.Manifold): The input mesh object.
@@ -229,6 +230,13 @@ def mesh(
     ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
 
     """
+
+    max_vertices = 350000
+
+    if len(mesh.vertices()) > max_vertices:
+        log.info(
+            'Mesh has more than 350,000 vertices. The visualization may be slow, consider using a smaller mesh_precision when computing the mesh.'
+        )
 
     if backend not in ['k3d', 'pygel3d']:
         raise ValueError("Invalid backend. Choose 'pygel3d' or 'k3d'.")

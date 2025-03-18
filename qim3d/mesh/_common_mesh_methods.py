@@ -1,14 +1,22 @@
-
 import numpy as np
+import scipy
+import scipy.ndimage
 from pygel3d import hmesh
 
+from qim3d.utils import log
 
-def from_volume(volume: np.ndarray, **kwargs: any) -> hmesh.Manifold:
+
+def from_volume(
+    volume: np.ndarray, mesh_precision: float = 1.0, **kwargs: any
+) -> hmesh.Manifold:
     """
-    Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour) function from Pygel3D.
+    Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour)
+    function from Pygel3D.
 
     Args:
         volume (np.ndarray): A 3D numpy array representing a volume.
+        mesh_precision (float, optional): Scaling factor for adjusting the resolution of the mesh.
+                                          Default is 1.0 (no scaling).
         **kwargs: Additional arguments to pass to the Pygel3D volumetric_isocontour function.
 
     Raises:
@@ -23,10 +31,10 @@ def from_volume(volume: np.ndarray, **kwargs: any) -> hmesh.Manifold:
         import qim3d
 
         # Generate a 3D blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.volume(noise_scale=0.015)
 
         # Convert the 3D numpy array to a Pygel3D mesh object
-        mesh = qim3d.mesh.from_volume(synthetic_blob)
+        mesh = qim3d.mesh.from_volume(synthetic_blob, mesh_precision=0.5)
         ```
 
     """
@@ -37,5 +45,16 @@ def from_volume(volume: np.ndarray, **kwargs: any) -> hmesh.Manifold:
     if volume.size == 0:
         raise ValueError('The input volume must not be empty.')
 
+    if mesh_precision < 0 or mesh_precision > 1:
+        raise ValueError('The mesh precision must be between 0 and 1.')
+
+    # Apply scaling to adjust mesh resolution
+    volume = scipy.ndimage.zoom(volume, zoom=mesh_precision, order=0)
+
     mesh = hmesh.volumetric_isocontour(volume, **kwargs)
+
+    log.info(
+        f'Mesh generated with {len(mesh.vertices())} vertices and {len(mesh.faces())} faces.'
+    )
+
     return mesh
