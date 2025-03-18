@@ -101,3 +101,6 @@ omit = [
     "config.py",
     "config-3.py",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--ignore=qim3d/tests/notebooks"
