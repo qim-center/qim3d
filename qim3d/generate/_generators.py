@@ -298,7 +298,7 @@ def background(
         qim3d.viz.volumetric(noisy_collection)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_1.html" width="100%" height="500" frameborder="0"></iframe>
-   
+
     Example:
         ```python
         import qim3d
@@ -359,14 +359,14 @@ def background(
         'divide': lambda a, b: a / (b + 1e-8),  # Avoid division by zero
     }
 
-    # Validate apply_method
-    if apply_method not in apply_operations:
-        msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
-        raise ValueError(msg)
-    
     # Check if apply_method is provided without apply_to volume
     if (apply_to is None) and (apply_method is not None):
         msg = f"apply_method '{apply_method}' is only supported when apply_to input volume is provided."
+        # Validate apply_method
+        if apply_method not in apply_operations:
+            msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
+            raise ValueError(msg)
+
         raise ValueError(msg)
 
     # Check for shape mismatch
