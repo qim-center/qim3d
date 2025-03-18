@@ -91,3 +91,13 @@ ignore = [
 [tool.ruff.format]
 # Use single quotes for strings
 quote-style = "single"
+
+[tool.coverage.run]
+omit = [
+    "qim3d/tests/*",
+    "qim3d/examples/*",
+    "qim3d/css/*",
+    "docs/*",
+    "config.py",
+    "config-3.py",
+]
