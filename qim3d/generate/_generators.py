@@ -236,8 +236,8 @@ def background(
     baseline_value: float = 0,
     min_noise_value: float = 0,
     max_noise_value: float = 20,
-    generate_method: str = 'division',
-    apply_method: str = 'addition',
+    generate_method: str = 'divide',
+    apply_method: str = None,
     seed: int = 0,
     dtype: str = 'uint8',
     apply_to: np.ndarray = None,
@@ -250,23 +250,18 @@ def background(
         baseline_value (float, optional): The baseline intensity of the noise volume. Default is 0.
         min_noise_value (float, optional): The minimum intensity of the noise. Default is 0.
         max_noise_value (float, optional): The maximum intensity of the noise. Default is 20.
-        generate_method (str, optional): The method used to combine `baseline_value` and noise.
-            Options:
-            - 'addition': `baseline + noise`
-            - 'multiplication': `baseline * noise`
-            - 'division': `baseline / (1 + noise)` (default)
-        apply_method (str, optional): The method to apply the generated noise to `apply_to`, if provided.
-            Options:
-            - 'addition': `apply_to + noise`
-            - 'multiplication': `apply_to * noise`
+        generate_method (str, optional): The method used to combine `baseline_value` and noise. Choose from 'add' (`baseline + noise`), 'subtract' (`baseline - noise`), 'multiply' (`baseline * noise`), or 'divide' (`baseline / (1 + noise)`). Default is 'divide'.
+        apply_method (str, optional): The method to apply the generated noise to `apply_to`, if provided. Choose from 'add' (`apply_to + background`), 'subtract' (`apply_to - background`), 'multiply' (`apply_to * background`), or 'divide' (`apply_to / (1 + background)`). Default is None.
         seed (int, optional): The seed for the random number generator. Default is 0.
-        dtype (data-type, optional): Desired data type of the output volume. Defaults to 'uint8'.
+        dtype (data-type, optional): Desired data type of the output volume. Default is 'uint8'.
         apply_to (np.ndarray, optional): An input volume to which noise will be applied. If None, the generated noise volume is returned.
 
     Returns:
         background (np.ndarray): The generated noise volume (if `apply_to` is None) or the input volume with added noise (if `apply_to` is not None).
 
     Raises:
+        ValueError: If `apply_method` is not one of 'add', 'subtract', 'multiply', or 'divide'.
+        ValueError: If `apply_method` is provided without `apply_to` input volume provided.
         ValueError: If the shape of `apply_to` input volume does not match `background_shape`.
 
     Example:
@@ -319,6 +314,11 @@ def background(
     # Validate apply_method
     if apply_method not in apply_operations:
         msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
+        raise ValueError(msg)
+    
+    # Check if apply_method is provided without apply_to volume
+    if (apply_to is None) and (apply_method is not None):
+        msg = f"apply_method '{apply_method}' is only supported when apply_to input volume is provided."
         raise ValueError(msg)
 
     # Check for shape mismatch
