@@ -283,7 +283,7 @@ def background(
 
         qim3d.viz.volumetric(background)
         ```
-        <iframe src="https://platform.qim.dk/k3d/noise_volume.html" width="100%" height="500" frameborder="0"></iframe>
+        <iframe src="https://platform.qim.dk/k3d/synthetic_noise_background.html" width="100%" height="500" frameborder="0"></iframe>
 
     Example:
         ```python
