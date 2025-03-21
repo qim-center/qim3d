@@ -22,12 +22,14 @@ def pad(
         AssertionError: If any padding value is negative.
 
     Example:
+        ```
         import qim3d
         import numpy as np
 
         vol = np.zeros((100, 100, 100))
         # Pad x-axis with 10 pixels on each side and y-axis with 20% of the original volume size
         padded_volume = qim3d.operations.pad(vol, x_axis=10, y_axis=vol.shape[1] * 0.1)
+        ```
 
     """
     assert len(volume.shape) == 3, 'Volume must be 3D'
@@ -76,6 +78,7 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
         AssertionError: If the padded shape is not larger than the original shape.
 
     Example:
+        ```
         import qim3d
         import numpy as np
 
@@ -85,6 +88,7 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
 
         # Pad the volume to shape (110, 110, 110)
         padded_volume = qim3d.operations.pad_to(vol, (110,110,110))
+        ```
 
     """
     assert len(shape) == 3, 'Shape must be 3D'
@@ -115,6 +119,7 @@ def trim(volume: np.ndarray) -> np.ndarray:
         AssertionError: If the input shape is not 3D.
 
     Example:
+        ```
         import qim3d
         import numpy as np
 
@@ -124,6 +129,7 @@ def trim(volume: np.ndarray) -> np.ndarray:
 
         # Trim the value to shape (80,80,80)
         trimmed_volume = qim3d.operations.trim(vol)
+        ```
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -153,7 +159,7 @@ def shear3d(
     y_shift_z: int = 0,
     z_shift_x: int = 0,
     z_shift_y: int = 0,
-    order: int = 1,
+    order: int = 3,
 ) -> np.ndarray:
     """
     Applies a shear transformation to a 3D volume using pixel-based shifts.
@@ -166,7 +172,7 @@ def shear3d(
         y_shift_z (int): Maximum pixel shift in the y-direction, applied progressively along the z-axis.
         z_shift_x (int): Maximum pixel shift in the z-direction, applied progressively along the x-axis.
         z_shift_y (int): Maximum pixel shift in the z-direction, applied progressively along the y-axis.
-        order (int): Order of interpolation. Order=0 (nearest-neighbor) keeps voxel values unchanged.
+        order (int): Order of interpolation. Order=0 (nearest-neighbor) keeps voxel values unchanged. Defaults to 3.
 
     Returns:
         sheared_volume (numpy.ndarray): The transformed volume.
@@ -177,6 +183,7 @@ def shear3d(
         AssertionError: If the shift values are not integer.
 
     Example:
+        ```
         import qim3d
         import numpy as np
 
@@ -190,6 +197,7 @@ def shear3d(
         # Shear the volume by 20% factor in x-direction along z-axis
         factor = 0.2
         sheared_vol = shear3D(vol, x_shift_z=vol.shape[0]*factor)
+        ```
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -239,7 +247,7 @@ def curve_warp(
     y_periods: float = 1.0,
     x_offset: float = 0.0,
     y_offset: float = 0.0,
-    order: int = 1,
+    order: int = 3,
 ) -> np.ndarray:
     """
     Applies an curve transformation along the z-axis using sine functions.
@@ -252,7 +260,7 @@ def curve_warp(
         y_periods (float): Determines the amount of periods (amount of wave crests) along the y-direction. Defaults to 1.0.
         x_offset (float): Determines pixelwise curve offset in x-direction. Defaults to 0.0.
         y_offset (float): Determines pixelwise curve offset in y-direction. Defaults to 0.0.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
+        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 3.
 
     Returns:
         warped_volume (numpy.ndarray): The transformed volume.
@@ -262,6 +270,7 @@ def curve_warp(
         AssertionError: If the order is not integer and in the range of 0-5.
 
     Example:
+        ```
         import qim3d
         import numpy as np
 
@@ -271,6 +280,7 @@ def curve_warp(
 
         # Warp the box along the x dimension
         warped_volume = curve_warp(vol, x_amp=10, x_periods=4)
+        ```
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -306,7 +316,7 @@ def stretch(
     x_stretch: int = 0,
     y_stretch: int = 0,
     z_stretch: int = 0,
-    order: int = 1,
+    order: int = 3,
 ) -> np.ndarray:
     """
     Stretches a volume by increasing the size of the volume in the input dimension with interpolation. The volume will therefore increase (or decrease if the stretch is negative) at the same rate as the volume, keeping its relative size.
@@ -316,7 +326,7 @@ def stretch(
         x_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
         y_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
         z_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
+        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 3.
 
     Returns:
         stretched_volume (numpy.ndarray): The stretched volume.
@@ -327,6 +337,7 @@ def stretch(
         AssertionError: If the stretching inputs are not integer.
 
     Example:
+        ```
         import qim3d
         import numpy as np
 
@@ -339,6 +350,7 @@ def stretch(
 
         # Squeeze the box along the y dimension
         squeezed_volume = qim3d.operations.strech(vol, y_stretch=-20)
+        ```
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -376,7 +388,7 @@ def stretch(
 
 
 def center_twist(
-    volume: np.ndarray, rotation_angle: float = 90, axis: str = 'z', order: int = 1
+    volume: np.ndarray, rotation_angle: float = 90, axis: str = 'z', order: int = 3
 ) -> np.ndarray:
     """
     Applies a warping transformation that twists the volume around the center along the given axis.
@@ -385,7 +397,7 @@ def center_twist(
         volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
         rotation_angle (float): Amount of rotation from bottom of rotation axis to top. Defaults to 90.
         axis (str): Axis for rotation. Should either take value 'x', 'y' or 'z'. Defaults to 'z'.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
+        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 3.
 
     Returns:
         twisted_volume (numpy.ndarray): The center rotated volume.
@@ -396,6 +408,7 @@ def center_twist(
         AssertionError: If the axis are not x, y or z
 
     Example:
+        ```
         import qim3d
         import numpy as np
 
@@ -405,6 +418,7 @@ def center_twist(
 
         # Twist the box 90 degrees along the z-axis
         twisted_volume = qim3d.operations.center_twist(vol, rotation_angle=90, axis='z')
+        ```
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'

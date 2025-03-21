@@ -8,3 +8,9 @@ The `qim3d` library provides a set of methods for different operations on volume
             - remove_background
             - fade_mask
             - overlay_rgb_images
+            - pad
+            - pad_to
+            - shear3d
+            - curve_warp
+            - stretch
+            - center_twist
