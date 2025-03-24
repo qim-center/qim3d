@@ -10,6 +10,7 @@ The `qim3d` library provides a set of methods for different operations on volume
             - overlay_rgb_images
             - pad
             - pad_to
+            - trim
             - shear3d
             - curve_warp
             - stretch

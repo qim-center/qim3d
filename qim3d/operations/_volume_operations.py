@@ -27,9 +27,15 @@ def pad(
         import numpy as np
 
         vol = np.zeros((100, 100, 100))
+        print(vol.shape)
+        ```
+        (100, 100, 100)
+        ```
         # Pad x-axis with 10 pixels on each side and y-axis with 20% of the original volume size
         padded_volume = qim3d.operations.pad(vol, x_axis=10, y_axis=vol.shape[1] * 0.1)
+        print(padded_volume.shape)
         ```
+        (100, 120, 120)
 
     """
     assert len(volume.shape) == 3, 'Volume must be 3D'
@@ -84,11 +90,15 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
 
         # Create volume of shape (100,100,100) and add values in a box inside
         vol = np.zeros((100,100,100))
-        vol[10:90, 10:90, 10:90] = 1
-
+        print(vol.shape)
+        ```
+        (100, 100, 100)
+        ```
         # Pad the volume to shape (110, 110, 110)
         padded_volume = qim3d.operations.pad_to(vol, (110,110,110))
+        print(padded_volume.shape)
         ```
+        (110, 110, 110)
 
     """
     assert len(shape) == 3, 'Shape must be 3D'
@@ -126,10 +136,15 @@ def trim(volume: np.ndarray) -> np.ndarray:
         # Create volume of shape (100,100,100) and add values in a box inside
         vol = np.zeros((100,100,100))
         vol[10:90, 10:90, 10:90] = 1
-
-        # Trim the value to shape (80,80,80)
-        trimmed_volume = qim3d.operations.trim(vol)
+        print(vol.shape)
         ```
+        (100, 100, 100)
+        ```
+        # Trim the slices without voxel values on all axes
+        trimmed_volume = qim3d.operations.trim(vol)
+        print(trimmed_volume.shape)
+        ```
+        (80, 80, 80)
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -191,13 +206,18 @@ def shear3d(
         vol = np.zeros((60,100,100))
         vol[:, 20:80, 20:80] = 1
 
-        # Shear the volume by 10 pixels in x-direction along z-axis
-        sheared_vol = shear3d(vol, x_shift_z=10)
-
+        qim3d.viz.slicer(vol, slice_axis=1)
+        ```
+        ![warp_box](../../assets/screenshots/warp_box_1.png)
+        ```
         # Shear the volume by 20% factor in x-direction along z-axis
         factor = 0.2
-        sheared_vol = shear3d(vol, x_shift_z=vol.shape[0]*factor)
+        shift = int(vol.shape[0]*factor)
+        sheared_vol = qim3d.operations.shear3d(vol, x_shift_z=shift, order=1)
+
+        qim3d.viz.slicer(sheared_vol, slice_axis=1)
         ```
+        ![warp_box_shear](../../assets/screenshots/warp_box_shear.png)
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -277,10 +297,15 @@ def curve_warp(
         # Generate box for warping
         vol = np.zeros((100,100,100))
         vol[:,40:60, 40:60] = 1
-
-        # Warp the box along the x dimension
-        warped_volume = curve_warp(vol, x_amp=10, x_periods=4)
+        qim3d.viz.slicer(vol, slice_axis=1)
         ```
+        ![warp_box_long](../../assets/screenshots/warp_box_long.png)
+        ```
+        # Warp the box along the x dimension
+        warped_volume = qim3d.operations.curve_warp(vol, x_amp=10, x_periods=4)
+        qim3d.viz.slicer(warped_volume, slice_axis=1)
+        ```
+        ![warp_box_curved](../../assets/screenshots/warp_box_curve.png)
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -345,12 +370,28 @@ def stretch(
         vol = np.zeros((100,100,100))
         vol[:,20:80, 20:80] = 1
 
-        # Stretch the box along the x dimension
-        stretched_volume = qim3d.operations.strech(vol, x_stretch=20)
-
-        # Squeeze the box along the y dimension
-        squeezed_volume = qim3d.operations.strech(vol, y_stretch=-20)
+        qim3d.viz.slicer(vol)
         ```
+        ![warp_box](../../assets/screenshots/warp_box_0.png)
+
+        ```
+        # Stretch the box along the x dimension
+        stretched_volume = qim3d.operations.stretch(vol, x_stretch=20)
+        print(stretched_volume.shape)
+        qim3d.viz.slicer(stretched_volume)
+        ```
+        (100, 100, 140)
+
+        ![warp_box_stretch](../../assets/screenshots/warp_box_stretch.png)
+        ```
+        # Squeeze the box along the y dimension
+        squeezed_volume = qim3d.operations.stretch(vol, x_stretch=-20)
+        print(squeezed_volume.shape)
+        qim3d.viz.slicer(squeezed_volume)
+        ```
+        (100, 100, 60)
+
+        ![warp_box_squeeze](../../assets/screenshots/warp_box_squeeze.png)
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
@@ -415,10 +456,15 @@ def center_twist(
         # Generate box for stretching
         vol = np.zeros((100,100,100))
         vol[:,20:80, 20:80] = 1
-
-        # Twist the box 90 degrees along the z-axis
-        twisted_volume = qim3d.operations.center_twist(vol, rotation_angle=90, axis='z')
+        qim3d.viz.volumetric(vol)
         ```
+        <iframe src="https://platform.qim.dk/k3d/warp_box.html" width="100%" height="500" frameborder="0"></iframe>
+        ```
+        # Twist the box 180 degrees along the z-axis
+        twisted_volume = qim3d.operations.center_twist(vol, rotation_angle=180, axis='z', order=1)
+        qim3d.viz.volumetric(twisted_volume)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/warp_box_twist.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
