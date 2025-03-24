@@ -9,6 +9,7 @@ from ._data_exploration import (
     slicer_orthogonal,
     slices_grid,
     threshold,
+    compare_volumes
 )
 from ._detection import circles
 from ._k3d import mesh, volumetric

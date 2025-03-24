@@ -1520,3 +1520,39 @@ def threshold(
     update_visualization()
 
     return interactive_ui
+
+def compare_volumes(volume1, volume2, color_map='bwr', slice_axis=0, slice_index=50):
+    def update(slice_axis=0, slice_index=50):
+        clear_output(wait=True)
+        slice1 = np.take(volume1, slice_index, axis=slice_axis).astype(float)
+        slice2 = np.take(volume2, slice_index, axis=slice_axis).astype(float)
+        diff = slice1-slice2
+        fig, ax = plt.subplots(1, 3, figsize=(12,5))
+        
+        cbar_pad = 0.1
+        
+        norm02 = matplotlib.colors.Normalize(
+            vmin=min(slice1.min(), slice2.min()),
+            vmax=max(slice1.max(), slice2.max())
+        )
+        mappable02 = matplotlib.cm.ScalarMappable(norm=norm02)
+        
+        ax[0].imshow(slice1, norm=norm02)
+        ax[0].set_title('volume1')
+        fig.colorbar(mappable=mappable02, ax=ax[0], orientation='horizontal', pad=cbar_pad)
+        
+        norm1 = matplotlib.colors.TwoSlopeNorm(vmin=diff.min(), vcenter=0., vmax=diff.max())
+        mappable1 = matplotlib.cm.ScalarMappable(norm=norm1, cmap=color_map)
+        ax[1].imshow(diff, norm=norm1, cmap=color_map)
+        ax[1].set_title('volume1 - volume2')
+        fig.colorbar(mappable=mappable1, ax=ax[1], orientation='horizontal', pad=cbar_pad)
+        
+        im = ax[2].imshow(slice2, norm=norm02)
+        ax[2].set_title('volume2')
+        fig.colorbar(mappable=mappable02, ax=ax[2], orientation='horizontal', pad=cbar_pad)
+    
+        fig.tight_layout()
+        plt.show()
+    
+    update(slice_axis, slice_index)
+    # return fig
