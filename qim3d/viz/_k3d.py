@@ -1,5 +1,5 @@
 """
-Volumetric visualization using K3D
+Volumetric visualization using K3D.
 
 !!! quote "Reference"
     Volumetric visualization uses K3D:
@@ -12,9 +12,10 @@ from typing import Optional
 import k3d
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
+import pygel3d
 from matplotlib.colors import Colormap
 from pygel3d import jupyter_display as jd
-import pygel3d
 
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
@@ -34,7 +35,7 @@ def volumetric(
     max_voxels: int = 512**3,
     data_type: str = 'scaled_float16',
     **kwargs,
-):
+) -> Optional[k3d.Plot]:
     """
     Visualizes a 3D volume using volumetric rendering.
 
@@ -103,7 +104,8 @@ def volumetric(
         samples = int(samples)  # make sure it's an integer
 
     if aspectmode.lower() not in ['data', 'cube']:
-        raise ValueError("aspectmode should be either 'data' or 'cube'")
+        msg = "aspectmode should be either 'data' or 'cube'"
+        raise ValueError(msg)
     # check if image should be downsampled for visualization
     original_shape = img.shape
     img = downscale_img(img, max_voxels=max_voxels)
@@ -139,8 +141,8 @@ def volumetric(
         if isinstance(color_map, Colormap):
             # Convert to the format of color_map required by k3d.volume
             attr_vals = np.linspace(0.0, 1.0, num=color_map.N)
-            RGB_vals = color_map(np.arange(0, color_map.N))[:, :3]
-            color_map = np.column_stack((attr_vals, RGB_vals)).tolist()
+            rgb_vals = color_map(np.arange(0, color_map.N))[:, :3]
+            color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
 
     # Default k3d.volume settings
     opacity_function = []
@@ -186,7 +188,7 @@ def mesh(
     show: bool = True,
     save: bool = False,
     **kwargs,
-) -> Optional[k3d.Plot]:
+) -> Optional[Union[k3d.Plot, go.FigureWidget]]:
     """
     Visualize a 3D mesh using `pygel3d` or `k3d`. The visualization with the pygel3d backend provides higher-quality rendering, but it may take more time compared to using the k3d backend.
 
@@ -223,7 +225,7 @@ def mesh(
     Example:
         ```python
         import qim3d
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
         mesh = qim3d.mesh.from_volume(synthetic_blob)
         qim3d.viz.mesh(mesh, backend="pygel3d") # or qim3d.viz.mesh(mesh, backend="k3d")
         ```
@@ -239,7 +241,8 @@ def mesh(
         )
 
     if backend not in ['k3d', 'pygel3d']:
-        raise ValueError("Invalid backend. Choose 'pygel3d' or 'k3d'.")
+        msg = "Invalid backend. Choose 'pygel3d' or 'k3d'."
+        raise ValueError(msg)
 
     # Extract vertex positions and face indices
     face_indices = list(mesh.faces())
@@ -253,7 +256,8 @@ def mesh(
 
     # Validate the mesh structure
     if vertices_array.shape[1] != 3 or face_vertices.shape[1] != 3:
-        raise ValueError('Vertices must have shape (N, 3) and faces (M, 3)')
+        msg = 'Vertices must have shape (N, 3) and faces (M, 3)'
+        raise ValueError(msg)
 
     # Separate valid kwargs for each backend
     valid_k3d_kwargs = {k: v for k, v in kwargs.items() if k not in ['smooth', 'data']}
