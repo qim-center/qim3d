@@ -159,7 +159,7 @@ def shear3d(
     y_shift_z: int = 0,
     z_shift_x: int = 0,
     z_shift_y: int = 0,
-    order: int = 3,
+    order: int = 1,
 ) -> np.ndarray:
     """
     Applies a shear transformation to a 3D volume using pixel-based shifts.
@@ -172,7 +172,7 @@ def shear3d(
         y_shift_z (int): Maximum pixel shift in the y-direction, applied progressively along the z-axis.
         z_shift_x (int): Maximum pixel shift in the z-direction, applied progressively along the x-axis.
         z_shift_y (int): Maximum pixel shift in the z-direction, applied progressively along the y-axis.
-        order (int): Order of interpolation. Order=0 (nearest-neighbor) keeps voxel values unchanged. Defaults to 3.
+        order (int): Order of interpolation. Order=0 (nearest-neighbor) keeps voxel values unchanged. Defaults to 1.
 
     Returns:
         sheared_volume (numpy.ndarray): The transformed volume.
@@ -192,11 +192,11 @@ def shear3d(
         vol[:, 20:80, 20:80] = 1
 
         # Shear the volume by 10 pixels in x-direction along z-axis
-        sheared_vol = shear3D(vol, x_shift_z=10)
+        sheared_vol = shear3d(vol, x_shift_z=10)
 
         # Shear the volume by 20% factor in x-direction along z-axis
         factor = 0.2
-        sheared_vol = shear3D(vol, x_shift_z=vol.shape[0]*factor)
+        sheared_vol = shear3d(vol, x_shift_z=vol.shape[0]*factor)
         ```
 
     """
@@ -247,7 +247,7 @@ def curve_warp(
     y_periods: float = 1.0,
     x_offset: float = 0.0,
     y_offset: float = 0.0,
-    order: int = 3,
+    order: int = 1,
 ) -> np.ndarray:
     """
     Applies an curve transformation along the z-axis using sine functions.
@@ -260,7 +260,7 @@ def curve_warp(
         y_periods (float): Determines the amount of periods (amount of wave crests) along the y-direction. Defaults to 1.0.
         x_offset (float): Determines pixelwise curve offset in x-direction. Defaults to 0.0.
         y_offset (float): Determines pixelwise curve offset in y-direction. Defaults to 0.0.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 3.
+        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
 
     Returns:
         warped_volume (numpy.ndarray): The transformed volume.
@@ -316,7 +316,7 @@ def stretch(
     x_stretch: int = 0,
     y_stretch: int = 0,
     z_stretch: int = 0,
-    order: int = 3,
+    order: int = 1,
 ) -> np.ndarray:
     """
     Stretches a volume by increasing the size of the volume in the input dimension with interpolation. The volume will therefore increase (or decrease if the stretch is negative) at the same rate as the volume, keeping its relative size.
@@ -326,7 +326,7 @@ def stretch(
         x_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
         y_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
         z_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 3.
+        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
 
     Returns:
         stretched_volume (numpy.ndarray): The stretched volume.
@@ -388,7 +388,7 @@ def stretch(
 
 
 def center_twist(
-    volume: np.ndarray, rotation_angle: float = 90, axis: str = 'z', order: int = 3
+    volume: np.ndarray, rotation_angle: float = 90, axis: str = 'z', order: int = 1
 ) -> np.ndarray:
     """
     Applies a warping transformation that twists the volume around the center along the given axis.
@@ -397,7 +397,7 @@ def center_twist(
         volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
         rotation_angle (float): Amount of rotation from bottom of rotation axis to top. Defaults to 90.
         axis (str): Axis for rotation. Should either take value 'x', 'y' or 'z'. Defaults to 'z'.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 3.
+        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
 
     Returns:
         twisted_volume (numpy.ndarray): The center rotated volume.

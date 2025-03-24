@@ -6,7 +6,7 @@ from ._volume_operations import (
     curve_warp,
     pad,
     pad_to,
-    shear3D,
+    shear3d,
     stretch,
     trim,
 )
@@ -19,7 +19,7 @@ __all__ = [
     'curve_warp',
     'pad',
     'pad_to',
-    'shear3D',
+    'shear3d',
     'stretch',
     'trim',
 ]
