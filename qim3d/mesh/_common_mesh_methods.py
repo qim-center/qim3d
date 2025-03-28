@@ -31,22 +31,30 @@ def from_volume(
         import qim3d
 
         # Generate a 3D blob
-        synthetic_blob = qim3d.generate.volume(noise_scale=0.015)
+        synthetic_blob = qim3d.generate.volume()
 
         # Convert the 3D numpy array to a Pygel3D mesh object
         mesh = qim3d.mesh.from_volume(synthetic_blob, mesh_precision=0.5)
+
+        # Visualize the generated mesh
+        qim3d.viz.mesh(mesh)
         ```
+        ![pygel3d_visualization](../../assets/screenshots/viz-pygel_mesh.png)
+
 
     """
 
     if volume.ndim != 3:
-        raise ValueError('The input volume must be a 3D numpy array.')
+        msg = 'The input volume must be a 3D numpy array.'
+        raise ValueError(msg)
 
     if volume.size == 0:
-        raise ValueError('The input volume must not be empty.')
+        msg = 'The input volume must not be empty.'
+        raise ValueError(msg)
 
-    if mesh_precision < 0 or mesh_precision > 1:
-        raise ValueError('The mesh precision must be between 0 and 1.')
+    if not (0 < mesh_precision <= 1):
+        msg = 'The mesh precision must be between 0 and 1.'
+        raise ValueError(msg)
 
     # Apply scaling to adjust mesh resolution
     volume = scipy.ndimage.zoom(volume, zoom=mesh_precision, order=0)

@@ -7,7 +7,7 @@ Volumetric visualization using K3D.
 
 """
 
-from typing import Optional
+from typing import Optional, Union
 
 import k3d
 import matplotlib.pyplot as plt
@@ -197,16 +197,16 @@ def mesh(
         backend (str, optional): The visualization backend to use.
             Choose between `pygel3d` (default) and `k3d`.
         wireframe (bool, optional): If True, displays the mesh as a wireframe.
-            Works both with `pygel3d` and `k3d`. Defaults to True.
+            Works both with backend `pygel3d` and `k3d`. Defaults to True.
         flat_shading (bool, optional): If True, applies flat shading to the mesh.
-            Works only with `k3d`. Defaults to True.
+            Works only with backend `k3d`. Defaults to True.
         grid_visible (bool, optional): If True, shows a grid in the visualization.
-            Works only with `k3d`. Defaults to False.
-        show (bool, optional): If True, displays the visualization inline.
-            Works only with `k3d`. Defaults to True.
+            Works only with backend `k3d`. Defaults to False.
+        show (bool, optional): If True, displays the visualization inline, useful for multiple plots.
+            Works only with backend `k3d`. Defaults to True.
         save (bool or str, optional): If True, saves the visualization as an HTML file.
             If a string is provided, it's interpreted as the file path where the HTML
-            file will be saved. Works only with `k3d`. Defaults to False.
+            file will be saved. Works only with the backend `k3d`. Defaults to False.
         **kwargs (Any): Additional keyword arguments specific to the chosen backend:
 
             - `k3d.plot` kwargs: Arguments that customize the [`k3d.plot`](https://k3d-jupyter.org/reference/factory.plot.html) visualization.
@@ -225,20 +225,29 @@ def mesh(
     Example:
         ```python
         import qim3d
-        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
-        mesh = qim3d.mesh.from_volume(synthetic_blob)
-        qim3d.viz.mesh(mesh, backend="pygel3d") # or qim3d.viz.mesh(mesh, backend="k3d")
+
+        # Generate a 3D blob
+        synthetic_blob = qim3d.generate.volume()
+
+        # Convert the 3D numpy array to a Pygel3D mesh object
+        mesh = qim3d.mesh.from_volume(synthetic_blob, mesh_precision=0.5)
+
+        # Visualize the generated mesh
+        qim3d.viz.mesh(mesh)
         ```
-    ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
+        ![pygel3d_visualization](../../assets/screenshots/viz-pygel_mesh.png)
+
+        ```python
+        qim3d.viz.mesh(mesh, backend='k3d', wireframe=False, flat_shading=False)
+        ```
+        ![k3d_visualization](../../assets/screenshots/viz-k3d_mesh.png)
+
 
     """
 
-    max_vertices = 350000
-
-    if len(mesh.vertices()) > max_vertices:
-        log.info(
-            'Mesh has more than 350,000 vertices. The visualization may be slow, consider using a smaller mesh_precision when computing the mesh.'
-        )
+    if len(mesh.vertices()) > 100000:
+        msg = f'The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh.'
+        log.info(msg)
 
     if backend not in ['k3d', 'pygel3d']:
         msg = "Invalid backend. Choose 'pygel3d' or 'k3d'."
