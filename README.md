@@ -10,15 +10,13 @@ The `qim3d` (kɪm θriː diː) library is designed to make it easier to work wit
 
 You can easily load and process 3D image data from various file formats, apply filters and transformations to the data, visualize the results using interactive plots and 3D rendering, and perform quantitative analysis on the images.
 
-Whether you are working with medical imaging data, materials science data, or any other type of 3D imaging data, `qim3d` provides a convenient and powerful set of tools to help you analyze and understand your data.
-
 Documentation available at https://platform.qim.dk/qim3d/
 
 For more information on the QIM center visit https://qim.dk/
 
 ## Installation
 
-We recommned using a conda enviroment:
+We recommned using a conda environment:
 
 ```bash
 conda create -n qim3d python=3.11
@@ -34,7 +32,7 @@ And then installation is easy using pip:
 pip install qim3d
 ```
 
-Remember that the enviroment needs to be activated each time you use `qim3d`!
+Remember that the environment needs to be activated each time you use `qim3d`!
 
 For more detailed instructions and troubleshooting, please refer to the [documentation](https://platform.qim.dk/qim3d/#installation).
 
