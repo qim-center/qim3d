@@ -7,8 +7,8 @@ def dilate(
     vol: np.ndarray, strel: int | np.ndarray, method: str = 'linear', **kwargs
 ) -> np.ndarray:
     """
-        Dilate an image. If method is either linear or flat, the dilation methods from [https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf](Zonohedral Approximation of Spherical Structuring Element for Volumetric
-    Morphology) are used. These methods require a GPU, and we therefore recommend using the [https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html](scipy implementation) if no GPU is available on your current devicce.
+    Dilate an image. If method is either linear or flat, the dilation methods from [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used. These methods require a GPU, and we therefore recommend using the
+    [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) if no GPU is available on your current device.
 
     Args:
         vol (np.ndarray): The volume to dilate.
@@ -61,8 +61,7 @@ def erode(
     vol: np.ndarray, strel: int | np.ndarray, method: str = 'linear', **kwargs
 ) -> np.ndarray:
     """
-        Erode an image. If method is either linear or flat, the erosion methods from [https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf](Zonohedral Approximation of Spherical Structuring Element for Volumetric
-    Morphology) are used. These methods require a GPU, and we therefore recommend using the [https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html](scipy implementation) if no GPU is available on your current devicce.
+    Erode an image. If method is either linear or flat, the erosion methods from [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used. These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) if no GPU is available on your current device.
 
     Args:
             vol (np.ndarray): The volume to erode.
@@ -115,8 +114,10 @@ def opening(
     vol: np.ndarray, strel: int | np.ndarray, method: str = 'linear', **kwargs
 ) -> np.ndarray:
     """
-        Morpholgically open an image. If method is either linear or flat, the open methods from [https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf](Zonohedral Approximation of Spherical Structuring Element for Volumetric
-    Morphology) are used. These methods require a GPU, and we therefore recommend using the [https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html](scipy implementation) if no GPU is available on your current devicce.
+    Morphologically open a volume.
+    If method is either linear or flat, the open methods from [Zonohedral Approximation of Spherical Structuring Element for
+    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
+    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) if no GPU is available on your current device.
 
     Args:
         vol (np.ndarray): The volume to open.
@@ -168,6 +169,30 @@ def opening(
 def closing(
     vol: np.ndarray, strel: int | np.ndarray, method: str = 'linear', **kwargs
 ) -> np.ndarray:
+    """
+    Morphologically close a volume.
+    If method is either linear or flat, the close methods from [Zonohedral Approximation of Spherical Structuring Element for
+    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
+    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) if no GPU is available on your current device.
+
+    Args:
+        vol (np.ndarray): The volume to be closed.
+        strel (int or np.ndarray): The structuring element to use while performing opening. Note that the structuring element should be 3D unless if the linear method is used. If this method is used, a structuring element resembling a ball will be created with an integer radius.
+        method (str, optional): Determines the method for closing.
+        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+
+    Returns:
+        closed_vol (np.ndarray): The closed volume.
+
+
+    Example:
+            ```python
+            import qim3d
+
+            Do something here
+            ```
+
+    """
     if not pg.cuda.get_device_count():
         err = 'no CUDA device available. Use method=scipy.'
         raise RuntimeError(err)
@@ -199,6 +224,31 @@ def closing(
 def black_tophat(
     vol: np.ndarray, strel: int | np.ndarray, method: str = 'linear', **kwargs
 ) -> np.ndarray:
+    """
+    Perform black tophat operation on a volume.
+    This operation is defined as bothat(x)=close(x)-x.
+    If method is either linear or flat, the close methods from [Zonohedral Approximation of Spherical Structuring Element for
+    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
+    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) if no GPU is available on your current device.
+
+    Args:
+        vol (np.ndarray): The volume to perform the black tophat on.
+        strel (int or np.ndarray): The structuring element to use while performing opening. Note that the structuring element should be 3D unless if the linear method is used. If this method is used, a structuring element resembling a ball will be created with an integer radius.
+        method (str, optional): Determines the method for black tophat.
+        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+
+    Returns:
+        bothat_vol (np.ndarray): The morphed volume.
+
+
+    Example:
+            ```python
+            import qim3d
+
+            Do something here
+            ```
+
+    """
     if not pg.cuda.get_device_count():
         err = 'no CUDA device available. Use method=scipy.'
         raise RuntimeError(err)
@@ -230,6 +280,31 @@ def black_tophat(
 def white_tophat(
     vol: np.ndarray, strel: int | np.ndarray, method: str = 'linear', **kwargs
 ) -> np.ndarray:
+    """
+    Perform white tophat operation on a volume.
+    This operation is defined as tophat(x)=x-open(x).
+    If method is either linear or flat, the open methods from [Zonohedral Approximation of Spherical Structuring Element for
+    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
+    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) if no GPU is available on your current device.
+
+    Args:
+        vol (np.ndarray): The volume to perform the white tophat on.
+        strel (int or np.ndarray): The structuring element to use while performing opening. Note that the structuring element should be 3D unless if the linear method is used. If this method is used, a structuring element resembling a ball will be created with an integer radius.
+        method (str, optional): Determines the method for white tophat.
+        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+
+    Returns:
+        tophat_vol (np.ndarray): The morphed volume.
+
+
+    Example:
+            ```python
+            import qim3d
+
+            Do something here
+            ```
+
+    """
     if not pg.cuda.get_device_count():
         err = 'no CUDA device available. Use method=scipy.'
         raise RuntimeError(err)
