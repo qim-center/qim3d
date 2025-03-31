@@ -2,8 +2,6 @@ import numpy as np
 
 import qim3d.filters as filters
 
-__all__ = ['remove_background', 'fade_mask', 'overlay_rgb_images']
-
 
 def remove_background(
     vol: np.ndarray,
@@ -98,9 +96,8 @@ def fade_mask(
 
     """
     if axis < 0 or axis >= vol.ndim:
-        raise ValueError(
-            'Axis must be between 0 and the number of dimensions of the volume'
-        )
+        error = 'Axis must be between 0 and the number of dimensions of the volume'
+        raise ValueError(error)
 
     # Generate the coordinates of each point in the array
     shape = vol.shape
@@ -121,7 +118,8 @@ def fade_mask(
         distance_list = np.delete(distance_list, axis, axis=0)
         distance = np.linalg.norm(distance_list, axis=0)
     else:
-        raise ValueError("Geometry must be 'spherical' or 'cylindrical'")
+        error = "Geometry must be 'spherical' or 'cylindrical'"
+        raise ValueError(error)
 
     # Compute the maximum distance from the center
     max_distance = np.linalg.norm(center)
@@ -183,7 +181,7 @@ def overlay_rgb_images(
 
     """
 
-    def to_uint8(image: np.ndarray):
+    def to_uint8(image: np.ndarray) -> np.ndarray:
         if np.min(image) < 0:
             image = image - np.min(image)
 
@@ -198,9 +196,8 @@ def overlay_rgb_images(
         elif image.ndim == 3:
             image = image[..., :3]  # Ignoring alpha channel
         else:
-            raise ValueError(
-                f'Input image can not have higher dimension than 3. Yours have {image.ndim}'
-            )
+            error = f'Input image can not have higher dimension than 3. Yours have {image.ndim}'
+            raise ValueError(error)
 
         return image.astype(np.uint8)
 
@@ -209,9 +206,8 @@ def overlay_rgb_images(
 
     # Ensure both images have the same shape
     if background.shape != foreground.shape:
-        raise ValueError(
-            f'Input images must have the same first two dimensions. But background is of shape {background.shape} and foreground is of shape {foreground.shape}'
-        )
+        error = f'Input images must have the same first two dimensions. But background is of shape {background.shape} and foreground is of shape {foreground.shape}'
+        raise ValueError(error)
 
     # Perform alpha blending
     foreground_max_projection = np.amax(foreground, axis=2)
@@ -224,7 +220,8 @@ def overlay_rgb_images(
         )
     # Check alpha validity
     if alpha < 0:
-        raise ValueError(f'Alpha has to be positive number. You used {alpha}')
+        error = f'Alpha has to be positive number. You used {alpha}'
+        raise ValueError(error)
     elif alpha > 1:
         alpha = 1
 
