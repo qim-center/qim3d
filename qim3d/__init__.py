@@ -9,14 +9,13 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = '1.1.2'
+__version__ = '1.2.0'
 
 
 import importlib as _importlib
 
 
 class _LazyLoader:
-
     """Lazy loader to load submodules only when they are accessed."""
 
     def __init__(self, module_name: str):
