@@ -14,7 +14,7 @@ Below, you'll find details about the version history of `qim3d`.
 Remember to keep your pip installation [up to date](../../index.md/#get-the-latest-version) so that you have the latest features!
 
 
-### v1.2.0 (28/03/2025)
+### v1.2.0 (31/03/2025)
 
 - Switched from setup.py to pyproject.toml
 
