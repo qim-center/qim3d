@@ -1523,26 +1523,20 @@ def threshold(
 
 
 class _VolumeComparison:
-    def __init__(
-            self,
-            volume1,
-            volume2,
-            slice_axis,
-            slice_index
-        ):
-            self.volume1 = volume1
-            self.volume2 = volume2
-            self.slice_axis = slice_axis
-            self.slice_index = slice_index
-            self.color_map = 'bwr'
-            self.comparison_type = 'difference'
+    def __init__(self, volume1, volume2, slice_axis, slice_index):
+        self.volume1 = volume1
+        self.volume2 = volume2
+        self.slice_axis = slice_axis
+        self.slice_index = slice_index
+        self.color_map = 'bwr'
+        self.comparison_type = 'difference'
 
-            self.dims = np.array(volume1.shape)
-            self.cbar_pad = 0.1
+        self.dims = np.array(volume1.shape)
+        self.cbar_pad = 0.1
 
-            self.initialize_widgets()
-            self.update_slice_axis(slice_axis)
-            self.slice_index_widget.value = slice_index
+        self.initialize_widgets()
+        self.update_slice_axis(slice_axis)
+        self.slice_index_widget.value = slice_index
 
     def update_slice_axis(self, slice_axis):
         self.slice_axis = slice_axis
@@ -1559,7 +1553,7 @@ class _VolumeComparison:
         )
         self.comparison_type_widget = widgets.Dropdown(
             options=['difference', 'absolute difference', 'quadratic difference'],
-            value=self.comparison_type
+            value=self.comparison_type,
         )
 
         # Slice related
@@ -1581,29 +1575,32 @@ class _VolumeComparison:
         clear_output(wait=True)
         slice1 = np.take(self.volume1, slice_index, axis=slice_axis).astype(float)
         slice2 = np.take(self.volume2, slice_index, axis=slice_axis).astype(float)
-        fig, ax = plt.subplots(1, 3, figsize=(12,5))
-        
-        norm02 = matplotlib.colors.Normalize(
-            vmin=min(slice1.min(), slice2.min()),
-            vmax=max(slice1.max(), slice2.max())
+        fig, ax = plt.subplots(1, 3, figsize=(12, 5))
+
+        norm01 = matplotlib.colors.Normalize(
+            vmin=min(slice1.min(), slice2.min()), vmax=max(slice1.max(), slice2.max())
         )
-        mappable02 = matplotlib.cm.ScalarMappable(norm=norm02)
+        mappable01 = matplotlib.cm.ScalarMappable(norm=norm01)
 
         self.comparison_type = comparison_type
         if comparison_type == 'difference':
             comparison = slice1 - slice2
             vrange = [comparison.min(), comparison.max()]
-            norm1 = matplotlib.colors.TwoSlopeNorm(vmin=vrange[0], vcenter=0., vmax=vrange[1])
+            # In the special cases add small epsilon since TwoSlopeNorm requires vmin, vcenter, vmax to be in strictly ascending order.
+            eps = 1e-8
+            norm2 = matplotlib.colors.TwoSlopeNorm(
+                vmin=min(0. - eps, vrange[0]), vcenter=0., vmax=max(0. + eps, vrange[1])
+            )
             color_map = 'bwr'
         else:
             if comparison_type == 'absolute difference':
                 comparison = np.abs(slice1 - slice2)
             elif comparison_type == 'quadratic difference':
-                comparison = (slice1 - slice2)**2
-            
-            vrange = [0., comparison.max()]
-            norm1 = matplotlib.colors.Normalize(vmin=vrange[0], vmax=vrange[1])
-            color_map = 'viridis'
+                comparison = (slice1 - slice2) ** 2
+
+            vrange = [0.0, comparison.max()]
+            norm2 = matplotlib.colors.Normalize(vmin=vrange[0], vmax=vrange[1])
+            color_map = 'magma'
 
         Nc = 256
         lb = round(color_range[0] * Nc)
@@ -1615,21 +1612,27 @@ class _VolumeComparison:
         newcolors[:lb, :] = black
         newcolors[ub:, :] = black
         newcmp = matplotlib.colors.ListedColormap(newcolors)
-        
-        mappable1 = matplotlib.cm.ScalarMappable(norm=norm1, cmap=newcmp)
-        
-        ax[0].imshow(slice1, norm=norm02)
+
+        mappable2 = matplotlib.cm.ScalarMappable(norm=norm2, cmap=newcmp)
+
+        ax[0].imshow(slice1, norm=norm01)
         ax[0].set_title('volume1')
-        fig.colorbar(mappable=mappable02, ax=ax[0], orientation='horizontal', pad=self.cbar_pad)
-        
-        ax[1].imshow(comparison, norm=norm1, cmap=newcmp)
-        ax[1].set_title(comparison_type)
-        fig.colorbar(mappable=mappable1, ax=ax[1], orientation='horizontal', pad=self.cbar_pad)
-        
-        ax[2].imshow(slice2, norm=norm02)
-        ax[2].set_title('volume2')
-        fig.colorbar(mappable=mappable02, ax=ax[2], orientation='horizontal', pad=self.cbar_pad)
-    
+        fig.colorbar(
+            mappable=mappable01, ax=ax[0], orientation='horizontal', pad=self.cbar_pad
+        )
+
+        ax[1].imshow(slice2, norm=norm01)
+        ax[1].set_title('volume2')
+        fig.colorbar(
+            mappable=mappable01, ax=ax[1], orientation='horizontal', pad=self.cbar_pad
+        )
+
+        ax[2].imshow(comparison, norm=norm2, cmap=newcmp)
+        ax[2].set_title(comparison_type)
+        fig.colorbar(
+            mappable=mappable2, ax=ax[2], orientation='horizontal', pad=self.cbar_pad
+        )
+
         fig.tight_layout()
         plt.show()
 
@@ -1650,7 +1653,9 @@ class _VolumeComparison:
         label_comparison_type = widgets.Label('Comparison type', layout=label_layout)
         label_color_range = widgets.Label('Color range fraction', layout=label_layout)
 
-        row_comparison_type = widgets.HBox([label_comparison_type, self.comparison_type_widget])
+        row_comparison_type = widgets.HBox(
+            [label_comparison_type, self.comparison_type_widget]
+        )
         row_color_range = widgets.HBox([label_color_range, self.color_range_widget])
 
         controls_column1 = widgets.VBox(
@@ -1667,18 +1672,19 @@ class _VolumeComparison:
                 'slice_axis': self.slice_axis_widget,
                 'slice_index': self.slice_index_widget,
                 'comparison_type': self.comparison_type_widget,
-                'color_range': self.color_range_widget
+                'color_range': self.color_range_widget,
             },
         )
 
         return widgets.VBox([controls, interactive_plot])
 
+
 def compare_volumes(
-        volume1: np.ndarray,
-        volume2: np.ndarray,
-        slice_axis: int=0,
-        slice_index: int=None
-    ) -> widgets.interactive:
+    volume1: np.ndarray,
+    volume2: np.ndarray,
+    slice_axis: int = 0,
+    slice_index: int = None,
+) -> widgets.interactive:
     """
     Returns an interactive widget for comparing two volumes along slices.
 
@@ -1687,16 +1693,17 @@ def compare_volumes(
         volume2 (np.nparray): The second volume.
         slice_axis (int, optional): Specifies the initial axis along which to slice.
         slice_index (int, optional): Specifies the initial index along slice_axis.
-    
+
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
+
     """
 
     if volume1.ndim != 3:
         raise ValueError('Volume must be 3D.')
     if volume1.shape != volume2.shape:
         raise ValueError('Volumes must have the same shape.')
-    
+
     if slice_axis not in (0, 1, 2):
         raise ValueError('Invalid slice_axis.')
 
