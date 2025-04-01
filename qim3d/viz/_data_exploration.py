@@ -1543,9 +1543,6 @@ class _VolumeComparison:
         self.slice_index_widget.max = self.volume1.shape[slice_axis] - 1
         self.slice_index_widget.value = self.volume1.shape[slice_axis] // 2
 
-    def update_color_range_widget(self):
-        pass
-
     def initialize_widgets(self):
         layout = widgets.Layout(width='300px', height='auto')
         self.color_range_widget = widgets.FloatRangeSlider(
@@ -1589,7 +1586,9 @@ class _VolumeComparison:
             # In the special cases add small epsilon since TwoSlopeNorm requires vmin, vcenter, vmax to be in strictly ascending order.
             eps = 1e-8
             norm2 = matplotlib.colors.TwoSlopeNorm(
-                vmin=min(0. - eps, vrange[0]), vcenter=0., vmax=max(0. + eps, vrange[1])
+                vmin=min(0.0 - eps, vrange[0]),
+                vcenter=0.0,
+                vmax=max(0.0 + eps, vrange[1]),
             )
             color_map = 'bwr'
         else:
