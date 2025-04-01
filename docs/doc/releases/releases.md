@@ -13,9 +13,22 @@ Below, you'll find details about the version history of `qim3d`.
 
 Remember to keep your pip installation [up to date](../../index.md/#get-the-latest-version) so that you have the latest features!
 
+
+### v1.2.0 (31/03/2025)
+
+- Switched from setup.py to pyproject.toml
+
+- Updated mesh generation from volumes
+
+### v1.1.2 (07/03/2025)
+
+- Update and refactoring for 3D U-Net architectures
+
+- Background noise generation for synthetic images
+
 ### v1.1.1 (27/02/2025)
 
-- Refactoring of the synthetic data generation module
+- Refactored the synthetic data generation module
 
 ### v1.1.0 (26/02/2025)
 

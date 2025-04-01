@@ -3,8 +3,9 @@ import scipy.ndimage
 from noise import pnoise3
 
 import qim3d.processing
+from qim3d.utils import log
 
-__all__ = ['volume']
+__all__ = ['volume', 'background']
 
 
 def volume(
@@ -35,7 +36,7 @@ def volume(
         dtype (data-type, optional): Desired data type of the output volume. Defaults to "uint8".
 
     Returns:
-        noise_volume (numpy.ndarray): Generated 3D volume with specified parameters.
+        volume (numpy.ndarray): Generated 3D volume with specified parameters.
 
     Raises:
         TypeError: If `final_shape` is not a tuple or does not have three elements.
@@ -228,3 +229,172 @@ def volume(
     volume = volume.astype(dtype)
 
     return volume
+
+
+def background(
+    background_shape: tuple,
+    baseline_value: float = 0,
+    min_noise_value: float = 0,
+    max_noise_value: float = 20,
+    generate_method: str = 'divide',
+    apply_method: str = None,
+    seed: int = 0,
+    dtype: str = 'uint8',
+    apply_to: np.ndarray = None,
+) -> np.ndarray:
+    """
+    Generate a noise volume with random intensity values from a uniform distribution.
+
+    Args:
+        background_shape (tuple): The shape of the noise volume to generate.
+        baseline_value (float, optional): The baseline intensity of the noise volume. Default is 0.
+        min_noise_value (float, optional): The minimum intensity of the noise. Default is 0.
+        max_noise_value (float, optional): The maximum intensity of the noise. Default is 20.
+        generate_method (str, optional): The method used to combine `baseline_value` and noise. Choose from 'add' (`baseline + noise`), 'subtract' (`baseline - noise`), 'multiply' (`baseline * noise`), or 'divide' (`baseline / (1 + noise)`). Default is 'divide'.
+        apply_method (str, optional): The method to apply the generated noise to `apply_to`, if provided. Choose from 'add' (`apply_to + background`), 'subtract' (`apply_to - background`), 'multiply' (`apply_to * background`), or 'divide' (`apply_to / (1 + background)`). Default is None.
+        seed (int, optional): The seed for the random number generator. Default is 0.
+        dtype (data-type, optional): Desired data type of the output volume. Default is 'uint8'.
+        apply_to (np.ndarray, optional): An input volume to which noise will be applied. If None, the generated noise volume is returned.
+
+    Returns:
+        background (np.ndarray): The generated noise volume (if `apply_to` is None) or the input volume with added noise (if `apply_to` is not None).
+
+    Raises:
+        ValueError: If `apply_method` is not one of 'add', 'subtract', 'multiply', or 'divide'.
+        ValueError: If `apply_method` is provided without `apply_to` input volume provided.
+        ValueError: If the shape of `apply_to` input volume does not match `background_shape`.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate noise volume
+        background = qim3d.generate.background(
+            background_shape = (128, 128, 128),
+            baseline_value = 20,
+            min_noise_value = 100,
+            max_noise_value = 200,
+        )
+
+        qim3d.viz.volumetric(background)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_noise_background.html" width="100%" height="500" frameborder="0"></iframe>
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+
+        # Apply noise to the synthetic collection
+        noisy_collection = qim3d.generate.background(
+            background_shape = volume_collection.shape,
+            min_noise_value = 0,
+            max_noise_value = 20,
+            apply_to = volume_collection
+        )
+
+        qim3d.viz.volumetric(noisy_collection)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+
+        # Apply noise to the synthetic collection
+        noisy_collection = qim3d.generate.background(
+            background_shape = volume_collection.shape,
+            baseline_value = 0,
+            min_noise_value = 0,
+            max_noise_value = 30,
+            generate_method = 'add',
+            apply_method = 'divide',
+            apply_to = volume_collection
+        )
+
+        qim3d.viz.volumetric(noisy_collection)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_2.html" width="100%" height="500" frameborder="0"></iframe>
+        ```python
+        qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
+        ```
+        ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_2.png)
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+
+        # Apply noise to the synthetic collection
+        noisy_collection = qim3d.generate.background(
+            background_shape = (200, 200, 200),
+            baseline_value = 100,
+            min_noise_value = 0.8,
+            max_noise_value = 1.2,
+            generate_method = "multiply",
+            apply_method = "add",
+            apply_to = volume_collection
+        )
+
+        qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
+        ```
+        ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_3.png)
+
+    """
+    # Ensure dtype is a valid NumPy type
+    dtype = np.dtype(dtype)
+
+    # Define supported apply methods
+    apply_operations = {
+        'add': lambda a, b: a + b,
+        'subtract': lambda a, b: a - b,
+        'multiply': lambda a, b: a * b,
+        'divide': lambda a, b: a / (b + 1e-8),  # Avoid division by zero
+    }
+
+    # Check if apply_method is provided without apply_to volume
+    if (apply_to is None) and (apply_method is not None):
+        msg = f"apply_method '{apply_method}' is only supported when apply_to input volume is provided."
+        # Validate apply_method
+        if apply_method not in apply_operations:
+            msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
+            raise ValueError(msg)
+
+        raise ValueError(msg)
+
+    # Check for shape mismatch
+    if (apply_to is not None) and (apply_to.shape != background_shape):
+        msg = f'Shape of input volume {apply_to.shape} does not match requested background_shape {background_shape}. Using input shape instead.'
+        background_shape = apply_to.shape
+        log.info(msg)
+
+    # Generate the noise volume
+    baseline = np.full(shape=background_shape, fill_value=baseline_value)
+
+    # Start seeded generator
+    rng = np.random.default_rng(seed=seed)
+    noise = rng.uniform(
+        low=float(min_noise_value), high=float(max_noise_value), size=background_shape
+    )
+
+    # Apply method to initial background computation
+    background_volume = apply_operations[generate_method](baseline, noise)
+
+    # Apply method to the target volume if specified
+    if apply_to is not None:
+        background_volume = apply_operations[apply_method](apply_to, background_volume)
+
+    # Clip value before dtype convertion
+    clip_value = (
+        np.iinfo(dtype).max if np.issubdtype(dtype, np.integer) else np.finfo(dtype).max
+    )
+    background_volume = np.clip(background_volume, 0, clip_value).astype(dtype)
+
+    return background_volume
