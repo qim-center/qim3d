@@ -1706,7 +1706,7 @@ def compare_volumes(
     if slice_axis not in (0, 1, 2):
         raise ValueError('Invalid slice_axis.')
 
-    if not slice_index:
+    if slice_index is None:
         slice_index = volume1.shape[slice_axis] // 2
     if not isinstance(slice_index, int):
         raise ValueError('slice_index must be an integer.')
