@@ -11,8 +11,8 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
         members:
             - histogram
             - slicer
-            - slices_grid
             - slicer_orthogonal
+            - slices_grid
             - circles
             - chunks
             - itk_vtk
@@ -25,6 +25,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - fade_mask
             - line_profile
             - threshold
+            - compare_volumes
             
 ::: qim3d.viz.colormaps
     options:
