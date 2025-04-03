@@ -1689,7 +1689,7 @@ def compare_volumes(
 
     Args:
         volume1 (np.ndarray): The first volume.
-        volume2 (np.nparray): The second volume.
+        volume2 (np.ndarray): The second volume.
         slice_axis (int, optional): Specifies the initial axis along which to slice.
         slice_index (int, optional): Specifies the initial index along slice_axis.
 
