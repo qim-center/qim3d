@@ -226,7 +226,7 @@ def mesh(
         mesh = qim3d.mesh.from_volume(synthetic_blob)
         qim3d.viz.mesh(mesh, backend="pygel3d") # or qim3d.viz.mesh(mesh, backend="k3d")
         ```
-    ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
+        ![pygel3d_visualization](../../assets/screenshots/pygel3d_visualization.png)
 
     """
 

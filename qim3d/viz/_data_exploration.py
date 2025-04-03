@@ -1696,6 +1696,19 @@ def compare_volumes(
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
 
+    
+
+    Example:
+        ```python
+        import qim3d
+
+        vol1 = qim3d.generate.volume(noise_scale=0.020)
+        vol2 = qim3d.generate.volume(noise_scale=0.021)
+
+        qim3d.viz.compare_volumes(vol1, vol2)
+
+        ```
+        ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
     """
 
     if volume1.ndim != 3:
