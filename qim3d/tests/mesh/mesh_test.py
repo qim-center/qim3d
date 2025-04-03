@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import scipy
 from pygel3d import hmesh
 
 import qim3d
@@ -19,6 +20,23 @@ def test_from_volume_invalid_input():
     volume = np.random.rand(50, 50)  # A 2D array
     with pytest.raises(ValueError, match='The input volume must be a 3D numpy array.'):
         qim3d.mesh.from_volume(volume)
+
+
+def test_from_volume_mesh_precision():
+    """Test that from_volume correctly applies mesh_precision."""
+    volume = np.random.rand(50, 50, 50).astype(np.float32)
+
+    # Check if downscaling correctly affects shape
+    mesh_precision = 0.5
+    scaled_volume = scipy.ndimage.zoom(volume, zoom=mesh_precision, order=0)
+    assert scaled_volume.shape == (25, 25, 25)  # Expected downscaled shape
+
+    # Check if invalid precision values raise ValueError
+    with pytest.raises(ValueError, match='The mesh precision must be between 0 and 1.'):
+        qim3d.mesh.from_volume(volume, mesh_precision=-0.1)
+
+    with pytest.raises(ValueError, match='The mesh precision must be between 0 and 1.'):
+        qim3d.mesh.from_volume(volume, mesh_precision=1.1)
 
 
 def test_from_volume_empty_array():
