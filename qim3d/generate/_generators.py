@@ -135,6 +135,9 @@ def _volume(
 
     dist /= np.sqrt(3 * (center[0] ** 2))
 
+    # Clip it and normalize such that values are not cut off (0.7071 is ratio of circle radius and distance from cube center to corner)
+    dist = np.clip(dist, 0, 0.7071) / 0.7071
+
     # Generate Perlin noise and adjust the values based on the distance from the center
     vectorized_pnoise3 = np.vectorize(
         pnoise3
