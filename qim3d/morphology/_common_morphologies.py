@@ -29,13 +29,15 @@ def dilate(
         ```
 
     """
-    if not pg.cuda.get_device_count():
-        err = 'no CUDA device available. Use method=scipy.'
-        raise RuntimeError(err)
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
+
         return pg.flat.dilate(vol, strel, **kwargs)
 
     elif method == 'pg.linear' or method == 'linear':
@@ -44,6 +46,11 @@ def dilate(
         ), 'Structuring element is generated within function and must therefore be an integer.'
 
         linesteps, linelens = pg.strel.flat_ball_approx(strel)
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
+
         return pg.flat.linear_dilate(vol, linesteps, linelens)
 
     elif method == 'ndi' or method == 'scipy' or method == 'ndimage':
@@ -82,19 +89,25 @@ def erode(
             ```
 
     """
-    if not pg.cuda.get_device_count():
-        err = 'no CUDA device available. Use method=scipy.'
-        raise RuntimeError(err)
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
+
         return pg.flat.erode(vol, strel, **kwargs)
 
     elif method == 'pg.linear' or method == 'linear':
         assert isinstance(
             strel, int
         ), 'Structuring element is generated within function and must therefore be an integer.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(strel)
         return pg.flat.linear_erode(vol, linesteps, linelens, **kwargs)
@@ -138,19 +151,25 @@ def opening(
             ```
 
     """
-    if not pg.cuda.get_device_count():
-        err = 'no CUDA device available. Use method=scipy.'
-        raise RuntimeError(err)
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
+
         return pg.flat.open(vol, strel, **kwargs)
 
     elif method == 'pg.linear' or method == 'linear':
         assert isinstance(
             strel, int
         ), 'Structuring element is generated within function and must therefore be an integer.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(strel)
         return pg.flat.linear_open(vol, linesteps, linelens, **kwargs)
@@ -193,19 +212,25 @@ def closing(
             ```
 
     """
-    if not pg.cuda.get_device_count():
-        err = 'no CUDA device available. Use method=scipy.'
-        raise RuntimeError(err)
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
+
         return pg.flat.close(vol, strel, **kwargs)
 
     elif method == 'pg.linear' or method == 'linear':
         assert isinstance(
             strel, int
         ), 'Structuring element is generated within function and must therefore be an integer.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(strel)
         return pg.flat.linear_close(vol, linesteps, linelens, **kwargs)
@@ -249,19 +274,25 @@ def black_tophat(
             ```
 
     """
-    if not pg.cuda.get_device_count():
-        err = 'no CUDA device available. Use method=scipy.'
-        raise RuntimeError(err)
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
+
         return pg.flat.bothat(vol, strel, **kwargs)
 
     elif method == 'pg.linear' or method == 'linear':
         assert isinstance(
             strel, int
         ), 'Structuring element is generated within function and must therefore be an integer.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(strel)
         return pg.flat.bothat(vol, linesteps, linelens, **kwargs)
@@ -305,19 +336,25 @@ def white_tophat(
             ```
 
     """
-    if not pg.cuda.get_device_count():
-        err = 'no CUDA device available. Use method=scipy.'
-        raise RuntimeError(err)
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
+
         return pg.flat.tophat(vol, strel, **kwargs)
 
     elif method == 'pg.linear' or method == 'linear':
         assert isinstance(
             strel, int
         ), 'Structuring element is generated within function and must therefore be an integer.'
+
+        if not pg.cuda.get_device_count():
+            err = 'no CUDA device available. Use method=scipy.'
+            raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(strel)
         return pg.flat.tophat(vol, linesteps, linelens, **kwargs)
