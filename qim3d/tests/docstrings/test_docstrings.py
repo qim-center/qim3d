@@ -1,17 +1,15 @@
 import pytest
 import matplotlib
-
 from unittest.mock import patch, MagicMock
-from mktestdocs import check_docstring, get_codeblock_members, grab_code_blocks
 
-from qim3d.tests import get_all_functions_by_module
+from qim3d.tests import get_all_functions_by_module, check_docstring
 
 matplotlib.use('Agg')
 
 # Get dictionary of functions by module
 functions_by_module = get_all_functions_by_module()
 
-# Mock the Downloader class and its methods
+# Mock the qim3d.io.Downloader class and its methods
 @pytest.fixture
 def mock_downloader():
     with patch("qim3d.io.Downloader") as MockDownloader:
@@ -24,7 +22,7 @@ def mock_downloader():
 
         yield MockDownloader
 
-# Mock the io load and save functions
+# Mock the qim3d.io load and save functions
 @pytest.fixture
 def mock_io_functions():
 
@@ -53,8 +51,25 @@ def mock_io_functions():
     for patcher in patches:
         patcher.stop()
 
+# # Mock the qim3d.generate.volume_collection function
+# @pytest.fixture
+# def mock_volume_collection():
+#     with patch("qim3d.generate.volume_collection") as MockVolumeCollection:
+
+#         # Mock the function to return a fake volume and labels
+#         mock_volume = MagicMock(name="MockedVolume")
+#         mock_labels = MagicMock(name="MockedLabels")
+#         MockVolumeCollection.return_value = (mock_volume, mock_labels)
+
+#         yield MockVolumeCollection
+
+
 @pytest.mark.parametrize('func', functions_by_module["io"], ids=lambda d: d.__name__)
 def test_docstrings_io(func, mock_downloader, mock_io_functions):
+    check_docstring(obj=func)
+
+@pytest.mark.parametrize('func', functions_by_module["generate"], ids=lambda d: d.__name__)
+def test_docstrings_generate(func, mock_volume_collection):
     check_docstring(obj=func)
 
 @pytest.mark.parametrize('func', functions_by_module["mesh"], ids=lambda d: d.__name__)
