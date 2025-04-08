@@ -135,9 +135,8 @@ def get_all_functions_by_module():
     # List of qim3d modules
     # TODO: Get this list automatically from the qim3d package information
     modules = [
-        'io', 'generate', 'viz', 'viz.colormaps', 'features', 'filters', 
-        'detection', 'segmentation', 'operations', 'processing', 'mesh',
-        'ml', 'ml.models'
+        'io', 'generate', 'viz', 'features', 'filters', 'detection', 
+        'segmentation', 'operations', 'processing', 'mesh', 'ml',
     ]
 
     # Dictionary to store functions from each module
@@ -200,6 +199,17 @@ def merge_code_blocks(code_blocks):
 
     return merged_blocks
 
+def filter_code_blocks(code_blocks):
+    """Filter out code blocks that contain bibtex references."""
+
+    filtered_blocks = []
+
+    for block in code_blocks:
+        if not any(line.startswith("@") for line in block.splitlines()):
+            filtered_blocks.append(block)
+
+    return filtered_blocks
+
 def check_docstring(obj):
     """
     Given a function, test the contents of the docstring.
@@ -208,6 +218,9 @@ def check_docstring(obj):
 
     # Get all code blocks from the docstring
     code_blocks = grab_code_blocks(obj.__doc__, lang="")
+
+    # Filter out code blocks that contain bibtex references
+    code_blocks = filter_code_blocks(code_blocks)
 
     # Merge code blocks based on 'import qim3d'
     merged_code_blocks = merge_code_blocks(code_blocks)
