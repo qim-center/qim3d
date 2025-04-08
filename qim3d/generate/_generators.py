@@ -261,7 +261,7 @@ def background(
 
     Raises:
         ValueError: If `apply_method` is not one of 'add', 'subtract', 'multiply', or 'divide'.
-        ValueError: If `apply_method` is provided without `apply_to` input volume provided.
+        ValueError: If `apply_method` is provided without `apply_to` input volume provided, or vice versa.
         ValueError: If the shape of `apply_to` input volume does not match `background_shape`.
 
     Example:
@@ -292,6 +292,8 @@ def background(
             background_shape = volume_collection.shape,
             min_noise_value = 0,
             max_noise_value = 20,
+            generate_method = 'add',
+            apply_method = 'add',
             apply_to = volume_collection
         )
 
@@ -362,11 +364,17 @@ def background(
     # Check if apply_method is provided without apply_to volume
     if (apply_to is None) and (apply_method is not None):
         msg = f"apply_method '{apply_method}' is only supported when apply_to input volume is provided."
+        
         # Validate apply_method
         if apply_method not in apply_operations:
             msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
             raise ValueError(msg)
 
+        raise ValueError(msg)
+
+    # Check if apply_to volume is provided without apply_method
+    if (apply_to is not None) and (apply_method is None):
+        msg = f"apply_to input volume is only supported when apply_method is provided."
         raise ValueError(msg)
 
     # Check for shape mismatch
