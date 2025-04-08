@@ -1,6 +1,7 @@
 """Helper functions for testing"""
 
 import os
+import inspect
 import importlib
 import shutil
 import socket
@@ -151,6 +152,9 @@ def get_all_functions_by_module():
             for name in getattr(module, '__all__', [])
             if callable(getattr(module, name))
         ]
+
+        # Only keep functions (not classes) in the list
+        functions = [func for func in functions if inspect.isfunction(func)]
         
         # Store the functions in the dictionary
         functions_by_module[module_name] = functions
