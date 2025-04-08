@@ -30,8 +30,6 @@ def mock_io_functions():
     functions_to_mock = [
         "qim3d.io.load",
         "qim3d.io.save",
-        "qim3d.io.import_ome_zarr",
-        "qim3d.io.export_ome_zarr",
         "qim3d.io.load_mesh",
         "qim3d.io.save_mesh",
     ]
@@ -51,25 +49,57 @@ def mock_io_functions():
     for patcher in patches:
         patcher.stop()
 
-# # Mock the qim3d.generate.volume_collection function
-# @pytest.fixture
-# def mock_volume_collection():
-#     with patch("qim3d.generate.volume_collection") as MockVolumeCollection:
+# Mock the qim3d.io OME-Zarr functions
+@pytest.fixture
+def mock_ome_zarr_functions(tmp_path):
+    # Temporary directory for mock files
+    mock_file_path = tmp_path / "Escargot.zarr"
 
-#         # Mock the function to return a fake volume and labels
-#         mock_volume = MagicMock(name="MockedVolume")
-#         mock_labels = MagicMock(name="MockedLabels")
-#         MockVolumeCollection.return_value = (mock_volume, mock_labels)
+    functions_to_mock = [
+        "qim3d.io.import_ome_zarr",
+        "qim3d.io.export_ome_zarr",
+    ]
 
-#         yield MockVolumeCollection
+    patches = []
+    for func_path in functions_to_mock:
+        if func_path == "qim3d.io.export_ome_zarr":
 
+            # Mock export_ome_zarr to simulate creating a file
+            patcher = patch(func_path, side_effect=lambda *args, **kwargs: mock_file_path.touch())
+        else:
+
+            # Mock import_ome_zarr to return a fake dataset
+            patcher = patch(func_path, return_value=MagicMock(name=f"Mocked_{func_path.split('.')[-1]}"))
+        patches.append(patcher)
+        patcher.start()
+
+    # Provide the mocks to the unit test
+    yield mock_file_path
+
+    # Stop all patches after the test
+    for patcher in patches:
+        patcher.stop()
+
+# Mock the qim3d.viz.chunks function
+@pytest.fixture
+def mock_viz_chunks():
+    with patch("qim3d.viz.chunks") as MockVizChunks:
+
+        # Mock the function to do nothing
+        MockVizChunks.return_value = None
+
+        yield MockVizChunks
 
 @pytest.mark.parametrize('func', functions_by_module["io"], ids=lambda d: d.__name__)
-def test_docstrings_io(func, mock_downloader, mock_io_functions):
+def test_docstrings_io(func, mock_downloader, mock_io_functions, mock_ome_zarr_functions):
     check_docstring(obj=func)
 
 @pytest.mark.parametrize('func', functions_by_module["generate"], ids=lambda d: d.__name__)
-def test_docstrings_generate(func, mock_volume_collection):
+def test_docstrings_generate(func):
+    check_docstring(obj=func)
+
+@pytest.mark.parametrize('func', functions_by_module["viz"], ids=lambda d: d.__name__)
+def test_docstrings_viz(func, mock_downloader, mock_ome_zarr_functions, mock_viz_chunks):
     check_docstring(obj=func)
 
 @pytest.mark.parametrize('func', functions_by_module["mesh"], ids=lambda d: d.__name__)
