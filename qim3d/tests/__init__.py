@@ -11,6 +11,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
+from mktestdocs import grab_code_blocks
+
 from qim3d.utils._logger import log
 from qim3d.io import save
 
@@ -160,3 +162,56 @@ def get_all_functions_by_module():
         functions_by_module[module_name] = functions
 
     return functions_by_module
+
+def exec_python(source):
+    """
+    Execute a Python code block.
+    """
+    try:
+        exec(source, {"__name__": "__main__"})
+    except Exception:
+        print(source)
+        raise
+
+def merge_code_blocks(code_blocks):
+    """
+    Merge code blocks such that every time there is an 'import qim3d',
+    a new code block starts, and all preceding code blocks are merged into the previous one.
+    """
+    merged_blocks = []
+    current_block = ""
+
+    for block in code_blocks:
+        if "import qim3d" in block:
+
+            # If there's an existing block, add it to the merged list
+            if current_block.strip():
+                merged_blocks.append(current_block.strip())
+                
+            # Start a new block
+            current_block = block
+        else:
+            # Append to the current block
+            current_block += "\n" + block
+
+    # Add the last block if it exists
+    if current_block.strip():
+        merged_blocks.append(current_block.strip())
+
+    return merged_blocks
+
+def check_docstring(obj):
+    """
+    Given a function, test the contents of the docstring.
+    Custom function inspired by the mktestdocs.check_docstring function.
+    """
+
+    # Get all code blocks from the docstring
+    code_blocks = grab_code_blocks(obj.__doc__, lang="")
+
+    # Merge code blocks based on 'import qim3d'
+    merged_code_blocks = merge_code_blocks(code_blocks)
+
+    # Execute each merged code block
+    for b in merged_code_blocks:
+        exec_python(b)
