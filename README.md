@@ -16,7 +16,7 @@ For more information on the QIM center visit https://qim.dk/
 
 ## Installation
 
-We recommned using a conda environment:
+We recommend using a conda environment:
 
 ```bash
 conda create -n qim3d python=3.11
