@@ -131,6 +131,19 @@ def volume(
     # Normal ellipsoidal distance
     dist = np.sqrt(dx**2 + dy**2 + dz**2)
 
+    old = True
+    if old:
+        # Generate grid of coordinates
+        z, y, x = np.indices(base_shape)
+
+        # Calculate the distance from the center of the shape
+        center = np.array(base_shape) / 2
+
+        dist = np.sqrt(
+            (z - center[0]) ** 2 + (y - center[1]) ** 2 + (x - center[2]) ** 2
+        )
+
+        dist /= np.sqrt(3 * (center[0] ** 2))
     if not volume_shape:
         # Amplify distance of points further away
         dist = np.power(dist, 4)
