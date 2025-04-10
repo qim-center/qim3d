@@ -236,7 +236,7 @@ def background(
     baseline_value: float = 0,
     min_noise_value: float = 0,
     max_noise_value: float = 20,
-    generate_method: str = 'divide',
+    generate_method: str = 'add',
     apply_method: str = None,
     seed: int = 0,
     dtype: str = 'uint8',
@@ -292,7 +292,8 @@ def background(
             background_shape = volume_collection.shape,
             min_noise_value = 0,
             max_noise_value = 20,
-            apply_to = volume_collection
+            apply_to = volume_collection,
+            apply_method = 'add'
         )
 
         qim3d.viz.volumetric(noisy_collection)
@@ -360,13 +361,19 @@ def background(
     }
 
     # Check if apply_method is provided without apply_to volume
-    if (apply_to is None) and (apply_method is not None):
-        msg = f"apply_method '{apply_method}' is only supported when apply_to input volume is provided."
+    if (apply_to is None and apply_method is not None) or (
+        apply_to is not None and apply_method is None
+    ):
+        msg = 'Supply both apply_method and apply_to when applying background to a volume.'
         # Validate apply_method
-        if apply_method not in apply_operations:
-            msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
-            raise ValueError(msg)
+        raise ValueError(msg)
 
+    # Check if methods are correct
+    if apply_method not in apply_operations:
+        msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
+        raise ValueError(msg)
+    if generate_method not in apply_operations:
+        msg = f"Invalid generate_method '{generate_method}'. Choose from {list(apply_operations.keys())}."
         raise ValueError(msg)
 
     # Check for shape mismatch
@@ -384,8 +391,20 @@ def background(
         low=float(min_noise_value), high=float(max_noise_value), size=background_shape
     )
 
+    # Return error if multiplying or dividing with 0
+    if baseline_value == 0.0 and (
+        generate_method == 'multiply' or generate_method == 'divide'
+    ):
+        msg = f'Selection of baseline_value=0 and generate_method="{generate_method}" will not generate background noise. Either add baseline_value>0 or change generate_method.'
+        raise ValueError(msg)
+
     # Apply method to initial background computation
     background_volume = apply_operations[generate_method](baseline, noise)
+
+    # Warn user if the background noise is constant or none
+    if np.min(background_volume) == np.max(background_volume):
+        msg = 'Warning: The used settings have generated a background with a uniform value.'
+        log.info(msg)
 
     # Apply method to the target volume if specified
     if apply_to is not None:
