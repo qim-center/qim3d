@@ -139,10 +139,13 @@ def volume(
         # Cyllindrical distance (only along z-axis)
         if axis == 0:
             dist = np.sqrt(dx**2 + dy**2)
+            dist *= np.sqrt(3 * (center[0] ** 2))  # DELETE ME
         elif axis == 1:
             dist = np.sqrt(dx**2 + dz**2)
+            dist *= np.sqrt(3 * (center[1] ** 2))  # DELETE ME
         elif axis == 2:
             dist = np.sqrt(dy**2 + dz**2)
+            dist *= np.sqrt(3 * (center[2] ** 2))  # DELETE ME
         else:
             msg = f'Unrecognized axis "{axis}". Axis must be 0, 1 or 2.'
             raise ValueError(msg)
