@@ -250,11 +250,11 @@ def background(
         baseline_value (float, optional): The baseline intensity of the noise volume. Default is 0.
         min_noise_value (float, optional): The minimum intensity of the noise. Default is 0.
         max_noise_value (float, optional): The maximum intensity of the noise. Default is 20.
-        generate_method (str, optional): The method used to combine `baseline_value` and noise. Choose from 'add' (`baseline + noise`), 'subtract' (`baseline - noise`), 'multiply' (`baseline * noise`), or 'divide' (`baseline / (1 + noise)`). Default is 'divide'.
-        apply_method (str, optional): The method to apply the generated noise to `apply_to`, if provided. Choose from 'add' (`apply_to + background`), 'subtract' (`apply_to - background`), 'multiply' (`apply_to * background`), or 'divide' (`apply_to / (1 + background)`). Default is None.
+        generate_method (str, optional): The method used to combine `baseline_value` and noise. Choose from 'add' (`baseline + noise`), 'subtract' (`baseline - noise`), 'multiply' (`baseline * noise`), or 'divide' (`baseline / (noise+ε)`). Default is 'add'.
+        apply_method (str, optional): The method to apply the generated noise to `apply_to`, if provided. Choose from 'add' (`apply_to + background`), 'subtract' (`apply_to - background`), 'multiply' (`apply_to * background`), or 'divide' (`apply_to / (background+ε)`). Only applicable if apply_to is defined. Default is None.
         seed (int, optional): The seed for the random number generator. Default is 0.
         dtype (data-type, optional): Desired data type of the output volume. Default is 'uint8'.
-        apply_to (np.ndarray, optional): An input volume to which noise will be applied. If None, the generated noise volume is returned.
+        apply_to (np.ndarray, optional): An input volume to which noise will be applied. Only applicable if apply_method is defined. Defaults to None.
 
     Returns:
         background (np.ndarray): The generated noise volume (if `apply_to` is None) or the input volume with added noise (if `apply_to` is not None).
