@@ -142,6 +142,7 @@ def volume_collection(
     volume_shape: str = None,
     seed: int = 0,
     verbose: bool = False,
+    axis: int = 0,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate a 3D volume of multiple synthetic volumes using Perlin noise.
@@ -168,6 +169,7 @@ def volume_collection(
         volume_shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
         seed (int, optional): Seed for reproducibility. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
+        axis (int, optional): Determines the axis of the volume_shape if this is defined. Defaults to 0.
 
     Returns:
         volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
@@ -367,6 +369,7 @@ def volume_collection(
             threshold=threshold,
             smooth_borders=smooth_borders,
             volume_shape=volume_shape,
+            axis=axis,
         )
 
         # Rotate volume

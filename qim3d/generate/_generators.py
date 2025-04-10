@@ -12,12 +12,14 @@ def volume(
     base_shape: tuple = (128, 128, 128),
     final_shape: tuple = (128, 128, 128),
     noise_scale: float = 0.05,
-    order: int = 1,
+    sharpness: int = 8,
     gamma: int = 1.0,
-    max_value: int = 255,
     threshold: float = 0.5,
-    smooth_borders: bool = False,
     volume_shape: str = None,
+    axis: int = 0,
+    max_value: int = 255,
+    smooth_borders: bool = False,
+    order: int = 1,
     dtype: str = 'uint8',
 ) -> np.ndarray:
     """
@@ -27,12 +29,14 @@ def volume(
         base_shape (tuple of ints, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
         final_shape (tuple of ints, optional): Desired shape of the final volume. Defaults to (128, 128, 128).
         noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
-        order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
+        sharpness (int, optional): Determines the sharpness of the cut from perlin noise to the volume. Defaults to 8.
         gamma (float, optional): Gamma correction factor. Defaults to 1.0.
-        max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
         threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
-        smooth_borders (bool, optional): Flag for automatic computation of the threshold value to ensure a blob with no straight edges. If True, the `threshold` parameter is ignored. Defaults to False.
         volume_shape (str, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
+        axis (int, optional): Axis of the given volume_shape. Will only be active if volume_shape is defined. Defaults to 0.
+        max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
+        smooth_borders (bool, optional): Flag for automatic computation of the threshold value to ensure a blob with no straight edges. If True, the `threshold` parameter is ignored. Defaults to False.
+        order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
         dtype (data-type, optional): Desired data type of the output volume. Defaults to "uint8".
 
     Returns:
@@ -123,32 +127,30 @@ def volume(
     # Calculate the distance from the center of the shape
     center = np.array(base_shape) / 2
 
-    old = False
-    if old:
-        dist = np.sqrt(
-            (z - center[0]) ** 2 + (y - center[1]) ** 2 + (x - center[2]) ** 2
-        )
+    # Normalized coordinates
+    dx = (x - center[2]) / center[2]
+    dy = (y - center[1]) / center[1]
+    dz = (z - center[0]) / center[0]
 
-        dist /= np.sqrt(3 * (center[0] ** 2))
-        print(np.max(dist))
-    else:
-        # Normalized coordinates
-        dx = (x - center[2]) / center[2]
-        dy = (y - center[1]) / center[1]
-        dz = (z - center[0]) / center[0]
-
+    if not volume_shape:
         # Normal ellipsoidal distance
         dist = np.sqrt(dx**2 + dy**2 + dz**2)
-
-        if not volume_shape:
-            # Amplify distance of points further away
-            dist = np.power(dist, 4)
-            # Clip them and normalize
-            dist = np.clip(dist, 0, 1.2) / 1.2
+    else:
+        # Cyllindrical distance (only along z-axis)
+        if axis == 0:
+            dist = np.sqrt(dx**2 + dy**2)
+        elif axis == 1:
+            dist = np.sqrt(dx**2 + dz**2)
+        elif axis == 2:
+            dist = np.sqrt(dy**2 + dz**2)
         else:
-            dist1 = (dist - np.min(dist)) / np.max(dist) - np.min(dist)
-            # Do nothing
-            print(np.max(dist))
+            msg = f'Unrecognized axis "{axis}". Axis must be 0, 1 or 2.'
+            raise ValueError(msg)
+
+    # Creates sharp contrast between more central voxels and more distant ones
+    dist = np.power(dist, sharpness)
+    # Clips voxels to 1
+    dist = np.clip(dist, 0, 1)
 
     # Generate Perlin noise and adjust the values based on the distance from the center
     vectorized_pnoise3 = np.vectorize(
@@ -205,9 +207,6 @@ def volume(
     if volume_shape == 'cylinder':
         # Arguments for the fade_mask function
         geometry = 'cylindrical'  # Fade in cylindrical geometry
-        axis = np.argmax(
-            volume.shape
-        )  # Fade along the dimension where the volume is the largest
         target_max_normalized_distance = (
             1.4  # This value ensures that the volume will become cylindrical
         )
@@ -222,9 +221,6 @@ def volume(
     elif volume_shape == 'tube':
         # Arguments for the fade_mask function
         geometry = 'cylindrical'  # Fade in cylindrical geometry
-        axis = np.argmax(
-            volume.shape
-        )  # Fade along the dimension where the volume is the largest
         decay_rate = 5  # Decay rate for the fade operation
         target_max_normalized_distance = (
             1.4  # This value ensures that the volume will become cylindrical
@@ -248,7 +244,7 @@ def volume(
     # Convert to desired data type
     volume = volume.astype(dtype)
 
-    return volume, dist
+    return volume
 
 
 def background(
@@ -270,7 +266,7 @@ def background(
         baseline_value (float, optional): The baseline intensity of the noise volume. Default is 0.
         min_noise_value (float, optional): The minimum intensity of the noise. Default is 0.
         max_noise_value (float, optional): The maximum intensity of the noise. Default is 20.
-        generate_method (str, optional): The method used to combine `baseline_value` and noise. Choose from 'add' (`baseline + noise`), 'subtract' (`baseline - noise`), 'multiply' (`baseline * noise`), or 'divide' (`baseline / (1 + noise)`). Default is 'divide'.
+        generate_method (str, optional): The method used to combine `baseline_value` and noise. Choose from 'add' (`baseline + noise`), 'subtract' (`baseline - noise`), 'multiply' (`baseline * noise`), or 'divide' (`baseline / (noise+ε)`). Default is 'divide'.
         apply_method (str, optional): The method to apply the generated noise to `apply_to`, if provided. Choose from 'add' (`apply_to + background`), 'subtract' (`apply_to - background`), 'multiply' (`apply_to * background`), or 'divide' (`apply_to / (1 + background)`). Default is None.
         seed (int, optional): The seed for the random number generator. Default is 0.
         dtype (data-type, optional): Desired data type of the output volume. Default is 'uint8'.
