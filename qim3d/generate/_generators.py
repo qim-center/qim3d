@@ -117,40 +117,18 @@ def volume(
         message = 'Invalid data type'
         raise ValueError(message)
 
+    # Initialize the 3D array for the shape
+    volume = np.empty((base_shape[0], base_shape[1], base_shape[2]), dtype=np.float32)
+
     # Generate grid of coordinates
     z, y, x = np.indices(base_shape)
 
     # Calculate the distance from the center of the shape
     center = np.array(base_shape) / 2
 
-    # Normalized coordinates
-    dx = (x - center[2]) / center[2]
-    dy = (y - center[1]) / center[1]
-    dz = (z - center[0]) / center[0]
+    dist = np.sqrt((z - center[0]) ** 2 + (y - center[1]) ** 2 + (x - center[2]) ** 2)
 
-    # Normal ellipsoidal distance
-    dist = np.sqrt(dx**2 + dy**2 + dz**2)
-
-    old = True
-    if old:
-        # Generate grid of coordinates
-        z, y, x = np.indices(base_shape)
-
-        # Calculate the distance from the center of the shape
-        center = np.array(base_shape) / 2
-
-        dist = np.sqrt(
-            (z - center[0]) ** 2 + (y - center[1]) ** 2 + (x - center[2]) ** 2
-        )
-
-        dist /= np.sqrt(3 * (center[0] ** 2))
-    if not volume_shape:
-        # Amplify distance of points further away
-        dist = np.power(dist, 4)
-        # Clip them and normalize
-        dist = np.clip(dist, 0, 1.2) / 1.2
-    else:
-        dist = (dist - np.min(dist)) / np.max(dist) - np.min(dist)
+    dist /= np.sqrt(3 * (center[0] ** 2))
 
     # Generate Perlin noise and adjust the values based on the distance from the center
     vectorized_pnoise3 = np.vectorize(
