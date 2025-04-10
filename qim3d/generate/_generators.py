@@ -360,7 +360,12 @@ def background(
         'divide': lambda a, b: a / (b + 1e-8),  # Avoid division by zero
     }
 
-    # Check if apply_method is provided without apply_to volume
+    # generate_method check
+    if generate_method not in apply_operations:
+        msg = f"Invalid generate_method '{generate_method}'. Choose from {list(apply_operations.keys())}."
+        raise ValueError(msg)
+
+    # apply_method check
     if (apply_to is None and apply_method is not None) or (
         apply_to is not None and apply_method is None
     ):
@@ -369,11 +374,8 @@ def background(
         raise ValueError(msg)
 
     # Check if methods are correct
-    if apply_method not in apply_operations:
+    if apply_method is not None and apply_method not in apply_operations:
         msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
-        raise ValueError(msg)
-    if generate_method not in apply_operations:
-        msg = f"Invalid generate_method '{generate_method}'. Choose from {list(apply_operations.keys())}."
         raise ValueError(msg)
 
     # Check for shape mismatch
