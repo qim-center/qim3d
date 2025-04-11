@@ -1,4 +1,4 @@
-import albumentations
+import monai
 import pytest
 
 import qim3d
@@ -14,9 +14,9 @@ def test_augmentation():
 def test_augment():
     augment_class = qim3d.ml.Augmentation()
 
-    album_augment = augment_class.augment(256, 256)
+    album_augment = augment_class.augment((256, 256, 256))
 
-    assert type(album_augment) == albumentations.core.composition.Compose
+    assert type(album_augment) == monai.transforms.compose.Compose
 
 
 # unit tests for ValueErrors in Augmentation()
@@ -39,4 +39,4 @@ def test_levels():
         ValueError,
         match=f"Invalid transformation level: {level}. Please choose one of the following levels: None, 'light', 'moderate', 'heavy'.",
     ):
-        augment_class.augment(256, 256, level)
+        augment_class.augment((256, 256, 256), level)

@@ -30,7 +30,7 @@ def test_load_type_memmap():
 def test_invalid_path():
     invalid_path = os.path.join('this', 'path', 'doesnt', 'exist.tif')
 
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(ValueError, match='Invalid path'):
         qim3d.io.load(invalid_path)
 
 
@@ -38,5 +38,5 @@ def test_did_you_mean():
     # Remove last two characters from the path
     path_misspelled = str(volume_path)[:-2]
 
-    with pytest.raises(FileNotFoundError, match=re.escape(repr(str(volume_path)))):
+    with pytest.raises(ValueError, match=re.escape(repr(str(volume_path)))):
         qim3d.io.load(path_misspelled)

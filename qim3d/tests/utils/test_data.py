@@ -7,41 +7,43 @@ from qim3d.tests import temp_data
 
 # unit tests for Dataset()
 def test_dataset():
-    img_shape = (32, 32)
+    img_shape = (32, 32, 32)
     folder = 'folder_data'
     temp_data(folder, img_shape=img_shape)
 
-    images = qim3d.ml.Dataset(folder)
+    augmentation = qim3d.ml.Augmentation()
+    dataset = qim3d.ml.Dataset(folder, transform=augmentation.augment(img_shape))
+    image, target = dataset[0]
 
-    assert images[0][0].shape == img_shape
+    assert image[0].shape == img_shape
 
     temp_data(folder, remove=True)
 
 
 # unit tests for check_resize()
 def test_check_resize():
-    h_adjust, w_adjust = qim3d.ml._data.check_resize(
-        240, 240, resize='crop', n_channels=6
+    d_adjust, h_adjust, w_adjust = qim3d.ml._data.check_resize(
+        (240, 240, 240), resize='crop', n_channels=6
     )
 
-    assert (h_adjust, w_adjust) == (192, 192)
+    assert (d_adjust, h_adjust, w_adjust) == (192, 192, 192)
 
 
 def test_check_resize_pad():
-    h_adjust, w_adjust = qim3d.ml._data.check_resize(
-        16, 16, resize='padding', n_channels=6
+    d_adjust, h_adjust, w_adjust = qim3d.ml._data.check_resize(
+        (16, 16, 16), resize='padding', n_channels=6
     )
 
-    assert (h_adjust, w_adjust) == (64, 64)
+    assert (d_adjust, h_adjust, w_adjust) == (64, 64, 64)
 
 
 def test_check_resize_fail():
     with pytest.raises(
         ValueError,
-        match="The size of the image is too small compared to the depth of the UNet. Choose a different 'resize' and/or a smaller model.",
+        match='The size of the image is too small compared to the depth of the UNet.',
     ):
-        h_adjust, w_adjust = qim3d.ml._data.check_resize(
-            16, 16, resize='crop', n_channels=6
+        d_adjust, h_adjust, w_adjust = qim3d.ml._data.check_resize(
+            (16, 16, 16), resize='crop', n_channels=6
         )
 
 

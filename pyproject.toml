@@ -82,6 +82,10 @@ find = { namespaces = false }
 [tool.ruff]
 line-length = 88
 indent-width = 4
+exclude = [
+    "docs", 
+    "qim3d/tests", 
+]
 
 [tool.ruff.lint]
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -170,3 +174,17 @@ ignore = [
 [tool.ruff.format]
 # Use single quotes for strings
 quote-style = "single"
+
+[tool.coverage.run]
+omit = [
+    "qim3d/tests/*",
+    "qim3d/examples/*",
+    "qim3d/css/*",
+    "docs/*",
+    "**/__init__.py", 
+    "config.py",
+    "config-3.py",
+]
+
+[tool.pytest.ini_options]
+addopts = "--ignore=qim3d/tests/notebooks"

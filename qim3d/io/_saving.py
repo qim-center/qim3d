@@ -7,7 +7,7 @@ Example:
     import qim3d
 
     # Generate synthetic blob
-    synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+    synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
 
     qim3d.io.save("fly.tif", synthetic_blob)
     ```
@@ -17,7 +17,7 @@ Example:
     import qim3d
 
     # Generate synthetic blob
-    synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+    synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
 
     qim3d.io.save("slices", synthetic_blob, basename="fly-slices", sliced_dim=0)
     ```
@@ -457,7 +457,7 @@ def save(
         import qim3d
 
         # Generate synthetic blob
-        vol = qim3d.generate.noise_object(noise_scale = 0.015)
+        vol = qim3d.generate.volume(noise_scale = 0.015)
 
         qim3d.io.save("blob.tif", vol, replace=True)
         ```
@@ -467,7 +467,7 @@ def save(
         import qim3d
 
         # Generate synthetic blob
-        vol = qim3d.generate.noise_object(noise_scale = 0.015)
+        vol = qim3d.generate.volume(noise_scale = 0.015)
 
         qim3d.io.save("slices", vol, basename="blob-slices", sliced_dim=0)
         ```
@@ -499,7 +499,7 @@ def save(
 #         ```python
 #         import qim3d
 
-#         vol = qim3d.generate.noise_object(base_shape=(32, 32, 32),
+#         vol = qim3d.generate.volume(base_shape=(32, 32, 32),
 #                                   final_shape=(32, 32, 32),
 #                                   noise_scale=0.05,
 #                                   order=1,
@@ -528,7 +528,7 @@ def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
         ```python
         import qim3d
 
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
         mesh = qim3d.mesh.from_volume(synthetic_blob)
         qim3d.io.save_mesh("mesh.obj", mesh)
         ```
