@@ -120,7 +120,7 @@ def specific_placement(
     return collection, placed, positions
 
 
-def volume_collection(
+def _volume_collection(
     collection_shape: tuple = (200, 200, 200),
     num_volumes: int = 15,
     positions: list[tuple] = None,
@@ -407,6 +407,213 @@ def volume_collection(
             f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_volumes} volumes.'
         )
 
+    if verbose:
+        log.setLevel(original_log_level)
+
+    return collection_array, labels
+
+
+def volume_collection(
+    collection_shape: tuple = (200, 200, 200),
+    num_volumes: int = 15,
+    positions: list[tuple] = None,
+    shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
+    volume_shape_zoom: tuple = (1.0, 1.0, 1.0),
+    noise_type: str = 'perlin',
+    noise_range: tuple[float] = (0.02, 0.05),
+    rotation_degree_range: tuple[int] = (0, 360),
+    rotation_axes: list[tuple] = None,
+    gamma_range: tuple[float] = (0.8, 1.2),
+    value_range: tuple[int] = (128, 255),
+    threshold_range: tuple[float] = (0.5, 0.6),
+    shape: str = None,
+    ratio: float = 0.7,
+    inner_ratio: float = 0.5,
+    decay_rate: float = 5.0,
+    axis: int = 0,
+    verbose: bool = False,
+    seed: int = 0,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Generate a 3D volume of multiple synthetic volumes using Perlin or Simplex noise.
+
+    Args:
+        collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
+        num_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
+        positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
+        shape_range (tuple of tuple of ints, optional): Determines the shape of the generated volumes with first element defining the minimum size and second element defining maximum. Defaults to ((40,40,40), (60,60,60)).
+        volume_shape_zoom (tuple of floats, optional): Scaling factors for each dimension of each volume. Defaults to (1.0, 1.0, 1.0).
+        noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex`, `perlin` or `mixed`. Defaults to perlin.
+        noise_range (tuple of floats, optional): Determines range for noise. First element is minimum and second is maximum. Defaults to (0.02, 0.05).
+        rotation_degree_range (tuple of ints, optional): Determines range for rotation angle in degrees. First element is minimum and second is maximum. Defaults to (0, 360).
+        rotation_axes (list[tuple], optional): List of axis pairs that will be randomly chosen to rotate around. Defaults to [(0, 1), (0, 2), (1, 2)].
+        gamma_range (tuple of floats, optional): Determines minimum and maximum gamma correctness factor. Defaults to (0.8, 1.2)
+        value_range (tuple of ints, optional): Determines minimum and maximum value for volume intensity. Defaults to (128, 255).
+        threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.6)
+        shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
+        ratio (float, optional): Ratio for fade mask of the noise. Defaults to 0.7.
+        inner_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
+        decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
+        axis (int, optional): Determines the axis of the volume_shape if this is defined. Defaults to 0.
+        verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
+        seed (int, optional): Seed for reproducibility. Defaults to 0.
+
+    Returns:
+        volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
+        labels (numpy.ndarray): Array with labels for each voxel, same shape as volume_collection.
+
+    Raises:
+        ValueError: If `noise_type` is invalid.
+        TypeError: If `collection_shape` is not 3D.
+        ValueError: If volume parameters are invalid.
+
+    Note:
+        Min/max inner ratio?
+        checks need checking
+        include base seed (only for perlin)
+        check that range args are in correct order
+
+    """
+
+    # Check valid input types
+    noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's', 'mixed', 'm']
+    if noise_type not in noise_types:
+        err = f'noise_type should be one of: {noise_types}'
+        raise ValueError(err)
+
+    if not isinstance(collection_shape, tuple) or len(collection_shape) != 3:
+        message = 'Shape of collection must be a tuple with three dimensions (z, y, x)'
+        raise TypeError(message)
+
+    if len(shape_range[0]) != len(shape_range[1]):
+        message = 'Object shapes must be tuples of the same length'
+        raise ValueError(message)
+    if len(shape_range[0]) != 3 or len(shape_range[1]) != 3 or len(shape_range):
+        message = 'shape_range should be defined as a tuple with two elements, each containing a tuple with three elements.'
+        raise ValueError(message)
+
+    if (positions is not None) and (len(positions) != num_volumes):
+        message = 'Number of volumes must match number of positions, otherwise set positions = None'
+        raise ValueError(message)
+
+    if rotation_axes is None:
+        rotation_axes = [(0, 1), (0, 2), (1, 2)]
+
+    if verbose:
+        original_log_level = log.getEffectiveLevel()
+        log.setLevel('DEBUG')
+
+    # Set seed for random number generator
+    rng = np.random.default_rng(seed)
+
+    # Initialize the 3D array for the shape
+    collection_array = np.zeros(
+        (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=np.uint8
+    )
+    labels = np.zeros_like(collection_array)
+
+    seeds = rng.integers(low=-10000, high=10000, size=10000)
+    nt = rng.random(size=10000)
+
+    # Fill the 3D array with synthetic blobs
+    for i in tqdm(range(num_volumes), desc='Objects placed'):
+        log.debug(f'\nObject #{i+1}')
+
+        # Sample from blob parameter ranges
+        if shape_range[0] == shape_range[1]:
+            blob_shape = shape_range[0]
+        else:
+            blob_shape = tuple(
+                rng.integers(low=shape_range[0][i], high=shape_range[1][i])
+                for i in range(3)
+            )
+        log.debug(f'- Blob shape: {blob_shape}')
+
+        # Scale volume shape
+        final_shape = tuple(
+            dim * zoom for dim, zoom in zip(blob_shape, volume_shape_zoom)
+        )
+        final_shape = tuple(int(x) for x in final_shape)
+
+        # Sample noise scale
+        noise_scale = rng.uniform(low=noise_range[0], high=noise_range[1])
+        log.debug(f'- Object noise scale: {noise_scale:.4f}')
+
+        gamma = rng.uniform(low=gamma_range[0], high=gamma_range[1])
+        log.debug(f'- Gamma correction: {gamma:.3f}')
+
+        threshold = rng.uniform(low=threshold_range[0], high=threshold_range[1])
+        log.debug(f'- Threshold: {threshold:.3f}')
+
+        if value_range[1] > value_range[0]:
+            max_value = rng.integers(low=value_range[0], high=value_range[1])
+        else:
+            max_value = value_range[0]
+        log.debug(f'- Max value: {max_value}')
+
+        if noise_type == 'mixed' or noise_type == 'm':
+            nti = 'perlin' if nt[i] >= 0.5 else 'simplex'
+        else:
+            nti = noise_type
+        log.debug(f'- Noise type: {nt}')
+
+        log.debug(f'- Seed: {seeds[i]}')
+        # Generate synthetic volume
+        blob = qim3d.generate.volume(
+            base_shape=blob_shape,
+            final_shape=final_shape,
+            noise_scale=noise_scale,
+            noise_type=nti,
+            ratio=ratio,
+            decay_rate=decay_rate,
+            threshold=threshold,
+            max_value=max_value,
+            shape=shape,
+            axis=axis,
+            order=1,
+            dtype='uint8',
+            gamma=gamma,
+            inner_ratio=inner_ratio,
+            seed=seeds[i],
+        )
+
+        # Rotate volume
+        if rotation_degree_range[1] > 0:
+            angle = rng.uniform(
+                low=rotation_degree_range[0], high=rotation_degree_range[1]
+            )  # Sample rotation angle
+            axes = rng.choice(rotation_axes)  # Sample the two axes to rotate around
+            log.debug(f'- Rotation angle: {angle:.2f} at axes: {axes}')
+
+            blob = scipy.ndimage.rotate(blob, angle, axes, order=1)
+
+        # Place synthetic volume into the collection
+        # If positions are specified, place volume at one of the specified positions
+        collection_before = collection_array.copy()
+        if positions:
+            collection_array, placed, positions = specific_placement(
+                collection_array, blob, positions
+            )
+
+        # Otherwise, place volume at a random available position
+        else:
+            collection_array, placed = random_placement(collection_array, blob, rng)
+
+        # Break if volume could not be placed
+        if not placed:
+            break
+
+        # Update labels
+        new_labels = np.where(collection_array != collection_before, i + 1, 0).astype(
+            labels.dtype
+        )
+        labels += new_labels
+
+    if not placed:
+        # Log error if not all num_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
+        log.error(
+            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_volumes} volumes.'
+        )
     if verbose:
         log.setLevel(original_log_level)
 
