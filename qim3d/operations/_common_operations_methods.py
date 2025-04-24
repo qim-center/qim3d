@@ -132,6 +132,7 @@ def fade_mask(
 
     # Normalize the distances so that they go from 0 at the center to 1 at the farthest point
     normalized_distance = distance / (max_distance * ratio)
+    print(max_distance)
 
     # Apply the decay rate
     faded_distance = normalized_distance**decay_rate
