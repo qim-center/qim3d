@@ -70,7 +70,7 @@ def slices_grid(
         color_bar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
         color_bar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
         **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
-        
+
     Returns:
         fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
 
@@ -374,7 +374,7 @@ def slicer(
     if color_bar not in color_bar_options:
         msg = f"Unrecognized value '{color_bar}' for parameter color_bar. Expected one of '{color_bar_options}'."
         raise ValueError(msg)
-    
+
     show_color_bar = color_bar is not None
     if color_bar == 'slices':
         # Precompute the minimum and maximum along each slice for faster widget sliding.
@@ -383,7 +383,9 @@ def slicer(
         slice_maxs = np.max(volume, axis=non_slice_axes)
 
     # Create the interactive widget
-    def _slicer(slice_positions: str | int | list[int] | None) -> matplotlib.figure.Figure:
+    def _slicer(
+        slice_positions: str | int | list[int] | None,
+    ) -> matplotlib.figure.Figure:
         if color_bar == 'slices':
             dynamic_min = slice_mins[slice_positions]
             dynamic_max = slice_maxs[slice_positions]
@@ -522,12 +524,12 @@ def fade_mask(
 
     # Create the interactive widget
     def _slicer(
-            position: int, 
-            decay_rate: float, 
-            ratio: float, 
-            geometry: str, 
-            invert: bool,
-            ) -> matplotlib.figure.Figure:
+        position: int,
+        decay_rate: float,
+        ratio: float,
+        geometry: str,
+        invert: bool,
+    ) -> matplotlib.figure.Figure:
         fig, axes = plt.subplots(1, 3, figsize=(9, 3))
 
         slice_img = volume[position, :, :]
@@ -752,8 +754,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.interactive:
 
     # Function to calculate the number of chunks for each dimension, including partial chunks
     def get_num_chunks(
-        shape: tuple[int, int, int], 
-        chunk_size: tuple[int, int, int]
+        shape: tuple[int, int, int], chunk_size: tuple[int, int, int]
     ) -> list[int]:
         return [(s + chunk_size[i] - 1) // chunk_size[i] for i, s in enumerate(shape)]
 
@@ -1096,11 +1097,11 @@ class _LineProfile:
         self.slice_index_widget.layout.width = '400px'
 
     def calculate_line_endpoints(
-        self, 
-        x: int, 
-        y: int, 
+        self,
+        x: int,
+        y: int,
         angle: float,
-        ) -> tuple[list[float], list[float]]:
+    ) -> tuple[list[float], list[float]]:
         """Line is parameterized as: [x + t*np.cos(angle), y + t*np.sin(angle)]."""
         if np.isclose(angle, 0):
             return [0, y], [self.x_max, y]
@@ -1125,14 +1126,15 @@ class _LineProfile:
         dst = [x + t_pos * np.cos(angle), y + t_pos * np.sin(angle)]
         return src, dst
 
-    def update(self, 
-        slice_axis: int, 
-        slice_index: int, 
-        x: int, 
-        y: int, 
+    def update(
+        self,
+        slice_axis: int,
+        slice_index: int,
+        x: int,
+        y: int,
         angle_deg: float,
-        fraction_range: tuple[float, float], 
-        ) -> None:
+        fraction_range: tuple[float, float],
+    ) -> None:
         if slice_axis != self.slice_axis:
             self.update_slice_axis(slice_axis)
             x = self.x_widget.value
@@ -1279,13 +1281,15 @@ def line_profile(
     """
 
     def parse_position(
-        pos: int | str, 
+        pos: int | str,
         pos_range: tuple[int, int],
         name: str,
-        ) -> int:
+    ) -> int:
         if isinstance(pos, int):
             if not pos_range[0] <= pos < pos_range[1]:
-                msg = f'Value for {name} must be inside [{pos_range[0]}, {pos_range[1]}]'
+                msg = (
+                    f'Value for {name} must be inside [{pos_range[0]}, {pos_range[1]}]'
+                )
                 raise ValueError(msg)
             return pos
         elif isinstance(pos, str):
@@ -1554,13 +1558,13 @@ def threshold(
 
 
 class _VolumeComparison:
-    def __init__(self, 
+    def __init__(
+        self,
         volume1: np.ndarray,
         volume2: np.ndarray,
         slice_axis: int,
         slice_index: int,
-        ):
-
+    ):
         self.volume1 = volume1
         self.volume2 = volume2
         self.slice_axis = slice_axis
@@ -1601,12 +1605,13 @@ class _VolumeComparison:
         )
         self.slice_index_widget.layout.width = '400px'
 
-    def update(self, 
+    def update(
+        self,
         slice_axis: int,
         slice_index: int,
         comparison_type: str,
         color_range: tuple[float, float],
-        ) -> None:
+    ) -> None:
         if slice_axis != self.slice_axis:
             self.update_slice_axis(slice_axis)
             slice_index = self.slice_index_widget.value
