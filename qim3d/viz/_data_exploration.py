@@ -931,14 +931,20 @@ def histogram(
         **sns_kwargs: Additional keyword arguments for `seaborn.histplot`.
 
     Returns:
-        Optional[matplotlib.figure.Figure or matplotlib.axes.Axes]:
-            If `return_fig` is True, returns the generated figure object.
-            If `return_fig` is False and `ax` is provided, returns the `Axes` object.
-            Otherwise, returns None.
+        If `return_fig` is True, returns the generated figure object.  If `return_fig` is False and `ax` is provided, returns the `Axes` object. Otherwise, returns None.
 
     Raises:
         ValueError: If `axis` is not a valid axis index (0, 1, or 2).
         ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.cement_128x128x128
+        qim3d.viz.histogram(vol)
+        ```
+        ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
 
     """
     if not (0 <= axis < volume.ndim):
