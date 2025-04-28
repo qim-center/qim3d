@@ -136,5 +136,4 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
         return np.nan
 
     sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
-    # log.info(f"Sphericity: {sphericity}")
     return sphericity
