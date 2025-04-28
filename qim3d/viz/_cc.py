@@ -21,7 +21,7 @@ def plot_cc(
     """
     Plots the connected components from a `qim3d.processing.cc.CC` object. If an overlay image is provided, the connected component will be masked to the overlay image.
 
-    Parameters:
+    Args:
         connected_components (CC): The connected components object.
         component_indexs (list or tuple, optional): The components to plot. If None the first max_cc_to_plot=32 components will be plotted. Defaults to None.
         max_cc_to_plot (int, optional): The maximum number of connected components to plot. Defaults to 32.
@@ -43,7 +43,7 @@ def plot_cc(
         vol = qim3d.examples.cement_128x128x128[50:150]
         vol_bin = vol < 80
         cc = qim3d.segmentation.get_3d_cc(vol_bin)
-        
+
         qim3d.viz.plot_cc(cc, crop=True, display_figure=True, overlay=None, num_slices=5, component_indexs=[4,6,7])
         qim3d.viz.plot_cc(cc, crop=True, display_figure=True, overlay=vol, num_slices=5, component_indexs=[4,6,7])
         ```
