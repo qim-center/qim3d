@@ -22,7 +22,7 @@ def pad(
         AssertionError: If any padding value is negative.
 
     Example:
-        ```
+        ```python
         import qim3d
         import numpy as np
 
@@ -30,7 +30,7 @@ def pad(
         print(vol.shape)
         ```
         (100, 100, 100)
-        ```
+        ```python
         # Pad x-axis with 10 pixels on each side and y-axis with 20% of the original volume size
         padded_volume = qim3d.operations.pad(vol, x_axis=10, y_axis=vol.shape[1] * 0.1)
         print(padded_volume.shape)
@@ -84,7 +84,7 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
         AssertionError: If the padded shape is not larger than the original shape.
 
     Example:
-        ```
+        ```python
         import qim3d
         import numpy as np
 
@@ -93,7 +93,7 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
         print(vol.shape)
         ```
         (100, 100, 100)
-        ```
+        ```python
         # Pad the volume to shape (110, 110, 110)
         padded_volume = qim3d.operations.pad_to(vol, (110,110,110))
         print(padded_volume.shape)
@@ -129,7 +129,7 @@ def trim(volume: np.ndarray) -> np.ndarray:
         AssertionError: If the input shape is not 3D.
 
     Example:
-        ```
+        ```python
         import qim3d
         import numpy as np
 
@@ -139,7 +139,7 @@ def trim(volume: np.ndarray) -> np.ndarray:
         print(vol.shape)
         ```
         (100, 100, 100)
-        ```
+        ```python
         # Trim the slices without voxel values on all axes
         trimmed_volume = qim3d.operations.trim(vol)
         print(trimmed_volume.shape)
@@ -198,7 +198,7 @@ def shear3d(
         AssertionError: If the shift values are not integer.
 
     Example:
-        ```
+        ```python
         import qim3d
         import numpy as np
 
@@ -209,7 +209,7 @@ def shear3d(
         qim3d.viz.slicer(vol, slice_axis=1)
         ```
         ![warp_box](../../assets/screenshots/warp_box_1.png)
-        ```
+        ```python
         # Shear the volume by 20% factor in x-direction along z-axis
         factor = 0.2
         shift = int(vol.shape[0]*factor)
@@ -290,7 +290,7 @@ def curve_warp(
         AssertionError: If the order is not integer and in the range of 0-5.
 
     Example:
-        ```
+        ```python
         import qim3d
         import numpy as np
 
@@ -300,7 +300,7 @@ def curve_warp(
         qim3d.viz.slicer(vol, slice_axis=1)
         ```
         ![warp_box_long](../../assets/screenshots/warp_box_long.png)
-        ```
+        ```python
         # Warp the box along the x dimension
         warped_volume = qim3d.operations.curve_warp(vol, x_amp=10, x_periods=4)
         qim3d.viz.slicer(warped_volume, slice_axis=1)
@@ -362,7 +362,7 @@ def stretch(
         AssertionError: If the stretching inputs are not integer.
 
     Example:
-        ```
+        ```python
         import qim3d
         import numpy as np
 
@@ -374,7 +374,7 @@ def stretch(
         ```
         ![warp_box](../../assets/screenshots/warp_box_0.png)
 
-        ```
+        ```python
         # Stretch the box along the x dimension
         stretched_volume = qim3d.operations.stretch(vol, x_stretch=20)
         print(stretched_volume.shape)
@@ -383,7 +383,7 @@ def stretch(
         (100, 100, 140)
 
         ![warp_box_stretch](../../assets/screenshots/warp_box_stretch.png)
-        ```
+        ```python
         # Squeeze the box along the y dimension
         squeezed_volume = qim3d.operations.stretch(vol, x_stretch=-20)
         print(squeezed_volume.shape)
@@ -449,7 +449,7 @@ def center_twist(
         AssertionError: If the axis are not x, y or z
 
     Example:
-        ```
+        ```python
         import qim3d
         import numpy as np
 
@@ -459,7 +459,7 @@ def center_twist(
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/warp_box.html" width="100%" height="500" frameborder="0"></iframe>
-        ```
+        ```python
         # Twist the box 180 degrees along the z-axis
         twisted_volume = qim3d.operations.center_twist(vol, rotation_angle=180, axis='z', order=1)
         qim3d.viz.volumetric(twisted_volume)
