@@ -25,19 +25,17 @@ def volume(obj: np.ndarray | hmesh.Manifold) -> float:
 
         # Compute the volume of the mesh
         volume = qim3d.features.volume(mesh)
-        print(f'Volume: {volume}')
         ```
 
-        Compute volume from a np.ndarray:
+        Compute volume from a `np.ndarray`:
         ```python
         import qim3d
 
         # Generate a 3D blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the volume of the blob
         volume = qim3d.features.volume(synthetic_blob)
-        print(f'Volume: {volume}')
         ```
 
     """
@@ -69,19 +67,17 @@ def area(obj: np.ndarray | hmesh.Manifold) -> float:
 
         # Compute the surface area of the mesh
         area = qim3d.features.area(mesh)
-        print(f'Area: {area}')
         ```
 
-        Compute area from a np.ndarray:
+        Compute area from a `np.ndarray`:
         ```python
         import qim3d
 
         # Generate a 3D blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the surface area of the blob
         area = qim3d.features.area(synthetic_blob)
-        print(f'Area: {area}')
         ```
 
     """
@@ -113,19 +109,17 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
 
         # Compute the sphericity of the mesh
         sphericity = qim3d.features.sphericity(mesh)
-        print(f'Sphericity: {sphericity}')
         ```
 
-        Compute sphericity from a np.ndarray:
+        Compute sphericity from a `np.ndarray`:
         ```python
         import qim3d
 
         # Generate a 3D blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the sphericity of the blob
         sphericity = qim3d.features.sphericity(synthetic_blob)
-        print(f'Sphericity: {sphericity}')
         ```
 
     """
