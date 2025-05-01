@@ -426,16 +426,16 @@ def volume(
     final_shape: tuple = None,
     noise_scale: float = 0.02,
     noise_type: str = 'perlin',
-    ratio: float = 0.58,
-    tube_hole_ratio: float = 0.5,
     decay_rate: float = 10,
     gamma: float = 1,
     threshold: float = 0.5,
     max_value: float = 255,
     shape: str = None,
+    tube_hole_ratio: float = 0.5,
     axis: int = 0,
     order: int = 1,
     dtype: str = 'uint8',
+    hollow: int = 0,
     seed: int = 0,
 ) -> np.ndarray:
     """
@@ -446,16 +446,17 @@ def volume(
         final_shape (tuple of ints, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape. Defaults to None.
         noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
         noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex` or `perlin`. Defaults to perlin.
-        ratio (float, optional): Ratio for fade mask of the noise. Defaults to 0.7.
-        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
+
         decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
-        gamma (float, optional): Does tomeshing XXXXXXXXXXXXXXXXx.
+        gamma (float, optional): Applies gamma correction, adjusting contrast in the volume. If gamma<0, the volume intensity is increased and if gamma>0 it's decreased. Defaults to 0.
         threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
         max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
         shape (str, optional): Shape of the volume to generate, either `cylinder`, or `tube`. Defaults to None.
+        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
         axis (int, optional): Axis of the given volume_shape. Will only be active if volume_shape is defined. Defaults to 0.
         order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
         dtype (data-type, optional): Desired data type of the output volume. Defaults to `uint8`.
+        hollow (bool, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0. Defaults to 0.
         seed (int, optional): Specifies a fixed offset for the generated noise. Only works for perlin noise. Defaults to 0.
 
     Returns:
@@ -467,6 +468,13 @@ def volume(
         TypeError: If `base_shape` is not a tuple or does not have three elements.
         TypeError: If `final_shape` is not a tuple or does not have three elements.
         TypeError: If `dtype` is not a valid numpy number type.
+        ValueError: If `hollow` is not 0 or a positive integer.
+
+    Example:
+        ```python
+        import qim3d
+        # Will add examples here when is accepted.
+        ```
 
     """
     # Control
@@ -492,6 +500,10 @@ def volume(
     except TypeError as e:
         err = f'Datatype {dtype} is not a valid dtype.'
         raise TypeError(err) from e
+
+    if hollow < 0 or isinstance(hollow, float):
+        err = 'Argument "hollow" should be 0 or a positive integer'
+        raise ValueError(err)
 
     # Generate grid of coordinates
     z, y, x = np.indices(base_shape)
@@ -528,6 +540,16 @@ def volume(
             axis=0,
         )
         max_distance = np.sqrt(3)
+        # Set ratio
+        miin = np.max(
+            [
+                distance[distance.shape[0] // 2, distance.shape[1] // 2, 0],
+                distance[distance.shape[0] // 2, 0, distance.shape[2] // 2],
+                distance[0, distance.shape[1] // 2, distance.shape[2] // 2],
+            ]
+        )
+        ratio = miin / max_distance  # 0.577
+
     elif shape == 'cylinder' or shape == 'tube':
         distance_list = np.array(
             [
@@ -540,8 +562,17 @@ def volume(
         distance_list = np.delete(distance_list, axis, axis=0)
         distance = np.linalg.norm(distance_list, axis=0)
         max_distance = np.sqrt(2)
+        # Set ratio
+        miin = np.max(
+            [
+                distance[distance.shape[0] // 2, distance.shape[1] // 2, 0],
+                distance[distance.shape[0] // 2, 0, distance.shape[2] // 2],
+                distance[0, distance.shape[1] // 2, distance.shape[2] // 2],
+            ]
+        )
+        ratio = miin / max_distance  # 0.707
 
-    # Scale the distance
+    # Scale the distance such that the shortest distance (from center to any edge) is 1 (prevents clipping)
     scaled_distance = distance / (max_distance * ratio)
 
     # Apply decay rate
@@ -555,10 +586,7 @@ def volume(
     vol_faded = noise * fade_array
 
     # Normalize the volume
-    vol_normalized = vol_faded * (1 / np.max(vol_faded))
-    vol_normalized = (vol_normalized - np.min(vol_normalized)) / (
-        np.max(vol_normalized) - np.min(vol_normalized)
-    )
+    vol_normalized = vol_faded / np.max(vol_faded)
 
     # Apply gamma
     generated_vol = np.power(vol_normalized, gamma)
@@ -587,5 +615,8 @@ def volume(
         )
 
     generated_vol = generated_vol.astype(dtype)
+
+    if hollow > 0:
+        generated_vol = qim3d.operations.make_hollow(generated_vol, hollow)
 
     return generated_vol

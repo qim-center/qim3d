@@ -421,8 +421,8 @@ def _volume_collection(
 
 
 def volume_collection(
-    collection_shape: tuple = (200, 200, 200),
     num_volumes: int = 15,
+    collection_shape: tuple = (200, 200, 200),
     positions: list[tuple] = None,
     shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
     volume_shape_zoom: tuple = (1.0, 1.0, 1.0),
@@ -433,37 +433,39 @@ def volume_collection(
     gamma_range: tuple[float] = (0.9, 1),
     value_range: tuple[int] = (128, 255),
     threshold_range: tuple[float] = (0.5, 0.55),
+    decay_rate_range: tuple[float] = (5, 10),
     shape: str = None,
-    ratio: float = 0.58,
     tube_hole_ratio: float = 0.5,
-    decay_rate: float = 10.0,
     axis: int = 0,
     verbose: bool = False,
+    same_seed: bool = False,
+    hollow: bool = False,
     seed: int = 0,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate a 3D volume of multiple synthetic volumes using Perlin or Simplex noise.
 
     Args:
-        collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
         num_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
+        collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
         shape_range (tuple of tuple of ints, optional): Determines the shape of the generated volumes with first element defining the minimum size and second element defining maximum. Defaults to ((40,40,40), (60,60,60)).
         volume_shape_zoom (tuple of floats, optional): Scaling factors for each dimension of each volume. Defaults to (1.0, 1.0, 1.0).
         noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex`, `perlin` or `mixed`. Defaults to perlin.
-        noise_range (tuple of floats, optional): Determines range for noise. First element is minimum and second is maximum. Defaults to (0.02, 0.05).
+        noise_range (tuple of floats, optional): Determines range for noise. First element is minimum and second is maximum. Defaults to (0.02, 0.03).
         rotation_degree_range (tuple of ints, optional): Determines range for rotation angle in degrees. First element is minimum and second is maximum. Defaults to (0, 360).
         rotation_axes (list[tuple], optional): List of axis pairs that will be randomly chosen to rotate around. Defaults to [(0, 1), (0, 2), (1, 2)].
-        gamma_range (tuple of floats, optional): Determines minimum and maximum gamma correctness factor. Defaults to (0.8, 1.2)
+        gamma_range (tuple of floats, optional): Determines minimum and maximum gamma correctness factor. Defaults to (0.9, 1.0)
         value_range (tuple of ints, optional): Determines minimum and maximum value for volume intensity. Defaults to (128, 255).
-        threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.6)
+        threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.55).
+        decay_rate_range (float, optional): Determines minimum and maximum value for the decay_range. Defaults to (5,10).
         shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
-        ratio (float, optional): Ratio for fade mask of the noise. Defaults to 0.7.
         tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
-        decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
         axis (int, optional): Determines the axis of the volume_shape if this is defined. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
-        seed (int, optional): Seed for reproducibility. Defaults to 0.
+        same_seed (bool, optional): Use the same seed for each generated volume. Note that in order to generate identical volumes, the min and max for the different parameters should be identical.
+        hollow (bool, optional): Create hollow objects using qim3d.operations.make_hollow(). Defaults to False.
+        seed (int, optional): Seed for reproducibility. Defaults to 0. Each generated volume will be generated with a randomly selected sub-seed generated from the original seed.
 
     Returns:
         volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
@@ -473,12 +475,15 @@ def volume_collection(
         ValueError: If `noise_type` is invalid.
         TypeError: If `collection_shape` is not 3D.
         ValueError: If volume parameters are invalid.
+        ValueError: If the `shape_range` is incorrectly defined.
+        ValueError: If the `positions` are incorrectly defined.
 
-    Note:
-        Min/max inner ratio?
-        checks need checking
-        include base seed (only for perlin)
-        check that range args are in correct order
+    Example:
+        ```python
+        import qim3d
+        # Will add more here!
+        # Also make one with identical objects
+        ```
 
     """
 
@@ -519,7 +524,10 @@ def volume_collection(
     )
     labels = np.zeros_like(collection_array)
 
-    seeds = rng.integers(low=0, high=325, size=1000)
+    if same_seed:
+        seeds = rng.integers(0, 255, size=1).repeat(1000)
+    else:
+        seeds = rng.integers(low=0, high=255, size=1000)
     nt = rng.random(size=1000)
 
     # Fill the 3D array with synthetic blobs
@@ -552,6 +560,9 @@ def volume_collection(
         threshold = rng.uniform(low=threshold_range[0], high=threshold_range[1])
         log.debug(f'- Threshold: {threshold:.3f}')
 
+        decay_rate = rng.uniform(low=decay_rate_range[0], high=decay_rate_range[1])
+        log.debug(f'- Decay rate: {decay_rate:.3f}')
+
         if value_range[1] > value_range[0]:
             max_value = rng.integers(low=value_range[0], high=value_range[1])
         else:
@@ -571,16 +582,16 @@ def volume_collection(
             final_shape=final_shape,
             noise_scale=noise_scale,
             noise_type=nti,
-            ratio=ratio,
             decay_rate=decay_rate,
+            gamma=gamma,
             threshold=threshold,
             max_value=max_value,
             shape=shape,
+            tube_hole_ratio=tube_hole_ratio,
             axis=axis,
             order=1,
             dtype='uint8',
-            gamma=gamma,
-            tube_hole_ratio=tube_hole_ratio,
+            hollow=hollow,
             seed=seeds[i],
         )
 
