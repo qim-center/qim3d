@@ -132,7 +132,6 @@ def fade_mask(
 
     # Normalize the distances so that they go from 0 at the center to 1 at the farthest point
     normalized_distance = distance / (max_distance * ratio)
-    print(max_distance)
 
     # Apply the decay rate
     faded_distance = normalized_distance**decay_rate
@@ -239,3 +238,48 @@ def overlay_rgb_images(
     composite = np.clip(composite, 0, 255).astype('uint8')
 
     return composite.astype('uint8')
+
+
+def make_hollow(
+    vol: np.ndarray,
+    thickness: int,
+) -> np.ndarray:
+    """
+    Make a volume hollow by applying a mask created by a minimum filter and an xor-gate.
+
+    Args:
+        vol (np.ndarray): The volume to hollow.
+        thickness (int): The thickness of the shell after hollowing.
+
+    Returns:
+        vol_hollowed (np.ndarray): The hollowed volume.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate volume and visualize it
+        vol = qim3d.generate.volume(noise_scale = 0.01)
+        qim3d.viz.slicer(vol)
+        ```
+        ![synthetic_collection](../../assets/screenshots/hollow_slicer_1.gif)
+        ```python
+        # Hollow volume and visualize it
+        vol_hollowed = qim3d.operations.make_hollow(vol, thickness=10)
+        qim3d.viz.slicer(vol_hollowed)
+        ```
+        ![synthetic_collection](../../assets/screenshots/hollow_slicer_2.gif)
+
+    """
+    # Create base mask
+    vol_mask_base = vol > 0
+
+    # apply minimum filter to the mask
+    vol_eroded = filters.minimum(vol_mask_base, size=thickness)
+    # Apply xor to only keep the voxels eroded by the minimum filter
+    vol_mask = np.logical_xor(vol_mask_base, vol_eroded)
+
+    # Apply the mask to the original volume to remove 'inner' voxels
+    vol_hollowed = vol * vol_mask
+
+    return vol_hollowed

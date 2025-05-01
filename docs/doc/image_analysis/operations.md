@@ -8,6 +8,7 @@ The `qim3d` library provides a set of methods for different operations on volume
             - remove_background
             - fade_mask
             - overlay_rgb_images
+            - make_hollow
             - pad
             - pad_to
             - trim

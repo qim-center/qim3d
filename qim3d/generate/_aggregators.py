@@ -410,7 +410,6 @@ def _volume_collection(
             )
             if return_positions and placed:
                 placed_positions.append(tuple(pos))
-
         # Break if volume could not be placed
         if not placed:
             break
