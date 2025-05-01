@@ -57,12 +57,17 @@ def random_placement(
                 collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] = (
                     blob
                 )
+                center = (
+                    int((end[0] + start[0]) / 2),
+                    int((end[1] + start[1]) / 2),
+                    int((end[2] + start[2]) / 2),
+                )
                 placed = True
 
         # Increment attempt counter
         j += 1
 
-    return collection, placed
+    return collection, placed, center
 
 
 def specific_placement(
@@ -389,8 +394,10 @@ def _volume_collection(
 
         # Otherwise, place volume at a random available position
         else:
-            collection_array, placed = random_placement(collection_array, blob, rng)
-
+            collection_array, placed, center = random_placement(
+                collection_array, blob, rng
+            )
+            log.debug(f'- Center placement (z,y,x): {center}')
         # Break if volume could not be placed
         if not placed:
             break
@@ -420,16 +427,16 @@ def volume_collection(
     shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
     volume_shape_zoom: tuple = (1.0, 1.0, 1.0),
     noise_type: str = 'perlin',
-    noise_range: tuple[float] = (0.02, 0.05),
+    noise_range: tuple[float] = (0.02, 0.03),
     rotation_degree_range: tuple[int] = (0, 360),
     rotation_axes: list[tuple] = None,
-    gamma_range: tuple[float] = (0.8, 1.2),
+    gamma_range: tuple[float] = (0.9, 1),
     value_range: tuple[int] = (128, 255),
-    threshold_range: tuple[float] = (0.5, 0.6),
+    threshold_range: tuple[float] = (0.5, 0.55),
     shape: str = None,
-    ratio: float = 0.7,
-    inner_ratio: float = 0.5,
-    decay_rate: float = 5.0,
+    ratio: float = 0.58,
+    tube_hole_ratio: float = 0.5,
+    decay_rate: float = 10.0,
     axis: int = 0,
     verbose: bool = False,
     seed: int = 0,
@@ -452,7 +459,7 @@ def volume_collection(
         threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.6)
         shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
         ratio (float, optional): Ratio for fade mask of the noise. Defaults to 0.7.
-        inner_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
+        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
         decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
         axis (int, optional): Determines the axis of the volume_shape if this is defined. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
@@ -488,7 +495,7 @@ def volume_collection(
     if len(shape_range[0]) != len(shape_range[1]):
         message = 'Object shapes must be tuples of the same length'
         raise ValueError(message)
-    if len(shape_range[0]) != 3 or len(shape_range[1]) != 3 or len(shape_range):
+    if len(shape_range[0]) != 3 or len(shape_range[1]) != 3 or len(shape_range) != 2:
         message = 'shape_range should be defined as a tuple with two elements, each containing a tuple with three elements.'
         raise ValueError(message)
 
@@ -512,8 +519,8 @@ def volume_collection(
     )
     labels = np.zeros_like(collection_array)
 
-    seeds = rng.integers(low=-10000, high=10000, size=10000)
-    nt = rng.random(size=10000)
+    seeds = rng.integers(low=0, high=325, size=1000)
+    nt = rng.random(size=1000)
 
     # Fill the 3D array with synthetic blobs
     for i in tqdm(range(num_volumes), desc='Objects placed'):
@@ -555,7 +562,7 @@ def volume_collection(
             nti = 'perlin' if nt[i] >= 0.5 else 'simplex'
         else:
             nti = noise_type
-        log.debug(f'- Noise type: {nt}')
+        log.debug(f'- Noise type: {nti}')
 
         log.debug(f'- Seed: {seeds[i]}')
         # Generate synthetic volume
@@ -573,7 +580,7 @@ def volume_collection(
             order=1,
             dtype='uint8',
             gamma=gamma,
-            inner_ratio=inner_ratio,
+            tube_hole_ratio=tube_hole_ratio,
             seed=seeds[i],
         )
 
@@ -597,8 +604,10 @@ def volume_collection(
 
         # Otherwise, place volume at a random available position
         else:
-            collection_array, placed = random_placement(collection_array, blob, rng)
-
+            collection_array, placed, center = random_placement(
+                collection_array, blob, rng
+            )
+            log.debug(f'- Center placement: {center}')
         # Break if volume could not be placed
         if not placed:
             break

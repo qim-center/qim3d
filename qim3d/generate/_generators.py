@@ -423,12 +423,12 @@ def background(
 
 def volume(
     base_shape: tuple = (128, 128, 128),
-    final_shape: tuple = (128, 128, 128),
+    final_shape: tuple = None,
     noise_scale: float = 0.02,
     noise_type: str = 'perlin',
-    ratio: float = 0.7,
-    inner_ratio: float = 0.5,
-    decay_rate: float = 5.0,
+    ratio: float = 0.58,
+    tube_hole_ratio: float = 0.5,
+    decay_rate: float = 10,
     gamma: float = 1,
     threshold: float = 0.5,
     max_value: float = 255,
@@ -443,11 +443,11 @@ def volume(
 
     Args:
         base_shape (tuple of ints, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
-        final_shape (tuple of ints, optional): Desired shape of the final volume. Defaults to (128, 128, 128).
+        final_shape (tuple of ints, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape. Defaults to None.
         noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
         noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex` or `perlin`. Defaults to perlin.
         ratio (float, optional): Ratio for fade mask of the noise. Defaults to 0.7.
-        inner_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
+        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
         decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
         gamma (float, optional): Does tomeshing XXXXXXXXXXXXXXXXx.
         threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
@@ -483,7 +483,7 @@ def volume(
         message = 'base_shape must be a tuple with three dimensions (z, y, x)'
         raise TypeError(message)
 
-    if not isinstance(final_shape, tuple) or len(final_shape) != 3:
+    if final_shape and (not isinstance(final_shape, tuple) or len(final_shape) != 3):
         message = 'final_shape must be a tuple with three dimensions (z, y, x)'
         raise TypeError(message)
 
@@ -512,35 +512,39 @@ def volume(
             y.flatten() * noise_scale,
             x.flatten() * noise_scale,
         ).reshape(base_shape)
-    noise += 1
-
-    faded_noise = qim3d.operations.fade_mask(
-        noise,
-        decay_rate=decay_rate,
-        ratio=ratio,
-        geometry='cylindrical' if shape else 'spherical',
-        axis=axis,
-    )
-    """
-    # Store the original maximum value of the volume
-    original_max_value = np.max(noise)
+    noise = (noise - np.min(noise)) / (np.max(noise) - np.min(noise))
 
     # Calculate the center of the array
     center = np.array([(s - 1) / 2 for s in base_shape])
-    
+
     # Calculate the distance of each point from the center
     if not shape:
-        distance = np.linalg.norm([(z - center[0])/center[0], (y - center[1])/center[1], (x - center[2])/center[2]], axis=0)
-    elif shape == 'cylinder' or 'tube':
-        distance_list = np.array([(z - center[0])/center[0], (y - center[1])/center[1], (x - center[2])/center[2]])
+        distance = np.linalg.norm(
+            [
+                (z - center[0]) / center[0],
+                (y - center[1]) / center[1],
+                (x - center[2]) / center[2],
+            ],
+            axis=0,
+        )
+        max_distance = np.sqrt(3)
+    elif shape == 'cylinder' or shape == 'tube':
+        distance_list = np.array(
+            [
+                (z - center[0]) / center[0],
+                (y - center[1]) / center[1],
+                (x - center[2]) / center[2],
+            ]
+        )
         # remove the axis along which the fading is not applied
         distance_list = np.delete(distance_list, axis, axis=0)
         distance = np.linalg.norm(distance_list, axis=0)
+        max_distance = np.sqrt(2)
 
     # Scale the distance
-    scaled_distance = distance / (np.sqrt(3) * ratio)
+    scaled_distance = distance / (max_distance * ratio)
 
-    # Apply the decay rate
+    # Apply decay rate
     faded_distance = np.power(scaled_distance, decay_rate)
 
     # Invert the distances to have 1 at the center and 0 at the edges
@@ -551,15 +555,10 @@ def volume(
     vol_faded = noise * fade_array
 
     # Normalize the volume
-    vol_normalized = vol_faded * (original_max_value / np.max(vol_faded))
-    """
-    vol_faded = faded_noise
-    vol_normalized = (faded_noise - np.min(faded_noise)) / (
-        np.max(faded_noise) - np.min(faded_noise)
+    vol_normalized = vol_faded * (1 / np.max(vol_faded))
+    vol_normalized = (vol_normalized - np.min(vol_normalized)) / (
+        np.max(vol_normalized) - np.min(vol_normalized)
     )
-
-    # Threshold
-    vol_normalized[vol_normalized < threshold] = 0
 
     # Apply gamma
     generated_vol = np.power(vol_normalized, gamma)
@@ -567,21 +566,25 @@ def volume(
     # Scale to max_value
     generated_vol = generated_vol * max_value
 
+    # Threshold
+    generated_vol[generated_vol < threshold * max_value] = 0
+
     # Apply fade mask for creation of tube
     if shape == 'tube':
         generated_vol = qim3d.operations.fade_mask(
             generated_vol,
             geometry='cylindrical',
             axis=axis,
-            ratio=inner_ratio,
+            ratio=tube_hole_ratio,
             decay_rate=5,
             invert=True,
         )
 
     # Scale up the volume of volume to size
-    generated_vol = scipy.ndimage.zoom(
-        generated_vol, np.array(final_shape) / np.array(base_shape), order=order
-    )
+    if final_shape:
+        generated_vol = scipy.ndimage.zoom(
+            generated_vol, np.array(final_shape) / np.array(base_shape), order=order
+        )
 
     generated_vol = generated_vol.astype(dtype)
 
