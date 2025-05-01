@@ -58,11 +58,12 @@ def random_placement(
                     blob
                 )
                 placed = True
+                mid = start + np.array(blob.shape) // 2
 
         # Increment attempt counter
         j += 1
 
-    return collection, placed
+    return collection, placed, mid
 
 
 def specific_placement(
@@ -142,6 +143,7 @@ def volume_collection(
     volume_shape: str = None,
     seed: int = 0,
     verbose: bool = False,
+    return_positions: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate a 3D volume of multiple synthetic volumes using Perlin noise.
@@ -168,6 +170,7 @@ def volume_collection(
         volume_shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
         seed (int, optional): Seed for reproducibility. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
+        return_positions (bool, optional): Flag to return position of randomly placed blobs. 
 
     Returns:
         volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
@@ -313,14 +316,25 @@ def volume_collection(
         message = 'Number of volumes must match number of positions, otherwise set positions = None'
         raise ValueError(message)
 
+    if (positions is not None) and return_positions:
+        log.debug('positions are given and thus not returned')
+        return_positions = False
+
     # Set seed for random number generator
     rng = np.random.default_rng(seed)
+    if positions is None:
+        # random positions, create a new random number generater to not mess the original one 
+        rng_pos = np.random.default_rng(seed)
 
     # Initialize the 3D array for the shape
     collection_array = np.zeros(
         (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=np.uint8
     )
     labels = np.zeros_like(collection_array)
+
+    # Initialize saved positions 
+    if return_positions:
+        placed_positions = []
 
     # Fill the 3D array with synthetic blobs
     for i in tqdm(range(num_volumes), desc='Objects placed'):
@@ -389,7 +403,9 @@ def volume_collection(
 
         # Otherwise, place volume at a random available position
         else:
-            collection_array, placed = random_placement(collection_array, blob, rng)
+            collection_array, placed, pos = random_placement(collection_array, blob, rng_pos)
+            if return_positions and placed:
+                placed_positions.append(tuple(pos))
 
         # Break if volume could not be placed
         if not placed:
@@ -410,4 +426,7 @@ def volume_collection(
     if verbose:
         log.setLevel(original_log_level)
 
-    return collection_array, labels
+    if return_positions:
+        return collection_array, labels, placed_positions
+    else:
+        return collection_array, labels
