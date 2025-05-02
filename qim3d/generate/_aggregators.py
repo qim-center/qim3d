@@ -32,6 +32,9 @@ def random_placement(
     # Flag for placement success
     placed = False
 
+    # Default mid position
+    mid = np.array(blob.shape) // 2
+
     # Attempt counter
     j = 1
 
@@ -57,17 +60,15 @@ def random_placement(
                 collection[start[0] : end[0], start[1] : end[1], start[2] : end[2]] = (
                     blob
                 )
-                center = (
-                    int((end[0] + start[0]) / 2),
-                    int((end[1] + start[1]) / 2),
-                    int((end[2] + start[2]) / 2),
-                )
+
                 placed = True
+
+                mid = start + np.array(blob.shape) // 2
 
         # Increment attempt counter
         j += 1
 
-    return collection, placed, center
+    return collection, placed, mid
 
 
 def specific_placement(
@@ -441,6 +442,7 @@ def volume_collection(
     same_seed: bool = False,
     hollow: bool = False,
     seed: int = 0,
+    return_positions: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
     Generate a 3D volume of multiple synthetic volumes using Perlin or Simplex noise.
@@ -466,6 +468,7 @@ def volume_collection(
         same_seed (bool, optional): Use the same seed for each generated volume. Note that in order to generate identical volumes, the min and max for the different parameters should be identical.
         hollow (bool, optional): Create hollow objects using qim3d.operations.make_hollow(). Defaults to False.
         seed (int, optional): Seed for reproducibility. Defaults to 0. Each generated volume will be generated with a randomly selected sub-seed generated from the original seed.
+        return_positions (bool, optional): Flag to return position of randomly placed blobs.
 
     Returns:
         volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
@@ -508,6 +511,10 @@ def volume_collection(
         message = 'Number of volumes must match number of positions, otherwise set positions = None'
         raise ValueError(message)
 
+    if (positions is not None) and return_positions:
+        log.debug('positions are given and thus not returned')
+        return_positions = False
+
     if rotation_axes is None:
         rotation_axes = [(0, 1), (0, 2), (1, 2)]
 
@@ -518,11 +525,17 @@ def volume_collection(
     # Set seed for random number generator
     rng = np.random.default_rng(seed)
 
+    # Set seed for random number generator for placement
+    rng_pos = np.random.default_rng(seed)
+
     # Initialize the 3D array for the shape
     collection_array = np.zeros(
         (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=np.uint8
     )
     labels = np.zeros_like(collection_array)
+
+    # Initialize saved positions
+    placed_positions = []
 
     if same_seed:
         seeds = rng.integers(0, 255, size=1).repeat(1000)
@@ -610,15 +623,18 @@ def volume_collection(
         collection_before = collection_array.copy()
         if positions:
             collection_array, placed, positions = specific_placement(
-                collection_array, blob, positions
+                collection_array, blob, positions.copy()
             )
 
         # Otherwise, place volume at a random available position
         else:
-            collection_array, placed, center = random_placement(
-                collection_array, blob, rng
+            collection_array, placed, pos = random_placement(
+                collection_array, blob, rng_pos
             )
-            log.debug(f'- Center placement: {center}')
+            if return_positions and placed:
+                placed_positions.append(tuple(pos))
+
+            log.debug(f'- Center placement (z,y,x): {pos}')
         # Break if volume could not be placed
         if not placed:
             break
@@ -637,4 +653,7 @@ def volume_collection(
     if verbose:
         log.setLevel(original_log_level)
 
-    return collection_array, labels
+    if return_positions:
+        return collection_array, labels, placed_positions
+    else:
+        return collection_array, labels
