@@ -32,6 +32,9 @@ def random_placement(
     # Flag for placement success
     placed = False
 
+    # Default mid position
+    mid = np.array(blob.shape) // 2
+
     # Attempt counter
     j = 1
 
@@ -170,7 +173,7 @@ def volume_collection(
         volume_shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
         seed (int, optional): Seed for reproducibility. Defaults to 0.
         verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
-        return_positions (bool, optional): Flag to return position of randomly placed blobs. 
+        return_positions (bool, optional): Flag to return position of randomly placed blobs.
 
     Returns:
         volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
@@ -322,9 +325,9 @@ def volume_collection(
 
     # Set seed for random number generator
     rng = np.random.default_rng(seed)
-    if positions is None:
-        # random positions, create a new random number generater to not mess the original one 
-        rng_pos = np.random.default_rng(seed)
+
+    # Set seed for random number generator for placement
+    rng_pos = np.random.default_rng(seed)
 
     # Initialize the 3D array for the shape
     collection_array = np.zeros(
@@ -332,9 +335,8 @@ def volume_collection(
     )
     labels = np.zeros_like(collection_array)
 
-    # Initialize saved positions 
-    if return_positions:
-        placed_positions = []
+    # Initialize saved positions
+    placed_positions = []
 
     # Fill the 3D array with synthetic blobs
     for i in tqdm(range(num_volumes), desc='Objects placed'):
@@ -403,7 +405,9 @@ def volume_collection(
 
         # Otherwise, place volume at a random available position
         else:
-            collection_array, placed, pos = random_placement(collection_array, blob, rng_pos)
+            collection_array, placed, pos = random_placement(
+                collection_array, blob, rng_pos
+            )
             if return_positions and placed:
                 placed_positions.append(tuple(pos))
 
