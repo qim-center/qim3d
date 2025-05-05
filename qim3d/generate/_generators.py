@@ -1,9 +1,14 @@
+import ipywidgets as widgets
+import k3d
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage
+from IPython.display import display
 from noise import pnoise3, snoise3
 
-import qim3d.processing
+import qim3d
 from qim3d.utils import log
+from qim3d.utils._misc import scale_to_float16
 
 __all__ = ['volume', 'background']
 
@@ -896,3 +901,274 @@ def _tube_fade(
             invert=True,
         )
     return volume
+
+
+class ParameterVisualizer:
+    def __init__(
+        self,
+        base_shape: tuple = (128, 128, 128),
+        seed: int = 0,
+        initial_config: dict = None,
+        nsmin: float = 0.0,
+        nsmax: float = 0.1,
+        dsmin: float = 0.1,
+        dsmax: float = 20.0,
+        gsmin: float = 0.1,
+        gsmax: float = 2.0,
+        tsmin: float = 0.0,
+        tsmax: float = 1.0,
+        grid_visible: bool = False,
+    ):
+        """
+        Class for volume parameter visualization.
+
+        Args:
+            base_shape (tuple, optional): Determines the shape of the generate volume. This will not be update when exploring parameters and must be determined when generating the visualizer.
+            seed (int, optional): Determines the seed for the volume generation. Enables the user to generate different volumes with the same parameters.
+            initial_config (dict, optional): Dictionary that defines the starting parameters of the visualizer. Can be used if a specific setup is needed. The dictionary may contain the keywords: `noise_type`, `noise_scale`, `decay_rate`, `gamma`, `threshold`, `shape` and `tube_hole_ratio`.
+            nsmin (float, optional): Determines minimum value for the noise scale slider. Defaults to 0.0.
+            nsmax (float, optional): Determines maximum value for the noise scale slider. Defaults to 0.1.
+            dsmin (float, optional): Determines minimum value for the decay rate slider. Defaults to 0.1.
+            dsmax (float, optional): Determines maximum value for the decay rate slider. Defaults to 20.
+            gsmin (float, optional): Determines minimum value for the gamma slider. Defaults to 0.1.
+            gsmax (float, optional): Determines maximum value for the gamma slider. Defaults to 2.0.
+            tsmin (float, optional): Determines minimum value for the threshold slider. Defaults to 0.0.
+            tsmax (float, optional): Determines maximum value for the threshold slider. Defaults to 1.0.
+            grid_visible (bool, optional): Determines if the grid should be visible upon plot generation. Defaults to False.
+
+        Raises:
+            ValueError: If base_shape is invalid.
+            ValueError: If noise slider values are invalid.
+            ValueError: If decay slider values are invalid.
+            ValueError: If gamma slider values are invalid.
+            ValueError: If threshold slider values are invalid.
+
+        Example:
+            ```python
+            import qim3d
+
+            viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0)
+            ```
+
+        """
+        # Error checking:
+
+        if not isinstance(base_shape, tuple) or len(base_shape) != 3:
+            err = 'base_shape should be a tuple of three sizes.'
+            raise ValueError(err)
+
+        if nsmin > nsmax:
+            err = f'Minimum slider value for noise must be less than or equal to the maximum. Given: min = {nsmin}, max = {nsmax}.'
+            raise ValueError(err)
+
+        if dsmin > dsmax:
+            err = f'Minimum decay rate value must be less than or equal to the maximum. Given: min = {dsmin}, max = {dsmax}.'
+            raise ValueError(err)
+
+        if gsmin > gsmax:
+            err = f'Minimum gamma value must be less than or equal to the maximum. Given: min = {gsmin}, max = {gsmax}.'
+            raise ValueError(err)
+
+        if tsmin > tsmax:
+            err = f'Minimum threshold value must be less than or equal to the maximum. Given: min = {tsmin}, max = {tsmax}.'
+            raise ValueError(err)
+
+        self.base_shape = base_shape
+        self.seed = int(seed)
+        self.axis = 0  # Not customizable
+        self.max_value = 255  # Not customizable
+
+        # Min and max values for sliders
+        self.nsmin = nsmin
+        self.nsmax = nsmax
+        self.dsmin = dsmin
+        self.dsmax = dsmax
+        self.gsmin = gsmin
+        self.gsmax = gsmax
+        self.tsmin = tsmin
+        self.tsmax = tsmax
+
+        self.grid_visible = grid_visible
+        self.config = {
+            'noise_scale': 0.02,
+            'decay_rate': 10,
+            'gamma': 1.0,
+            'threshold': 0.5,
+            'tube_hole_ratio': 0.5,
+            'shape': None,
+            'noise_type': 'perlin',
+        }
+        if initial_config:
+            self.config.update(initial_config)
+
+        self.state = {}
+        self._build_widgets()
+        self._setup_plot()
+        self._display_ui()
+
+    def _generate_noise(self) -> None:
+        self.noise, self.center, self.z, self.y, self.x = _noise(
+            self.base_shape,
+            self.config['noise_scale'],
+            self.config['noise_type'],
+            self.seed,
+        )
+
+    def _generate_state(self) -> None:
+        scaled_distance = _distances(
+            self.z, self.y, self.x, self.center, self.config['shape'], self.axis
+        )
+        faded_distance = np.power(scaled_distance, self.config['decay_rate'])
+        vol_normalized = _shape_noise(faded_distance, self.noise)
+        self.state.update(
+            scaled_distance=scaled_distance,
+            faded_distance=faded_distance,
+            vol_normalized=vol_normalized,
+        )
+
+    def _compute_volume(self) -> None:
+        vol_gamma = np.power(self.state['vol_normalized'], self.config['gamma'])
+        vol_thresh = _threshold(vol_gamma, self.max_value, self.config['threshold'])
+        vol = _tube_fade(
+            vol_thresh, self.config['shape'], self.axis, self.config['tube_hole_ratio']
+        )
+        return scale_to_float16(vol)
+
+    def _build_widgets(self) -> None:
+        self.noise_slider = widgets.FloatSlider(
+            value=self.config['noise_scale'],
+            min=self.nsmin,
+            max=self.nsmax,
+            step=0.001,
+            description='Noise',
+            readout_format='.3f',
+        )
+        self.decay_slider = widgets.FloatSlider(
+            value=self.config['decay_rate'],
+            min=self.dsmin,
+            max=self.dsmax,
+            step=0.1,
+            description='Decay',
+        )
+        self.gamma_slider = widgets.FloatSlider(
+            value=self.config['gamma'],
+            min=self.gsmin,
+            max=self.gsmax,
+            step=0.1,
+            description='Gamma',
+        )
+        self.threshold_slider = widgets.FloatSlider(
+            value=self.config['threshold'],
+            min=self.tsmin,
+            max=self.tsmax,
+            step=0.05,
+            description='Threshold',
+        )
+        self.noise_type_dropdown = widgets.Dropdown(
+            options=['perlin', 'simplex'], value='perlin', description='Noise Type'
+        )
+        self.shape_dropdown = widgets.Dropdown(
+            options=[None, 'cylinder', 'tube'], value=None, description='Shape'
+        )
+        self.tube_hole_ratio_slider = widgets.FloatSlider(
+            value=self.config['tube_hole_ratio'],
+            min=0.0,
+            max=1.0,
+            step=0.05,
+            description='Tube hole ratio',
+        )
+
+        # Observers
+        self.noise_slider.observe(self._on_noise_change, names='value')
+        self.noise_type_dropdown.observe(self._on_noise_change, names='value')
+        self.decay_slider.observe(self._on_decay_change, names='value')
+        self.gamma_slider.observe(self._on_gamma_or_thresh_change, names='value')
+        self.threshold_slider.observe(self._on_gamma_or_thresh_change, names='value')
+        self.shape_dropdown.observe(self._on_shape_change, names='value')
+        self.tube_hole_ratio_slider.observe(self._on_tube_change, names='value')
+
+    def _setup_plot(self) -> None:
+        self._generate_noise()
+        self._generate_state()
+        vol = self._compute_volume()
+
+        cmap = plt.get_cmap('magma')
+        attr_vals = np.linspace(0.0, 1.0, num=cmap.N)
+        rgb_vals = cmap(np.arange(0, cmap.N))[:, :3]
+        color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
+
+        pixel_count = np.prod(vol.shape)
+        y1, x1 = 256, 16777216
+        y2, x2 = 32, 134217728
+        a = (y1 - y2) / (x1 - x2)
+        b = y1 - a * x1
+        samples = int(min(max(a * pixel_count + b, 64), 512))
+
+        self.plot = k3d.plot(grid_visible=self.grid_visible)
+        self.plt_volume = k3d.volume(
+            vol,
+            bounds=[0, vol.shape[2], 0, vol.shape[1], 0, vol.shape[0]],
+            color_map=color_map,
+            samples=samples,
+            color_range=[np.min(vol), np.max(vol)],
+            opacity_function=[],
+            interpolation=True,
+        )
+        self.plot += self.plt_volume
+
+    # ==== Observers ====
+
+    def _on_noise_change(self, change: None = None) -> None:
+        self.config['noise_scale'] = self.noise_slider.value
+        self.config['noise_type'] = self.noise_type_dropdown.value
+        self._generate_noise()
+        self._generate_state()
+        self._update_volume()
+
+    def _on_decay_change(self, change: None = None) -> None:
+        self.config['decay_rate'] = self.decay_slider.value
+        scaled_distance = _distances(
+            self.z, self.y, self.x, self.center, self.config['shape'], self.axis
+        )
+        faded_distance = np.power(scaled_distance, self.config['decay_rate'])
+        vol_normalized = _shape_noise(faded_distance, self.noise)
+        self.state.update(
+            scaled_distance=scaled_distance,
+            faded_distance=faded_distance,
+            vol_normalized=vol_normalized,
+        )
+        self._update_volume()
+
+    def _on_gamma_or_thresh_change(self, change: None = None) -> None:
+        self.config['gamma'] = self.gamma_slider.value
+        self.config['threshold'] = self.threshold_slider.value
+        self._update_volume()
+
+    def _on_shape_change(self, change: None = None) -> None:
+        self.config['shape'] = self.shape_dropdown.value
+        self._generate_state()
+        self._update_volume()
+
+    def _on_tube_change(self, change: None = None) -> None:
+        self.config['tube_hole_ratio'] = self.tube_hole_ratio_slider.value
+        if self.config['shape'] == 'tube':
+            self._update_volume()
+
+    def _update_volume(self) -> None:
+        new_vol = self._compute_volume()
+        self.plt_volume.volume = new_vol
+
+    def _display_ui(self) -> None:
+        controls = widgets.VBox(
+            [
+                self.noise_type_dropdown,
+                self.noise_slider,
+                self.decay_slider,
+                self.gamma_slider,
+                self.threshold_slider,
+                self.shape_dropdown,
+                self.tube_hole_ratio_slider,
+            ]
+        )
+        display(controls)
+        display(self.plot)

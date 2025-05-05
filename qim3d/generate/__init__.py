@@ -2,6 +2,7 @@
 
 from ._aggregators import volume_collection
 from ._generators import (
+    ParameterVisualizer,
     _distances,
     _noise,
     _shape_noise,
@@ -24,4 +25,5 @@ __all__ = [
     '_threshold',
     '_tube_fade',
     'volume2',
+    'ParameterVisualizer',
 ]
