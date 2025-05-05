@@ -484,9 +484,98 @@ def volume_collection(
     Example:
         ```python
         import qim3d
-        # Will add more here!
-        # Also make one with identical objects
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=15)
+
+        # Visualize the collection
+        qim3d.viz.volumetric(volume_collection, grid_visible=True)
         ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        qim3d.viz.slicer(volume_collection)
+        ```
+        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default.gif)
+
+        ```python
+        # Visualize labels
+        cmap = qim3d.viz.colormaps.segmentation(num_labels=num_volumes)
+        qim3d.viz.slicer(labels, color_map=cmap, value_max=num_volumes)
+        ```
+        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
+
+    Example:
+        ```python
+        # Generate synthetic collection of dense objects
+        vol, labels = qim3d.generate.volume_collection(
+            value_range = (255, 255),
+            noise_range = (0.03, 0.04),
+            threshold_range = (0.99, 0.99),
+            gamma_range = (0.02, 0.02),
+            decay_rate_range = (10,10)
+            )
+
+        # Visualize the collection
+        qim3d.viz.volumetric(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of cylindrical structures
+        volume_collection, labels = qim3d.generate.volume_collection(
+            num_volumes = 40,
+            collection_shape = (300, 150, 150),
+            shape_range = ((280, 10, 10), (290, 15, 15)),
+            noise_range = (0.06,0.09),
+            rotation_degree_range = (0,5),
+            threshold_range = (0.1,0.3),
+            gamma_range = (0.10, 0.20),
+            shape = "cylinder"
+            )
+
+        # Visualize the collection
+        qim3d.viz.volumetric(volume_collection)
+
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_cylinder_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Visualize slices
+        qim3d.viz.slices_grid(volume_collection, num_slices=15)
+        ```
+        ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of tubular (hollow) structures
+        volume_collection, labels = qim3d.generate.volume_collection(
+            num_volumes = 10,
+            collection_shape = (200, 200, 200),
+            shape_range = ((185,35,35), (190,45,45)),
+            noise_range = (0.02, 0.03),
+            rotation_degree_range = (0,5),
+            threshold_range = (0.6, 0.7),
+            gamma_range = (0.1, 0.11),
+            shape = "tube",
+            tube_hole_ratio = 0.15,
+            )
+
+        # Visualize the collection
+        qim3d.viz.volumetric(volume_collection)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tube_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Visualize slices
+        qim3d.viz.slices_grid(volume_collection, num_slices=15, slice_axis=1)
+        ```
+        ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
 
     """
 
