@@ -635,274 +635,6 @@ def volume(
     return generated_vol
 
 
-################################################################################
-######## Code from here on is experimental ########
-################################################################################
-
-
-def volume2(
-    base_shape: tuple = (128, 128, 128),
-    final_shape: tuple = None,
-    noise_scale: float = 0.02,
-    noise_type: str = 'perlin',
-    decay_rate: float = 10,
-    gamma: float = 1,
-    threshold: float = 0.5,
-    max_value: float = 255,
-    shape: str = None,
-    tube_hole_ratio: float = 0.5,
-    axis: int = 0,
-    order: int = 1,
-    dtype: str = 'uint8',
-    hollow: int = 0,
-    seed: int = 0,
-) -> np.ndarray:
-    """
-    Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling and gamma correction.
-
-    Args:
-        base_shape (tuple of ints, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
-        final_shape (tuple of ints, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape. Defaults to None.
-        noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
-        noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex` or `perlin`. Defaults to perlin.
-
-        decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
-        gamma (float, optional): Applies gamma correction, adjusting contrast in the volume. If gamma<0, the volume intensity is increased and if gamma>0 it's decreased. Defaults to 0.
-        threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
-        max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
-        shape (str, optional): Shape of the volume to generate, either `cylinder`, or `tube`. Defaults to None.
-        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
-        axis (int, optional): Axis of the given volume_shape. Will only be active if volume_shape is defined. Defaults to 0.
-        order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
-        dtype (data-type, optional): Desired data type of the output volume. Defaults to `uint8`.
-        hollow (bool, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0. Defaults to 0.
-        seed (int, optional): Specifies a fixed offset for the generated noise. Only works for perlin noise. Defaults to 0.
-
-    Returns:
-        volume (numpy.ndarray): Generated 3D volume with specified parameters.
-
-    Raises:
-        ValueError: If `shape` is invalid.
-        ValueError: If `noise_type` is invalid.
-        TypeError: If `base_shape` is not a tuple or does not have three elements.
-        TypeError: If `final_shape` is not a tuple or does not have three elements.
-        TypeError: If `dtype` is not a valid numpy number type.
-        ValueError: If `hollow` is not 0 or a positive integer.
-
-    Example:
-        ```python
-        import qim3d
-        # Will add examples here when is accepted.
-        ```
-
-    """
-    # Control
-    shape_types = ['cylinder', 'tube']
-    if shape and shape not in shape_types:
-        err = f'shape should be one of: {shape_types}'
-        raise ValueError(err)
-    noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's']
-    if noise_type not in noise_types:
-        err = f'noise_type should be one of: {noise_types}'
-        raise ValueError(err)
-
-    if not isinstance(base_shape, tuple) or len(base_shape) != 3:
-        message = 'base_shape must be a tuple with three dimensions (z, y, x)'
-        raise TypeError(message)
-
-    if final_shape and (not isinstance(final_shape, tuple) or len(final_shape) != 3):
-        message = 'final_shape must be a tuple with three dimensions (z, y, x)'
-        raise TypeError(message)
-
-    try:
-        d = np.dtype(dtype)
-    except TypeError as e:
-        err = f'Datatype {dtype} is not a valid dtype.'
-        raise TypeError(err) from e
-
-    if hollow < 0 or isinstance(hollow, float):
-        err = 'Argument "hollow" should be 0 or a positive integer'
-        raise ValueError(err)
-
-    # Generate noise
-    noise, center, z, y, x = _noise(base_shape, noise_scale, noise_type, seed)
-
-    # Calculate normalized distances
-    scaled_distance = _distances(z, y, x, center, shape, axis)
-
-    # Apply decay rate
-    faded_distance = np.power(scaled_distance, decay_rate)
-
-    # Remove noise close to the edge of the volume
-    shaped_noise = _shape_noise(faded_distance, noise)
-
-    # Apply gamma
-    gamma_noise = np.power(shaped_noise, gamma)
-
-    # Threshold volume
-    thresholded_vol = _threshold(gamma_noise, max_value, threshold)
-
-    # Apply tube fading if necessary
-    generated_vol = _tube_fade(thresholded_vol, shape, axis, tube_hole_ratio)
-
-    # Scale up the volume of volume to size
-    if final_shape:
-        generated_vol = scipy.ndimage.zoom(
-            generated_vol, np.array(final_shape) / np.array(base_shape), order=order
-        )
-
-    # Change dtype
-    generated_vol = generated_vol.astype(dtype)
-
-    # Hollow the volume
-    if hollow > 0:
-        generated_vol = qim3d.operations.make_hollow(generated_vol, hollow)
-
-    return generated_vol
-
-
-def _noise(
-    base_shape: tuple = (128, 128, 128),
-    noise_scale: float = 0.02,
-    noise_type: str = 'perlin',
-    seed: int = 0,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Modularized helper function for noise generation."""
-
-    noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's']
-    # Generate grid of coordinates
-    z, y, x = np.indices(base_shape)
-
-    # Generate noise
-    if (
-        np.round(noise_scale, 3) == 0
-    ):  # Only detect three decimal position (0.001 is ok, but 0.0001 is 0)
-        noise_scale = 0
-
-    if noise_scale == 0:
-        noise = np.ones(base_shape)
-    else:
-        if noise_type in noise_types[:3]:
-            vectorized_noise = np.vectorize(pnoise3)
-            noise = vectorized_noise(
-                z.flatten() * noise_scale,
-                y.flatten() * noise_scale,
-                x.flatten() * noise_scale,
-                base=seed,
-            ).reshape(base_shape)
-        elif noise_type in noise_types[3:]:
-            vectorized_noise = np.vectorize(snoise3)
-            noise = vectorized_noise(
-                z.flatten() * noise_scale,
-                y.flatten() * noise_scale,
-                x.flatten() * noise_scale,
-            ).reshape(base_shape)
-        noise = (noise - np.min(noise)) / (np.max(noise) - np.min(noise))
-
-    # Calculate the center of the array
-    center = np.array([(s - 1) / 2 for s in base_shape])
-    return noise, center, z, y, x
-
-
-def _distances(
-    z: np.ndarray,
-    y: np.ndarray,
-    x: np.ndarray,
-    center: np.ndarray,
-    shape: str = None,
-    axis: int = 0,
-) -> np.ndarray:
-    """Modularized helper function for calculating the distance array."""
-    # Calculate the distance of each point from the center
-    if not shape:
-        distance = np.linalg.norm(
-            [
-                (z - center[0]) / center[0],
-                (y - center[1]) / center[1],
-                (x - center[2]) / center[2],
-            ],
-            axis=0,
-        )
-        max_distance = np.sqrt(3)
-        # Set ratio
-        dist_to_edge = np.max(
-            [
-                distance[distance.shape[0] // 2, distance.shape[1] // 2, 0],
-                distance[distance.shape[0] // 2, 0, distance.shape[2] // 2],
-                distance[0, distance.shape[1] // 2, distance.shape[2] // 2],
-            ]
-        )
-        ratio = dist_to_edge / max_distance  # 0.577
-
-    elif shape == 'cylinder' or shape == 'tube':
-        distance_list = np.array(
-            [
-                (z - center[0]) / center[0],
-                (y - center[1]) / center[1],
-                (x - center[2]) / center[2],
-            ]
-        )
-        # remove the axis along which the fading is not applied
-        distance_list = np.delete(distance_list, axis, axis=0)
-        distance = np.linalg.norm(distance_list, axis=0)
-        max_distance = np.sqrt(2)
-        # Set ratio
-        dist_to_edge = np.max(
-            [
-                distance[distance.shape[0] // 2, distance.shape[1] // 2, 0],
-                distance[distance.shape[0] // 2, 0, distance.shape[2] // 2],
-                distance[0, distance.shape[1] // 2, distance.shape[2] // 2],
-            ]
-        )
-        ratio = dist_to_edge / max_distance  # 0.707
-    # Scale the distance such that the shortest distance (from center to any edge) is 1 (prevents clipping)
-    scaled_distance = distance / (max_distance * ratio)
-    return scaled_distance
-
-
-def _shape_noise(distance: np.ndarray, noise_array: np.ndarray) -> np.ndarray:
-    """Modularized helper function for shaping the noise volume."""
-    # Invert the distances to have 1 at the center and 0 at the edges
-    fade_array = 1 - distance
-    fade_array[fade_array <= 0] = 0
-
-    # Apply the fading to the volume
-    vol_faded = noise_array * fade_array
-
-    # Normalize the volume
-    vol_normalized = vol_faded / np.max(vol_faded)
-    return vol_normalized
-
-
-def _threshold(
-    volume: np.ndarray, max_value: float = 255, threshold: float = 0.5
-) -> np.ndarray:
-    """Modularized helper function for thresholding a volume."""
-    # Scale to max_value
-    volume = volume * max_value
-
-    # Threshold
-    volume[volume < threshold * max_value] = 0
-    return volume
-
-
-def _tube_fade(
-    volume: np.ndarray, shape: str = None, axis: int = 0, tube_hole_ratio: float = 0.5
-) -> np.ndarray:
-    """Modularized helper function for applying tube fade."""
-    # Apply fade mask for creation of tube
-    if shape == 'tube':
-        volume = qim3d.operations.fade_mask(
-            volume,
-            geometry='cylindrical',
-            axis=axis,
-            ratio=tube_hole_ratio,
-            decay_rate=5,
-            invert=True,
-        )
-    return volume
-
-
 class ParameterVisualizer:
     def __init__(
         self,
@@ -1006,31 +738,17 @@ class ParameterVisualizer:
         self._setup_plot()
         self._display_ui()
 
-    def _generate_noise(self) -> None:
-        self.noise, self.center, self.z, self.y, self.x = _noise(
-            self.base_shape,
-            self.config['noise_scale'],
-            self.config['noise_type'],
-            self.seed,
-        )
-
-    def _generate_state(self) -> None:
-        scaled_distance = _distances(
-            self.z, self.y, self.x, self.center, self.config['shape'], self.axis
-        )
-        faded_distance = np.power(scaled_distance, self.config['decay_rate'])
-        vol_normalized = _shape_noise(faded_distance, self.noise)
-        self.state.update(
-            scaled_distance=scaled_distance,
-            faded_distance=faded_distance,
-            vol_normalized=vol_normalized,
-        )
-
     def _compute_volume(self) -> None:
-        vol_gamma = np.power(self.state['vol_normalized'], self.config['gamma'])
-        vol_thresh = _threshold(vol_gamma, self.max_value, self.config['threshold'])
-        vol = _tube_fade(
-            vol_thresh, self.config['shape'], self.axis, self.config['tube_hole_ratio']
+        vol = volume(
+            base_shape=self.base_shape,
+            noise_type=self.config['noise_type'],
+            noise_scale=self.config['noise_scale'],
+            decay_rate=self.config['decay_rate'],
+            gamma=self.config['gamma'],
+            threshold=self.config['threshold'],
+            shape=self.config['shape'],
+            tube_hole_ratio=self.config['tube_hole_ratio'],
+            seed=self.seed,
         )
         return scale_to_float16(vol)
 
@@ -1042,6 +760,7 @@ class ParameterVisualizer:
             step=0.001,
             description='Noise',
             readout_format='.3f',
+            continuous_update=False,
         )
         self.decay_slider = widgets.FloatSlider(
             value=self.config['decay_rate'],
@@ -1049,6 +768,7 @@ class ParameterVisualizer:
             max=self.dsmax,
             step=0.1,
             description='Decay',
+            continuous_update=False,
         )
         self.gamma_slider = widgets.FloatSlider(
             value=self.config['gamma'],
@@ -1056,6 +776,7 @@ class ParameterVisualizer:
             max=self.gsmax,
             step=0.1,
             description='Gamma',
+            continuous_update=False,
         )
         self.threshold_slider = widgets.FloatSlider(
             value=self.config['threshold'],
@@ -1063,6 +784,7 @@ class ParameterVisualizer:
             max=self.tsmax,
             step=0.05,
             description='Threshold',
+            continuous_update=False,
         )
         self.noise_type_dropdown = widgets.Dropdown(
             options=['perlin', 'simplex'], value='perlin', description='Noise Type'
@@ -1076,20 +798,20 @@ class ParameterVisualizer:
             max=1.0,
             step=0.05,
             description='Tube hole ratio',
+            style={'description_width': 'initial'},
+            continuous_update=False,
         )
 
         # Observers
-        self.noise_slider.observe(self._on_noise_change, names='value')
-        self.noise_type_dropdown.observe(self._on_noise_change, names='value')
-        self.decay_slider.observe(self._on_decay_change, names='value')
-        self.gamma_slider.observe(self._on_gamma_or_thresh_change, names='value')
-        self.threshold_slider.observe(self._on_gamma_or_thresh_change, names='value')
-        self.shape_dropdown.observe(self._on_shape_change, names='value')
-        self.tube_hole_ratio_slider.observe(self._on_tube_change, names='value')
+        self.noise_slider.observe(self._on_change, names='value')
+        self.noise_type_dropdown.observe(self._on_change, names='value')
+        self.decay_slider.observe(self._on_change, names='value')
+        self.gamma_slider.observe(self._on_change, names='value')
+        self.threshold_slider.observe(self._on_change, names='value')
+        self.shape_dropdown.observe(self._on_change, names='value')
+        self.tube_hole_ratio_slider.observe(self._on_change, names='value')
 
     def _setup_plot(self) -> None:
-        self._generate_noise()
-        self._generate_state()
         vol = self._compute_volume()
 
         cmap = plt.get_cmap('magma')
@@ -1098,8 +820,8 @@ class ParameterVisualizer:
         color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
 
         pixel_count = np.prod(vol.shape)
-        y1, x1 = 256, 16777216
-        y2, x2 = 32, 134217728
+        y1, x1 = 256, 16777216  # 256 samples at res 256*256*256=16.777.216
+        y2, x2 = 32, 134217728  # 32 samples at res 512*512*512=134.217.728
         a = (y1 - y2) / (x1 - x2)
         b = y1 - a * x1
         samples = int(min(max(a * pixel_count + b, 64), 512))
@@ -1116,45 +838,15 @@ class ParameterVisualizer:
         )
         self.plot += self.plt_volume
 
-    # ==== Observers ====
-
-    def _on_noise_change(self, change: None = None) -> None:
-        self.config['noise_scale'] = self.noise_slider.value
+    def _on_change(self, change: None = None) -> None:
         self.config['noise_type'] = self.noise_type_dropdown.value
-        self._generate_noise()
-        self._generate_state()
-        self._update_volume()
-
-    def _on_decay_change(self, change: None = None) -> None:
+        self.config['noise_scale'] = self.noise_slider.value
         self.config['decay_rate'] = self.decay_slider.value
-        scaled_distance = _distances(
-            self.z, self.y, self.x, self.center, self.config['shape'], self.axis
-        )
-        faded_distance = np.power(scaled_distance, self.config['decay_rate'])
-        vol_normalized = _shape_noise(faded_distance, self.noise)
-        self.state.update(
-            scaled_distance=scaled_distance,
-            faded_distance=faded_distance,
-            vol_normalized=vol_normalized,
-        )
-        self._update_volume()
-
-    def _on_gamma_or_thresh_change(self, change: None = None) -> None:
         self.config['gamma'] = self.gamma_slider.value
         self.config['threshold'] = self.threshold_slider.value
-        self._update_volume()
-
-    def _on_shape_change(self, change: None = None) -> None:
         self.config['shape'] = self.shape_dropdown.value
-        self._generate_state()
-        self._update_volume()
-
-    def _on_tube_change(self, change: None = None) -> None:
         self.config['tube_hole_ratio'] = self.tube_hole_ratio_slider.value
-        if self.config['shape'] == 'tube':
-            self._update_volume()
 
-    def _update_volume(self) -> None:
         new_vol = self._compute_volume()
         self.plt_volume.volume = new_vol
 
@@ -1170,5 +862,41 @@ class ParameterVisualizer:
                 self.tube_hole_ratio_slider,
             ]
         )
-        display(controls)
-        display(self.plot)
+
+        controls.layout = widgets.Layout(
+            position='relative',
+            top='0px',
+            left='0px',
+            width='420px',
+            height='280px',
+            background='rgba(255,255,255,0.9)',
+            padding='10px',
+            border='1px solid gray',
+            border_radius='8px',
+            z_index=5,
+        )
+
+        # Output widget to render the plot
+        plot_output = widgets.Output()
+        with plot_output:
+            display(self.plot)
+
+        plot_output.layout = widgets.Layout(
+            position='absolute',
+            left='0px',
+            top='0px',
+            width='100%',
+            height='500px',
+            z_index=1,
+        )
+
+        # Container that overlays sliders on top of the plot
+        overlay = widgets.Box([controls, plot_output])
+        overlay.layout = widgets.Layout(
+            position='relative',
+            width='100%',
+            height='500px',
+        )
+
+        # Display the final UI
+        display(overlay)
