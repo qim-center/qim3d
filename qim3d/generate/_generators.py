@@ -476,10 +476,73 @@ def volume(
         ValueError: If `hollow` is not 0 or a positive integer.
 
     Example:
+        Example:
         ```python
         import qim3d
-        # Will add examples here when is accepted.
+
+        # Generate synthetic blob
+        vol = qim3d.generate.volume(noise_scale = 0.02)
+
+        # Visualize 3D volume
+        qim3d.viz.volumetric(vol)
         ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Visualize slices
+        qim3d.viz.slices_grid(vol, value_min = 0, value_max = 255, num_slices = 15)
+        ```
+        ![synthetic_blob](../../assets/screenshots/synthetic_blob_slices.png)
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(base_shape = (200, 100, 100),
+                                    final_shape = (400,100,100),
+                                    noise_scale = 0.03,
+                                    threshold = 0.85,
+                                    decay_rate=20,
+                                    gamma=0.15,
+                                    shape = "tube",
+                                    tube_hole_ratio = 0.4,
+                                    )
+
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_cylinder_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Visualize slices
+        qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
+        ```
+        ![synthetic_blob_cylinder_slice](../../assets/screenshots/synthetic_blob_cylinder_slice.png)
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(base_shape = (200, 100, 100),
+                                final_shape = (400, 100, 100),
+                                noise_scale = 0.03,
+                                gamma = 0.12,
+                                threshold = 0.85,
+                                volume_shape = "tube"
+                                )
+
+        # Visualize synthetic blob
+        qim3d.viz.volumetric(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_tube_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Visualize
+        qim3d.viz.slices_grid(vol, num_slices=15)
+        ```
+        ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)
 
     """
     # Control
@@ -679,8 +742,9 @@ class ParameterVisualizer:
             ```python
             import qim3d
 
-            viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0)
+            viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0, grid_visible=True)
             ```
+            ![paramter_visualizer](../../assets/screenshots/parameter_visualizer.png)
 
         """
         # Error checking:
