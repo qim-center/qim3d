@@ -410,6 +410,7 @@ def _volume_collection(
             )
             if return_positions and placed:
                 placed_positions.append(tuple(pos))
+
         # Break if volume could not be placed
         if not placed:
             break
@@ -433,6 +434,7 @@ def _volume_collection(
         return collection_array, labels, placed_positions
     else:
         return collection_array, labels
+
 
 def volume_collection(
     num_volumes: int = 15,
@@ -472,7 +474,7 @@ def volume_collection(
         rotation_axes (list[tuple], optional): List of axis pairs that will be randomly chosen to rotate around. Defaults to [(0, 1), (0, 2), (1, 2)].
         gamma_range (tuple of floats, optional): Determines minimum and maximum gamma correctness factor. Defaults to (0.9, 1.0)
         value_range (tuple of ints, optional): Determines minimum and maximum value for volume intensity. Defaults to (128, 255).
-        threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.6)
+        threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.55).
         decay_rate_range (float, optional): Determines minimum and maximum value for the decay_range. Defaults to (5,10).
         shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
         tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
