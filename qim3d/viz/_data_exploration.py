@@ -6,7 +6,6 @@ from collections.abc import Sequence
 from typing import Literal
 
 import dask.array as da
-import ipywidgets as widgets
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
@@ -15,6 +14,9 @@ import seaborn as sns
 import skimage.measure
 import zarr
 from IPython.display import clear_output, display
+from ipywidgets import widgets
+from ipywidgets.widgets import Output, Widget
+from matplotlib.figure import Figure
 from skimage.filters import (
     threshold_isodata,
     threshold_li,
@@ -733,7 +735,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         ranges = [f'{sl.start}-{sl.stop}' for sl in slices]
         coords_str = ', '.join(str(c) for c in coords)
         info_html = (
-            f"<div style='font-size:14px;'>"
+            f"<div style='font-size:14px; margin-left:32px'>"
             f"<h3 style='margin:0'>Chunk Info</h3>"
             f'<pre>'
             f'shape      : {chunk.shape}\n'
@@ -815,7 +817,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         widget = load_and_visualize(
             scale_dd.value, *coords, visualization_method=method_dd.value, **kwargs
         )
-        container.children = [title, control_box, widget]
+        container.children = [title, controls_with_info, widget]
 
     scale_dd.observe(lambda change: _update_coords(scale_dd.value), names='value')
     enable_observers()
@@ -828,7 +830,8 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     )
 
     control_box = widgets.VBox([scale_dd, *axis_dds, method_dd])
-    container = widgets.VBox([title, control_box, initial])
+    controls_with_info = widgets.HBox([control_box, info_label])
+    container = widgets.VBox([title, controls_with_info, initial])
     return container
 
 
@@ -975,7 +978,7 @@ class _LineProfile:
         horizontal_position: int,
         angle: float,
         fraction_range: tuple[float, float],
-        ylim: Literal['auto', 'full', 'manual'] | Tuple[float, float],
+        ylim: Literal['auto', 'full', 'manual'] | tuple[float, float],
     ):
         self.volume = volume
         self.slice_axis = slice_axis
@@ -1279,7 +1282,7 @@ def line_profile(
 
     def parse_position(
         pos: int | str,
-        pos_range: Tuple[int, int],
+        pos_range: tuple[int, int],
         name: str,
     ) -> int:
         if isinstance(pos, int):
