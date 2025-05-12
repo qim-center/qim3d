@@ -1,10 +1,9 @@
-"""
-Provides a collection of visualization functions.
-"""
+"""Provides a collection of visualization functions."""
 
 import math
 import warnings
-from typing import List, Optional, Tuple, Union
+from collections.abc import Sequence
+from typing import Literal
 
 import dask.array as da
 import ipywidgets as widgets
@@ -14,6 +13,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import skimage.measure
+import zarr
 from IPython.display import clear_output, display
 from skimage.filters import (
     threshold_isodata,
@@ -26,13 +26,12 @@ from skimage.filters import (
 )
 
 import qim3d
-from qim3d.utils._logger import log
 
 
 def slices_grid(
     volume: np.ndarray,
     slice_axis: int = 0,
-    slice_positions: Optional[Union[str, int, List[int]]] = None,
+    slice_positions: str | int | list[int] | None = None,
     num_slices: int = 15,
     max_columns: int = 5,
     color_map: str = 'magma',
@@ -43,7 +42,7 @@ def slices_grid(
     image_width: int = 2,
     display_figure: bool = False,
     display_positions: bool = True,
-    interpolation: Optional[str] = None,
+    interpolation: str | None = None,
     color_bar: bool = False,
     color_bar_style: str = 'small',
     **matplotlib_imshow_kwargs,
@@ -64,6 +63,7 @@ def slices_grid(
         color_map (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
         value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored.
         image_height (int, optional): Height of the figure.
         image_width (int, optional): Width of the figure.
         display_figure (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
@@ -71,6 +71,7 @@ def slices_grid(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         color_bar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
         color_bar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
+        **matplotlib_imshow_kwargs: Additional keyword arguments for the imshow function.
 
     Returns:
         fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
@@ -102,28 +103,26 @@ def slices_grid(
         interpolation = 'none'
 
     # Numpy array or Torch tensor input
-    if not isinstance(volume, (np.ndarray, da.core.Array)):
-        raise ValueError('Data type not supported')
+    if not isinstance(volume, np.ndarray | da.core.Array):
+        msg = 'Data type not supported'
+        raise ValueError(msg)
 
     if volume.ndim < 3:
-        raise ValueError(
-            'The provided object is not a volume as it has less than 3 dimensions.'
-        )
+        msg = 'The provided object is not a volume as it has less than 3 dimensions.'
+        raise ValueError(msg)
 
     color_bar_style_options = ['small', 'large']
     if color_bar_style not in color_bar_style_options:
-        raise ValueError(
-            f"Value '{color_bar_style}' is not valid for colorbar style. Please select from {color_bar_style_options}."
-        )
+        msg = f"Value '{color_bar_style}' is not valid for colorbar style. Please select from {color_bar_style_options}."
+        raise ValueError(msg)
 
     if isinstance(volume, da.core.Array):
         volume = volume.compute()
 
     # Ensure axis is a valid choice
     if not (0 <= slice_axis < volume.ndim):
-        raise ValueError(
-            f"Invalid value for 'slice_axis'. It should be an integer between 0 and {volume.ndim - 1}."
-        )
+        msg = f"Invalid value for 'slice_axis'. It should be an integer between 0 and {volume.ndim - 1}."
+        raise ValueError(msg)
 
     # Here we deal with the case that the user wants to use the objects colormap directly
     if (
@@ -168,9 +167,8 @@ def slices_grid(
     ):
         slice_idxs = slice_positions
     else:
-        raise ValueError(
-            'Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".'
-        )
+        msg = 'Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".'
+        raise ValueError(msg)
 
     # Make grid
     nrows = math.ceil(num_slices / max_columns)
@@ -211,7 +209,7 @@ def slices_grid(
                     new_value_min = (
                         None
                         if (
-                            isinstance(value_min, (float, int))
+                            isinstance(value_min, float | int)
                             and value_min > np.max(slice_img)
                         )
                         else value_min
@@ -219,7 +217,7 @@ def slices_grid(
                     new_value_max = (
                         None
                         if (
-                            isinstance(value_max, (float, int))
+                            isinstance(value_max, float | int)
                             and value_max < np.min(slice_img)
                         )
                         else value_max
@@ -244,7 +242,7 @@ def slices_grid(
                         fontsize=8,
                         va='top',
                         ha='left',
-                        bbox=dict(facecolor='#303030', linewidth=0, pad=0),
+                        bbox={'facecolor': '#303030', 'linewidth': 0, 'pad': 0},
                     )
 
                     ax.text(
@@ -256,7 +254,7 @@ def slices_grid(
                         fontsize=8,
                         va='bottom',
                         ha='right',
-                        bbox=dict(facecolor='#303030', linewidth=0, pad=0),
+                        bbox={'facecolor': '#303030', 'linewidth': 0, 'pad': 0},
                     )
 
             except IndexError:
@@ -334,7 +332,7 @@ def slicer(
     image_height: int = 3,
     image_width: int = 3,
     display_positions: bool = False,
-    interpolation: Optional[str] = None,
+    interpolation: str | None = None,
     image_size: int = None,
     color_bar: str = None,
     **matplotlib_imshow_kwargs,
@@ -352,7 +350,9 @@ def slicer(
         image_width (int, optional): Width of the figure. Defaults to 3.
         display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
+        image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
         color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
+        **matplotlib_imshow_kwargs: Additional keyword arguments for the imshow function.
 
     Returns:
         slicer_obj (widgets.interactive): The interactive widget for visualizing slices of a 3D volume.
@@ -374,10 +374,11 @@ def slicer(
 
     color_bar_options = [None, 'slices', 'volume']
     if color_bar not in color_bar_options:
-        raise ValueError(
+        msg = (
             f"Unrecognized value '{color_bar}' for parameter color_bar. "
             f'Expected one of {color_bar_options}.'
         )
+        raise ValueError(msg)
     show_color_bar = color_bar is not None
     if color_bar == 'slices':
         # Precompute the minimum and maximum along each slice for faster widget sliding.
@@ -386,7 +387,7 @@ def slicer(
         slice_maxs = np.max(volume, axis=non_slice_axes)
 
     # Create the interactive widget
-    def _slicer(slice_positions):
+    def _slicer(slice_positions: int) -> Figure:
         if color_bar == 'slices':
             dynamic_min = slice_mins[slice_positions]
             dynamic_max = slice_maxs[slice_positions]
@@ -433,7 +434,7 @@ def slicer_orthogonal(
     image_height: int = 3,
     image_width: int = 3,
     display_positions: bool = False,
-    interpolation: Optional[str] = None,
+    interpolation: str | None = None,
     image_size: int = None,
 ) -> widgets.interactive:
     """
@@ -448,6 +449,7 @@ def slicer_orthogonal(
         image_width (int, optional): Width of the figure.
         display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
+        image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
 
     Returns:
         slicer_orthogonal_obj (widgets.HBox): The interactive widget for visualizing orthogonal slices of a 3D volume.
@@ -523,7 +525,13 @@ def fade_mask(
     """
 
     # Create the interactive widget
-    def _slicer(position, decay_rate, ratio, geometry, invert):
+    def _slicer(
+        position: int,
+        decay_rate: float,
+        ratio: float,
+        geometry: str,
+        invert: bool,
+    ) -> Figure:
         fig, axes = plt.subplots(1, 3, figsize=(9, 3))
 
         slice_img = volume[position, :, :]
@@ -531,12 +539,12 @@ def fade_mask(
         # We don't want to override the values because next slices might be okay
         new_value_min = (
             None
-            if (isinstance(value_min, (float, int)) and value_min > np.max(slice_img))
+            if (isinstance(value_min, float | int) and value_min > np.max(slice_img))
             else value_min
         )
         new_value_max = (
             None
-            if (isinstance(value_max, (float, int)) and value_max < np.min(slice_img))
+            if (isinstance(value_max, float | int) and value_max < np.min(slice_img))
             else value_max
         )
 
@@ -571,12 +579,12 @@ def fade_mask(
         slice_img = masked_volume[position, :, :]
         new_value_min = (
             None
-            if (isinstance(value_min, (float, int)) and value_min > np.max(slice_img))
+            if (isinstance(value_min, float | int) and value_min > np.max(slice_img))
             else value_min
         )
         new_value_max = (
             None
-            if (isinstance(value_max, (float, int)) and value_max < np.min(slice_img))
+            if (isinstance(value_max, float | int) and value_max < np.min(slice_img))
             else value_max
         )
         axes[2].imshow(
@@ -636,260 +644,198 @@ def fade_mask(
     return slicer_obj
 
 
-def chunks(zarr_path: str, **kwargs) -> widgets.interactive:
+def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     """
-    Function to visualize chunks of a Zarr dataset using the specified visualization method.
+    Launch an interactive chunk explorer for a 3D or 5D OME-Zarr dataset.
 
-    Args:
-        zarr_path (str or os.PathLike): Path to the Zarr dataset.
-        **kwargs (Any): Additional keyword arguments to pass to the visualization method.
+    Parameters
+    ----------
+    zarr_path : str
+        Filesystem path or URL to the OME-Zarr dataset root.
+    **kwargs
+        Additional keyword arguments forwarded to the visualization functions:
+        - For `visualization_method='slicer'`: passed to `qim3d.viz.slicer`
+        - For `visualization_method='slices'`: passed to `qim3d.viz.slices_grid`
+        - For `visualization_method='volume'`: passed to `qim3d.viz.volumetric`
+        Common kwargs include `cmap`, `vmin`, `vmax`, etc.
 
-    Example:
-        ```python
-        import qim3d
+    Returns
+    -------
+    widgets.VBox
+        An interactive container widget with dropdowns for choosing the OME-Zarr scale,
+        chunk coordinates along each axis, and visualization method ('slicer', 'slices', or 'volume').
 
-        # Download dataset
-        downloader = qim3d.io.Downloader()
-        data = downloader.Snail.Escargot(load_file=True)
-
-        # Export as OME-Zarr
-        qim3d.io.export_ome_zarr("Escargot.zarr", data, chunk_size=100, downsample_rate=2, replace=True)
-
-        # Explore chunks
-        qim3d.viz.chunks("Escargot.zarr")
-        ```
-        ![chunks-visualization](../../assets/screenshots/chunks_visualization.gif)
+    Raises
+    ------
+    ValueError
+        If the dataset's dimensionality is not 3 or 5.
 
     """
-    import zarr
-
     # Load the Zarr dataset
     zarr_data = zarr.open(zarr_path, mode='r')
 
-    # Save arguments for later use
-    # visualization_method = visualization_method
-    # preserved_kwargs = kwargs
+    title = widgets.HTML('<h2>Chunk Explorer</h2>')
+    info_label = widgets.HTML(value='Chunk info will be displayed here')
 
-    # Create label to display the chunk coordinates
-    widget_title = widgets.HTML('<h2>Chunk Explorer</h2>')
-    chunk_info_label = widgets.HTML(value='Chunk info will be displayed here')
-
-    def load_and_visualize(
-        scale, z_coord, y_coord, x_coord, visualization_method, **kwargs
-    ):
-        # Get chunk shape for the selected scale
-        chunk_shape = zarr_data[scale].chunks
-
-        # Calculate slice indices for the selected chunk
-        slices = (
-            slice(
-                z_coord * chunk_shape[0],
-                min((z_coord + 1) * chunk_shape[0], zarr_data[scale].shape[0]),
-            ),
-            slice(
-                y_coord * chunk_shape[1],
-                min((y_coord + 1) * chunk_shape[1], zarr_data[scale].shape[1]),
-            ),
-            slice(
-                x_coord * chunk_shape[2],
-                min((x_coord + 1) * chunk_shape[2], zarr_data[scale].shape[2]),
-            ),
-        )
-
-        # Extract start and stop values from each slice object
-        z_start, z_stop = slices[0].start, slices[0].stop
-        y_start, y_stop = slices[1].start, slices[1].stop
-        x_start, x_stop = slices[2].start, slices[2].stop
-
-        # Extract the chunk
-        chunk = zarr_data[scale][slices]
-
-        # Update the chunk info label with the chunk coordinates
-        info_string = (
-            f'<b>shape:</b> {chunk_shape}\n'
-            + f'<b>coordinates:</b> ({z_coord}, {y_coord}, {x_coord})\n'
-            + f'<b>ranges: </b>Z({z_start}-{z_stop})   Y({y_start}-{y_stop})   X({x_start}-{x_stop})\n'
-            + f'<b>dtype:</b> {chunk.dtype}\n'
-            + f'<b>min value:</b> {np.min(chunk)}\n'
-            + f'<b>max value:</b> {np.max(chunk)}\n'
-            + f'<b>mean value:</b> {np.mean(chunk)}\n'
-        )
-
-        chunk_info_label.value = f"""
-            <div style="font-size: 14px; text-align: left; margin-left:32px">
-                <h3 style="margin: 0px">Chunk Info</h3>
-                    <div style="font-size: 14px; text-align: left;">
-                    <pre>{info_string}</pre>
-                    </div>
-            </div>
-
-            """
-
-        # Prepare chunk visualization based on the selected method
-        if visualization_method == 'slicer':  # return a widget
-            viz_widget = qim3d.viz.slicer(chunk, **kwargs)
-        elif visualization_method == 'slices':  # return a plt.Figure
-            viz_widget = widgets.Output()
-            with viz_widget:
-                viz_widget.clear_output(wait=True)
-                fig = qim3d.viz.slices_grid(chunk, **kwargs)
-                display(fig)
-        elif visualization_method == 'volume':
-            viz_widget = widgets.Output()
-            with viz_widget:
-                viz_widget.clear_output(wait=True)
-                out = qim3d.viz.volumetric(chunk, show=False, **kwargs)
-                display(out)
-        else:
-            log.info(f'Invalid visualization method: {visualization_method}')
-
-        return viz_widget
-
-    # Function to calculate the number of chunks for each dimension, including partial chunks
-    def get_num_chunks(shape, chunk_size):
+    def get_num_chunks(shape: Sequence[int], chunk_size: Sequence[int]) -> list[int]:
         return [(s + chunk_size[i] - 1) // chunk_size[i] for i, s in enumerate(shape)]
 
-    scale_options = {
-        f'{i} {zarr_data[i].shape}': i for i in range(len(zarr_data))
-    }  # len(zarr_data) gives number of scales
+    def load_and_visualize(
+        scale: int,
+        *coords: int,
+        visualization_method: Literal['slicer', 'slices', 'volume'],
+        **inner_kwargs: object,
+    ) -> Widget | Figure | Output:
+        arr = da.from_zarr(zarr_data[scale])
+        shape = arr.shape
+        chunksz = arr.chunks
 
-    description_width = '128px'
-    # Create dropdown for scale
-    scale_dropdown = widgets.Dropdown(
-        options=scale_options,
-        value=0,  # Default to first scale
-        description='OME-Zarr scale',
-        style={'description_width': description_width, 'text_align': 'left'},
+        if arr.ndim == 3:
+            z_idx, y_idx, x_idx = coords
+            slices = (
+                slice(
+                    z_idx * chunksz[0][0], min((z_idx + 1) * chunksz[0][0], shape[0])
+                ),
+                slice(
+                    y_idx * chunksz[1][0], min((y_idx + 1) * chunksz[1][0], shape[1])
+                ),
+                slice(
+                    x_idx * chunksz[2][0], min((x_idx + 1) * chunksz[2][0], shape[2])
+                ),
+            )
+            chunk = arr[slices].compute()
+        elif arr.ndim == 5:
+            t_idx, c_idx, z_idx, y_idx, x_idx = coords
+            slices = (
+                slice(
+                    t_idx * chunksz[0][0], min((t_idx + 1) * chunksz[0][0], shape[0])
+                ),
+                slice(
+                    c_idx * chunksz[1][0], min((c_idx + 1) * chunksz[1][0], shape[1])
+                ),
+                slice(
+                    z_idx * chunksz[2][0], min((z_idx + 1) * chunksz[2][0], shape[2])
+                ),
+                slice(
+                    y_idx * chunksz[3][0], min((y_idx + 1) * chunksz[3][0], shape[3])
+                ),
+                slice(
+                    x_idx * chunksz[4][0], min((x_idx + 1) * chunksz[4][0], shape[4])
+                ),
+            )
+            chunk = arr[slices].compute()
+            chunk = chunk[0, 0, ...]
+        else:
+            msg = f'Unsupported ndim={arr.ndim}'
+            raise ValueError(msg)
+
+        mins, maxs, means = chunk.min(), chunk.max(), chunk.mean()
+        ranges = [f'{sl.start}-{sl.stop}' for sl in slices]
+        coords_str = ', '.join(str(c) for c in coords)
+        info_html = (
+            f"<div style='font-size:14px;'>"
+            f"<h3 style='margin:0'>Chunk Info</h3>"
+            f'<pre>'
+            f'shape      : {chunk.shape}\n'
+            f'coords     : ({coords_str})\n'
+            f'ranges     : {ranges}\n'
+            f'dtype      : {chunk.dtype}\n'
+            f'min / max  : {mins:.0f} / {maxs:.0f}\n'
+            f'mean value : {means:.0f}\n'
+            f'</pre></div>'
+        )
+        info_label.value = info_html
+
+        if visualization_method == 'slicer':
+            return qim3d.viz.slicer(chunk, **inner_kwargs)
+        if visualization_method == 'slices':
+            out = widgets.Output()
+            with out:
+                fig = qim3d.viz.slices_grid(chunk, **inner_kwargs)
+                display(fig)
+            return out
+        # volume
+        out = widgets.Output()
+        with out:
+            vol = qim3d.viz.volumetric(chunk, show=False, **inner_kwargs)
+            display(vol)
+        return out
+
+    scale_opts = {f'{i} {zarr_data[i].shape}': i for i in range(len(zarr_data))}
+    drop_style = {'description_width': '120px'}
+    scale_dd = widgets.Dropdown(
+        options=scale_opts, value=0, description='Scale:', style=drop_style
     )
 
-    # Initialize the options for x, y, and z based on the first scale by default
-    multiscale_shape = zarr_data[0].shape
-    chunk_shape = zarr_data[0].chunks
-    num_chunks = get_num_chunks(multiscale_shape, chunk_shape)
+    first_shape = zarr_data[0].shape
+    if len(first_shape) == 3:
+        axis_names = ['Z', 'Y', 'X']
+    elif len(first_shape) == 5:
+        axis_names = ['T', 'C', 'Z', 'Y', 'X']
+    else:
+        msg = f'Only 3D or 5D supported, got ndim={len(first_shape)}'
+        raise ValueError(msg)
 
-    z_dropdown = widgets.Dropdown(
-        options=list(range(num_chunks[0])),
-        value=0,
-        description='First dimension (Z)',
-        style={'description_width': description_width, 'text_align': 'left'},
-    )
+    counts0 = get_num_chunks(first_shape, zarr_data[0].chunks)
+    axis_dds = []
+    for name, cnt in zip(axis_names, counts0):
+        dd = widgets.Dropdown(
+            options=list(range(cnt)), value=0, description=f'{name}:', style=drop_style
+        )
+        axis_dds.append(dd)
 
-    y_dropdown = widgets.Dropdown(
-        options=list(range(num_chunks[1])),
-        value=0,
-        description='Second dimension (Y)',
-        style={'description_width': description_width, 'text_align': 'left'},
-    )
-
-    x_dropdown = widgets.Dropdown(
-        options=list(range(num_chunks[2])),
-        value=0,
-        description='Third dimension (X)',
-        style={'description_width': description_width, 'text_align': 'left'},
-    )
-
-    method_dropdown = widgets.Dropdown(
+    method_dd = widgets.Dropdown(
         options=['slicer', 'slices', 'volume'],
         value='slicer',
-        description='Visualization',
-        style={'description_width': description_width, 'text_align': 'left'},
+        description='Viz:',
+        style=drop_style,
     )
 
-    # Funtion to temporarily disable observers
-    def disable_observers():
-        x_dropdown.unobserve(update_visualization, names='value')
-        y_dropdown.unobserve(update_visualization, names='value')
-        z_dropdown.unobserve(update_visualization, names='value')
-        method_dropdown.unobserve(update_visualization, names='value')
+    def disable_observers() -> None:
+        for dd in (*axis_dds, method_dd):
+            dd.unobserve(_update_vis, names='value')
 
-    # Funtion to enable observers
-    def enable_observers():
-        x_dropdown.observe(update_visualization, names='value')
-        y_dropdown.observe(update_visualization, names='value')
-        z_dropdown.observe(update_visualization, names='value')
-        method_dropdown.observe(update_visualization, names='value')
+    def enable_observers() -> None:
+        for dd in (*axis_dds, method_dd):
+            dd.observe(_update_vis, names='value')
 
-    # Function to update the x, y, z dropdowns when the scale changes and reset the coordinates to 0
-    def update_coordinate_dropdowns(scale):
-        disable_observers()  # to avoid multiple reload of the visualization when updating the dropdowns
-
-        multiscale_shape = zarr_data[scale].shape
-        chunk_shape = zarr_data[scale].chunks
-        num_chunks = get_num_chunks(
-            multiscale_shape, chunk_shape
-        )  # Calculate  new chunk options
-
-        # Reset X, Y, Z dropdowns to 0
-        z_dropdown.options = list(range(num_chunks[0]))
-        z_dropdown.value = 0  # Reset to 0
-        z_dropdown.disabled = (
-            len(z_dropdown.options) == 1
-        )  # Disable if only one option (0) is available
-
-        y_dropdown.options = list(range(num_chunks[1]))
-        y_dropdown.value = 0  # Reset to 0
-        y_dropdown.disabled = (
-            len(y_dropdown.options) == 1
-        )  # Disable if only one option (0) is available
-
-        x_dropdown.options = list(range(num_chunks[2]))
-        x_dropdown.value = 0  # Reset to 0
-        x_dropdown.disabled = (
-            len(x_dropdown.options) == 1
-        )  # Disable if only one option (0) is available
-
+    def _update_coords(scale: int) -> None:
+        disable_observers()
+        shp = zarr_data[scale].shape
+        cnts = get_num_chunks(shp, zarr_data[scale].chunks)
+        for dd, c in zip(axis_dds, cnts):
+            dd.options = list(range(c))
+            dd.disabled = c == 1
+            dd.value = 0
         enable_observers()
+        _update_vis()
 
-        update_visualization()
-
-    # Function to update the visualization when any dropdown value changes
-    def update_visualization(*args):
-        scale = scale_dropdown.value
-        x_coord = x_dropdown.value
-        y_coord = y_dropdown.value
-        z_coord = z_dropdown.value
-        visualization_method = method_dropdown.value
-
-        # Clear and update the chunk visualization
-        slicer_widget = load_and_visualize(
-            scale, z_coord, y_coord, x_coord, visualization_method, **kwargs
+    def _update_vis(*_) -> None:
+        coords = [dd.value for dd in axis_dds]
+        widget = load_and_visualize(
+            scale_dd.value, *coords, visualization_method=method_dd.value, **kwargs
         )
+        container.children = [title, control_box, widget]
 
-        # Recreate the layout and display the new visualization
-        final_layout.children = [widget_title, hbox_layout, slicer_widget]
-
-    # Attach an observer to scale dropdown to update x, y, z dropdowns when the scale changes
-    scale_dropdown.observe(
-        lambda change: update_coordinate_dropdowns(scale_dropdown.value), names='value'
-    )
-
+    scale_dd.observe(lambda change: _update_coords(scale_dd.value), names='value')
     enable_observers()
 
-    # Create first visualization
-    slicer_widget = load_and_visualize(
-        scale_dropdown.value,
-        z_dropdown.value,
-        y_dropdown.value,
-        x_dropdown.value,
-        method_dropdown.value,
+    initial = load_and_visualize(
+        scale_dd.value,
+        *[dd.value for dd in axis_dds],
+        visualization_method=method_dd.value,
         **kwargs,
     )
 
-    # Create the layout
-    vbox_dropbox = widgets.VBox(
-        [scale_dropdown, z_dropdown, y_dropdown, x_dropdown, method_dropdown]
-    )
-    hbox_layout = widgets.HBox([vbox_dropbox, chunk_info_label])
-    final_layout = widgets.VBox([widget_title, hbox_layout, slicer_widget])
-
-    # Display the VBox
-    display(final_layout)
+    control_box = widgets.VBox([scale_dd, *axis_dds, method_dd])
+    container = widgets.VBox([title, control_box, initial])
+    return container
 
 
 def histogram(
     volume: np.ndarray,
-    bins: Union[int, str] = 'auto',
-    slice_idx: Union[int, str, None] = None,
+    bins: int | str = 'auto',
+    slice_idx: int | str | None = None,
     vertical_line: int = None,
     axis: int = 0,
     kde: bool = True,
@@ -897,14 +843,14 @@ def histogram(
     despine: bool = True,
     show_title: bool = True,
     color: str = 'qim3d',
-    edgecolor: Optional[str] = None,
-    figsize: Tuple[float, float] = (8, 4.5),
+    edgecolor: str | None = None,
+    figsize: tuple[float, float] = (8, 4.5),
     element: str = 'step',
     return_fig: bool = False,
     show: bool = True,
-    ax: Optional[plt.Axes] = None,
-    **sns_kwargs: Union[str, float, int, bool],
-) -> Optional[Union[plt.Figure, plt.Axes]]:
+    ax: plt.Axes | None = None,
+    **sns_kwargs: str | float | bool,
+) -> plt.Figure | plt.Axes | None:
     """
     Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
 
@@ -942,7 +888,8 @@ def histogram(
 
     """
     if not (0 <= axis < volume.ndim):
-        raise ValueError(f'Axis must be an integer between 0 and {volume.ndim - 1}.')
+        msg = f'Axis must be an integer between 0 and {volume.ndim - 1}.'
+        raise ValueError(msg)
 
     if slice_idx == 'middle':
         slice_idx = volume.shape[axis] // 2
@@ -953,9 +900,8 @@ def histogram(
             data = img_slice.ravel()
             title = f'Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {axis}'
         else:
-            raise ValueError(
-                f'Slice index out of range. Must be between 0 and {volume.shape[axis] - 1}.'
-            )
+            msg = f'Slice index out of range. Must be between 0 and {volume.shape[axis] - 1}.'
+            raise ValueError(msg)
     else:
         data = volume.ravel()
         title = f'Intensity histogram for whole volume {volume.shape}'
@@ -1022,18 +968,18 @@ def histogram(
 class _LineProfile:
     def __init__(
         self,
-        volume,
-        slice_axis,
-        slice_index,
-        vertical_position,
-        horizontal_position,
-        angle,
-        fraction_range,
-        ylim
+        volume: np.ndarray,
+        slice_axis: int,
+        slice_index: int,
+        vertical_position: int,
+        horizontal_position: int,
+        angle: float,
+        fraction_range: tuple[float, float],
+        ylim: Literal['auto', 'full', 'manual'] | Tuple[float, float],
     ):
         self.volume = volume
         self.slice_axis = slice_axis
-        
+
         self.data_min = self.volume.min()
         self.data_max = self.volume.max()
         self.data_span = self.data_max - self.data_min
@@ -1056,7 +1002,7 @@ class _LineProfile:
         self.angle_widget.value = angle
         self.line_fraction_widget.value = [fraction_range[0], fraction_range[1]]
 
-    def update_slice_axis(self, slice_axis):
+    def update_slice_axis(self, slice_axis: int) -> None:
         self.slice_axis = slice_axis
         self.slice_index_widget.max = self.volume.shape[slice_axis] - 1
         self.slice_index_widget.value = self.volume.shape[slice_axis] // 2
@@ -1067,18 +1013,21 @@ class _LineProfile:
         self.y_widget.max = self.y_max - self.pad
         self.y_widget.value = self.y_max // 2
 
-    def update_ylim(self, ax, ylim_style):
+    def update_ylim(self, ax: plt.Axes, ylim_style: str) -> None:
         self.ylim_widget.layout.display = 'none'
         if ylim_style == 'full':
             pad = 0.05
-            ax.set_ylim(self.data_min - pad*self.data_span, self.data_max + pad*self.data_span)
+            ax.set_ylim(
+                self.data_min - pad * self.data_span,
+                self.data_max + pad * self.data_span,
+            )
         elif ylim_style == 'manual':
             ax.set_ylim(self.ylim[0], self.ylim[1])
             self.ylim_widget.layout.display = 'flex'
-    
-    def initialize_widgets(self):
+
+    def initialize_widgets(self) -> None:
         layout = widgets.Layout(width='300px', height='auto')
-        
+
         # Line options
         self.x_widget = widgets.IntSlider(
             min=self.pad, step=1, description='', layout=layout
@@ -1103,28 +1052,36 @@ class _LineProfile:
             min=0, step=1, description='Slice index', layout=layout
         )
         self.slice_index_widget.layout.width = '400px'
-        
+
         # y-limit
         self.ylim_style_widget = widgets.Dropdown(
-            options=['auto', 'full', 'manual'], value=self.ylim_style, description='y-limit style'
+            options=['auto', 'full', 'manual'],
+            value=self.ylim_style,
+            description='y-limit style',
         )
-        
+
         num_steps = 30
         self.ymin_widget = widgets.FloatText(
-            description='y-min', value=self.ylim[0], layout=widgets.Layout(width='150px'), step=self.data_span/num_steps
+            description='y-min',
+            value=self.ylim[0],
+            layout=widgets.Layout(width='150px'),
+            step=self.data_span / num_steps,
         )
         self.ymax_widget = widgets.FloatText(
-            description='y-max', value=self.ylim[1], layout=widgets.Layout(width='150px'), step=self.data_span/num_steps
+            description='y-max',
+            value=self.ylim[1],
+            layout=widgets.Layout(width='150px'),
+            step=self.data_span / num_steps,
         )
         self.ylim_widget = widgets.HBox([self.ymin_widget, self.ymax_widget])
         self.ylim_widget.layout = widgets.Layout(width='310px')
         if self.ylim_style != 'manual':
             self.ylim_widget.layout.display = 'none'
 
-    def calculate_line_endpoints(self, x, y, angle):
-        """
-        Line is parameterized as: [x + t*np.cos(angle), y + t*np.sin(angle)]
-        """
+    def calculate_line_endpoints(
+        self, x: float, y: float, angle: float
+    ) -> tuple[list[float], list[float]]:
+        """Line is parameterized as: [x + t*np.cos(angle), y + t*np.sin(angle)]."""
         if np.isclose(angle, 0):
             return [0, y], [self.x_max, y]
         elif np.isclose(angle, np.pi / 2):
@@ -1148,13 +1105,24 @@ class _LineProfile:
         dst = [x + t_pos * np.cos(angle), y + t_pos * np.sin(angle)]
         return src, dst
 
-    def update(self, slice_axis, slice_index, x, y, angle_deg, fraction_range, ylim_style, ymin, ymax):
+    def update(
+        self,
+        slice_axis: int,
+        slice_index: int,
+        x: int,
+        y: int,
+        angle_deg: float,
+        fraction_range: tuple[float, float],
+        ylim_style: str,
+        ymin: float,
+        ymax: float,
+    ) -> None:
         if slice_axis != self.slice_axis:
             self.update_slice_axis(slice_axis)
             x = self.x_widget.value
             y = self.y_widget.value
             slice_index = self.slice_index_widget.value
-        
+
         self.ylim[0] = ymin
         self.ylim[1] = ymax
 
@@ -1215,7 +1183,7 @@ class _LineProfile:
         plt.tight_layout()
         plt.show()
 
-    def build_interactive(self):
+    def build_interactive(self) -> widgets.VBox:
         # Group widgets into two columns
         title_style = (
             'text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;'
@@ -1243,7 +1211,13 @@ class _LineProfile:
             [title_column1, row_x, row_y, row_angle, row_fraction]
         )
         controls_column2 = widgets.VBox(
-            [title_column2, self.slice_axis_widget, self.slice_index_widget, self.ylim_style_widget, self.ylim_widget]
+            [
+                title_column2,
+                self.slice_axis_widget,
+                self.slice_index_widget,
+                self.ylim_style_widget,
+                self.ylim_widget,
+            ]
         )
         controls = widgets.HBox([controls_column1, controls_column2])
 
@@ -1258,7 +1232,7 @@ class _LineProfile:
                 'fraction_range': self.line_fraction_widget,
                 'ylim_style': self.ylim_style_widget,
                 'ymin': self.ymin_widget,
-                'ymax': self.ymax_widget
+                'ymax': self.ymax_widget,
             },
         )
 
@@ -1272,8 +1246,8 @@ def line_profile(
     vertical_position: int | str = 'middle',
     horizontal_position: int | str = 'middle',
     angle: int = 0,
-    fraction_range: Tuple[float, float] = (0.00, 1.00),
-    y_limits: str | Tuple[float, float] = 'auto'
+    fraction_range: tuple[float, float] = (0.00, 1.00),
+    y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
     """
     Returns an interactive widget for visualizing the intensity profiles of lines on slices.
@@ -1303,12 +1277,17 @@ def line_profile(
 
     """
 
-    def parse_position(pos, pos_range, name):
+    def parse_position(
+        pos: int | str,
+        pos_range: Tuple[int, int],
+        name: str,
+    ) -> int:
         if isinstance(pos, int):
             if not pos_range[0] <= pos < pos_range[1]:
-                raise ValueError(
+                msg = (
                     f'Value for {name} must be inside [{pos_range[0]}, {pos_range[1]}]'
                 )
+                raise ValueError(msg)
             return pos
         elif isinstance(pos, str):
             pos = pos.lower()
@@ -1319,17 +1298,21 @@ def line_profile(
             elif pos == 'end':
                 return pos_range[1]
             else:
-                raise ValueError(
+                msg = (
                     f"Invalid string '{pos}' for {name}. "
                     "Must be 'start', 'middle', or 'end'."
                 )
+                raise ValueError(msg)
         else:
-            raise TypeError('Axis position must be of type int or str.')
+            msg = 'Axis position must be of type int or str.'
+            raise TypeError(msg)
 
-    if not isinstance(volume, (np.ndarray, da.core.Array)):
-        raise ValueError('Data type for volume not supported.')
+    if not isinstance(volume, np.ndarray | da.core.Array):
+        msg = 'Data type for volume not supported.'
+        raise ValueError(msg)
     if volume.ndim != 3:
-        raise ValueError('Volume must be 3D.')
+        msg = 'Volume must be 3D.'
+        raise ValueError(msg)
 
     dims = volume.shape
     slice_index = parse_position(slice_index, (0, dims[slice_axis] - 1), 'slice_index')
@@ -1343,8 +1326,9 @@ def line_profile(
         'horizontal_position',
     )
 
-    if not isinstance(angle, int | float):
-        raise ValueError('Invalid type for angle.')
+    if not isinstance(angle, float):
+        msg = 'Invalid type for angle.'
+        raise ValueError(msg)
     angle = round(angle) % 360
 
     if not (
@@ -1352,11 +1336,13 @@ def line_profile(
         and 0.0 <= fraction_range[1] <= 1.0
         and fraction_range[0] <= fraction_range[1]
     ):
-        raise ValueError('Invalid values for fraction_range.')
+        msg = 'Invalid values for fraction_range.'
+        raise ValueError(msg)
 
     if isinstance(y_limits, str):
-        if not y_limits in ['auto', 'full']:
-            raise ValueError('Invalid string value for y_limits.')
+        if y_limits not in ['auto', 'full']:
+            msg = 'Invalid string value for y_limits.'
+            raise ValueError(msg)
     else:
         y_limits = [*y_limits]
 
@@ -1368,7 +1354,7 @@ def line_profile(
         horizontal_position,
         angle,
         fraction_range,
-        y_limits
+        y_limits,
     )
     return lp.build_interactive()
 
@@ -1380,7 +1366,7 @@ def threshold(
     vmax: float = None,
 ) -> widgets.VBox:
     """
-    This function provides an interactive interface to explore thresholding on a
+    An interactive interface to explore thresholding on a
     3D volume slice-by-slice. Users can either manually set the threshold value
     using a slider or select an automatic thresholding method from `skimage`.
 
@@ -1450,7 +1436,7 @@ def threshold(
     output = widgets.Output()
 
     # Function to update the state and trigger visualization
-    def update_state(change):
+    def update_state(change: Dict[str, Any]) -> None:
         # Update state based on widget values
         state['position'] = position_slider.value
         state['method'] = method_dropdown.value
@@ -1471,13 +1457,14 @@ def threshold(
                 threshold_slider.disabled = True
                 threshold_slider.observe(update_state, names='value')
             else:
-                raise ValueError(f"Unsupported thresholding method: {state['method']}")
+                msg = f"Unsupported thresholding method: {state['method']}"
+                raise ValueError(msg)
 
         # Trigger visualization
         update_visualization()
 
     # Visualization function
-    def update_visualization():
+    def update_visualization() -> None:
         slice_img = volume[state['position'], :, :]
         with output:
             output.clear_output(wait=True)  # Clear previous plot
@@ -1486,12 +1473,12 @@ def threshold(
             # Original image
             new_vmin = (
                 None
-                if (isinstance(vmin, (float, int)) and vmin > np.max(slice_img))
+                if (isinstance(vmin, float | int) and vmin > np.max(slice_img))
                 else vmin
             )
             new_vmax = (
                 None
-                if (isinstance(vmax, (float, int)) and vmax < np.min(slice_img))
+                if (isinstance(vmax, float | int) and vmax < np.min(slice_img))
                 else vmax
             )
             axes[0].imshow(slice_img, cmap=cmap_image, vmin=new_vmin, vmax=new_vmax)
@@ -1579,7 +1566,13 @@ def threshold(
 
 
 class _VolumeComparison:
-    def __init__(self, volume1, volume2, slice_axis, slice_index):
+    def __init__(
+        self,
+        volume1: np.ndarray | da.core.Array,
+        volume2: np.ndarray | da.core.Array,
+        slice_axis: int,
+        slice_index: int,
+    ) -> None:
         self.volume1 = volume1
         self.volume2 = volume2
         self.slice_axis = slice_axis
@@ -1594,12 +1587,12 @@ class _VolumeComparison:
         self.update_slice_axis(slice_axis)
         self.slice_index_widget.value = slice_index
 
-    def update_slice_axis(self, slice_axis):
+    def update_slice_axis(self, slice_axis: int) -> None:
         self.slice_axis = slice_axis
         self.slice_index_widget.max = self.volume1.shape[slice_axis] - 1
         self.slice_index_widget.value = self.volume1.shape[slice_axis] // 2
 
-    def initialize_widgets(self):
+    def initialize_widgets(self) -> None:
         layout = widgets.Layout(width='300px', height='auto')
         self.color_range_widget = widgets.FloatRangeSlider(
             min=0, max=1, step=0.01, value=[0, 1], layout=layout
@@ -1620,7 +1613,13 @@ class _VolumeComparison:
         )
         self.slice_index_widget.layout.width = '400px'
 
-    def update(self, slice_axis, slice_index, comparison_type, color_range):
+    def update(
+        self,
+        slice_axis: int,
+        slice_index: int,
+        comparison_type: str,
+        color_range: tuple[float, float],
+    ) -> None:
         if slice_axis != self.slice_axis:
             self.update_slice_axis(slice_axis)
             slice_index = self.slice_index_widget.value
@@ -1657,12 +1656,12 @@ class _VolumeComparison:
             norm2 = matplotlib.colors.Normalize(vmin=vrange[0], vmax=vrange[1])
             color_map = 'magma'
 
-        Nc = 256
-        lb = round(color_range[0] * Nc)
-        ub = round(color_range[1] * Nc)
+        nc = 256
+        lb = round(color_range[0] * nc)
+        ub = round(color_range[1] * nc)
 
-        cmap_obj = matplotlib.colormaps[color_map].resampled(Nc)
-        newcolors = cmap_obj(np.linspace(0, 1, Nc))
+        cmap_obj = matplotlib.colormaps[color_map].resampled(nc)
+        newcolors = cmap_obj(np.linspace(0, 1, nc))
         black = np.array([0, 0, 0, 1])
         newcolors[:lb, :] = black
         newcolors[ub:, :] = black
@@ -1691,7 +1690,7 @@ class _VolumeComparison:
         fig.tight_layout()
         plt.show()
 
-    def build_interactive(self):
+    def build_interactive(self) -> widgets.VBox:
         # Group widgets into two columns
         title_style = (
             'text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;'
@@ -1752,7 +1751,7 @@ def compare_volumes(
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
 
-    
+
 
     Example:
         ```python
@@ -1765,20 +1764,25 @@ def compare_volumes(
 
         ```
         ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
+
     """
 
     if volume1.ndim != 3:
-        raise ValueError('Volume must be 3D.')
+        msg = 'Volume must be 3D.'
+        raise ValueError(msg)
     if volume1.shape != volume2.shape:
-        raise ValueError('Volumes must have the same shape.')
+        msg = 'Volumes must have the same shape.'
+        raise ValueError(msg)
 
     if slice_axis not in (0, 1, 2):
-        raise ValueError('Invalid slice_axis.')
+        msg = 'Invalid slice_axis.'
+        raise ValueError(msg)
 
     if slice_index is None:
         slice_index = volume1.shape[slice_axis] // 2
     if not isinstance(slice_index, int):
-        raise ValueError('slice_index must be an integer.')
+        msg = 'slice_index must be an integer.'
+        raise ValueError(msg)
 
     vc = _VolumeComparison(volume1, volume2, slice_axis, slice_index)
     return vc.build_interactive()
