@@ -929,35 +929,37 @@ class ParameterVisualizer:
         )
 
         # Controls styling
+
         controls.layout = widgets.Layout(
-            width='370px',  # Fixed max width for better readability
-            min_width='320px',
-            max_width='500px',
+            display='flex',
+            flex_flow='column',
+            flex='0 1',
+            min_width='350px',  # Ensure it doesn't get too small
             height='auto',
             overflow_y='auto',
             border='1px solid lightgray',
-            padding='5px',
-            margin='0px 10px 0px 0px',  # right margin
-            background='rgba(240,240,240,0.9)',
-            border_radius='8px',
+            padding='10px',
+            margin='0 1em 0 0',
         )
 
-        # Plot output
         plot_output = widgets.Output()
-        with plot_output:
-            display(self.plot)
 
         plot_output.layout = widgets.Layout(
-            flex='1 1 auto',  # Take remaining space
+            flex='1 1 auto',  # Expand to fill remaining space
             height='auto',
-            min_height='500px',  # Optional: for consistent height
             border='1px solid lightgray',
+            overflow='auto',
+            margin='0 1em 0 0',
         )
 
-        # Final layout with HBox
         ui = widgets.HBox(
             [controls, plot_output],
-            layout=widgets.Layout(width='100%', align_items='flex-start'),
+            layout=widgets.Layout(
+                width='100%', display='flex', flex_flow='row', align_items='stretch'
+            ),
         )
+
+        with plot_output:
+            display(self.plot)
 
         display(ui)
