@@ -124,7 +124,7 @@ def specific_placement(
     return collection, placed, positions
 
 
-def volume_collection(
+def _volume_collection(
     collection_shape: tuple = (200, 200, 200),
     num_volumes: int = 15,
     positions: list[tuple] = None,
@@ -427,6 +427,333 @@ def volume_collection(
             f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_volumes} volumes.'
         )
 
+    if verbose:
+        log.setLevel(original_log_level)
+
+    if return_positions:
+        return collection_array, labels, placed_positions
+    else:
+        return collection_array, labels
+
+
+def volume_collection(
+    num_volumes: int = 15,
+    collection_shape: tuple = (200, 200, 200),
+    positions: list[tuple] = None,
+    shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
+    volume_shape_zoom: tuple = (1.0, 1.0, 1.0),
+    noise_type: str = 'perlin',
+    noise_range: tuple[float] = (0.02, 0.03),
+    rotation_degree_range: tuple[int] = (0, 360),
+    rotation_axes: list[tuple] = None,
+    gamma_range: tuple[float] = (0.9, 1),
+    value_range: tuple[int] = (128, 255),
+    threshold_range: tuple[float] = (0.5, 0.55),
+    decay_rate_range: tuple[float] = (5, 10),
+    shape: str = None,
+    tube_hole_ratio: float = 0.5,
+    axis: int = 0,
+    verbose: bool = False,
+    same_seed: bool = False,
+    hollow: bool = False,
+    seed: int = 0,
+    return_positions: bool = False,
+) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Generate a 3D volume of multiple synthetic volumes using Perlin or Simplex noise.
+
+    Args:
+        num_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
+        collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
+        positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
+        shape_range (tuple of tuple of ints, optional): Determines the shape of the generated volumes with first element defining the minimum size and second element defining maximum. Defaults to ((40,40,40), (60,60,60)).
+        volume_shape_zoom (tuple of floats, optional): Scaling factors for each dimension of each volume. Defaults to (1.0, 1.0, 1.0).
+        noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex`, `perlin` or `mixed`. Defaults to perlin.
+        noise_range (tuple of floats, optional): Determines range for noise. First element is minimum and second is maximum. Defaults to (0.02, 0.03).
+        rotation_degree_range (tuple of ints, optional): Determines range for rotation angle in degrees. First element is minimum and second is maximum. Defaults to (0, 360).
+        rotation_axes (list[tuple], optional): List of axis pairs that will be randomly chosen to rotate around. Defaults to [(0, 1), (0, 2), (1, 2)].
+        gamma_range (tuple of floats, optional): Determines minimum and maximum gamma correctness factor. Defaults to (0.9, 1.0)
+        value_range (tuple of ints, optional): Determines minimum and maximum value for volume intensity. Defaults to (128, 255).
+        threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.55).
+        decay_rate_range (float, optional): Determines minimum and maximum value for the decay_range. Defaults to (5,10).
+        shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
+        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
+        axis (int, optional): Determines the axis of the volume_shape if this is defined. Defaults to 0.
+        verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
+        same_seed (bool, optional): Use the same seed for each generated volume. Note that in order to generate identical volumes, the min and max for the different parameters should be identical.
+        hollow (bool, optional): Create hollow objects using qim3d.operations.make_hollow(). Defaults to False.
+        seed (int, optional): Seed for reproducibility. Defaults to 0. Each generated volume will be generated with a randomly selected sub-seed generated from the original seed.
+        return_positions (bool, optional): Flag to return position of randomly placed blobs.
+
+    Returns:
+        volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
+        labels (numpy.ndarray): Array with labels for each voxel, same shape as volume_collection.
+
+    Raises:
+        ValueError: If `noise_type` is invalid.
+        TypeError: If `collection_shape` is not 3D.
+        ValueError: If volume parameters are invalid.
+        ValueError: If the `shape_range` is incorrectly defined.
+        ValueError: If the `positions` are incorrectly defined.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=15)
+
+        # Visualize the collection
+        qim3d.viz.volumetric(volume_collection, grid_visible=True)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        qim3d.viz.slicer(volume_collection)
+        ```
+        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default.gif)
+
+        ```python
+        # Visualize labels
+        cmap = qim3d.viz.colormaps.segmentation(num_labels=num_volumes)
+        qim3d.viz.slicer(labels, color_map=cmap, value_max=num_volumes)
+        ```
+        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
+
+    Example:
+        ```python
+        # Generate synthetic collection of dense objects
+        vol, labels = qim3d.generate.volume_collection(
+            value_range = (255, 255),
+            noise_range = (0.03, 0.04),
+            threshold_range = (0.99, 0.99),
+            gamma_range = (0.02, 0.02),
+            decay_rate_range = (10,10)
+            )
+
+        # Visualize the collection
+        qim3d.viz.volumetric(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of cylindrical structures
+        volume_collection, labels = qim3d.generate.volume_collection(
+            num_volumes = 40,
+            collection_shape = (300, 150, 150),
+            shape_range = ((280, 10, 10), (290, 15, 15)),
+            noise_range = (0.06,0.09),
+            rotation_degree_range = (0,5),
+            threshold_range = (0.1,0.3),
+            gamma_range = (0.10, 0.20),
+            shape = "cylinder"
+            )
+
+        # Visualize the collection
+        qim3d.viz.volumetric(volume_collection)
+
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_cylinder_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Visualize slices
+        qim3d.viz.slices_grid(volume_collection, num_slices=15)
+        ```
+        ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection of tubular (hollow) structures
+        volume_collection, labels = qim3d.generate.volume_collection(
+            num_volumes = 10,
+            collection_shape = (200, 200, 200),
+            shape_range = ((185,35,35), (190,45,45)),
+            noise_range = (0.02, 0.03),
+            rotation_degree_range = (0,5),
+            threshold_range = (0.6, 0.7),
+            gamma_range = (0.1, 0.11),
+            shape = "tube",
+            tube_hole_ratio = 0.15,
+            )
+
+        # Visualize the collection
+        qim3d.viz.volumetric(volume_collection)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tube_1.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Visualize slices
+        qim3d.viz.slices_grid(volume_collection, num_slices=15, slice_axis=1)
+        ```
+        ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
+
+    """
+
+    # Check valid input types
+    noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's', 'mixed', 'm']
+    if noise_type not in noise_types:
+        err = f'noise_type should be one of: {noise_types}'
+        raise ValueError(err)
+
+    if not isinstance(collection_shape, tuple) or len(collection_shape) != 3:
+        message = 'Shape of collection must be a tuple with three dimensions (z, y, x)'
+        raise TypeError(message)
+
+    if len(shape_range[0]) != len(shape_range[1]):
+        message = 'Object shapes must be tuples of the same length'
+        raise ValueError(message)
+    if len(shape_range[0]) != 3 or len(shape_range[1]) != 3 or len(shape_range) != 2:
+        message = 'shape_range should be defined as a tuple with two elements, each containing a tuple with three elements.'
+        raise ValueError(message)
+
+    if (positions is not None) and (len(positions) != num_volumes):
+        message = 'Number of volumes must match number of positions, otherwise set positions = None'
+        raise ValueError(message)
+
+    if (positions is not None) and return_positions:
+        log.debug('positions are given and thus not returned')
+        return_positions = False
+
+    if rotation_axes is None:
+        rotation_axes = [(0, 1), (0, 2), (1, 2)]
+
+    if verbose:
+        original_log_level = log.getEffectiveLevel()
+        log.setLevel('DEBUG')
+
+    # Set seed for random number generator
+    rng = np.random.default_rng(seed)
+
+    # Set seed for random number generator for placement
+    rng_pos = np.random.default_rng(seed)
+
+    # Initialize the 3D array for the shape
+    collection_array = np.zeros(
+        (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=np.uint8
+    )
+    labels = np.zeros_like(collection_array)
+
+    # Initialize saved positions
+    placed_positions = []
+
+    if same_seed:
+        seeds = rng.integers(0, 255, size=1).repeat(1000)
+    else:
+        seeds = rng.integers(low=0, high=255, size=1000)
+    nt = rng.random(size=1000)
+
+    # Fill the 3D array with synthetic blobs
+    for i in tqdm(range(num_volumes), desc='Objects placed'):
+        log.debug(f'\nObject #{i+1}')
+
+        # Sample from blob parameter ranges
+        if shape_range[0] == shape_range[1]:
+            blob_shape = shape_range[0]
+        else:
+            blob_shape = tuple(
+                rng.integers(low=shape_range[0][i], high=shape_range[1][i])
+                for i in range(3)
+            )
+        log.debug(f'- Blob shape: {blob_shape}')
+
+        # Scale volume shape
+        final_shape = tuple(
+            dim * zoom for dim, zoom in zip(blob_shape, volume_shape_zoom)
+        )
+        final_shape = tuple(int(x) for x in final_shape)
+
+        # Sample noise scale
+        noise_scale = rng.uniform(low=noise_range[0], high=noise_range[1])
+        log.debug(f'- Object noise scale: {noise_scale:.4f}')
+
+        gamma = rng.uniform(low=gamma_range[0], high=gamma_range[1])
+        log.debug(f'- Gamma correction: {gamma:.3f}')
+
+        threshold = rng.uniform(low=threshold_range[0], high=threshold_range[1])
+        log.debug(f'- Threshold: {threshold:.3f}')
+
+        decay_rate = rng.uniform(low=decay_rate_range[0], high=decay_rate_range[1])
+        log.debug(f'- Decay rate: {decay_rate:.3f}')
+
+        if value_range[1] > value_range[0]:
+            max_value = rng.integers(low=value_range[0], high=value_range[1])
+        else:
+            max_value = value_range[0]
+        log.debug(f'- Max value: {max_value}')
+
+        if noise_type == 'mixed' or noise_type == 'm':
+            nti = 'perlin' if nt[i] >= 0.5 else 'simplex'
+        else:
+            nti = noise_type
+        log.debug(f'- Noise type: {nti}')
+
+        log.debug(f'- Seed: {seeds[i]}')
+        # Generate synthetic volume
+        blob = qim3d.generate.volume(
+            base_shape=blob_shape,
+            final_shape=final_shape,
+            noise_scale=noise_scale,
+            noise_type=nti,
+            decay_rate=decay_rate,
+            gamma=gamma,
+            threshold=threshold,
+            max_value=max_value,
+            shape=shape,
+            tube_hole_ratio=tube_hole_ratio,
+            axis=axis,
+            order=1,
+            dtype='uint8',
+            hollow=hollow,
+            seed=seeds[i],
+        )
+
+        # Rotate volume
+        if rotation_degree_range[1] > 0:
+            angle = rng.uniform(
+                low=rotation_degree_range[0], high=rotation_degree_range[1]
+            )  # Sample rotation angle
+            axes = rng.choice(rotation_axes)  # Sample the two axes to rotate around
+            log.debug(f'- Rotation angle: {angle:.2f} at axes: {axes}')
+
+            blob = scipy.ndimage.rotate(blob, angle, axes, order=1)
+
+        # Place synthetic volume into the collection
+        # If positions are specified, place volume at one of the specified positions
+        collection_before = collection_array.copy()
+        if positions:
+            collection_array, placed, positions = specific_placement(
+                collection_array, blob, positions.copy()
+            )
+
+        # Otherwise, place volume at a random available position
+        else:
+            collection_array, placed, pos = random_placement(
+                collection_array, blob, rng_pos
+            )
+            if return_positions and placed:
+                placed_positions.append(tuple(pos))
+
+            log.debug(f'- Center placement (z,y,x): {pos}')
+        # Break if volume could not be placed
+        if not placed:
+            break
+
+        # Update labels
+        new_labels = np.where(collection_array != collection_before, i + 1, 0).astype(
+            labels.dtype
+        )
+        labels += new_labels
+
+    if not placed:
+        # Log error if not all num_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
+        log.error(
+            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_volumes} volumes.'
+        )
     if verbose:
         log.setLevel(original_log_level)
 

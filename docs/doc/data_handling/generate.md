@@ -6,3 +6,4 @@
             - volume
             - volume_collection
             - background
+            - ParameterVisualizer
