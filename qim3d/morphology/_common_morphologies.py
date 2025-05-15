@@ -23,10 +23,36 @@ def dilate(
     Example:
         ```python
         import qim3d
+        import numpy as np
 
-        vol = qim3d.examples.cement_128x128x128
-        fig1 = qim3d.viz.slices_grid(vol, value_min=0, value_max=255, num_slices=5, display_figure=True)
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(vol, grid_visible=True)
         ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Pad volume to ensure dilation does not surpass boundaries
+        p = 20
+        vol_padded = qim3d.operations.pad(vol, x_axis=p, y_axis=p, z_axis=p)
+
+        # Create structuring element and apply dilation
+        s = 8
+        strel = np.ones((s,s,s))
+        vol_dilated = qim3d.morphology.dilate(vol_padded, strel, method='ndi')
+
+        # Trim the padded slices
+        vol_trimmed = qim3d.operations.trim(vol_dilated)
+
+        # Pad it back to original size
+        vol_final = qim3d.operations.pad_to(vol_trimmed, vol.shape)
+
+        # Visualize
+        qim3d.viz.volumetric(vol_final)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_dilated.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
@@ -81,12 +107,27 @@ def erode(
 
 
     Example:
-            ```python
-            import qim3d
+    ```python
+        import qim3d
+        import numpy as np
 
-            vol = qim3d.examples.cement_128x128x128
-            fig1 = qim3d.viz.slices_grid(vol, value_min=0, value_max=255, num_slices=5, display_figure=True)
-            ```
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(vol, grid_visible=True)
+    ```
+    <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+    ```python
+        # Create structuring element and erode
+        s = 6
+        strel = np.ones((s,s,s))
+        vol_eroded = qim3d.morphology.erode(vol, strel, method='ndi')
+
+        # Visualize
+        qim3d.viz.volumetric(vol_eroded)
+    ```
+    <iframe src="https://platform.qim.dk/k3d/zonohedra_eroded.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
@@ -143,12 +184,47 @@ def opening(
 
 
     Example:
-            ```python
-            import qim3d
+        ```python
+        import qim3d
+        import numpy as np
 
-            vol = qim3d.examples.cement_128x128x128
-            fig1 = qim3d.viz.slices_grid(vol, value_min=0, value_max=255, num_slices=5, display_figure=True)
-            ```
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+
+        # Add noise to the data
+        vol_noised = qim3d.generate.background(
+            background_shape=vol.shape,
+            apply_method = 'add',
+            apply_to = vol
+        )
+
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(vol_noised, grid_visible=True)
+        ```
+
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_noised_volume.html" width="100%" height="500" frameborder="0"></iframe>
+
+        ```python
+        # Pad volume to ensure dilation does not surpass boundaries
+        p = 20
+        vol_padded = qim3d.operations.pad(vol_noised, x_axis=p, y_axis=p, z_axis=p)
+
+        # Create structuring element and apply opening
+        s = 6
+        strel = np.ones((s,s,s))
+        vol_opened = qim3d.morphology.opening(vol_padded, strel, method='ndi')
+
+        # Trim the padded slices
+        vol_trimmed = qim3d.operations.trim(vol_opened)
+
+        # Pad it back to original size
+        vol_final = qim3d.operations.pad_to(vol_trimmed, vol.shape)
+
+        # Visualize
+        qim3d.viz.volumetric(vol_final)
+        ```
+
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_opening.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
@@ -205,11 +281,29 @@ def closing(
 
 
     Example:
-            ```python
-            import qim3d
+        ```python
+        import qim3d
+        import numpy as np
 
-            Do something here
-            ```
+        # Generate a cube with a hole through it
+        cube = np.zeros((110,110,110))
+        cube[10:90, 10:90, 10:90] = 1
+        cube[60:70,:,60:70]=0
+
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(cube, grid_visible=True)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_cube.html" width="100%" height="500" frameborder="0"></iframe>
+        ```python
+        # Generate structuring element and apply closing
+        s = 15
+        strel = np.ones((s,s,s))
+        cube_closed = qim3d.morphology.closing(cube, strel, method='ndi')
+
+        # Visualize
+        qim3d.viz.volumetric(cube_closed)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_cube_closed.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
@@ -269,9 +363,24 @@ def black_tophat(
     Example:
             ```python
             import qim3d
+            import numpy as np
 
-            Do something here
+            # Generate tubular synthetic blob
+            vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+
+            # Visualize synthetic volume
+            qim3d.viz.volumetric(vol, grid_visible=True)
             ```
+            <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+            ```python
+            # Create structuring element and apply the tophat
+            s = 10
+            strel = np.ones((s,s,s))
+            vol_black = qim3d.morphology.black_tophat(vol, strel, method='ndi')
+
+            qim3d.viz.volumetric(vol_black)
+            ```
+            <iframe src="https://platform.qim.dk/k3d/zonohedra_black_tophat.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
@@ -331,9 +440,26 @@ def white_tophat(
     Example:
             ```python
             import qim3d
+            import numpy as np
 
-            Do something here
+            # Generate tubular synthetic blob
+            vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+
+            # Visualize synthetic volume
+            qim3d.viz.volumetric(vol, grid_visible=True)
             ```
+            <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+
+            ```python
+            # Generate structuring element and apply tophat
+            s = 10
+            strel = np.ones((s,s,s))
+
+            vol_white = qim3d.morphology.white_tophat(vol, strel, method='ndi')
+
+            qim3d.viz.volumetric(vol_white)
+            ```
+            <iframe src="https://platform.qim.dk/k3d/zonohedra_white_tophat.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
