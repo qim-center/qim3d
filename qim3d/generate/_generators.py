@@ -699,6 +699,40 @@ def volume(
 
 
 class ParameterVisualizer:
+    """
+    Class for visualizing and experimenting with parameter changes and combinations on synthetic data.
+
+    Args:
+        base_shape (tuple, optional): Determines the shape of the generate volume. This will not be update when exploring parameters and must be determined when generating the visualizer.
+        seed (int, optional): Determines the seed for the volume generation. Enables the user to generate different volumes with the same parameters.
+        initial_config (dict, optional): Dictionary that defines the starting parameters of the visualizer. Can be used if a specific setup is needed. The dictionary may contain the keywords: `noise_type`, `noise_scale`, `decay_rate`, `gamma`, `threshold`, `shape` and `tube_hole_ratio`.
+        nsmin (float, optional): Determines minimum value for the noise scale slider. Defaults to 0.0.
+        nsmax (float, optional): Determines maximum value for the noise scale slider. Defaults to 0.1.
+        dsmin (float, optional): Determines minimum value for the decay rate slider. Defaults to 0.1.
+        dsmax (float, optional): Determines maximum value for the decay rate slider. Defaults to 20.
+        gsmin (float, optional): Determines minimum value for the gamma slider. Defaults to 0.1.
+        gsmax (float, optional): Determines maximum value for the gamma slider. Defaults to 2.0.
+        tsmin (float, optional): Determines minimum value for the threshold slider. Defaults to 0.0.
+        tsmax (float, optional): Determines maximum value for the threshold slider. Defaults to 1.0.
+        grid_visible (bool, optional): Determines if the grid should be visible upon plot generation. Defaults to False.
+
+    Raises:
+        ValueError: If base_shape is invalid.
+        ValueError: If noise slider values are invalid.
+        ValueError: If decay slider values are invalid.
+        ValueError: If gamma slider values are invalid.
+        ValueError: If threshold slider values are invalid.
+
+    Example:
+        ```python
+        import qim3d
+
+        viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0, grid_visible=True)
+        ```
+        ![paramter_visualizer](../../assets/screenshots/parameter_visualizer.png)
+
+    """
+
     def __init__(
         self,
         base_shape: tuple = (128, 128, 128),
@@ -714,39 +748,6 @@ class ParameterVisualizer:
         tsmax: float = 1.0,
         grid_visible: bool = False,
     ):
-        """
-        Class for volume parameter visualization.
-
-        Args:
-            base_shape (tuple, optional): Determines the shape of the generate volume. This will not be update when exploring parameters and must be determined when generating the visualizer.
-            seed (int, optional): Determines the seed for the volume generation. Enables the user to generate different volumes with the same parameters.
-            initial_config (dict, optional): Dictionary that defines the starting parameters of the visualizer. Can be used if a specific setup is needed. The dictionary may contain the keywords: `noise_type`, `noise_scale`, `decay_rate`, `gamma`, `threshold`, `shape` and `tube_hole_ratio`.
-            nsmin (float, optional): Determines minimum value for the noise scale slider. Defaults to 0.0.
-            nsmax (float, optional): Determines maximum value for the noise scale slider. Defaults to 0.1.
-            dsmin (float, optional): Determines minimum value for the decay rate slider. Defaults to 0.1.
-            dsmax (float, optional): Determines maximum value for the decay rate slider. Defaults to 20.
-            gsmin (float, optional): Determines minimum value for the gamma slider. Defaults to 0.1.
-            gsmax (float, optional): Determines maximum value for the gamma slider. Defaults to 2.0.
-            tsmin (float, optional): Determines minimum value for the threshold slider. Defaults to 0.0.
-            tsmax (float, optional): Determines maximum value for the threshold slider. Defaults to 1.0.
-            grid_visible (bool, optional): Determines if the grid should be visible upon plot generation. Defaults to False.
-
-        Raises:
-            ValueError: If base_shape is invalid.
-            ValueError: If noise slider values are invalid.
-            ValueError: If decay slider values are invalid.
-            ValueError: If gamma slider values are invalid.
-            ValueError: If threshold slider values are invalid.
-
-        Example:
-            ```python
-            import qim3d
-
-            viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0, grid_visible=True)
-            ```
-            ![paramter_visualizer](../../assets/screenshots/parameter_visualizer.png)
-
-        """
         # Error checking:
 
         if not isinstance(base_shape, tuple) or len(base_shape) != 3:
@@ -927,40 +928,36 @@ class ParameterVisualizer:
             ]
         )
 
+        # Controls styling
         controls.layout = widgets.Layout(
-            position='relative',
-            top='0px',
-            left='0px',
-            width='420px',
-            height='280px',
-            background='rgba(255,255,255,0.9)',
-            padding='10px',
-            border='1px solid gray',
+            width='370px',  # Fixed max width for better readability
+            min_width='320px',
+            max_width='500px',
+            height='auto',
+            overflow_y='auto',
+            border='1px solid lightgray',
+            padding='5px',
+            margin='0px 10px 0px 0px',  # right margin
+            background='rgba(240,240,240,0.9)',
             border_radius='8px',
-            z_index=5,
         )
 
-        # Output widget to render the plot
+        # Plot output
         plot_output = widgets.Output()
         with plot_output:
             display(self.plot)
 
         plot_output.layout = widgets.Layout(
-            position='absolute',
-            left='0px',
-            top='0px',
-            width='100%',
-            height='500px',
-            z_index=1,
+            flex='1 1 auto',  # Take remaining space
+            height='auto',
+            min_height='500px',  # Optional: for consistent height
+            border='1px solid lightgray',
         )
 
-        # Container that overlays sliders on top of the plot
-        overlay = widgets.Box([controls, plot_output])
-        overlay.layout = widgets.Layout(
-            position='relative',
-            width='100%',
-            height='500px',
+        # Final layout with HBox
+        ui = widgets.HBox(
+            [controls, plot_output],
+            layout=widgets.Layout(width='100%', align_items='flex-start'),
         )
 
-        # Display the final UI
-        display(overlay)
+        display(ui)
