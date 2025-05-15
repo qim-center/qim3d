@@ -729,7 +729,7 @@ class ParameterVisualizer:
 
         viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0, grid_visible=True)
         ```
-        ![paramter_visualizer](../../assets/screenshots/parameter_visualizer.png)
+        ![paramter_visualizer](../../assets/screenshots/viz-synthetic_parameters.gif)
 
     """
 
