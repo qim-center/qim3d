@@ -29,7 +29,7 @@ def dilate(
         vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
         # Visualize synthetic volume
-        qim3d.viz.volumetric(vol, grid_visible=True)
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
 
@@ -115,7 +115,7 @@ def erode(
         vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
         # Visualize synthetic volume
-        qim3d.viz.volumetric(vol, grid_visible=True)
+        qim3d.viz.volumetric(vol)
     ```
     <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
     ```python
@@ -291,7 +291,7 @@ def closing(
         cube[60:70,:,60:70]=0
 
         # Visualize synthetic volume
-        qim3d.viz.volumetric(cube, grid_visible=True)
+        qim3d.viz.volumetric(cube)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_cube.html" width="100%" height="500" frameborder="0"></iframe>
         ```python
@@ -369,7 +369,7 @@ def black_tophat(
             vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
             # Visualize synthetic volume
-            qim3d.viz.volumetric(vol, grid_visible=True)
+            qim3d.viz.volumetric(vol)
             ```
             <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
             ```python
@@ -446,7 +446,7 @@ def white_tophat(
             vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
             # Visualize synthetic volume
-            qim3d.viz.volumetric(vol, grid_visible=True)
+            qim3d.viz.volumetric(vol)
             ```
             <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
 

@@ -1,4 +1,4 @@
-"""Morphological functions."""
+"""Morphological operations for volumetric data."""
 
 from ._common_morphologies import (
     black_tophat,
