@@ -56,6 +56,14 @@ def dilate(
 
     """
 
+    try:
+        vol = np.asarray(vol)
+    except TypeError as e:
+        err = 'Input volume must be array-like.'
+        raise TypeError(err) from e
+
+    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
@@ -130,6 +138,14 @@ def erode(
     <iframe src="https://platform.qim.dk/k3d/zonohedra_eroded.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
+
+    try:
+        vol = np.asarray(vol)
+    except TypeError as e:
+        err = 'Input volume must be array-like.'
+        raise TypeError(err) from e
+
+    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
@@ -228,6 +244,14 @@ def opening(
 
     """
 
+    try:
+        vol = np.asarray(vol)
+    except TypeError as e:
+        err = 'Input volume must be array-like.'
+        raise TypeError(err) from e
+
+    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
@@ -307,6 +331,14 @@ def closing(
 
     """
 
+    try:
+        vol = np.asarray(vol)
+    except TypeError as e:
+        err = 'Input volume must be array-like.'
+        raise TypeError(err) from e
+
+    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
         assert strel.ndim == 3, 'Structuring element must a 3D np.ndarray.'
@@ -383,6 +415,14 @@ def black_tophat(
             <iframe src="https://platform.qim.dk/k3d/zonohedra_black_tophat.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
+
+    try:
+        vol = np.asarray(vol)
+    except TypeError as e:
+        err = 'Input volume must be array-like.'
+        raise TypeError(err) from e
+
+    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
@@ -462,6 +502,14 @@ def white_tophat(
             <iframe src="https://platform.qim.dk/k3d/zonohedra_white_tophat.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
+
+    try:
+        vol = np.asarray(vol)
+    except TypeError as e:
+        err = 'Input volume must be array-like.'
+        raise TypeError(err) from e
+
+    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
         assert not isinstance(strel, int), 'Structuring element must a 3D np.ndarray.'
