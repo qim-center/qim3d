@@ -4,9 +4,6 @@ import numpy as np
 
 from qim3d.utils._logger import log
 
-__all__ = ['blobs']
-
-
 def blobs(
     vol: np.ndarray,
     background: str = 'dark',

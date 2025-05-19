@@ -20,9 +20,12 @@ def volume(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Load a mesh from a file
-        mesh = qim3d.io.load_mesh('path/to/mesh.obj')
+        # Generate a synthetic 3D object
+        synthetic_object = qim3d.generate.volume()
 
+        # Convert into a mesh
+        mesh = qim3d.mesh.from_volume(synthetic_object, mesh_precision=0.5)
+        
         # Compute the volume of the mesh
         volume = qim3d.features.volume(mesh)
         print(f'Volume: {volume}')
@@ -32,11 +35,11 @@ def volume(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a 3D blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        # Generate a synthetic 3D object
+        synthetic_object = qim3d.generate.volume()
 
         # Compute the volume of the blob
-        volume = qim3d.features.volume(synthetic_blob)
+        volume = qim3d.features.volume(synthetic_object)
         print(f'Volume: {volume}')
         ```
 
@@ -64,8 +67,11 @@ def area(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Load a mesh from a file
-        mesh = qim3d.io.load_mesh('path/to/mesh.obj')
+        # Generate a synthetic 3D object
+        synthetic_object = qim3d.generate.volume()
+
+        # Convert into a mesh
+        mesh = qim3d.mesh.from_volume(synthetic_object, mesh_precision=0.5)
 
         # Compute the surface area of the mesh
         area = qim3d.features.area(mesh)
@@ -76,11 +82,11 @@ def area(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a 3D blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        # Generate a synthetic 3D object
+        synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the surface area of the blob
-        area = qim3d.features.area(synthetic_blob)
+        area = qim3d.features.area(synthetic_object)
         print(f'Area: {area}')
         ```
 
@@ -108,8 +114,11 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Load a mesh from a file
-        mesh = qim3d.io.load_mesh('path/to/mesh.obj')
+        # Generate a synthetic 3D object
+        synthetic_object = qim3d.generate.volume()
+
+        # Convert into a mesh
+        mesh = qim3d.mesh.from_volume(synthetic_object, mesh_precision=0.5)
 
         # Compute the sphericity of the mesh
         sphericity = qim3d.features.sphericity(mesh)
@@ -120,11 +129,11 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a 3D blob
-        synthetic_blob = qim3d.generate.noise_object(noise_scale = 0.015)
+        # Generate a synthetic 3D object
+        synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the sphericity of the blob
-        sphericity = qim3d.features.sphericity(synthetic_blob)
+        sphericity = qim3d.features.sphericity(synthetic_object)
         print(f'Sphericity: {sphericity}')
         ```
 

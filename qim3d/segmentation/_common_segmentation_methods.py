@@ -2,9 +2,6 @@ import numpy as np
 
 from qim3d.utils._logger import log
 
-__all__ = ['watershed']
-
-
 def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, int]:
     """
     Apply watershed segmentation to a binary volume.

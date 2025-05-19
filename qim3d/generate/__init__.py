@@ -11,7 +11,5 @@ __all__ = [
     'volume',
     'volume_collection',
     'background',
-    '_volume',
-    '_volume_collection',
     'ParameterVisualizer',
 ]

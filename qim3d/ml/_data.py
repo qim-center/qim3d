@@ -192,7 +192,7 @@ def prepare_datasets(
         ```python
         import qim3d
 
-        base_path = "C:/dataset/"
+        base_path = "dataset"
         model = qim3d.ml.models.UNet(size = 'small')
         augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
 
@@ -283,7 +283,7 @@ def prepare_dataloaders(
         ```python
         import qim3d
 
-        base_path = "C:/dataset/"
+        base_path = "dataset"
         model = qim3d.ml.models.UNet(size = 'small')
         augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
 

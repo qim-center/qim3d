@@ -219,7 +219,7 @@ def _volume_collection(
         import qim3d
 
         # Generate synthetic collection of dense objects
-        vol, labels = qim3d.generate.volume_collection(
+        volume_collection, labels = qim3d.generate.volume_collection(
             min_high_value = 255,
             max_high_value = 255,
             min_volume_noise = 0.05,
@@ -231,7 +231,7 @@ def _volume_collection(
             )
 
         # Visualize the collection
-        qim3d.viz.vol(volume_collection)
+        qim3d.viz.volumetric(volume_collection)
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense.html" width="100%" height="500" frameborder="0"></iframe>
 

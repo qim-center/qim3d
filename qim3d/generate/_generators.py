@@ -266,8 +266,7 @@ def background(
 
     Raises:
         ValueError: If `apply_method` is not one of 'add', 'subtract', 'multiply', or 'divide'.
-        ValueError: If `apply_method` is provided without `apply_to` input volume provided.
-        ValueError: If the shape of `apply_to` input volume does not match `background_shape`.
+        ValueError: If `apply_method` is provided without `apply_to` input volume provided, or vice versa.
 
     Example:
         ```python
@@ -297,8 +296,9 @@ def background(
             background_shape = volume_collection.shape,
             min_noise_value = 0,
             max_noise_value = 20,
-            apply_to = volume_collection,
-            apply_method = 'add'
+            generate_method = 'add',
+            apply_method = 'add',
+            apply_to = volume_collection
         )
 
         qim3d.viz.volumetric(noisy_collection)
@@ -365,12 +365,7 @@ def background(
         'divide': lambda a, b: a / (b + 1e-8),  # Avoid division by zero
     }
 
-    # generate_method check
-    if generate_method not in apply_operations:
-        msg = f"Invalid generate_method '{generate_method}'. Choose from {list(apply_operations.keys())}."
-        raise ValueError(msg)
-
-    # apply_method check
+    # Check if apply_method is provided without apply_to volume, or vice versa
     if (apply_to is None and apply_method is not None) or (
         apply_to is not None and apply_method is None
     ):
@@ -378,9 +373,14 @@ def background(
         # Validate apply_method
         raise ValueError(msg)
 
-    # Check if methods are correct
+    # Validate apply_method
     if apply_method is not None and apply_method not in apply_operations:
         msg = f"Invalid apply_method '{apply_method}'. Choose from {list(apply_operations.keys())}."
+        raise ValueError(msg)
+
+    # Validate generate_method
+    if generate_method not in apply_operations:
+        msg = f"Invalid generate_method '{generate_method}'. Choose from {list(apply_operations.keys())}."
         raise ValueError(msg)
 
     # Check for shape mismatch

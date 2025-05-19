@@ -187,4 +187,4 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--ignore=qim3d/tests/notebooks"
+addopts = "--ignore=qim3d/tests/notebooks -p no:warnings"

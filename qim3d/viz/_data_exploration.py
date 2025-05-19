@@ -1390,7 +1390,6 @@ def threshold(
     Args:
         volume (np.ndarray): 3D volume to threshold.
         cmap_image (str, optional): Colormap for the original image. Defaults to 'viridis'.
-        cmap_threshold (str, optional): Colormap for the binary image. Defaults to 'gray'.
         vmin (float, optional): Minimum value for the colormap. Defaults to None.
         vmax (float, optional): Maximum value for the colormap. Defaults to None.
 

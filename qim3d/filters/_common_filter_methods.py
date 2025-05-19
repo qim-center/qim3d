@@ -10,22 +10,6 @@ from skimage import morphology
 
 from qim3d.utils import log
 
-__all__ = [
-    'FilterBase',
-    'Gaussian',
-    'Median',
-    'Maximum',
-    'Minimum',
-    'Pipeline',
-    'Tophat',
-    'gaussian',
-    'median',
-    'maximum',
-    'minimum',
-    'tophat',
-]
-
-
 class FilterBase:
     def __init__(self, *args, dask: bool = False, chunks: str = 'auto', **kwargs):
         """

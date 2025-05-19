@@ -49,10 +49,10 @@ def train_model(
         ```python
         import qim3d
 
-        base_path = "C:/dataset/"
-        model = qim3d.ml.models.UNet(size = 'small')
+        base_path = "dataset"
+        model = qim3d.ml.models.UNet(size = 'xxsmall')
         augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
-        hyperparameters = qim3d.ml.Hyperparameters(model, n_epochs = 10)
+        hyperparameters = qim3d.ml.Hyperparameters(model, n_epochs = 5)
 
         # Set up datasets and dataloaders
         train_set, val_set, test_set = qim3d.ml.prepare_datasets(
@@ -193,7 +193,7 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str) -> torch.nn.Mo
 
         # Instantiate model architecture
         model = qim3d.ml.models.UNet(size = 'small')
-        checkpoint_path = "C:/dataset/model_10epochs.pth"
+        checkpoint_path = "dataset/model_5epochs.pth"
 
         # Load checkpoint into model
         model = qim3d.ml.load_checkpoint(model, checkpoint_path)
@@ -223,7 +223,7 @@ def model_summary(
         ```python
         import qim3d
 
-        base_path = "C:/dataset/"
+        base_path = "dataset"
         model = qim3d.ml.models.UNet(size = 'small')
         augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
 
@@ -285,7 +285,7 @@ def test_model(
         ```python
         import qim3d
 
-        base_path = "C:/dataset/"
+        base_path = "dataset"
         model = qim3d.ml.models.UNet(size = 'small')
         augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
         hyperparameters = qim3d.ml.Hyperparameters(model, n_epochs = 10)

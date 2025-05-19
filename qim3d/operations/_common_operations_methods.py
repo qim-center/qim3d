@@ -80,19 +80,18 @@ def fade_mask(
     Example:
         ```python
         import qim3d
-        vol = qim3d.io.load('heartScan.tif')
+        vol = qim3d.examples.fly_150x256x256
         qim3d.viz.volumetric(vol)
         ```
-        Image before edge fading has visible artifacts from the support. Which obscures the object of interest.
-        ![operations-edge_fade_before](../../assets/screenshots/operations-edge_fade_before.png)
+        Image before edge fading has visible artifacts, which obscures the object of interest.
+        <iframe src="https://platform.qim.dk/k3d/fly.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-        import qim3d
-        vol_faded = qim3d.operations.fade_mask(vol, decay_rate=4, ratio=0.45, geometric='cylindrical')
-        qim3d.viz.volumetrics(vol_faded)
+        vol_faded = qim3d.operations.fade_mask(vol, geometric='cylindrical', decay_rate=5, ratio=0.65, axis=1)
+        qim3d.viz.volumetric(vol_faded)
         ```
         Afterwards the artifacts are faded out, making the object of interest more visible for visualization purposes.
-        ![operations-edge_fade_after](../../assets/screenshots/operations-edge_fade_after.png)
+        <iframe src="https://platform.qim.dk/k3d/fly_faded.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
     if axis < 0 or axis >= vol.ndim:

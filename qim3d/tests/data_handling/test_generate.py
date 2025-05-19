@@ -4,15 +4,15 @@ import pytest
 import qim3d
 
 
-# Unit test for background() shape mismatch ValueError
-def test_background_shape_mismatch():
-    vol = np.ones([128, 128, 128])
+# Unit test for background() apply_to ValueError
+def test_background_apply_to_error():
     background_shape = (64, 64, 64)
+    apply_method = 'add'
 
-    msg = f'Shape of input volume {vol.shape} does not match background_shape {background_shape}.'
+    msg = f"apply_method '{apply_method}' is only supported when apply_to input volume is provided."
 
     with pytest.raises(ValueError, match=msg):
-        qim3d.generate.background(background_shape=background_shape, apply_to=vol)
+        qim3d.generate.background(background_shape=background_shape, apply_method='add')
 
 
 # Unit test for background() voxel intensities
@@ -24,6 +24,7 @@ def test_background_intensities():
     background = qim3d.generate.background(
         background_shape=(64, 64, 64),
         baseline_value=baseline_value,
+        generate_method='add',
         min_noise_value=min_noise_value,
         max_noise_value=max_noise_value,
     )
