@@ -1029,9 +1029,20 @@ class _LineProfile:
         horizontal_position,
         angle,
         fraction_range,
+        ylim
     ):
         self.volume = volume
         self.slice_axis = slice_axis
+        
+        self.data_min = self.volume.min()
+        self.data_max = self.volume.max()
+        self.data_span = self.data_max - self.data_min
+        if isinstance(ylim, str):
+            self.ylim_style = ylim
+            self.ylim = [self.data_min, self.data_max]
+        else:
+            self.ylim_style = 'manual'
+            self.ylim = ylim
 
         self.dims = np.array(volume.shape)
         self.pad = 1  # Padding on pivot point to avoid border issues
@@ -1056,8 +1067,19 @@ class _LineProfile:
         self.y_widget.max = self.y_max - self.pad
         self.y_widget.value = self.y_max // 2
 
+    def update_ylim(self, ax, ylim_style):
+        self.ylim_widget.layout.display = 'none'
+        if ylim_style == 'full':
+            pad = 0.05
+            ax.set_ylim(self.data_min - pad*self.data_span, self.data_max + pad*self.data_span)
+        elif ylim_style == 'manual':
+            ax.set_ylim(self.ylim[0], self.ylim[1])
+            self.ylim_widget.layout.display = 'flex'
+    
     def initialize_widgets(self):
         layout = widgets.Layout(width='300px', height='auto')
+        
+        # Line options
         self.x_widget = widgets.IntSlider(
             min=self.pad, step=1, description='', layout=layout
         )
@@ -1071,6 +1093,7 @@ class _LineProfile:
             min=0, max=1, step=0.01, value=[0, 1], description='', layout=layout
         )
 
+        # Slice options
         self.slice_axis_widget = widgets.Dropdown(
             options=[0, 1, 2], value=self.slice_axis, description='Slice axis'
         )
@@ -1080,6 +1103,23 @@ class _LineProfile:
             min=0, step=1, description='Slice index', layout=layout
         )
         self.slice_index_widget.layout.width = '400px'
+        
+        # y-limit
+        self.ylim_style_widget = widgets.Dropdown(
+            options=['auto', 'full', 'manual'], value=self.ylim_style, description='y-limit style'
+        )
+        
+        num_steps = 30
+        self.ymin_widget = widgets.FloatText(
+            description='y-min', value=self.ylim[0], layout=widgets.Layout(width='150px'), step=self.data_span/num_steps
+        )
+        self.ymax_widget = widgets.FloatText(
+            description='y-max', value=self.ylim[1], layout=widgets.Layout(width='150px'), step=self.data_span/num_steps
+        )
+        self.ylim_widget = widgets.HBox([self.ymin_widget, self.ymax_widget])
+        self.ylim_widget.layout = widgets.Layout(width='310px')
+        if self.ylim_style != 'manual':
+            self.ylim_widget.layout.display = 'none'
 
     def calculate_line_endpoints(self, x, y, angle):
         """
@@ -1108,12 +1148,15 @@ class _LineProfile:
         dst = [x + t_pos * np.cos(angle), y + t_pos * np.sin(angle)]
         return src, dst
 
-    def update(self, slice_axis, slice_index, x, y, angle_deg, fraction_range):
+    def update(self, slice_axis, slice_index, x, y, angle_deg, fraction_range, ylim_style, ymin, ymax):
         if slice_axis != self.slice_axis:
             self.update_slice_axis(slice_axis)
             x = self.x_widget.value
             y = self.y_widget.value
             slice_index = self.slice_index_widget.value
+        
+        self.ylim[0] = ymin
+        self.ylim[1] = ymax
 
         clear_output(wait=True)
 
@@ -1166,6 +1209,7 @@ class _LineProfile:
 
         ax[1].add_collection(lc)
         ax[1].autoscale()
+        self.update_ylim(ax[1], ylim_style)
         ax[1].set_xlabel('Distance along line')
         ax[1].grid(True)
         plt.tight_layout()
@@ -1180,7 +1224,7 @@ class _LineProfile:
             f"<div style='{title_style}'>Line parameterization</div>"
         )
         title_column2 = widgets.HTML(
-            f"<div style='{title_style}'>Slice selection</div>"
+            f"<div style='{title_style}'>Slice selection & plot options</div>"
         )
 
         # Make label widgets instead of descriptions which have different lengths.
@@ -1199,7 +1243,7 @@ class _LineProfile:
             [title_column1, row_x, row_y, row_angle, row_fraction]
         )
         controls_column2 = widgets.VBox(
-            [title_column2, self.slice_axis_widget, self.slice_index_widget]
+            [title_column2, self.slice_axis_widget, self.slice_index_widget, self.ylim_style_widget, self.ylim_widget]
         )
         controls = widgets.HBox([controls_column1, controls_column2])
 
@@ -1212,6 +1256,9 @@ class _LineProfile:
                 'y': self.y_widget,
                 'angle_deg': self.angle_widget,
                 'fraction_range': self.line_fraction_widget,
+                'ylim_style': self.ylim_style_widget,
+                'ymin': self.ymin_widget,
+                'ymax': self.ymax_widget
             },
         )
 
@@ -1226,6 +1273,7 @@ def line_profile(
     horizontal_position: int | str = 'middle',
     angle: int = 0,
     fraction_range: Tuple[float, float] = (0.00, 1.00),
+    y_limits: str | Tuple[float, float] = 'auto'
 ) -> widgets.interactive:
     """
     Returns an interactive widget for visualizing the intensity profiles of lines on slices.
@@ -1238,6 +1286,7 @@ def line_profile(
         horizontal_position (int or str, optional): Specifies the initial horizontal position of the line's pivot point.
         angle (int or float, optional): Specifies the initial angle (°) of the line around the pivot point. A float will be converted to an int. A value outside the range will be wrapped modulo.
         fraction_range (tuple or list, optional): Specifies the fraction of the line segment to use from border to border. Both the start and the end should be in the range [0.0, 1.0].
+        y_limits (str or tuple or list, optional): Specifies the behaviour of the limits on the y-axis of the intensity value plot. Option 'full' fixes to the volume's data range. Option 'auto' automatically adapts to the intensities on the current line. A manual range can be specified by passing a tuple or list of length 2. Defaults to 'auto'.
 
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
@@ -1305,6 +1354,12 @@ def line_profile(
     ):
         raise ValueError('Invalid values for fraction_range.')
 
+    if isinstance(y_limits, str):
+        if not y_limits in ['auto', 'full']:
+            raise ValueError('Invalid string value for y_limits.')
+    else:
+        y_limits = [*y_limits]
+
     lp = _LineProfile(
         volume,
         slice_axis,
@@ -1313,6 +1368,7 @@ def line_profile(
         horizontal_position,
         angle,
         fraction_range,
+        y_limits
     )
     return lp.build_interactive()
 
@@ -1643,7 +1699,7 @@ class _VolumeComparison:
             f"<div style='{title_style}'>Comparison options</div>"
         )
         title_column2 = widgets.HTML(
-            f"<div style='{title_style}'>Slice selection</div>"
+            f"<div style='{title_style}'>Slice selection and y-limit options</div>"
         )
 
         # Make label widgets instead of descriptions which have different lengths.

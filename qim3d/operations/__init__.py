@@ -1,6 +1,11 @@
 """Operations on volumes."""
 
-from ._common_operations_methods import fade_mask, overlay_rgb_images, remove_background
+from ._common_operations_methods import (
+    fade_mask,
+    make_hollow,
+    overlay_rgb_images,
+    remove_background,
+)
 from ._volume_operations import (
     center_twist,
     curve_warp,
@@ -15,6 +20,7 @@ __all__ = [
     'remove_background',
     'fade_mask',
     'overlay_rgb_images',
+    'make_hollow',
     'center_twist',
     'curve_warp',
     'pad',
