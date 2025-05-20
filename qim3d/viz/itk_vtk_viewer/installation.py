@@ -179,9 +179,8 @@ class Installer:
         def _linux():
             # Adds local binaries to the path in case we had to install node first (locally into qim folder), but shouldnt interfere even if
             # npm is installed globally
-            command = f'export PATH="$PATH:{get_node_binaries_dir(self.nvm_dir)}" && npm install --prefix {self.viewer_dir} itk-vtk-viewer'
+            command = f'export PATH="$PATH:{get_node_binaries_dir(self.nvm_dir)}" && npm install --prefix {self.viewer_dir} @qim3d/itk-vtk-viewer'
             output = subprocess.run([command], shell=True, capture_output=True)
-            # print(output.stderr)
 
         def _windows():
             try:
@@ -191,13 +190,13 @@ class Installer:
                     [
                         'powershell.exe',
                         f"$env:PATH=$env:PATH + ';{node_bin}';",
-                        f'npm install --prefix {self.viewer_dir} itk-vtk-viewer',
+                        f'npm install --prefix {self.viewer_dir} @qim3d/itk-vtk-viewer',
                     ],
                     capture_output=True,
                 )
             except NotInstalledError:  # Not installed in qim
                 subprocess.run(
-                    ['powershell.exe', SOURCE_FNM, 'npm install itk-vtk-viewer'],
+                    ['powershell.exe', SOURCE_FNM, 'npm install @qim3d/itk-vtk-viewer'],
                     capture_output=True,
                 )
 
