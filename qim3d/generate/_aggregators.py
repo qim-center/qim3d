@@ -441,7 +441,7 @@ def volume_collection(
     collection_shape: tuple = (200, 200, 200),
     positions: list[tuple] = None,
     shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
-    volume_shape_zoom: tuple = (1.0, 1.0, 1.0),
+    shape_magnification_range: tuple[float] = (1.0, 1.0),
     noise_type: str = 'perlin',
     noise_range: tuple[float] = (0.02, 0.03),
     rotation_degree_range: tuple[int] = (0, 360),
@@ -467,7 +467,7 @@ def volume_collection(
         collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
         shape_range (tuple of tuple of ints, optional): Determines the shape of the generated volumes with first element defining the minimum size and second element defining maximum. Defaults to ((40,40,40), (60,60,60)).
-        volume_shape_zoom (tuple of floats, optional): Scaling factors for each dimension of each volume. Defaults to (1.0, 1.0, 1.0).
+        shape_magnification_range (tuple of floats, optional): Range for scaling of volume shape in all dimensions. Defaults to (1.0, 1.0).
         noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex`, `perlin` or `mixed`. Defaults to perlin.
         noise_range (tuple of floats, optional): Determines range for noise. First element is minimum and second is maximum. Defaults to (0.02, 0.03).
         rotation_degree_range (tuple of ints, optional): Determines range for rotation angle in degrees. First element is minimum and second is maximum. Defaults to (0, 360).
@@ -659,13 +659,14 @@ def volume_collection(
                 rng.integers(low=shape_range[0][i], high=shape_range[1][i])
                 for i in range(3)
             )
-        log.debug(f'- Blob shape: {blob_shape}')
 
-        # Scale volume shape
-        final_shape = tuple(
-            dim * zoom for dim, zoom in zip(blob_shape, volume_shape_zoom)
+        magnification = rng.uniform(
+            low=shape_magnification_range[0], high=shape_magnification_range[1]
         )
-        final_shape = tuple(int(x) for x in final_shape)
+        log.debug(f'- Magnification: {magnification}')
+
+        final_shape = tuple(int(dim * magnification) for dim in blob_shape)
+        log.debug(f'- Blob shape: {final_shape}')
 
         # Sample noise scale
         noise_scale = rng.uniform(low=noise_range[0], high=noise_range[1])
