@@ -2,6 +2,55 @@ import numpy as np
 import pygorpho as pg
 import scipy.ndimage as ndi
 
+from qim3d.utils import log
+
+
+def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
+    """
+    Create a 3D kernel from various input types.
+
+    Args:
+        k (int | tuple | np.ndarray):
+            - If int, returns a cubic kernel of shape (k,k,k).
+            - If tuple of length 1, behaves as if given int.
+            - If tuple of length 3, returns kernel with that shape.
+            - If ndarray, returns the array if it has 3 dimensions.
+
+    Returns:
+        np.ndarray: A 3D kernel.
+
+    """
+    if isinstance(k, int):
+        log.debug('Using int to generate np.ones((k,k,k))')
+        return np.ones((k, k, k), dtype=bool)
+
+    elif isinstance(k, tuple):
+        if len(k) == 1 and isinstance(k[0], int):
+            log.debug(
+                'Using tuple with 1 element. Generating np.ones((k[0], k[0], k[0]))'
+            )
+            return np.ones((k[0], k[0], k[0]), dtype=bool)
+        elif len(k) == 3 and all(isinstance(x, int) for x in k):
+            log.debug(
+                'Using tuple with 3 elements. Generating np.ones((k[0], k[1], k[2]))'
+            )
+            return np.ones((k[0], k[1], k[2]), dtype=bool)
+        else:
+            err = 'Tuple input must be of length 1 or 3 with integer elements.'
+            raise ValueError(err)
+
+    elif isinstance(k, np.ndarray):
+        if k.ndim == 3:
+            log.debug('Using provided ndarray with shape %s', k.shape)
+            return k
+        else:
+            err = 'ndarray kernel must be 3-dimensional.'
+            raise ValueError(err)
+
+    else:
+        err = 'Kernel input must be int, tuple, or 3D np.ndarray.'
+        raise TypeError(err)
+
 
 def dilate(
     vol: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
@@ -34,23 +83,13 @@ def dilate(
         <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-        # Pad volume to ensure dilation does not surpass boundaries
-        p = 20
-        vol_padded = qim3d.operations.pad(vol, x_axis=p, y_axis=p, z_axis=p)
-
         # Create kernel and apply dilation
         s = 8
         kernel = np.ones((s,s,s))
-        vol_dilated = qim3d.morphology.dilate(vol_padded, kernel, method='scipy.ndimage')
-
-        # Trim the padded slices
-        vol_trimmed = qim3d.operations.trim(vol_dilated)
-
-        # Pad it back to original size
-        vol_final = qim3d.operations.pad_to(vol_trimmed, vol.shape)
+        vol_dilated = qim3d.morphology.dilate(vol, kernel, method='scipy.ndimage')
 
         # Visualize
-        qim3d.viz.volumetric(vol_final)
+        qim3d.viz.volumetric(vol_dilated)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_dilated.html" width="100%" height="500" frameborder="0"></iframe>
 
@@ -65,7 +104,7 @@ def dilate(
     assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         if not pg.cuda.get_device_count():
@@ -88,7 +127,7 @@ def dilate(
         return pg.flat.linear_dilate(vol, linesteps, linelens)
 
     elif method == 'scipy.ndimage':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         return ndi.grey_dilation(vol, footprint=kernel, **kwargs)
@@ -148,7 +187,7 @@ def erode(
     assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         if not pg.cuda.get_device_count():
@@ -170,7 +209,7 @@ def erode(
         return pg.flat.linear_erode(vol, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         return ndi.grey_erosion(vol, footprint=kernel, **kwargs)
@@ -221,23 +260,14 @@ def opening(
         <iframe src="https://platform.qim.dk/k3d/zonohedra_noised_volume.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-        # Pad volume to ensure dilation does not surpass boundaries
-        p = 20
-        vol_padded = qim3d.operations.pad(vol_noised, x_axis=p, y_axis=p, z_axis=p)
 
         # Create kernel and apply opening
         s = 6
         kernel = np.ones((s,s,s))
-        vol_opened = qim3d.morphology.opening(vol_padded, kernel, method='scipy.ndimage')
-
-        # Trim the padded slices
-        vol_trimmed = qim3d.operations.trim(vol_opened)
-
-        # Pad it back to original size
-        vol_final = qim3d.operations.pad_to(vol_trimmed, vol.shape)
+        vol_opened = qim3d.morphology.opening(vol_noised, kernel, method='scipy.ndimage')
 
         # Visualize
-        qim3d.viz.volumetric(vol_final)
+        qim3d.viz.volumetric(vol_opened)
         ```
 
         <iframe src="https://platform.qim.dk/k3d/zonohedra_opening.html" width="100%" height="500" frameborder="0"></iframe>
@@ -253,7 +283,7 @@ def opening(
     assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         if not pg.cuda.get_device_count():
@@ -275,7 +305,7 @@ def opening(
         return pg.flat.linear_open(vol, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         return ndi.grey_opening(vol, footprint=kernel, **kwargs)
@@ -340,7 +370,7 @@ def closing(
     assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         if not pg.cuda.get_device_count():
@@ -362,7 +392,7 @@ def closing(
         return pg.flat.linear_close(vol, linesteps, linelens, **kwargs)
 
     elif method == 'ndi' or method == 'scipy' or method == 'ndimage':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         return ndi.grey_closing(vol, footprint=kernel, **kwargs)
@@ -425,7 +455,7 @@ def black_tophat(
     assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         if not pg.cuda.get_device_count():
@@ -447,7 +477,7 @@ def black_tophat(
         return pg.flat.bothat(vol, linesteps, linelens, **kwargs)
 
     elif method == 'scipyndimage':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         return ndi.black_tophat(vol, footprint=kernel, **kwargs)
@@ -512,7 +542,7 @@ def white_tophat(
     assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         if not pg.cuda.get_device_count():
@@ -534,7 +564,7 @@ def white_tophat(
         return pg.flat.tophat(vol, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
-        assert not isinstance(kernel, int), 'Kernel must a 3D np.ndarray.'
+        kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
         return ndi.white_tophat(vol, footprint=kernel, **kwargs)
