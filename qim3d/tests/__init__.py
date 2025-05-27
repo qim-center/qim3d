@@ -1,6 +1,8 @@
 """Helper functions for testing"""
 
 import os
+import inspect
+import importlib
 import shutil
 import socket
 from pathlib import Path
@@ -8,6 +10,8 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+
+from mktestdocs import grab_code_blocks
 
 from qim3d.utils._logger import log
 from qim3d.io import save
@@ -122,3 +126,105 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
                 log.warning('Failed to delete %s. Reason: %s' % (file_path, e))
 
         os.rmdir(folder)
+
+def get_all_functions_by_module():
+    """ 
+    Creates and returns a dictionary of functions from the qim3d modules.
+    """
+
+    # List of qim3d modules
+    # TODO: Get this list automatically from the qim3d package information
+    modules = [
+        'io', 'generate', 'viz', 'features', 'filters', 'detection', 
+        'segmentation', 'operations', 'processing', 'mesh', 'ml',
+    ]
+
+    # Dictionary to store functions from each module
+    functions_by_module = {}
+
+    for module_name in modules:
+
+        # Dynamically import the module
+        module = importlib.import_module(f'qim3d.{module_name}')
+        
+        # Retrieve all functions listed in the __all__ variable
+        functions = [
+            getattr(module, name)
+            for name in getattr(module, '__all__', [])
+            if callable(getattr(module, name))
+        ]
+
+        # Only keep functions (not classes) in the list
+        functions = [func for func in functions if inspect.isfunction(func)]
+        
+        # Store the functions in the dictionary
+        functions_by_module[module_name] = functions
+
+    return functions_by_module
+
+def exec_python(source):
+    """
+    Execute a Python code block.
+    """
+    try:
+        exec(source, {"__name__": "__main__"})
+    except Exception:
+        print(source)
+        raise
+
+def merge_code_blocks(code_blocks):
+    """
+    Merge code blocks such that every time there is an 'import qim3d',
+    a new code block starts, and all preceding code blocks are merged into the previous one.
+    """
+    merged_blocks = []
+    current_block = ""
+
+    for block in code_blocks:
+        if "import qim3d" in block:
+
+            # If there's an existing block, add it to the merged list
+            if current_block.strip():
+                merged_blocks.append(current_block.strip())
+                
+            # Start a new block
+            current_block = block
+        else:
+            # Append to the current block
+            current_block += "\n" + block
+
+    # Add the last block if it exists
+    if current_block.strip():
+        merged_blocks.append(current_block.strip())
+
+    return merged_blocks
+
+def filter_code_blocks(code_blocks):
+    """Filter out code blocks that contain bibtex references."""
+
+    filtered_blocks = []
+
+    for block in code_blocks:
+        if not any(line.startswith("@") for line in block.splitlines()):
+            filtered_blocks.append(block)
+
+    return filtered_blocks
+
+def check_docstring(obj):
+    """
+    Given a function, test the contents of the docstring.
+    Custom function inspired by the mktestdocs.check_docstring function.
+    """
+
+    # Get all code blocks from the docstring
+    code_blocks = grab_code_blocks(obj.__doc__, lang="")
+
+    # Filter out code blocks that contain bibtex references
+    code_blocks = filter_code_blocks(code_blocks)
+
+    # Merge code blocks based on 'import qim3d'
+    merged_code_blocks = merge_code_blocks(code_blocks)
+
+    # Execute each merged code block
+    for b in merged_code_blocks:
+        exec_python(b)

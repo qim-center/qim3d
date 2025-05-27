@@ -80,19 +80,18 @@ def fade_mask(
     Example:
         ```python
         import qim3d
-        vol = qim3d.io.load('heartScan.tif')
+        vol = qim3d.examples.fly_150x256x256
         qim3d.viz.volumetric(vol)
         ```
-        Image before edge fading has visible artifacts from the support. Which obscures the object of interest.
-        ![operations-edge_fade_before](../../assets/screenshots/operations-edge_fade_before.png)
+        Image before edge fading has visible artifacts, which obscures the object of interest.
+        <iframe src="https://platform.qim.dk/k3d/fly.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-        import qim3d
-        vol_faded = qim3d.operations.fade_mask(vol, decay_rate=4, ratio=0.45, geometric='cylindrical')
-        qim3d.viz.volumetrics(vol_faded)
+        vol_faded = qim3d.operations.fade_mask(vol, geometric='cylindrical', decay_rate=5, ratio=0.65, axis=1)
+        qim3d.viz.volumetric(vol_faded)
         ```
         Afterwards the artifacts are faded out, making the object of interest more visible for visualization purposes.
-        ![operations-edge_fade_after](../../assets/screenshots/operations-edge_fade_after.png)
+        <iframe src="https://platform.qim.dk/k3d/fly_faded.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
     if axis < 0 or axis >= vol.ndim:
@@ -238,3 +237,48 @@ def overlay_rgb_images(
     composite = np.clip(composite, 0, 255).astype('uint8')
 
     return composite.astype('uint8')
+
+
+def make_hollow(
+    vol: np.ndarray,
+    thickness: int,
+) -> np.ndarray:
+    """
+    Make a volume hollow by applying a mask created by a minimum filter and an xor-gate.
+
+    Args:
+        vol (np.ndarray): The volume to hollow.
+        thickness (int): The thickness of the shell after hollowing.
+
+    Returns:
+        vol_hollowed (np.ndarray): The hollowed volume.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate volume and visualize it
+        vol = qim3d.generate.volume(noise_scale = 0.01)
+        qim3d.viz.slicer(vol)
+        ```
+        ![synthetic_collection](../../assets/screenshots/hollow_slicer_1.gif)
+        ```python
+        # Hollow volume and visualize it
+        vol_hollowed = qim3d.operations.make_hollow(vol, thickness=10)
+        qim3d.viz.slicer(vol_hollowed)
+        ```
+        ![synthetic_collection](../../assets/screenshots/hollow_slicer_2.gif)
+
+    """
+    # Create base mask
+    vol_mask_base = vol > 0
+
+    # apply minimum filter to the mask
+    vol_eroded = filters.minimum(vol_mask_base, size=thickness)
+    # Apply xor to only keep the voxels eroded by the minimum filter
+    vol_mask = np.logical_xor(vol_mask_base, vol_eroded)
+
+    # Apply the mask to the original volume to remove 'inner' voxels
+    vol_hollowed = vol * vol_mask
+
+    return vol_hollowed

@@ -9,7 +9,7 @@ class Augmentation:
 
     Args:
         resize (str, optional): Specifies how the images should be reshaped to the appropriate size, either 'crop', 'resize', or 'padding'. Defaults to 'crop'.
-        trainsform_train (str, optional): Level of transformation for the training set, either 'light', 'moderate', 'heavy' or None. Defaults to 'moderate'.
+        transform_train (str, optional): Level of transformation for the training set, either 'light', 'moderate', 'heavy' or None. Defaults to 'moderate'.
         transform_validation (str, optional): Level of transformation for the validation set, either 'light', 'moderate', 'heavy' or None. Defaults to None.
         transform_test (str, optional): Level of transformation for the test set, either 'light', 'moderate', 'heavy' or None. Defaults to None.
 
