@@ -3,7 +3,7 @@
 import math
 import warnings
 from collections.abc import Sequence
-from typing import Literal
+from typing import Literal, Dict, Any
 
 import dask.array as da
 import matplotlib
@@ -1248,7 +1248,7 @@ def line_profile(
     slice_index: int | str = 'middle',
     vertical_position: int | str = 'middle',
     horizontal_position: int | str = 'middle',
-    angle: int = 0,
+    angle: int = 0.0,
     fraction_range: tuple[float, float] = (0.00, 1.00),
     y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
