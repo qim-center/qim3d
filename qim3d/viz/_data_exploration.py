@@ -893,7 +893,7 @@ def histogram(
         ```python
         import qim3d
 
-        vol = qim3d.examples.cement_128x128x128
+        vol = qim3d.examples.bone_128x128x128
         qim3d.viz.histogram(vol)
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
