@@ -457,6 +457,7 @@ def volume_collection(
     same_seed: bool = False,
     hollow: bool = False,
     seed: int = 0,
+    dtype: str = 'uint8',
     return_positions: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -483,6 +484,7 @@ def volume_collection(
         same_seed (bool, optional): Use the same seed for each generated volume. Note that in order to generate identical volumes, the min and max for the different parameters should be identical.
         hollow (bool, optional): Create hollow objects using qim3d.operations.make_hollow(). Defaults to False.
         seed (int, optional): Seed for reproducibility. Defaults to 0. Each generated volume will be generated with a randomly selected sub-seed generated from the original seed.
+        dtype (str, optional): dtype for resulting volume. Defaults to uint8.
         return_positions (bool, optional): Flag to return position of randomly placed blobs.
 
     Returns:
@@ -634,7 +636,7 @@ def volume_collection(
 
     # Initialize the 3D array for the shape
     collection_array = np.zeros(
-        (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=np.uint8
+        (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=dtype
     )
     labels = np.zeros_like(collection_array)
 
@@ -642,9 +644,9 @@ def volume_collection(
     placed_positions = []
 
     if same_seed:
-        seeds = rng.integers(0, 255, size=1).repeat(1000)
+        seeds = rng.integers(0, 255, size=1).repeat(5000)
     else:
-        seeds = rng.integers(low=0, high=255, size=1000)
+        seeds = rng.integers(low=0, high=255, size=5000)
     nt = rng.random(size=1000)
 
     # Fill the 3D array with synthetic blobs
@@ -663,11 +665,10 @@ def volume_collection(
         magnification = rng.uniform(
             low=shape_magnification_range[0], high=shape_magnification_range[1]
         )
-        log.debug(f'- Magnification: {magnification}')
 
         final_shape = tuple(int(dim * magnification) for dim in blob_shape)
         log.debug(f'- Blob shape: {final_shape}')
-
+        # Check if should keep final_shape separate from base_shape
         # Sample noise scale
         noise_scale = rng.uniform(low=noise_range[0], high=noise_range[1])
         log.debug(f'- Object noise scale: {noise_scale:.4f}')
@@ -696,7 +697,7 @@ def volume_collection(
         log.debug(f'- Seed: {seeds[i]}')
         # Generate synthetic volume
         blob = qim3d.generate.volume(
-            base_shape=blob_shape,
+            base_shape=final_shape,
             final_shape=final_shape,
             noise_scale=noise_scale,
             noise_type=nti,
@@ -708,7 +709,7 @@ def volume_collection(
             tube_hole_ratio=tube_hole_ratio,
             axis=axis,
             order=1,
-            dtype='uint8',
+            dtype=dtype,
             hollow=hollow,
             seed=seeds[i],
         )
