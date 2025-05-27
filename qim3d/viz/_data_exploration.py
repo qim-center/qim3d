@@ -3,7 +3,7 @@
 import math
 import warnings
 from collections.abc import Sequence
-from typing import Literal
+from typing import Literal, Dict, Any
 
 import dask.array as da
 import matplotlib
@@ -73,7 +73,7 @@ def slices_grid(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         color_bar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
         color_bar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
-        **matplotlib_imshow_kwargs: Additional keyword arguments for the imshow function.
+        **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
         fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
@@ -354,7 +354,7 @@ def slicer(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
         color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
-        **matplotlib_imshow_kwargs: Additional keyword arguments for the imshow function.
+        **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
         slicer_obj (widgets.interactive): The interactive widget for visualizing slices of a 3D volume.
@@ -888,6 +888,15 @@ def histogram(
     Raises:
         ValueError: If `axis` is not a valid axis index (0, 1, or 2).
         ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.cement_128x128x128
+        qim3d.viz.histogram(vol)
+        ```
+        ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
 
     """
     if not (0 <= axis < volume.ndim):
