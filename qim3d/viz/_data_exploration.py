@@ -3,7 +3,7 @@
 import math
 import warnings
 from collections.abc import Sequence
-from typing import Literal
+from typing import Any, Literal
 
 import dask.array as da
 import matplotlib
@@ -1438,7 +1438,7 @@ def threshold(
     output = widgets.Output()
 
     # Function to update the state and trigger visualization
-    def update_state(change: Dict[str, Any]) -> None:
+    def update_state(change: dict[str, Any]) -> None:
         # Update state based on widget values
         state['position'] = position_slider.value
         state['method'] = method_dropdown.value
