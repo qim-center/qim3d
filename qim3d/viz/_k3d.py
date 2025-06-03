@@ -26,6 +26,7 @@ def volumetric(
     save: bool = False,
     grid_visible: bool = False,
     color_map: str = 'magma',
+    constant_opacity: bool = False,
     opacity_function: str | list = None,
     vmin: float | None = None,
     vmax: float | None = None,
@@ -48,7 +49,8 @@ def volumetric(
             file will be saved. Defaults to False.
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
         color_map (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to 'magma'.
-        opacity_function (str or list): Applies an opacity function to the plot, enabling custom values for opaqueness. Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to [].
+        constant_opacity (bool, optional): Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to False.
+        opacity_function (str or list, optional): Applies an opacity function to the plot, enabling custom values for opaqueness. Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to [].
         vmin (float or None, optional): Together with vmax defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         vmax (float or None, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
         samples (int or 'auto', optional): The number of samples to be used for the volume rendering in k3d. Input 'auto' for auto selection. Defaults to 'auto'.
@@ -144,12 +146,21 @@ def volumetric(
 
     # Default k3d.volume settings
     interpolation = True
-    if opacity_function == 'constant':
+
+    if constant_opacity:
+        log.warning(
+            'Deprecation warning: Keyword argument "constant_opacity" is deprecated and will be removed next release. Instead use opacity_function="constant".'
+        )
         # without these settings, the plot will look bad when color_map is created with qim3d.viz.colormaps.objects
-        opacity_function = [0.0, float(True), 1.0, float(True)]
+        opacity_function = [0.0, float(constant_opacity), 1.0, float(constant_opacity)]
         interpolation = False
-    elif opacity_function is None:
-        opacity_function = []
+    else:
+        if opacity_function == 'constant':
+            # without these settings, the plot will look bad when color_map is created with qim3d.viz.colormaps.objects
+            opacity_function = [0.0, float(True), 1.0, float(True)]
+            interpolation = False
+        elif opacity_function is None:
+            opacity_function = []
 
     # Create the volume plot
     plt_volume = k3d.volume(
