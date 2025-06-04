@@ -33,13 +33,19 @@ def from_volume(
         # Generate a 3D blob
         synthetic_blob = qim3d.generate.volume()
 
+        # Visualize the generated blob
+        qim3d.viz.volumetric(synthetic_blob)
+        ```
+        ![pygel3d_visualization_vol](../../assets/screenshots/viz-pygel_mesh_vol.png){width='300', length='200'}
+
+        ```python
         # Convert the 3D numpy array to a Pygel3D mesh object
         mesh = qim3d.mesh.from_volume(synthetic_blob, mesh_precision=0.5)
 
         # Visualize the generated mesh
         qim3d.viz.mesh(mesh)
         ```
-        ![pygel3d_visualization](../../assets/screenshots/viz-pygel_mesh.png)
+        ![pygel3d_visualization_mesh](../../assets/screenshots/viz-pygel_mesh.png){width='300', length='200'}
 
 
     """
