@@ -1,6 +1,6 @@
 """Visualization of volumetric data."""
 
-from . import colormaps
+from . import _layers2d, colormaps
 from ._cc import plot_cc
 from ._data_exploration import (
     chunks,
@@ -23,6 +23,7 @@ from ._structure_tensor import vectors
 from .itk_vtk_viewer import itk_vtk
 
 __all__ = [
+    '_layers2d',
     'colormaps',
     'plot_cc',
     'chunks',
