@@ -3,13 +3,14 @@
 import math
 import warnings
 from collections.abc import Sequence
-from typing import Literal, Dict, Any
+from typing import Any, Literal
 
 import dask.array as da
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
 import seaborn as sns
 import skimage.measure
 import zarr
@@ -1447,7 +1448,7 @@ def threshold(
     output = widgets.Output()
 
     # Function to update the state and trigger visualization
-    def update_state(change: Dict[str, Any]) -> None:
+    def update_state(change: dict[str, Any]) -> None:
         # Update state based on widget values
         state['position'] = position_slider.value
         state['method'] = method_dropdown.value
@@ -1797,3 +1798,153 @@ def compare_volumes(
 
     vc = _VolumeComparison(volume1, volume2, slice_axis, slice_index)
     return vc.build_interactive()
+
+
+class IsoSurface:
+    def __init__(self, vol: np.ndarray, colormap: str = 'magma') -> None:
+        # keep a float32 copy to save half the RAM up front
+        self.vol_full = np.transpose(vol, (1, 2, 0)).astype(np.float32)
+        self.cmap = colormap
+        self._grid_cache = {}  # (stride) -> (X,Y,Z,vol_sub)
+
+        self.out = widgets.Output()
+        self._build_widgets()
+        self._init_figure()  # FigureWidget – persistent
+        self._display_ui()
+
+    # ---------- widgets ----------
+    def _build_widgets(self) -> None:
+        self.thr = widgets.FloatSlider(
+            value=0.5,
+            min=0,
+            max=1,
+            step=0.001,
+            description='Threshold',
+            continuous_update=False,
+        )
+        self.step = widgets.IntSlider(
+            value=1, min=1, max=10, step=1, description='Step', continuous_update=False
+        )
+        self.trans = widgets.FloatSlider(
+            value=1,
+            min=0,
+            max=1,
+            step=0.1,
+            description='Transparency',
+            continuous_update=False,
+        )
+        self.cmapw = widgets.Dropdown(
+            options=['magma', 'viridis'], value=self.cmap, description='Colormap'
+        )
+        self.grid = widgets.Checkbox(value=True, description='Grid')
+
+        for w in (
+            self.thr,
+            self.step,
+            self.trans,
+            self.cmapw,
+            self.grid,
+        ):
+            w.observe(self._refresh, names='value')
+
+    # ---------- data prep ----------
+    def _get_grid(self, step: int) -> dict:
+        if step not in self._grid_cache:
+            v = self.vol_full[::step, ::step, ::step]
+            x, y, z = v.shape
+            xg, yg, zg = np.mgrid[0:x, 0:y, 0:z]
+            self._grid_cache[step] = (xg, yg, zg, v)
+        return self._grid_cache[step]
+
+    # ---------- figure ----------
+    def _init_figure(self) -> None:
+        xg, yg, zg, v = self._get_grid(step=self.step.value)
+        isoval = self.thr.value * float(v.max())
+
+        self.fig = go.FigureWidget(
+            data=[
+                go.Isosurface(
+                    x=xg.flatten(),
+                    y=yg.flatten(),
+                    z=zg.flatten(),
+                    value=v.flatten(),
+                    isomin=isoval,
+                    isomax=isoval,
+                    opacity=self.trans.value,
+                    surface_count=1,
+                    caps={'x_show': False, 'y_show': False, 'z_show': False},
+                    showscale=False,  # self.cbar.value,
+                    colorscale=self.cmapw.value,
+                )
+            ]
+        )
+        self._layout_axes()
+
+    def _layout_axes(self) -> None:
+        self.fig.update_layout(
+            scene_aspectmode='data',
+            margin={'l': 0, 'r': 0, 'b': 0, 't': 0},
+            scene={
+                'xaxis': {'visible': self.grid.value},
+                'yaxis': {'visible': self.grid.value},
+                'zaxis': {'visible': self.grid.value},
+            },
+        )
+
+    # ---------- redraw ----------
+    def _refresh(self, *_) -> None:
+        step = self.step.value
+        xg, yg, zg, v = self._get_grid(step)
+        isoval = self.thr.value * float(v.max())
+
+        # Update data
+        tr = self.fig.data[0]
+        tr.update(
+            x=xg.flatten(),
+            y=yg.flatten(),
+            z=zg.flatten(),
+            value=v.flatten(),
+            isomin=isoval,
+            isomax=isoval,
+            opacity=self.trans.value,
+            showscale=False,  # self.cbar.value,
+            colorscale=self.cmapw.value,
+        )
+        self._layout_axes()
+
+    # ---------- UI ----------
+    def _display_ui(self) -> None:
+        title = widgets.HTML("<h3 style='margin-top:0;'>Iso-Surface Visualizer</h3>")
+
+        controls = widgets.VBox(
+            [title, self.thr, self.step, self.trans, self.cmapw, self.grid],
+            layout=widgets.Layout(min_width='260px'),
+        )
+
+        ui = widgets.HBox([controls, self.fig], layout=widgets.Layout(width='100%'))
+
+        display(ui)
+
+
+# helper function
+def iso_surface(vol: np.ndarray, colormap: str = 'magma') -> None:
+    """
+    Creates an interactive iso-surface visualizer for a single surface level.
+
+    Args:
+        vol (np.ndarray): Volume to visualize an iso-surface of.
+        colormap: (str, optional): Initial colormap for the iso-surface. This can be changed in the interface
+
+    Returns:
+        None
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume(noise_scale=0.020)
+        qim3d.viz.iso_surface(vol)
+        ```
+
+    """
+    IsoSurface(vol, colormap)
