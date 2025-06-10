@@ -26,6 +26,7 @@ from skimage.filters import (
     threshold_triangle,
     threshold_yen,
 )
+import plotly.graph_objects as go
 
 import qim3d
 
@@ -1797,3 +1798,148 @@ def compare_volumes(
 
     vc = _VolumeComparison(volume1, volume2, slice_axis, slice_index)
     return vc.build_interactive()
+
+
+class VolumePlaneSlicer:
+    def __init__(self, volume, colorscale='Viridis', showscale=True, opacity=1.0):
+        self.volume = volume
+        self.colorscale = colorscale
+        self.showscale = showscale
+
+        self.x_max, self.y_max, self.z_max = volume.shape
+        self.x_slider = widgets.IntSlider(value=self.x_max // 2, min=0, max=self.x_max - 1, description='X')
+        self.y_slider = widgets.IntSlider(value=self.y_max // 2, min=0, max=self.y_max - 1, description='Y')
+        self.z_slider = widgets.IntSlider(value=self.z_max // 2, min=0, max=self.z_max - 1, description='Z')
+        self.opacity_slider = widgets.FloatSlider(value=opacity, min=0.0, max=1.0, step=0.05, description='Opacity')
+
+        self.show_x = widgets.Checkbox(value=True, description='Show X slice')
+        self.show_y = widgets.Checkbox(value=True, description='Show Y slice')
+        self.show_z = widgets.Checkbox(value=True, description='Show Z slice')
+
+        def section_title(text):
+            return widgets.HTML(f"<div style='text-align:center; font-weight:bold;'>{text}</div>")
+
+        slice_controls = widgets.VBox([
+            section_title("Slice position"),
+            self.x_slider,
+            self.y_slider,
+            self.z_slider
+        ])
+
+        visibility_controls = widgets.VBox([
+            section_title("Visibility"),
+            self.show_x,
+            self.show_y,
+            self.show_z,
+            self.opacity_slider
+        ])
+
+        self.controls = widgets.HBox([
+            slice_controls,
+            visibility_controls
+        ])
+
+        self.fig = go.FigureWidget()
+        self._init_surfaces()
+        self._update_figure()
+        self._set_observers()
+
+    def _init_surfaces(self):
+        dummy = go.Surface(opacity=0)
+        self.fig.add_traces([dummy, dummy, dummy])
+        self.fig.update_layout(
+            width=1000,
+            height=500,
+            margin=dict(l=0, r=0, t=0, b=0),
+            scene=dict(
+                xaxis=dict(title='X', range=[0, self.x_max]),
+                yaxis=dict(title='Y', range=[0, self.y_max]),
+                zaxis=dict(title='Z', range=[0, self.z_max])
+            )
+        )
+
+    def _update_plane(self, plane):
+        x, y, z = [np.arange(s) for s in self.volume.shape]
+        opacity = self.opacity_slider.value
+
+        if plane == 'Z':
+            X, Y = np.meshgrid(x, y, indexing='ij')
+            Z = np.full_like(X, self.z_slider.value)
+            data = self.volume[:, :, self.z_slider.value]
+            surface = self.fig.data[0]
+
+        elif plane == 'Y':
+            X, Z = np.meshgrid(x, z, indexing='ij')
+            Y = np.full_like(X, self.y_slider.value)
+            data = self.volume[:, self.y_slider.value, :]
+            surface = self.fig.data[1]
+
+        elif plane == 'X':
+            Y, Z = np.meshgrid(y, z, indexing='ij')
+            X = np.full_like(Y, self.x_slider.value)
+            data = self.volume[self.x_slider.value, :, :]
+            surface = self.fig.data[2]
+
+        else:
+            raise ValueError(f"Invalid plane: {plane}")
+
+        self._update_surface(surface, X, Y, Z, data, opacity)
+
+    def _toggle_visibility(self, plane):
+        if plane == 'X':
+            self.fig.data[2].visible = self.show_x.value
+        elif plane == 'Y':
+            self.fig.data[1].visible = self.show_y.value
+        elif plane == 'Z':
+            self.fig.data[0].visible = self.show_z.value
+
+    def _update_opacity(self):
+        opacity = self.opacity_slider.value
+        for surface in self.fig.data:
+            surface.opacity = opacity
+
+    def _update_figure(self, change=None):
+        if change is None:
+            for plane in ['X', 'Y', 'Z']:
+                self._update_plane(plane)
+            return
+
+        owner = change['owner']
+        owner_action_map = {
+            self.x_slider: lambda: self._update_plane('X'),
+            self.y_slider: lambda: self._update_plane('Y'),
+            self.z_slider: lambda: self._update_plane('Z'),
+            self.opacity_slider: self._update_opacity,
+            self.show_x: lambda: self._toggle_visibility('X'),
+            self.show_y: lambda: self._toggle_visibility('Y'),
+            self.show_z: lambda: self._toggle_visibility('Z'),
+        }
+
+        try:
+            owner_action_map[owner]()
+        except KeyError:
+            raise ValueError(f"Unhandled slider or control: {owner}")
+
+    def _update_surface(self, surface, x, y, z, surfacecolor, opacity):
+        surface.x = x
+        surface.y = y
+        surface.z = z
+        surface.surfacecolor = surfacecolor
+        surface.opacity = opacity
+        surface.colorscale = self.colorscale
+        surface.showscale = self.showscale
+
+    def _set_observers(self):
+        for control in [
+            self.x_slider, self.y_slider, self.z_slider,
+            self.opacity_slider,
+            self.show_x, self.show_y, self.show_z
+        ]:
+            control.observe(self._update_figure, names='value')
+
+    def show(self):
+        display(self.controls, self.fig)
+
+
+def planes(volume):
+    VolumePlaneSlicer(volume).show()

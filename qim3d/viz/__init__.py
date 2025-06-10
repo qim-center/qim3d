@@ -10,6 +10,7 @@ from ._data_exploration import (
     slices_grid,
     threshold,
     compare_volumes,
+    planes,
 )
 from ._detection import circles
 from ._k3d import mesh, volumetric
@@ -30,6 +31,8 @@ __all__ = [
     'slicer_orthogonal',
     'slices_grid',
     'threshold',
+    'compare_volumes',
+    'planes',
     'circles',
     'mesh',
     'volumetric',
