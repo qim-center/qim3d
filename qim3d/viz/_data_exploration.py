@@ -1921,7 +1921,9 @@ class IsoSurface:
             layout=widgets.Layout(min_width='260px'),
         )
 
-        ui = widgets.HBox([controls, self.fig], layout=widgets.Layout(width='100%'))
+        ui = widgets.HBox(
+            [controls, self.fig], layout=widgets.Layout(width='100%', height='500px')
+        )
 
         display(ui)
 
