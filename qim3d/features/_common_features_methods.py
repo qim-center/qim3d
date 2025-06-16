@@ -13,11 +13,11 @@ def prepare_obj(
     return_mesh=True,
 ):
     """
-    Prepares a 3D volume or mesh for further processing by applying thresholding and masking (if specified).
+    Prepares a volume or mesh for further processing by applying thresholding and masking (if specified).
     Optionally returns a mesh or a binarized volume.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input 3D volume or mesh.
+        obj (np.ndarray or hmesh.Manifold): Input volume or mesh.
         threshold (float, str, or None): Threshold value, ignored if input is a mesh or already binary. Defaults to 'otsu' for Otsu's method.
         mask (np.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Ignored if input is a mesh.
         mesh_precision (float): Precision parameter for mesh generation.
@@ -68,7 +68,7 @@ def prepare_obj(
 
 def volume(obj: np.ndarray | hmesh.Manifold) -> float:
     """
-    Compute the volume of a 3D mesh using the Pygel3D library.
+    Compute the volume of a mesh using the Pygel3D library.
 
     Args:
         obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
@@ -81,7 +81,7 @@ def volume(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a synthetic 3D object
+        # Generate a synthetic object
         synthetic_object = qim3d.generate.volume()
 
         # Convert into a mesh
@@ -95,7 +95,7 @@ def volume(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a 3D object
+        # Generate a synthetic object
         synthetic_object = qim3d.generate.volume()
 
         # Compute the volume of the object
@@ -113,7 +113,7 @@ def volume(obj: np.ndarray | hmesh.Manifold) -> float:
 
 def area(obj: np.ndarray | hmesh.Manifold) -> float:
     """
-    Compute the surface area of a 3D mesh using the Pygel3D library.
+    Compute the surface area of a mesh using the Pygel3D library.
 
     Args:
         obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
@@ -126,7 +126,7 @@ def area(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a synthetic 3D object
+        # Generate a synthetic object
         synthetic_object = qim3d.generate.volume()
 
         # Convert into a mesh
@@ -140,7 +140,7 @@ def area(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a synthetic 3D object
+        # Generate a synthetic object
         synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the surface area of the object
@@ -158,7 +158,7 @@ def area(obj: np.ndarray | hmesh.Manifold) -> float:
 
 def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
     """
-    Compute the sphericity of a 3D mesh using the Pygel3D library.
+    Compute the sphericity of a mesh using the Pygel3D library.
 
     Args:
         obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
@@ -171,7 +171,7 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a synthetic 3D object
+        # Generate a synthetic object
         synthetic_object = qim3d.generate.volume()
 
         # Convert into a mesh
@@ -185,7 +185,7 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a synthetic 3D object
+        # Generate a synthetic object
         synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the sphericity of the object
@@ -212,20 +212,24 @@ def mean_std_intensity(
     mask: np.ndarray | None = None,
 ) -> tuple[float, float]:
     """
-    Compute the mean and standard deviation of intensities in a 3D volume. The background is ignored, and a mask can be applied to focus on a specific region of interest.
+    Compute the mean and standard deviation of intensities in a volume.
 
     Args:
-        volume (numpy.ndarray): Input 3D volume.
+        volume (numpy.ndarray): Input volume.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None. 
 
     Returns:
         tuple: Mean and standard deviation of intensities.
 
+    Note: 
+        - The background (intensities of 0) is excluded from the computation.
+        - If a mask is provided, it will only compute the mean and standard deviation for that region of interest.
+
     Example:
         ```python
         import qim3d
 
-        # Generate a synthetic 3D object
+        # Generate a synthetic object
         synthetic_object = qim3d.generate.volume()
 
         # Compute mean and standard deviation of intensities
@@ -244,3 +248,48 @@ def mean_std_intensity(
     std_intensity = np.std(intensities)
 
     return mean_intensity, std_intensity
+
+def size(
+    obj: np.ndarray,
+    mask: np.ndarray | None = None,
+    threshold: float | str = "otsu",
+) -> tuple[float, float]:
+    """
+    Compute the size (maximum side length of the bounding box enclosing the object) of an object from a volume or mesh.
+
+    Args:
+        obj (np.ndarray or hmesh.Manifold): Input volume or mesh.
+        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None. 
+        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
+        
+    Returns:
+        size: The size of the object, defined as the maximum side length of the bounding box enclosing the object.
+
+    Note: 
+        - There should only be one object in the input volume or mesh.
+        - If the input is a mesh, the threshold and mask are ignored, and the size is computed directly from the mesh.
+        - If the input is a volume, it is binarized first using the specified threshold (or Otsu's threshold otherwise), and a mask can be applied to focus on a specific region of interest.
+    
+    Example:
+        ```python
+        import qim3d
+
+        # Generate a synthetic object
+        synthetic_object = qim3d.generate.volume()
+
+        # Compute the size of the object
+        size = qim3d.features.size(synthetic_object)
+        ```
+    """
+    # Prepare object
+    mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
+
+    # Min and max corners of the bounding box
+    bbox = hmesh.bbox(mesh)
+    mins, maxs = bbox
+
+    # Maximum side length of the bounding box
+    side_lengths = maxs - mins
+    size = np.max(side_lengths)
+
+    return size
