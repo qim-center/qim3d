@@ -1,9 +1,72 @@
 import numpy as np
 from pygel3d import hmesh
+from skimage.filters import threshold_otsu
 
 import qim3d
 from qim3d.utils._logger import log
 
+def prepare_obj(
+    obj,
+    threshold="otsu",
+    mask=None,
+    mesh_precision=1.0,
+    return_mesh=True,
+):
+    """
+    Prepares a 3D volume or mesh for further processing by applying thresholding and masking.
+    Optionally returns a mesh or a binarized volume.
+
+    Args:
+        obj (np.ndarray or hmesh.Manifold): Input 3D volume or mesh.
+        threshold (float, str, or None): Threshold value, ignored if input is a mesh or already binary. Defaults to 'otsu' for Otsu's method.
+        mask (np.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Ignored if input is a mesh.
+        mesh_precision (float): Precision parameter for mesh generation.
+        return_mesh (bool): If True, returns a mesh. Otherwise, returns the binarized (and masked) volume.
+
+    Returns:
+        hmesh.Manifold or np.ndarray: Mesh or binarized/masked volume, depending on `return_mesh`.
+    """
+
+    # If already a mesh, return as is
+    if isinstance(obj, hmesh.Manifold):
+        if threshold is not None or mask is not None:
+            log.info('A mesh is provided, threshold and mask will be ignored.')
+        return obj
+
+    # Ensure input is a numpy array
+    volume = np.asarray(obj)
+
+    # Determine if volume is already binary
+    is_binary = np.array_equal(np.unique(volume), [0, 1]) or np.array_equal(np.unique(volume), [False, True])
+
+    # Threshold if not binary
+    if not is_binary:
+        if threshold == 'otsu':
+            threshold = threshold_otsu(volume)
+            
+        binarized_volume = volume > threshold
+
+    else:
+        binarized_volume = volume.astype(bool)
+
+        if threshold is not None:
+            log.info('The volume is already binarized, threshold will be ignored.')
+
+    # Apply mask if provided
+    if mask is not None:
+        mask = np.asarray(mask, dtype=bool)
+
+        if mask.shape != binarized_volume.shape:
+            raise ValueError(f'Mask shape {mask.shape} must match volume shape {binarized_volume.shape}.')
+        
+        binarized_volume = binarized_volume & mask
+
+    # Return mesh or binarized volume
+    if return_mesh:
+        mesh = qim3d.mesh.from_volume(binarized_volume, mesh_precision=mesh_precision)
+        return mesh
+    
+    return binarized_volume
 
 def volume(obj: np.ndarray | hmesh.Manifold) -> float:
     """
