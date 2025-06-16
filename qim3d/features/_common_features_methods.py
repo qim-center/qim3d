@@ -207,3 +207,29 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
     sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
     return sphericity
 
+def mean_std_intensity(
+    volume: np.ndarray,
+    mask: np.ndarray | None = None,
+) -> tuple[float, float]:
+    """
+    Compute the mean and standard deviation of intensities in a 3D volume. The background is ignored, and a mask can be applied to focus on a specific region of interest.
+
+    Args:
+        volume (numpy.ndarray): Input 3D volume.
+        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None. 
+
+    Returns:
+        tuple: Mean and standard deviation of intensities.
+    """
+
+    # Mask the volume (if provided)
+    volume = prepare_obj(volume, threshold=None, mask=mask, return_mesh=False)
+
+    # Get only the non-zero intensities (i.e., ignoring the background)
+    intensities = volume[volume > 0]
+ 
+    # Compute mean and standard deviation
+    mean_intensity = np.mean(intensities)
+    std_intensity = np.std(intensities)
+
+    return mean_intensity, std_intensity

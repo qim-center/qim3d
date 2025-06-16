@@ -1,7 +1,8 @@
-from ._common_features_methods import area, sphericity, volume
+from ._common_features_methods import area, mean_std_intensity, sphericity, volume
 
 __all__ = [
     'area',
+    'mean_std_intensity',
     'sphericity',
     'volume'
 ]
