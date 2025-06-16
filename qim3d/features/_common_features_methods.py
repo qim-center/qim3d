@@ -185,7 +185,7 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
         ```python
         import qim3d
 
-        # Generate a 3D object
+        # Generate a synthetic 3D object
         synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
 
         # Compute the sphericity of the object
@@ -220,6 +220,17 @@ def mean_std_intensity(
 
     Returns:
         tuple: Mean and standard deviation of intensities.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Generate a synthetic 3D object
+        synthetic_object = qim3d.generate.volume()
+
+        # Compute mean and standard deviation of intensities
+        mean_intensity, std_intensity = qim3d.features.mean_std_intensity(synthetic_object)
+        ```
     """
 
     # Mask the volume (if provided)
