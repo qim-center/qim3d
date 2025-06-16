@@ -7,4 +7,6 @@ The `qim3d` library provides a set of methods for feature extraction on volumetr
         members:
             - area
             - volume
+            - size
             - sphericity
+            - mean_std_intensity
