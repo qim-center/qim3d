@@ -17,8 +17,8 @@ def prepare_obj(
     Optionally returns a mesh or a binarized volume.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input volume or mesh.
-        threshold (float, str, or None): Threshold value, ignored if input is a mesh or already binary. Defaults to 'otsu' for Otsu's method.
+        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        threshold (float, str, or None): Threshold value, ignored if input is a mesh or volume is already binary. Defaults to 'otsu' for Otsu's method.
         mask (np.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Ignored if input is a mesh.
         mesh_precision (float): Precision parameter for mesh generation.
         return_mesh (bool): If True, returns a mesh. Otherwise, returns the binarized and/or masked volume.
@@ -64,12 +64,18 @@ def prepare_obj(
     
     return processed_volume
 
-def volume(obj: np.ndarray | hmesh.Manifold) -> float:
+def volume(
+    obj: np.ndarray | hmesh.Manifold,
+    mask: np.ndarray | None = None,
+    threshold: float | str = "otsu",
+    ) -> float:
     """
-    Compute the volume of a mesh using the Pygel3D library.
+    Compute the volume of an object from a volume or mesh using the Pygel3D library.
 
     Args:
-        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
+        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
 
     Returns:
         volume (float): The volume of the object.
@@ -101,19 +107,27 @@ def volume(obj: np.ndarray | hmesh.Manifold) -> float:
         ```
 
     """
+    # Prepare object
+    mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
 
-    if isinstance(obj, np.ndarray):
-        obj = qim3d.mesh.from_volume(obj)
+    # Compute volume
+    volume = hmesh.volume(mesh)
 
-    return hmesh.volume(obj)
+    return volume
 
 
-def area(obj: np.ndarray | hmesh.Manifold) -> float:
+def area(
+    obj: np.ndarray | hmesh.Manifold,
+    mask: np.ndarray | None = None,
+    threshold: float | str = "otsu",
+    ) -> float:
     """
-    Compute the surface area of a mesh using the Pygel3D library.
+    Compute the surface area of an object from a volume or mesh using the Pygel3D library.
 
     Args:
-        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
+        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
 
     Returns:
         area (float): The surface area of the object.
@@ -145,25 +159,44 @@ def area(obj: np.ndarray | hmesh.Manifold) -> float:
         ```
 
     """
+    # Prepare object
+    mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
 
-    if isinstance(obj, np.ndarray):
-        obj = qim3d.mesh.from_volume(obj)
+    # Compute area
+    area = hmesh.area(mesh)
 
-    return hmesh.area(obj)
+    return area
 
 
-def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
+def sphericity(
+    obj: np.ndarray | hmesh.Manifold,
+    mask: np.ndarray | None = None,
+    threshold: float | str = "otsu",
+    ) -> float:
     """
-    Compute the sphericity of a mesh using the Pygel3D library.
+    Compute the sphericity of an object from a volume or mesh.
 
     Args:
-        obj (numpy.ndarray or pygel3d.hmesh.Manifold): Either a np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
+        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
 
     Returns:
         sphericity (float): The sphericity of the object.
 
     Example:
-        Compute sphericity from a mesh:
+        Compute sphericity from a `np.ndarray` volume:
+        ```python
+        import qim3d
+
+        # Generate a synthetic object
+        synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
+
+        # Compute the sphericity of the object
+        sphericity = qim3d.features.sphericity(synthetic_object)
+        ```
+
+        Compute sphericity from a `pygel3d.hmesh.Manifold` mesh:
         ```python
         import qim3d
 
@@ -176,30 +209,21 @@ def sphericity(obj: np.ndarray | hmesh.Manifold) -> float:
         # Compute the sphericity of the mesh
         sphericity = qim3d.features.sphericity(mesh)
         ```
-
-        Compute sphericity from a `np.ndarray`:
-        ```python
-        import qim3d
-
-        # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
-
-        # Compute the sphericity of the object
-        sphericity = qim3d.features.sphericity(synthetic_object)
-        ```
     """
+    # Prepare object
+    mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
 
-    if isinstance(obj, np.ndarray):
-        obj = qim3d.mesh.from_volume(obj)
+    # Compute surface area and volume
+    area = qim3d.features.area(mesh)
+    volume = qim3d.features.volume(mesh)
 
-    volume = qim3d.features.volume(obj)
-    area = qim3d.features.area(obj)
-
-    if area == 0:
-        log.warning('Surface area is zero, sphericity is undefined.')
+    if area == 0 or volume == 0:
+        log.warning('Surface area or volume is zero, sphericity is undefined.')
         return np.nan
 
+    # Compute sphericity
     sphericity = (np.pi ** (1 / 3) * (6 * volume) ** (2 / 3)) / area
+
     return sphericity
 
 def mean_std_intensity(
