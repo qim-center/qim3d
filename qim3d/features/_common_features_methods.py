@@ -84,31 +84,22 @@ def volume(
         ValueError: If the mask shape does not match the volume shape.
 
     Example:
-        Compute volume from a mesh:
         ```python
         import qim3d
+        import numpy as np
 
         # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume()
+        synthetic_object = qim3d.generate.volume(noise_scale=0.01, final_shape=(100, 100, 100))
 
-        # Convert into a mesh
-        mesh = qim3d.mesh.from_volume(synthetic_object, mesh_precision=0.5)
-        
-        # Compute the volume of the mesh
-        volume = qim3d.features.volume(mesh)
+        # Create a mask for the bottom right corner
+        mask = np.zeros_like(synthetic_object, dtype=bool)
+        mask[50:100, 50:100, 50:100] = True
+
+        # Compute the volume of the object within the region of interest defined by the mask
+        volume = qim3d.features.volume(synthetic_object, threshold=50, mask=mask)
+        print(volume)
         ```
-
-        Compute volume from a `np.ndarray`:
-        ```python
-        import qim3d
-
-        # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume()
-
-        # Compute the volume of the object
-        volume = qim3d.features.volume(synthetic_object)
-        ```
-
+        48774.99
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -146,7 +137,7 @@ def area(
         # Generate a synthetic object
         synthetic_object = qim3d.generate.volume()
 
-        # Compute the surface area
+        # Compute the surface area of the object
         area = qim3d.features.area(synthetic_object)
         print(area)
         ```
@@ -163,7 +154,7 @@ def area(
         # Convert into a mesh
         mesh = qim3d.mesh.from_volume(synthetic_object)
 
-        # Compute the surface area
+        # Compute the surface area of the object
         area = qim3d.features.area(mesh)
         print(area)
         ```
@@ -345,7 +336,7 @@ def roughness(
    
     Raises:
         ValueError: If the mask shape does not match the volume shape.
-        
+
     Example:
         ```python
         import qim3d
