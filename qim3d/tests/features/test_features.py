@@ -42,6 +42,22 @@ def test_volume():
     assert volume_value == mesh_volume, "Volume from volume and mesh should be equal"
     assert volume_value_masked < volume_value, "Volume with mask applied should be less than volume without mask applied"
 
+def test_sphericity():
+    # Generate synthetic objects of different noise levels
+    volume_low_noise = qim3d.generate.volume(noise_scale=0.01)
+    volume_med_noise = qim3d.generate.volume(noise_scale=0.05)
+    volume_high_noise = qim3d.generate.volume(noise_scale=0.1)
+
+    # Compute sphericity
+    sphericity_low = qim3d.features.sphericity(volume_low_noise)
+    sphericity_med = qim3d.features.sphericity(volume_med_noise)
+    sphericity_high = qim3d.features.sphericity(volume_high_noise)
+
+    # Assertions
+    assert isinstance(sphericity_low, float) and isinstance(sphericity_med, float) and isinstance(sphericity_high, float), "Sphericity should be a float"
+    assert sphericity_low >= 0 and sphericity_med >= 0 and sphericity_high >= 0, "Sphericity should be non-negative"
+    assert sphericity_low >= sphericity_med >= sphericity_high, "Sphericity should decrease with noise level"
+
 def test_mean_std_intensity():
     # Generate synthetic object
     volume = qim3d.generate.volume()
@@ -88,7 +104,7 @@ def test_size():
     assert size_volume_masked < size_volume, "Size with mask applied should be less than size without mask applied"
 
 def test_roughness():
-    # Generate synthetic 3D objects of different noise levels
+    # Generate synthetic objects of different noise levels
     volume_low_noise = qim3d.generate.volume(noise_scale=0.01)
     volume_high_noise = qim3d.generate.volume(noise_scale=0.05)
 
