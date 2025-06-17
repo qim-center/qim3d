@@ -9,4 +9,5 @@ The `qim3d` library provides a set of methods for feature extraction on volumetr
             - volume
             - size
             - sphericity
+            - roughness
             - mean_std_intensity
