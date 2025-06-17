@@ -80,6 +80,9 @@ def volume(
     Returns:
         volume (float): The volume of the object.
 
+    Raises:
+        ValueError: If the mask shape does not match the volume shape.
+
     Example:
         Compute volume from a mesh:
         ```python
@@ -131,6 +134,9 @@ def area(
 
     Returns:
         area (float): The surface area of the object.
+
+    Raises:
+        ValueError: If the mask shape does not match the volume shape.
 
     Example:
         Compute area from a `np.ndarray` volume:
@@ -188,6 +194,9 @@ def sphericity(
     Returns:
         sphericity (float): The sphericity of the object.
 
+    Raises:
+        ValueError: If the mask shape does not match the volume shape.
+
     Example:
         Compute sphericity from a `np.ndarray` volume:
         ```python
@@ -244,6 +253,9 @@ def mean_std_intensity(
     Returns:
         tuple: Mean and standard deviation of intensities.
 
+    Raises:
+        ValueError: If the mask shape does not match the volume shape.
+
     Note: 
         - The background (intensities of 0) is excluded from the computation.
         - If a mask is provided, it will only compute the mean and standard deviation for that region of interest.
@@ -288,6 +300,9 @@ def size(
     Returns:
         size: The size of the object, defined as the maximum side length of the bounding box enclosing the object.
     
+    Raises:
+        ValueError: If the mask shape does not match the volume shape.
+
     Example:
         ```python
         import qim3d
@@ -327,7 +342,10 @@ def roughness(
     
     Returns:
         roughness (float): The roughness of the object, defined as the ratio between surface area and volume.
-
+   
+    Raises:
+        ValueError: If the mask shape does not match the volume shape.
+        
     Example:
         ```python
         import qim3d
