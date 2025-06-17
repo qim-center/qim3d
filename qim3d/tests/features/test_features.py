@@ -22,6 +22,26 @@ def test_area():
     assert area_volume == area_mesh, "Area from volume and mesh should be equal"
     assert area_volume_masked < area_volume, "Area with mask applied should be less than area without mask applied"
 
+def test_volume():
+    # Generate synthetic object
+    volume = qim3d.generate.volume()
+    mesh = qim3d.mesh.from_volume(volume)
+
+    # Generate a mask for the bottom right quarter of the volume
+    mask = np.zeros_like(volume, dtype=bool)
+    mask[volume.shape[0]//2:, volume.shape[1]//2:, volume.shape[2]//2:] = True
+
+    # Compute volume from both volume and mesh
+    volume_value = qim3d.features.volume(volume)
+    volume_value_masked = qim3d.features.volume(volume, mask=mask)
+    mesh_volume = qim3d.features.volume(mesh)
+
+    # Assertions
+    assert isinstance(volume_value, float) and isinstance(mesh_volume, float), "Volume should be a float"
+    assert volume_value > 0 and mesh_volume > 0, "Volume should be positive"
+    assert volume_value == mesh_volume, "Volume from volume and mesh should be equal"
+    assert volume_value_masked < volume_value, "Volume with mask applied should be less than volume without mask applied"
+
 def test_mean_std_intensity():
     # Generate synthetic object
     volume = qim3d.generate.volume()
