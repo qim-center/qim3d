@@ -2,8 +2,28 @@ import numpy as np
 
 import qim3d
 
+def test_area():
+    # Generate synthetic object
+    volume = qim3d.generate.volume()
+    mesh = qim3d.mesh.from_volume(volume)
+
+    # Generate a mask for the bottom right quarter of the volume
+    mask = np.zeros_like(volume, dtype=bool)
+    mask[volume.shape[0]//2:, volume.shape[1]//2:, volume.shape[2]//2:] = True
+
+    # Compute area from both volume and mesh
+    area_volume = qim3d.features.area(volume)
+    area_volume_masked = qim3d.features.area(volume, mask=mask)
+    area_mesh = qim3d.features.area(mesh)
+
+    # Assertions
+    assert isinstance(area_volume, float) and isinstance(area_mesh, float), "Area should be a float"
+    assert area_volume > 0 and area_mesh > 0, "Area should be positive"
+    assert area_volume == area_mesh, "Area from volume and mesh should be equal"
+    assert area_volume_masked < area_volume, "Area with mask applied should be less than area without mask applied"
+
 def test_mean_std_intensity():
-    # Generate a synthetic 3D object
+    # Generate synthetic object
     volume = qim3d.generate.volume()
 
     # Min and max values for the volume
@@ -28,10 +48,8 @@ def test_mean_std_intensity():
     assert std_volume2 < std_volume1, "Standard deviation should be lower for masked volume"
 
 def test_size():
-    # Generate a synthetic 3D object
+    # Generate synthetic object
     volume = qim3d.generate.volume()
-
-    # Extract mesh from the volume
     mesh = qim3d.mesh.from_volume(volume)
 
     # Generate a mask for the bottom right quarter of the volume
