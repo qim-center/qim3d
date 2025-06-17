@@ -177,7 +177,7 @@ def sphericity(
     Compute the sphericity of an object from a volume or mesh.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
 
@@ -283,11 +283,6 @@ def size(
         
     Returns:
         size: The size of the object, defined as the maximum side length of the bounding box enclosing the object.
-
-    Note: 
-        - There should only be one object in the input volume or mesh.
-        - If the input is a mesh, the threshold and mask are ignored, and the size is computed directly from the mesh.
-        - If the input is a volume, it is binarized first using the specified threshold (or Otsu's threshold otherwise), and a mask can be applied to focus on a specific region of interest.
     
     Example:
         ```python
@@ -329,11 +324,6 @@ def roughness(
     Returns:
         roughness (float): The roughness of the object, defined as the ratio between surface area and volume.
 
-    Note: 
-        - There should only be one object in the input volume or mesh.
-        - If the input is a mesh, the threshold and mask are ignored, and the size is computed directly from the mesh.
-        - If the input is a volume, it is binarized first using the specified threshold (or Otsu's threshold otherwise), and a mask can be applied to focus on a specific region of interest.
-    
     Example:
         ```python
         import qim3d
