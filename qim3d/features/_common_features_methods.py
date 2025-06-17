@@ -17,7 +17,7 @@ def prepare_obj(
     Optionally returns a mesh or a binarized volume.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
         threshold (float, str, or None): Threshold value, ignored if input is a mesh or volume is already binary. Defaults to 'otsu' for Otsu's method.
         mask (np.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Ignored if input is a mesh.
         mesh_precision (float): Precision parameter for mesh generation.
@@ -73,7 +73,7 @@ def volume(
     Compute the volume of an object from a volume or mesh using the Pygel3D library.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
 
@@ -125,7 +125,7 @@ def area(
     Compute the surface area of an object from a volume or mesh using the Pygel3D library.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
 
@@ -133,7 +133,21 @@ def area(
         area (float): The surface area of the object.
 
     Example:
-        Compute area from a mesh:
+        Compute area from a `np.ndarray` volume:
+        ```python
+        import qim3d
+
+        # Generate a synthetic object
+        synthetic_object = qim3d.generate.volume()
+
+        # Compute the surface area
+        area = qim3d.features.area(synthetic_object)
+        print(area)
+        ```
+        58535.06
+
+    Example:
+        Compute area from a `pygel3d.hmesh.Manifold` mesh:
         ```python
         import qim3d
 
@@ -141,23 +155,13 @@ def area(
         synthetic_object = qim3d.generate.volume()
 
         # Convert into a mesh
-        mesh = qim3d.mesh.from_volume(synthetic_object, mesh_precision=0.5)
+        mesh = qim3d.mesh.from_volume(synthetic_object)
 
-        # Compute the surface area of the mesh
+        # Compute the surface area
         area = qim3d.features.area(mesh)
+        print(area)
         ```
-
-        Compute area from a `np.ndarray`:
-        ```python
-        import qim3d
-
-        # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
-
-        # Compute the surface area of the object
-        area = qim3d.features.area(synthetic_object)
-        ```
-
+        58535.06
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -234,7 +238,7 @@ def mean_std_intensity(
     Compute the mean and standard deviation of intensities in a volume.
 
     Args:
-        volume (numpy.ndarray): Input np.ndarray volume.
+        volume (numpy.ndarray): Input `np.ndarray` volume.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None. 
 
     Returns:
@@ -277,7 +281,7 @@ def size(
     Compute the size (maximum side length of the bounding box enclosing the object) of an object from a volume or mesh.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None. 
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
         
@@ -317,7 +321,7 @@ def roughness(
     Compute the roughness (ratio between surface area and volume) of an object from a volume or mesh.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input np.ndarray volume or a mesh object of type pygel3d.hmesh.Manifold.
+        obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
     

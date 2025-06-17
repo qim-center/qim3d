@@ -10,7 +10,7 @@ The `qim3d` library provides a set of methods for feature extraction on volumetr
     - If a mesh is provided, the threshold and/or mask arguments are ignored.
 
 !!! tip "Efficient feature extraction"
-    For best performance, convert your input volume to a mesh using `qim3d.mesh.from_volume` before extracting multiple features. This avoids repeated volume-to-mesh conversions under the hood.
+    Before extracting **multiple** features, convert your input volume to a mesh using `qim3d.mesh.from_volume` for best performance. This avoids repeated volume-to-mesh conversions under the hood during feature extraction.
 
 ::: qim3d.features
     options:
