@@ -48,3 +48,28 @@ def test_size():
     assert size_volume > 0 and size_mesh > 0, "Size should be positive"
     assert size_volume == size_mesh, "Size from volume and mesh should be equal"
     assert size_volume_masked < size_volume, "Size with mask applied should be less than size without mask applied"
+
+def test_roughness():
+    # Generate synthetic 3D objects of different noise levels
+    volume_low_noise = qim3d.generate.volume(noise_scale=0.01)
+    volume_high_noise = qim3d.generate.volume(noise_scale=0.05)
+
+    # Extract meshes from the volumes
+    mesh_low_noise = qim3d.mesh.from_volume(volume_low_noise)
+    mesh_high_noise = qim3d.mesh.from_volume(volume_high_noise)
+
+    # Compute roughness for volumes and meshes
+    roughness_volume_low = qim3d.features.roughness(volume_low_noise)
+    roughness_volume_high = qim3d.features.roughness(volume_high_noise)
+
+    roughness_mesh_low = qim3d.features.roughness(mesh_low_noise)
+    roughness_mesh_high = qim3d.features.roughness(mesh_high_noise)
+
+    # Assertions
+    assert isinstance(roughness_volume_low, float) and isinstance(roughness_volume_high, float), "Roughness should be a float"
+    assert isinstance(roughness_mesh_low, float) and isinstance(roughness_mesh_high, float), "Roughness should be a float"
+    assert roughness_volume_low >= 0 and roughness_volume_high >= 0, "Roughness should be non-negative"
+    assert roughness_mesh_low >= 0 and roughness_mesh_high >= 0, "Roughness should be non-negative"
+    assert roughness_volume_low == roughness_mesh_low, "Roughness from volume and mesh should be equal"
+    assert roughness_volume_high == roughness_mesh_high, "Roughness from volume and mesh should be equal"
+    assert roughness_volume_high > roughness_volume_low, "Roughness should increase with noise level"
