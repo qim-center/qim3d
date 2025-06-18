@@ -183,36 +183,48 @@ def sphericity(
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
 
     Returns:
-        sphericity (float): The sphericity of the object.
+        sphericity (float): The sphericity of the object. Higher values indicate a more spherical shape.
 
     Raises:
         ValueError: If the mask shape does not match the volume shape.
 
     Example:
-        Compute sphericity from a `np.ndarray` volume:
         ```python
         import qim3d
 
         # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume(noise_scale = 0.015)
+        synthetic_object = qim3d.generate.volume(noise_scale=0.005)
 
         # Compute the sphericity of the object
         sphericity = qim3d.features.sphericity(synthetic_object)
-        ```
+        print(sphericity)
 
-        Compute sphericity from a `pygel3d.hmesh.Manifold` mesh:
+        # Visualize the synthetic object
+        qim3d.viz.volumetric(synthetic_object)
+        ```
+        0.9058
+        <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_2.html" width="100%" height="500" frameborder="0"></iframe>
+
+    Example:
         ```python
         import qim3d
 
         # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume()
+        synthetic_object = qim3d.generate.volume(noise_scale=0.008)
 
-        # Convert into a mesh
-        mesh = qim3d.mesh.from_volume(synthetic_object, mesh_precision=0.5)
+        # Manipulate the object
+        synthetic_object = qim3d.operations.stretch(synthetic_object, z_stretch=50)
+        synthetic_object = qim3d.operations.curve_warp(synthetic_object, x_amp=10, x_periods=4)
 
-        # Compute the sphericity of the mesh
-        sphericity = qim3d.features.sphericity(mesh)
+        # Compute the sphericity of the object
+        sphericity = qim3d.features.sphericity(synthetic_object)
+        print(sphericity)
+
+        # Visualize the synthetic object
+        qim3d.viz.volumetric(synthetic_object)
         ```
+        0.6876
+        <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -334,7 +346,7 @@ def roughness(
     threshold: float | str = "otsu",
 ) -> float:
     """ 
-    Compute the roughness (ratio between surface area and volume) of an object from a volume or mesh.
+    Compute the roughness (ratio between surface area and volume) of an object from a volume or mesh. 
 
     Args:
         obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
@@ -342,7 +354,7 @@ def roughness(
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
     
     Returns:
-        roughness (float): The roughness of the object, defined as the ratio between surface area and volume.
+        roughness (float): The roughness of the object, defined as the ratio between surface area and volume. Higher roughness indicates a more complex surface.
    
     Raises:
         ValueError: If the mask shape does not match the volume shape.
