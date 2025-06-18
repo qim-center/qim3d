@@ -299,11 +299,21 @@ def size(
         import qim3d
 
         # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume()
+        synthetic_object = qim3d.generate.volume(
+            final_shape=(100,30,30), 
+            noise_scale=0.008, 
+            shape="cylinder"
+            )
 
-        # Compute the size of the object
+        # Compute size of the object
         size = qim3d.features.size(synthetic_object)
+        print(size)
+
+        # Visualize the synthetic object
+        qim3d.viz.volumetric(synthetic_object)
         ```
+        100.0
+        <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
