@@ -267,12 +267,20 @@ def mean_std_intensity(
         ```python
         import qim3d
 
-        # Generate a synthetic object
-        synthetic_object = qim3d.generate.volume()
+        # Load a sample object
+        shell_object = qim3d.examples.shell_225x128x128
 
-        # Compute mean and standard deviation of intensities
-        mean_intensity, std_intensity = qim3d.features.mean_std_intensity(synthetic_object)
+        # Compute mean and standard deviation of intensities in the object
+        mean_intensity, std_intensity = qim3d.features.mean_std_intensity(shell_object)
+        print(f"Mean intensity: {mean_intensity:.4f}")
+        print(f"Standard deviation of intensity: {std_intensity:.4f}")
+
+        # Visualize slices of the object
+        qim3d.viz.slices_grid(shell_object, color_bar=True, color_bar_style="large")
         ```
+        Mean intensity: 114.6734  
+        Standard deviation of intensity: 45.8481
+        ![mean_std_intensity_feature](../../assets/screenshots/mean_std_intensity_feature_example.png)
     """
 
     # Mask the volume (if provided)
