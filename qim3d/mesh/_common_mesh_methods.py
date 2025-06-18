@@ -67,8 +67,4 @@ def from_volume(
 
     mesh = hmesh.volumetric_isocontour(volume, **kwargs)
 
-    log.info(
-        f'Mesh generated with {len(mesh.vertices())} vertices and {len(mesh.faces())} faces.'
-    )
-
     return mesh
