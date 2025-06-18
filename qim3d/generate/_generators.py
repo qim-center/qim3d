@@ -451,14 +451,13 @@ def volume(
         final_shape (tuple of ints, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape. Defaults to None.
         noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
         noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex` or `perlin`. Defaults to perlin.
-
         decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
         gamma (float, optional): Applies gamma correction, adjusting contrast in the volume. If gamma<0, the volume intensity is increased and if gamma>0 it's decreased. Defaults to 0.
         threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
         max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
         shape (str, optional): Shape of the volume to generate, either `cylinder`, or `tube`. Defaults to None.
         tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
-        axis (int, optional): Axis of the given volume_shape. Will only be active if volume_shape is defined. Defaults to 0.
+        axis (int, optional): Axis of the given shape. Will only be active if shape is defined. Defaults to 0.
         order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
         dtype (data-type, optional): Desired data type of the output volume. Defaults to `uint8`.
         hollow (bool, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0. Defaults to 0.
@@ -530,7 +529,7 @@ def volume(
                                 noise_scale = 0.03,
                                 gamma = 0.12,
                                 threshold = 0.85,
-                                volume_shape = "tube"
+                                shape = "tube",
                                 )
 
         # Visualize synthetic blob

@@ -7,9 +7,7 @@ import qim3d
 # Unit test for background() apply_to ValueError
 def test_background_apply_to_error():
     background_shape = (64, 64, 64)
-    apply_method = 'add'
-
-    msg = f"apply_method '{apply_method}' is only supported when apply_to input volume is provided."
+    msg = f"Supply both apply_method and apply_to when applying background to a volume."
 
     with pytest.raises(ValueError, match=msg):
         qim3d.generate.background(background_shape=background_shape, apply_method='add')

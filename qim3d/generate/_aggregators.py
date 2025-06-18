@@ -501,7 +501,8 @@ def volume_collection(
         import qim3d
 
         # Generate synthetic collection of volumes
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=15)
+        num_volumes = 15
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=num_volumes)
 
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection, grid_visible=True)
