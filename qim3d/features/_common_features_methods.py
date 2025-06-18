@@ -197,12 +197,12 @@ def sphericity(
 
         # Compute the sphericity of the object
         sphericity = qim3d.features.sphericity(synthetic_object)
-        print(sphericity)
+        print(f"Sphericity: {sphericity:.4f}")
 
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        0.9058
+        Sphericity: 0.9058
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_2.html" width="100%" height="500" frameborder="0"></iframe>
 
     Example:
@@ -218,12 +218,12 @@ def sphericity(
 
         # Compute the sphericity of the object
         sphericity = qim3d.features.sphericity(synthetic_object)
-        print(sphericity)
+        print(f"Sphericity: {sphericity:.4f}")
 
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        0.6876
+        Sphericity: 0.6876
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
     """
     # Prepare object
@@ -319,12 +319,12 @@ def size(
 
         # Compute size of the object
         size = qim3d.features.size(synthetic_object)
-        print(size)
+        print(f"Size: {size}")
 
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        100.0
+        Size: 100.0
         <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
     """
     # Prepare object
@@ -363,14 +363,43 @@ def roughness(
         ```python
         import qim3d
 
-        # Compute roughness of a synthetic object with smooth surface
-        synthetic_object_1 = qim3d.generate.volume(noise_scale=0.01)
-        roughness_1 = qim3d.features.roughness(synthetic_object_1)
+        # Generate a synthetic object
+        synthetic_object = qim3d.generate.volume(
+            base_shape=(128,128,128), 
+            noise_scale=0.019,
+            )
 
-        # Compute roughness of a synthetic object with rough surface
-        synthetic_object_2 = qim3d.generate.volume(noise_scale=0.05)
-        roughness_2 = qim3d.features.roughness(synthetic_object_2)
+        # Compute the roughness of the object
+        roughness = qim3d.features.roughness(synthetic_object)
+        print(f"Roughness: {roughness:.4f}")
+
+        # Visualize the synthetic object
+        qim3d.viz.volumetric(synthetic_object)
         ```
+        Roughness: 0.1005
+        <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v1.html" width="100%" height="500" frameborder="0"></iframe>
+    
+    Example:
+        ```python
+        import qim3d
+
+        # Generate a synthetic object
+        synthetic_object = qim3d.generate.volume(
+            base_shape=(128,128,128), 
+            noise_scale=0.08,
+            decay_rate=18,
+            gamma=0.9,
+            )
+
+        # Compute the roughness of the object
+        roughness = qim3d.features.roughness(synthetic_object)
+        print(f"Roughness: {roughness:.4f}")
+
+        # Visualize the synthetic object
+        qim3d.viz.volumetric(synthetic_object)
+        ```
+        Roughness: 0.2534
+        <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe> 
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
