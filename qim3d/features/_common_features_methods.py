@@ -5,13 +5,14 @@ from skimage.filters import threshold_otsu
 import qim3d
 from qim3d.utils._logger import log
 
+
 def prepare_obj(
-    obj,
-    threshold="otsu",
-    mask=None,
-    mesh_precision=1.0,
-    return_mesh=True,
-):
+    obj: np.ndarray | hmesh.Manifold,
+    mask: np.ndarray | None = None,
+    threshold: float | str = 'otsu',
+    mesh_precision: float = 1.0,
+    return_mesh: bool = True,
+) -> np.ndarray | hmesh.Manifold:
     """
     Prepares a volume or mesh for feature extraction by applying thresholding and masking (if specified).
     Optionally returns a mesh or a binarized volume.
@@ -25,6 +26,7 @@ def prepare_obj(
 
     Returns:
         hmesh.Manifold or np.ndarray: Mesh or binarized/masked volume, depending on `return_mesh`.
+
     """
 
     # If already a mesh, return as is
@@ -35,13 +37,15 @@ def prepare_obj(
     processed_volume = volume.copy()
 
     # Determine if volume is already binary
-    is_binary = np.array_equal(np.unique(volume), [0, 1]) or np.array_equal(np.unique(volume), [False, True])
+    is_binary = np.array_equal(np.unique(volume), [0, 1]) or np.array_equal(
+        np.unique(volume), [False, True]
+    )
 
-    # Apply threshold if needed 
+    # Apply threshold if needed
     if not is_binary and threshold is not None:
         if threshold == 'otsu':
             threshold = threshold_otsu(volume)
-            
+
         processed_volume = (volume > threshold).astype(np.uint8)
 
     else:
@@ -53,22 +57,24 @@ def prepare_obj(
         mask = np.asarray(mask, dtype=bool)
 
         if mask.shape != processed_volume.shape:
-            raise ValueError(f'Mask shape {mask.shape} must match volume shape {processed_volume.shape}.')
-        
+            msg = f'Mask shape {mask.shape} must match volume shape {processed_volume.shape}.'
+            raise ValueError(msg)
+
         processed_volume = np.where(mask, processed_volume, 0)
 
     # Return mesh or binarized volume
     if return_mesh:
         mesh = qim3d.mesh.from_volume(processed_volume, mesh_precision=mesh_precision)
         return mesh
-    
+
     return processed_volume
+
 
 def volume(
     obj: np.ndarray | hmesh.Manifold,
     mask: np.ndarray | None = None,
-    threshold: float | str = "otsu",
-    ) -> float:
+    threshold: float | str = 'otsu',
+) -> float:
     """
     Compute the volume of an object from a volume or mesh using the Pygel3D library.
 
@@ -100,6 +106,7 @@ def volume(
         print(volume)
         ```
         48774.99
+
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -113,8 +120,8 @@ def volume(
 def area(
     obj: np.ndarray | hmesh.Manifold,
     mask: np.ndarray | None = None,
-    threshold: float | str = "otsu",
-    ) -> float:
+    threshold: float | str = 'otsu',
+) -> float:
     """
     Compute the surface area of an object from a volume or mesh using the Pygel3D library.
 
@@ -159,6 +166,7 @@ def area(
         print(area)
         ```
         58535.06
+
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -172,8 +180,8 @@ def area(
 def sphericity(
     obj: np.ndarray | hmesh.Manifold,
     mask: np.ndarray | None = None,
-    threshold: float | str = "otsu",
-    ) -> float:
+    threshold: float | str = 'otsu',
+) -> float:
     """
     Compute the sphericity of an object from a volume or mesh.
 
@@ -225,6 +233,7 @@ def sphericity(
         ```
         Sphericity: 0.6876
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -242,6 +251,7 @@ def sphericity(
 
     return sphericity
 
+
 def mean_std_intensity(
     volume: np.ndarray,
     mask: np.ndarray | None = None,
@@ -251,7 +261,7 @@ def mean_std_intensity(
 
     Args:
         volume (numpy.ndarray): Input `np.ndarray` volume.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None. 
+        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
 
     Returns:
         tuple: Mean and standard deviation of intensities.
@@ -259,7 +269,7 @@ def mean_std_intensity(
     Raises:
         ValueError: If the mask shape does not match the volume shape.
 
-    Note: 
+    Note:
         - The background (intensities of 0) is excluded from the computation.
         - If a mask is provided, it will only compute the mean and standard deviation for that region of interest.
 
@@ -278,9 +288,10 @@ def mean_std_intensity(
         # Visualize slices of the object
         qim3d.viz.slices_grid(shell_object, color_bar=True, color_bar_style="large")
         ```
-        Mean intensity: 114.6734  
+        Mean intensity: 114.6734
         Standard deviation of intensity: 45.8481
         ![mean_std_intensity_feature](../../assets/screenshots/mean_std_intensity_feature_example.png)
+
     """
 
     # Mask the volume (if provided)
@@ -288,29 +299,30 @@ def mean_std_intensity(
 
     # Get only the non-zero intensities (i.e., ignoring the background)
     intensities = volume[volume > 0]
- 
+
     # Compute mean and standard deviation
     mean_intensity = np.mean(intensities)
     std_intensity = np.std(intensities)
 
     return mean_intensity, std_intensity
 
+
 def size(
     obj: np.ndarray | hmesh.Manifold,
     mask: np.ndarray | None = None,
-    threshold: float | str = "otsu",
+    threshold: float | str = 'otsu',
 ) -> float:
     """
     Compute the size (maximum side length of the bounding box enclosing the object) of an object from a volume or mesh.
 
     Args:
         obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None. 
+        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
-        
+
     Returns:
         size: The size of the object, defined as the maximum side length of the bounding box enclosing the object.
-    
+
     Raises:
         ValueError: If the mask shape does not match the volume shape.
 
@@ -320,8 +332,8 @@ def size(
 
         # Generate a synthetic object
         synthetic_object = qim3d.generate.volume(
-            final_shape=(100,30,30), 
-            noise_scale=0.008, 
+            final_shape=(100,30,30),
+            noise_scale=0.008,
             shape="cylinder"
             )
 
@@ -334,6 +346,7 @@ def size(
         ```
         Size: 100.0
         <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -348,22 +361,23 @@ def size(
 
     return size
 
+
 def roughness(
     obj: np.ndarray | hmesh.Manifold,
     mask: np.ndarray | None = None,
-    threshold: float | str = "otsu",
+    threshold: float | str = 'otsu',
 ) -> float:
-    """ 
-    Compute the roughness (ratio between surface area and volume) of an object from a volume or mesh. 
+    """
+    Compute the roughness (ratio between surface area and volume) of an object from a volume or mesh.
 
     Args:
         obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
         mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
         threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
-    
+
     Returns:
         roughness (float): The roughness of the object, defined as the ratio between surface area and volume. Higher roughness indicates a more complex surface.
-   
+
     Raises:
         ValueError: If the mask shape does not match the volume shape.
 
@@ -373,7 +387,7 @@ def roughness(
 
         # Generate a synthetic object
         synthetic_object = qim3d.generate.volume(
-            base_shape=(128,128,128), 
+            base_shape=(128,128,128),
             noise_scale=0.019,
             )
 
@@ -386,14 +400,14 @@ def roughness(
         ```
         Roughness: 0.1005
         <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v1.html" width="100%" height="500" frameborder="0"></iframe>
-    
+
     Example:
         ```python
         import qim3d
 
         # Generate a synthetic object
         synthetic_object = qim3d.generate.volume(
-            base_shape=(128,128,128), 
+            base_shape=(128,128,128),
             noise_scale=0.08,
             decay_rate=18,
             gamma=0.9,
@@ -407,7 +421,8 @@ def roughness(
         qim3d.viz.volumetric(synthetic_object)
         ```
         Roughness: 0.2534
-        <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe> 
+        <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(obj, threshold=threshold, mask=mask, return_mesh=True)
@@ -419,7 +434,7 @@ def roughness(
     if area == 0 or volume == 0:
         log.warning('Surface area or volume is zero, roughness is undefined.')
         return np.nan
-    
+
     # Compute roughness
     roughness = area / volume
 
