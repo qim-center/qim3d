@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 import qim3d
@@ -19,7 +20,7 @@ def test_area():
     # Assertions
     assert isinstance(area_volume, float) and isinstance(area_mesh, float), "Area should be a float"
     assert area_volume > 0 and area_mesh > 0, "Area should be positive"
-    assert area_volume == area_mesh, "Area from volume and mesh should be equal"
+    assert math.isclose(area_volume, area_mesh, rel_tol=1e-9), "Area from volume and mesh should be equal"
     assert area_volume_masked < area_volume, "Area with mask applied should be less than area without mask applied"
 
 def test_volume():
@@ -39,7 +40,7 @@ def test_volume():
     # Assertions
     assert isinstance(volume_value, float) and isinstance(mesh_volume, float), "Volume should be a float"
     assert volume_value > 0 and mesh_volume > 0, "Volume should be positive"
-    assert volume_value == mesh_volume, "Volume from volume and mesh should be equal"
+    assert math.isclose(volume_value, mesh_volume, rel_tol=1e-9), "Volume from volume and mesh should be equal"
     assert volume_value_masked < volume_value, "Volume with mask applied should be less than volume without mask applied"
 
 def test_sphericity():
@@ -100,7 +101,7 @@ def test_size():
     # Assertions
     assert isinstance(size_volume, float) and isinstance(size_mesh, float), "Size should be a float"
     assert size_volume > 0 and size_mesh > 0, "Size should be positive"
-    assert size_volume == size_mesh, "Size from volume and mesh should be equal"
+    assert math.isclose(size_volume, size_mesh, rel_tol=1e-9), "Size from volume and mesh should be equal"
     assert size_volume_masked < size_volume, "Size with mask applied should be less than size without mask applied"
 
 def test_roughness():
@@ -124,6 +125,6 @@ def test_roughness():
     assert isinstance(roughness_mesh_low, float) and isinstance(roughness_mesh_high, float), "Roughness should be a float"
     assert roughness_volume_low >= 0 and roughness_volume_high >= 0, "Roughness should be non-negative"
     assert roughness_mesh_low >= 0 and roughness_mesh_high >= 0, "Roughness should be non-negative"
-    assert roughness_volume_low == roughness_mesh_low, "Roughness from volume and mesh should be equal"
-    assert roughness_volume_high == roughness_mesh_high, "Roughness from volume and mesh should be equal"
+    assert math.isclose(roughness_volume_low, roughness_mesh_low, rel_tol=1e-9), "Roughness from volume and mesh should be equal"
+    assert math.isclose(roughness_volume_high, roughness_mesh_high, rel_tol=1e-9), "Roughness from volume and mesh should be equal"
     assert roughness_volume_high > roughness_volume_low, "Roughness should increase with noise level"
