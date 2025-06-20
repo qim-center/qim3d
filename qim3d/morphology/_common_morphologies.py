@@ -83,10 +83,8 @@ def dilate(
         <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-        # Create kernel and apply dilation
-        s = 8
-        kernel = np.ones((s,s,s))
-        vol_dilated = qim3d.morphology.dilate(vol, kernel, method='scipy.ndimage')
+        # Apply dilation
+        vol_dilated = qim3d.morphology.dilate(vol, kernel=(8,8,8), method='scipy.ndimage')
 
         # Visualize
         qim3d.viz.volumetric(vol_dilated)
@@ -154,27 +152,25 @@ def erode(
 
 
     Example:
-    ```python
-        import qim3d
-        import numpy as np
+        ```python
+            import qim3d
+            import numpy as np
 
-        # Generate tubular synthetic blob
-        vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+            # Generate tubular synthetic blob
+            vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
-        # Visualize synthetic volume
-        qim3d.viz.volumetric(vol)
-    ```
-    <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
-    ```python
-        # Create kernel and erode
-        s = 6
-        kernel = np.ones((s,s,s))
-        vol_eroded = qim3d.morphology.erode(vol, kernel, method='scipy.ndimage')
+            # Visualize synthetic volume
+            qim3d.viz.volumetric(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+        ```python
+            # Apply erosion
+            vol_eroded = qim3d.morphology.erode(vol, kernel=(10,10,10), method='scipy.ndimage')
 
-        # Visualize
-        qim3d.viz.volumetric(vol_eroded)
-    ```
-    <iframe src="https://platform.qim.dk/k3d/zonohedra_eroded.html" width="100%" height="500" frameborder="0"></iframe>
+            # Visualize
+            qim3d.viz.volumetric(vol_eroded)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_eroded.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
@@ -261,10 +257,8 @@ def opening(
 
         ```python
 
-        # Create kernel and apply opening
-        s = 6
-        kernel = np.ones((s,s,s))
-        vol_opened = qim3d.morphology.opening(vol_noised, kernel, method='scipy.ndimage')
+        # Apply opening
+        vol_opened = qim3d.morphology.opening(vol_noised, kernel=(6,6,6), method='scipy.ndimage')
 
         # Visualize
         qim3d.viz.volumetric(vol_opened)
@@ -349,10 +343,8 @@ def closing(
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_cube.html" width="100%" height="500" frameborder="0"></iframe>
         ```python
-        # Generate kernel and apply closing
-        s = 15
-        kernel = np.ones((s,s,s))
-        cube_closed = qim3d.morphology.closing(cube, kernel, method='scipy.ndimage')
+        # Apply closing
+        cube_closed = qim3d.morphology.closing(cube, kernel=(15,15,15), method='scipy.ndimage')
 
         # Visualize
         qim3d.viz.volumetric(cube_closed)
@@ -369,7 +361,7 @@ def closing(
 
     assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
 
-    if method == 'pg.flat' or method == 'pygorpho.flat' or method == 'flat':
+    if method == 'pygorpho.flat':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
@@ -379,7 +371,7 @@ def closing(
 
         return pg.flat.close(vol, kernel, **kwargs)
 
-    elif method == 'pg.linear' or method == 'linear':
+    elif method == 'pygorpho.linear':
         assert isinstance(
             kernel, int
         ), 'Kernel is generated within function and must therefore be an integer.'
@@ -391,7 +383,7 @@ def closing(
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
         return pg.flat.linear_close(vol, linesteps, linelens, **kwargs)
 
-    elif method == 'ndi' or method == 'scipy' or method == 'ndimage':
+    elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
@@ -435,10 +427,8 @@ def black_tophat(
             ```
             <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
             ```python
-            # Create kernel and apply the tophat
-            s = 10
-            kernel = np.ones((s,s,s))
-            vol_black = qim3d.morphology.black_tophat(vol, kernel, method='scipy.ndimage')
+            # Apply the tophat
+            vol_black = qim3d.morphology.black_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')
 
             qim3d.viz.volumetric(vol_black)
             ```
@@ -476,7 +466,7 @@ def black_tophat(
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
         return pg.flat.bothat(vol, linesteps, linelens, **kwargs)
 
-    elif method == 'scipyndimage':
+    elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
@@ -521,11 +511,8 @@ def white_tophat(
             <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
 
             ```python
-            # Generate kernel and apply tophat
-            s = 10
-            kernel = np.ones((s,s,s))
-
-            vol_white = qim3d.morphology.white_tophat(vol, kernel, method='scipy.ndimage')
+            # Apply tophat
+            vol_white = qim3d.morphology.white_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')
 
             qim3d.viz.volumetric(vol_white)
             ```
