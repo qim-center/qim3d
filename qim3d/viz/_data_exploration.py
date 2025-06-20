@@ -3,13 +3,16 @@
 import math
 import warnings
 from collections.abc import Sequence
-from typing import Literal, Dict, Any
+from pathlib import Path
+from typing import Any, Literal
 
 import dask.array as da
+import imageio
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import pyvista as pv
 import seaborn as sns
 import skimage.measure
 import zarr
@@ -1447,7 +1450,7 @@ def threshold(
     output = widgets.Output()
 
     # Function to update the state and trigger visualization
-    def update_state(change: Dict[str, Any]) -> None:
+    def update_state(change: dict[str, Any]) -> None:
         # Update state based on widget values
         state['position'] = position_slider.value
         state['method'] = method_dropdown.value
@@ -1797,3 +1800,133 @@ def compare_volumes(
 
     vc = _VolumeComparison(volume1, volume2, slice_axis, slice_index)
     return vc.build_interactive()
+
+
+def get_save_path(user_input: str, default_dir: str = '.') -> Path:
+    input_path = Path(user_input)
+
+    if input_path.is_absolute():
+        return input_path
+    else:
+        return Path(default_dir) / input_path
+
+
+def save_rotation(
+    path: str,
+    vol: np.ndarray,
+    degrees: int = 360,
+    num_frames: int = 20,
+    fps: int = 10,
+    image_size: tuple[int, int] = (1024, 768),
+    color_map: str = 'magma',
+    camera_height: float = 2.0,
+    camera_distance: float | str = 'auto',
+    camera_focus: list | str = 'center',
+) -> None:
+    """
+    Save gif of rotation of volume.
+
+    Args:
+        path (str): The path to save the .gif. The postfix '.gif' may be excluded.
+        vol (np.ndarray): Volume to create .gif of.
+        volume (np.ndarray): The volume to visualize
+        degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.as_integer_ratio
+        num_frames (int, optional): The amount of frames to generate. Defaults to 20.
+        fps (int, optional): The amount of frames per second in the resulting gif. This determines the speed of the rotation of the volume. Defaults to 10.
+        image_size (tuple of ints, optional): Determines pixelsize of resulting gif. Defaults to (1024,768).
+        color_map (str, optional): Determines color map of volume. Defaults to 'magma'.
+        camera_height (float, optional): Determines the height of the camera rotating around the volume. The float value represents a multiple of the height of the z-axis. Defaults to 2.0.
+        camera_distance (int or string, optional): Determines the distance of the camera from the center point. If 'auto' is used, it will be auto calculated. Otherwise a float value representing voxel distance is expected. Defaults to 'auto'.
+        camera_focus (list or str, optional): Determines the voxel that the camera rotates around. Using 'center' will default to the center of the volume. Otherwise a list of three integers is expected. Defaults to 'center'.
+
+    Returns:
+        None
+
+    Raises:
+        ValueError: If the camera focus argument is incorrectly used.
+        ValueError: If the camera_distance argument is incorrectly used.
+
+    Example:
+        ```python
+        vol = qim3d.generate.volume(noise_scale=0.0, base_shape=(128,64,80), shape='cylinder')
+
+    save_rotation('test_gif.gif',
+                vol,
+                degrees=360,
+                num_frames=120,
+                fps=30,
+                image_size=(768,768),
+                camera_height=1.5,
+                camera_distance='auto',
+                camera_focus='center')
+        ```
+
+    """
+    if not (
+        camera_focus == 'center'
+        or (isinstance(camera_focus, np.ndarray, list) and len(camera_focus) == 3)
+    ):
+        msg = f'Value "{camera_focus}" for camera focus is invalid. Use "center" or a list of three values.'
+        raise ValueError(msg)
+    if not (isinstance(camera_distance, float) or camera_distance == 'auto'):
+        msg = f'Value "{camera_distance}" for camera distance is invalid. Use "auto" or a float value.'
+        raise ValueError(msg)
+
+    if len(path) < 4 or path[-4:] != '.gif':
+        path += '.gif'
+
+    path = get_save_path(path)
+
+    # Handle img in (xyz) instead of (zyx) (due to rendering issues with the up-vector, ensure that z=y, such that we now have (x,z,y))
+    vol = np.transpose(vol, (2, 0, 1))
+
+    # Create a uniform grid
+    grid = pv.ImageData()
+    grid.dimensions = np.array(vol.shape) + 1  # PyVista dims are +1 from volume shape
+    grid.spacing = (1, 1, 1)
+    grid.origin = (0, 0, 0)
+    grid.cell_data['values'] = vol.flatten(order='F')  # Fortran order
+
+    # Initialize plotter
+    plotter = pv.Plotter(off_screen=True)
+    plotter.add_volume(grid, opacity='linear', cmap=color_map)
+    plotter.remove_scalar_bar()  # Remove colorbar
+
+    frames = []
+    camera_height = vol.shape[1] * camera_height
+
+    if camera_distance == 'auto':
+        bounds = np.array(plotter.bounds)  # (xmin, xmax, ymin, ymax, zmin, zmax)
+        diag = np.linalg.norm(
+            [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
+        )
+        camera_distance = diag * 2.0
+
+    if camera_focus == 'center':
+        _, center, _ = plotter.camera_position
+    else:
+        center = camera_focus
+
+    center = np.array(center)
+
+    angle_per_frame = degrees / num_frames
+    radians_per_frame = np.radians(angle_per_frame)
+
+    # Set up orbit radius and fixed up
+    radius = camera_distance
+    fixed_up = [0, 1, 0]
+    for i in range(num_frames):
+        theta = radians_per_frame * i
+        x = radius * np.sin(theta)
+        z = radius * np.cos(theta)
+        y = camera_height  # fixed height
+
+        eye = center + np.array([x, y, z])
+        plotter.camera_position = [eye.tolist(), center.tolist(), fixed_up]
+
+        plotter.render()
+        img = plotter.screenshot(return_img=True, window_size=image_size)
+        frames.append(img)
+
+    imageio.mimsave(path, frames, fps=fps)
+    print('GIF saved to ' + str(path.resolve()))
