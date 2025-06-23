@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import dask.array as da
-import imageio
+import imageio.v2 as imageio
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
@@ -1802,7 +1802,7 @@ def compare_volumes(
     return vc.build_interactive()
 
 
-def get_save_path(user_input: str, default_dir: str = '.') -> Path:
+def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
     input_path = Path(user_input)
 
     if input_path.is_absolute():
@@ -1815,7 +1815,7 @@ def save_rotation(
     path: str,
     vol: np.ndarray,
     degrees: int = 360,
-    num_frames: int = 20,
+    num_frames: int = 60,
     fps: int = 10,
     image_size: tuple[int, int] = (1024, 768),
     color_map: str = 'magma',
@@ -1827,7 +1827,7 @@ def save_rotation(
     Save gif of rotation of volume.
 
     Args:
-        path (str): The path to save the .gif. The postfix '.gif' may be excluded.
+        path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
         vol (np.ndarray): Volume to create .gif of.
         volume (np.ndarray): The volume to visualize
         degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.as_integer_ratio
@@ -1843,8 +1843,9 @@ def save_rotation(
         None
 
     Raises:
-        ValueError: If the camera focus argument is incorrectly used.
-        ValueError: If the camera_distance argument is incorrectly used.
+        TypeError: If the camera focus argument is incorrectly used.
+        TypeError: If the camera_distance argument is incorrectly used.
+        ValueError: If the path contains an unrecognized file extension.
 
     Example:
         ```python
@@ -1867,15 +1868,14 @@ def save_rotation(
         or (isinstance(camera_focus, np.ndarray, list) and len(camera_focus) == 3)
     ):
         msg = f'Value "{camera_focus}" for camera focus is invalid. Use "center" or a list of three values.'
-        raise ValueError(msg)
+        raise TypeError(msg)
     if not (isinstance(camera_distance, float) or camera_distance == 'auto'):
         msg = f'Value "{camera_distance}" for camera distance is invalid. Use "auto" or a float value.'
-        raise ValueError(msg)
+        raise TypeError(msg)
 
-    if len(path) < 4 or path[-4:] != '.gif':
+    if len(path) < 4 or '.' not in path:
+        print(f'Input path: "{path}" does not have a filetype. Defaulting to .gif.')
         path += '.gif'
-
-    path = get_save_path(path)
 
     # Handle img in (xyz) instead of (zyx) (due to rendering issues with the up-vector, ensure that z=y, such that we now have (x,z,y))
     vol = np.transpose(vol, (2, 0, 1))
@@ -1928,5 +1928,24 @@ def save_rotation(
         img = plotter.screenshot(return_img=True, window_size=image_size)
         frames.append(img)
 
-    imageio.mimsave(path, frames, fps=fps)
+    if path[-4:] == '.gif':
+        imageio.mimsave(path, frames, fps=fps)
+
+    elif path[-4:] == '.avi' or path[-4:] == '.mp4':
+        writer = imageio.get_writer(path, fps=fps)
+        for frame in frames:
+            writer.append_data(frame)
+        writer.close()
+    elif path[-5:] == '.webm':
+        writer = imageio.get_writer(
+            path, fps=fps, codec='vp9', ffmpeg_params=['-crf', '32']
+        )
+        for frame in frames:
+            writer.append_data(frame)
+        writer.close()
+    else:
+        msg = 'Invalid file extension. Please use .gif, .avi, .mp4 or .webm'
+        raise ValueError(msg)
+
+    path = _get_save_path(path)
     print('GIF saved to ' + str(path.resolve()))

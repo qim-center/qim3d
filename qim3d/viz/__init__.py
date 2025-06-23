@@ -1,15 +1,18 @@
-from . import _layers2d, colormaps
+"""Visualization functions for volumes."""
+
+from . import colormaps
 from ._cc import plot_cc
 from ._data_exploration import (
     chunks,
+    compare_volumes,
     fade_mask,
     histogram,
     line_profile,
+    save_rotation,
     slicer,
     slicer_orthogonal,
     slices_grid,
     threshold,
-    compare_volumes,
 )
 from ._detection import circles
 from ._k3d import mesh, volumetric
@@ -30,6 +33,8 @@ __all__ = [
     'slicer_orthogonal',
     'slices_grid',
     'threshold',
+    'compare_volumes',
+    'save_rotation',
     'circles',
     'mesh',
     'volumetric',
