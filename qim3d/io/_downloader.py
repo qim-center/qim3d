@@ -2,7 +2,8 @@
 
 import os
 import urllib.request
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
+from urllib.error import HTTPError, URLError
 
 import outputformat as ouf
 from tqdm import tqdm
@@ -133,6 +134,62 @@ class Downloader:
         folders = _extract_names()
         for idx, folder in enumerate(folders):
             exec(f'self.{folder} = _Myfolder(folder)')
+
+    def __call__(self,
+                 url: str,
+                 load_file: bool = False,
+                 virtual_stack: bool = True):
+        """
+        Download any file given its URL. If load_file=True, also call qim3d.io.load().
+        """
+
+        # Determine file name
+        parsed = urlparse(url)
+        fname = os.path.basename(parsed.path)
+        download_dir = os.path.join(os.getcwd(), "downloads")
+        os.makedirs(download_dir, exist_ok=True)
+        dest = os.path.join(download_dir, fname)
+
+        # Skip if already exists
+        if os.path.exists(dest):
+            log.warning(f'File already downloaded:\n{os.path.abspath(dest)}')
+            if load_file:
+                return load(path=dest, virtual_stack=virtual_stack)
+            return
+        else:
+            log.info(f'Downloading {ouf.b(fname, return_str=True)}\n{url}')
+            # get size if available
+            try:
+                total = _get_file_size(url)
+            except Exception:
+                total = None
+
+            with tqdm(
+                total=total,
+                unit='B',
+                unit_scale=True,
+                unit_divisor=1024,
+                ncols=80,
+            ) as pbar:
+                try:
+                    urllib.request.urlretrieve(
+                        url,
+                        dest,
+                        reporthook=lambda blocknum, bs, total: _update_progress(pbar, blocknum, bs),
+                    )
+                except HTTPError as http_err:
+                    raise FileNotFoundError(
+                        f'Failed to download {url!r}: server returned HTTP {http_err.code}'
+                    ) from http_err
+                except URLError as url_err:
+                    raise ConnectionError (
+                        f'Failed to reach {url!r}: {url_err.reason}'
+                    ) from url_err
+        
+        # Load the file if requested
+        if load_file:
+            log.info(f'\nLoading {fname}')
+            return load(path=dest, virtual_stack=virtual_stack)
 
     def list_files(self):
         """Generate and print formatted folder, file, and size information."""
