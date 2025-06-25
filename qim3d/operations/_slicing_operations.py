@@ -63,7 +63,7 @@ def get_random_slice(
         seed (Optional[int]): Random seed for reproducibility.
 
     Returns:
-        np.ndarray: A 2D slice of the specified width and length.
+        slice2d (np.ndarray): A 2D slice of the specified width and length.
 
     Example:
         ```python
