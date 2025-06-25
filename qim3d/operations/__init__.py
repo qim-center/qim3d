@@ -6,6 +6,7 @@ from ._common_operations_methods import (
     overlay_rgb_images,
     remove_background,
 )
+from ._slicing_operations import get_random_slice
 from ._volume_operations import (
     center_twist,
     curve_warp,
@@ -28,4 +29,5 @@ __all__ = [
     'shear3d',
     'stretch',
     'trim',
+    'get_random_slice',
 ]
