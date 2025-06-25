@@ -65,6 +65,14 @@ def get_random_slice(
     Returns:
         np.ndarray: A 2D slice of the specified width and length.
 
+    Example:
+        ```python
+        import qim3d
+        downloader = qim3d.io.Downloader()
+        data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
+        slice2d = qim3d.operations.get_random_slice(data, width=64, length=100)
+        ```
+
     """
 
     if seed is not None:
