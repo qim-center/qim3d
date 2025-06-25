@@ -1,20 +1,21 @@
-"""Manages downloads and access to data"""
+"""Manages downloads and access to data."""
 
 import os
 import urllib.request
-from urllib.parse import quote, urlparse
 from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlparse
 
 import outputformat as ouf
 from tqdm import tqdm
+from typing import Callable, Any
 
 from qim3d.io import load
 from qim3d.utils import log
 
 __all__ = ['Downloader', 'download_file']
 
-class _Myfolder:
 
+class _Myfolder:
     """
     Class for extracting the files from each folder in the Downloader class.
 
@@ -33,7 +34,7 @@ class _Myfolder:
     def __init__(self, folder: str):
         files = _extract_names(folder)
 
-        for idx, file in enumerate(files):
+        for _ , file in enumerate(files):
             # Changes names to usable function name.
             file_name = file
             if ('%20' in file) or ('-' in file):
@@ -42,7 +43,7 @@ class _Myfolder:
 
             setattr(self, f'{file_name.split(".")[0]}', self._make_fn(folder, file))
 
-    def _make_fn(self, folder: str, file: str):
+    def _make_fn(self, folder: str, file: str) -> Callable[[bool, bool], Any]:
         """
         Private method that returns a function. The function downloads the chosen file from the folder.
 
@@ -57,12 +58,13 @@ class _Myfolder:
 
         url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
 
-        def _download(load_file: bool = False, virtual_stack: bool = True):
+        def _download(load_file: bool = False, virtual_stack: bool = True) -> Any:
             """
             Downloads the file and optionally also loads it.
 
             Args:
                 load_file(bool,optional): Whether to simply download or also load the file.
+                virtual_stack(bool,optional): Whether to load the file as a virtual stack.
 
             Returns:
                 virtual_stack: The loaded image.
@@ -70,7 +72,7 @@ class _Myfolder:
             """
 
             download_file(url_dl, folder, file)
-            if load_file == True:
+            if load_file:
                 log.info(f'\nLoading {file}')
                 file_path = os.path.join(folder, file)
 
@@ -78,8 +80,8 @@ class _Myfolder:
 
         return _download
 
-class Downloader:
 
+class Downloader:
     """
     Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
 
@@ -132,13 +134,11 @@ class Downloader:
 
     def __init__(self):
         folders = _extract_names()
-        for idx, folder in enumerate(folders):
-            exec(f'self.{folder} = _Myfolder(folder)')
+        for folder in folders:
+            setattr(self, folder, _Myfolder(folder))
 
-    def __call__(self,
-                 url: str,
-                 load_file: bool = False,
-                 virtual_stack: bool = True):
+
+    def __call__(self, url: str, load_file: bool = False, virtual_stack: bool = True):
         """
         Download any file given its URL. If load_file=True, also call qim3d.io.load().
         """
@@ -146,7 +146,7 @@ class Downloader:
         # Determine file name
         parsed = urlparse(url)
         fname = os.path.basename(parsed.path)
-        download_dir = os.path.join(os.getcwd(), "downloads")
+        download_dir = os.path.join(os.getcwd(), 'downloads')
         os.makedirs(download_dir, exist_ok=True)
         dest = os.path.join(download_dir, fname)
 
@@ -175,17 +175,19 @@ class Downloader:
                     urllib.request.urlretrieve(
                         url,
                         dest,
-                        reporthook=lambda blocknum, bs, total: _update_progress(pbar, blocknum, bs),
+                        reporthook=lambda blocknum, bs, total: _update_progress(
+                            pbar, blocknum, bs
+                        ),
                     )
                 except HTTPError as http_err:
                     raise FileNotFoundError(
                         f'Failed to download {url!r}: server returned HTTP {http_err.code}'
                     ) from http_err
                 except URLError as url_err:
-                    raise ConnectionError (
+                    raise ConnectionError(
                         f'Failed to reach {url!r}: {url_err.reason}'
                     ) from url_err
-        
+
         # Load the file if requested
         if load_file:
             log.info(f'\nLoading {fname}')
