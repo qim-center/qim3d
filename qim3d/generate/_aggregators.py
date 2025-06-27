@@ -320,6 +320,21 @@ def _volume_collection(
     else:
         data_list = None
 
+    if data_list is not None:
+        valid = []
+        for idx, vol in enumerate(data_list):
+            # check each dimension
+            if all(v <= c for v, c in zip(vol.shape, collection_shape)):
+                valid.append(vol)
+            else:
+                msg = f'Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}'
+                log.warning(msg)
+        data_list = valid
+        # if none remain, we can't build anything
+        if not data_list:
+            msg = f'No custom volumes fit within collection size {collection_shape}.'
+            raise ValueError(msg)
+
     if rotation_axes is None:
         rotation_axes = [(0, 1), (0, 2), (1, 2)]
 
@@ -639,6 +654,21 @@ def volume_collection(
                 raise ValueError(msg)
     else:
         data_list = None
+
+    if data_list is not None:
+        valid = []
+        for idx, vol in enumerate(data_list):
+            # check each dimension
+            if all(v <= c for v, c in zip(vol.shape, collection_shape)):
+                valid.append(vol)
+            else:
+                msg = f'Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}'
+                log.warning(msg)
+        data_list = valid
+        # if none remain, we can't build anything
+        if not data_list:
+            msg = f'No custom volumes fit within collection size {collection_shape}.'
+            raise ValueError(msg)
 
     noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's', 'mixed', 'm']
     if noise_type not in noise_types:
