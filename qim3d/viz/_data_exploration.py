@@ -27,6 +27,7 @@ from skimage.filters import (
     threshold_yen,
 )
 import plotly.graph_objects as go
+import plotly.colors
 
 import qim3d
 
@@ -1801,12 +1802,24 @@ def compare_volumes(
 
 
 class VolumePlaneSlicer:
-    def __init__(self, volume, colorscale='Viridis', showscale=True, opacity=1.0):
+    @staticmethod
+    def matplotlib_to_plotly_cmap(cmap):
+        lin = np.linspace(0, 1, 256)
+        rgbs = matplotlib.colormaps.get_cmap(cmap)(lin)[:,:3]
+        colorscale = [
+            [lin[i].item(), plotly.colors.label_rgb(plotly.colors.convert_to_RGB_255(rgbs[i]))]
+            for i in range(len(lin))
+        ]
+        return colorscale
+    def __init__(self, volume, color_map='viridis', color_range=None, showscale=True, opacity=1.0):
         self.volume = volume
-        self.colorscale = colorscale
+        self.colorscale = self.matplotlib_to_plotly_cmap(color_map)
         self.showscale = showscale
 
-        self.x_max, self.y_max, self.z_max = volume.shape
+        vmin = color_range[0] or volume.min()
+        vmax = color_range[1] or volume.max()
+        self.color_range = [vmin, vmax]
+        self.z_max, self.y_max, self.x_max = volume.shape
         self.x_slider = widgets.IntSlider(value=self.x_max // 2, min=0, max=self.x_max - 1, description='X')
         self.y_slider = widgets.IntSlider(value=self.y_max // 2, min=0, max=self.y_max - 1, description='Y')
         self.z_slider = widgets.IntSlider(value=self.z_max // 2, min=0, max=self.z_max - 1, description='Z')
@@ -1821,16 +1834,16 @@ class VolumePlaneSlicer:
 
         slice_controls = widgets.VBox([
             section_title("Slice position"),
-            self.x_slider,
+            self.z_slider,
             self.y_slider,
-            self.z_slider
+            self.x_slider
         ])
 
         visibility_controls = widgets.VBox([
             section_title("Visibility"),
-            self.show_x,
-            self.show_y,
             self.show_z,
+            self.show_y,
+            self.show_x,
             self.opacity_slider
         ])
 
@@ -1845,8 +1858,17 @@ class VolumePlaneSlicer:
         self._set_observers()
 
     def _init_surfaces(self):
-        dummy = go.Surface(opacity=0)
-        self.fig.add_traces([dummy, dummy, dummy])
+        surfaces = [
+            go.Surface(
+                opacity=0,
+                colorscale=self.colorscale,
+                showscale=self.showscale,
+                cmin=self.color_range[0],
+                cmax=self.color_range[1]
+            )
+            for _ in range(3)
+        ]
+        self.fig.add_traces(surfaces)
         self.fig.update_layout(
             width=1000,
             height=500,
@@ -1859,25 +1881,25 @@ class VolumePlaneSlicer:
         )
 
     def _update_plane(self, plane):
-        x, y, z = [np.arange(s) for s in self.volume.shape]
+        z, y, x = [np.arange(s) for s in [self.z_max, self.y_max, self.x_max]]
         opacity = self.opacity_slider.value
 
         if plane == 'Z':
-            X, Y = np.meshgrid(x, y, indexing='ij')
+            Y, X = np.meshgrid(y, x, indexing='ij')
             Z = np.full_like(X, self.z_slider.value)
-            data = self.volume[:, :, self.z_slider.value]
+            data = self.volume[self.z_slider.value, :, :]
             surface = self.fig.data[0]
 
         elif plane == 'Y':
-            X, Z = np.meshgrid(x, z, indexing='ij')
-            Y = np.full_like(X, self.y_slider.value)
+            Z, X = np.meshgrid(z, x, indexing='ij')
+            Y = np.full_like(Z, self.y_slider.value)
             data = self.volume[:, self.y_slider.value, :]
             surface = self.fig.data[1]
 
         elif plane == 'X':
-            Y, Z = np.meshgrid(y, z, indexing='ij')
-            X = np.full_like(Y, self.x_slider.value)
-            data = self.volume[self.x_slider.value, :, :]
+            Z, Y = np.meshgrid(z, y, indexing='ij')
+            X = np.full_like(Z, self.x_slider.value)
+            data = self.volume[:, :, self.x_slider.value]
             surface = self.fig.data[2]
 
         else:
@@ -1926,8 +1948,6 @@ class VolumePlaneSlicer:
         surface.z = z
         surface.surfacecolor = surfacecolor
         surface.opacity = opacity
-        surface.colorscale = self.colorscale
-        surface.showscale = self.showscale
 
     def _set_observers(self):
         for control in [
@@ -1940,6 +1960,26 @@ class VolumePlaneSlicer:
     def show(self):
         display(self.controls, self.fig)
 
+def planes(
+    volume,
+    color_map=None,
+    value_min=None,
+    value_max=None,
+) -> None:
+    """
+    Displays an interactive 3D widget for viewing orthogonal cross-sections through a volume.
 
-def planes(volume):
-    VolumePlaneSlicer(volume).show()
+    Args:
+        volume (np.ndarray): The 3D volume of interest.
+        color_map (str or matplotlib.colors.Colormap, optional): Specifies the matplotlib color map.
+        value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range.
+        value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range.
+        
+    Returns:
+        None
+    """
+    VolumePlaneSlicer(
+        volume=volume,
+        color_map=color_map,
+        color_range=[value_min, value_max]
+    ).show()
