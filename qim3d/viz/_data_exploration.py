@@ -47,6 +47,8 @@ def slices_grid(
     interpolation: str | None = None,
     color_bar: bool = False,
     color_bar_style: str = 'small',
+    mask:np.ndarray = None,
+    mask_alpha:float = 0.4,
     **matplotlib_imshow_kwargs,
 ) -> matplotlib.figure.Figure:
     """
@@ -203,6 +205,7 @@ def slices_grid(
             slice_idx = i * max_columns + j
             try:
                 slice_img = volume.take(slice_idxs[slice_idx], axis=slice_axis)
+                slice_mask = None if mask is None else mask.take(slice_idxs[slice_idx], axis = slice_axis)
 
                 if not color_bar:
                     # If value_min is higher than the highest value in the
@@ -233,6 +236,8 @@ def slices_grid(
                     vmax=new_value_max,
                     **matplotlib_imshow_kwargs,
                 )
+                if slice_mask is not None:
+                    ax.imshow(slice_mask, cmap = 'gray', alpha = mask_alpha)
 
                 if display_positions:
                     ax.text(
@@ -337,6 +342,9 @@ def slicer(
     interpolation: str | None = None,
     image_size: int = None,
     color_bar: str = None,
+    mask:np.ndarray = None,
+    mask_alpha:float = 0.4,
+    default_postion:float|int = None,
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
     """
@@ -411,12 +419,30 @@ def slicer(
             num_slices=1,
             display_figure=True,
             color_bar=show_color_bar,
+            mask = mask,
+            mask_alpha = mask_alpha,
             **matplotlib_imshow_kwargs,
         )
         return fig
 
+        
+    if default_postion is not None:
+        if isinstance(default_postion, float):
+            default_postion = int( default_postion * (volume.shape[slice_axis]-1))
+        if isinstance(default_postion, int):
+            if default_postion > volume.shape[slice_axis]:
+                position = volume.shape[slice_axis] - 1
+            elif default_postion < 0:
+                position = volume.shape[slice_axis] - default_postion
+            else:
+                position = default_postion
+        else:
+            position = volume.shape[slice_axis] // 2
+    else:
+        position = volume.shape[slice_axis] // 2
+
     position_slider = widgets.IntSlider(
-        value=volume.shape[slice_axis] // 2,
+        value=position,
         min=0,
         max=volume.shape[slice_axis] - 1,
         description='Slice',
@@ -438,6 +464,12 @@ def slicer_orthogonal(
     display_positions: bool = False,
     interpolation: str | None = None,
     image_size: int = None,
+    colorbar:str = '',
+    mask:np.ndarray = None,
+    mask_alpha:float = 0.4,
+    default_z:float|int = 0.5,
+    default_y:float|int = 0.5,
+    default_x:float|int = 0.5,
 ) -> widgets.interactive:
     """
     Interactive widget for visualizing orthogonal slices of a 3D volume.
@@ -471,7 +503,7 @@ def slicer_orthogonal(
         image_height = image_size
         image_width = image_size
 
-    get_slicer_for_axis = lambda slice_axis: slicer(
+    get_slicer_for_axis = lambda slice_axis, colorbar, default_position: slicer(
         volume,
         slice_axis=slice_axis,
         color_map=color_map,
@@ -481,11 +513,15 @@ def slicer_orthogonal(
         image_width=image_width,
         display_positions=display_positions,
         interpolation=interpolation,
+        color_bar=colorbar,
+        mask = mask,
+        mask_alpha = mask_alpha,
+        default_postion=default_position
     )
 
-    z_slicer = get_slicer_for_axis(slice_axis=0)
-    y_slicer = get_slicer_for_axis(slice_axis=1)
-    x_slicer = get_slicer_for_axis(slice_axis=2)
+    z_slicer = get_slicer_for_axis(slice_axis=0, colorbar = "slices" if 'z' in colorbar else None, default_position=default_z)
+    y_slicer = get_slicer_for_axis(slice_axis=1, colorbar = "slices" if 'y' in colorbar else None, default_position=default_y)
+    x_slicer = get_slicer_for_axis(slice_axis=2, colorbar = "slices" if 'x' in colorbar else None, default_position=default_x) 
 
     z_slicer.children[0].description = 'Z'
     y_slicer.children[0].description = 'Y'

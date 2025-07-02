@@ -32,7 +32,7 @@ def volumetric(
     vmin: float | None = None,
     vmax: float | None = None,
     samples: int | str = 'auto',
-    max_voxels: int = 512**3,
+    max_voxels: int = 128**3,
     data_type: str = 'scaled_float16',
     **kwargs,
 ) -> Optional[k3d.Plot]:
@@ -168,6 +168,7 @@ def volumetric(
     )
     plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume
+    plot.camera_mode = "orbit"
     if save:
         # Save html to disk
         with open(str(save), 'w', encoding='utf-8') as fp:
