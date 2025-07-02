@@ -637,6 +637,32 @@ def volume_collection(
         ```
         ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
 
+    Example:
+        ```python
+        import qim3d
+
+        # Generate synthetic collection from a given set of volumes
+        # Generate two volumes
+        volume_1= qim3d.generate.volume(base_shape=(80,80,80),noise_scale = 0.02)
+        volume_2 = qim3d.generate.volume(base_shape = (100, 50, 50),
+                            # final_shape = (400,100,100),
+                            noise_scale = 0.03,
+                            threshold = 0.85,
+                            decay_rate=20,
+                            gamma=0.15,
+                            shape = "tube",
+                            tube_hole_ratio = 0.4,
+                            )
+
+        # Generate synthetic collection of volumes
+        num_volumes = 12
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=num_volumes,
+                                                             collection_shape=(300, 300, 300),
+                                                             data=[volume_1, volume_2])
+        # Visualize the collection
+        qim3d.viz.volumetric(volume_collection, grid_visible=True)
+        ```
+
     """
 
     # Check valid input types
