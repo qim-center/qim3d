@@ -662,6 +662,7 @@ def volume_collection(
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection, grid_visible=True)
         ```
+        <iframe src="https://platform.qim.dk/k3d/from_given_volumes.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
 
