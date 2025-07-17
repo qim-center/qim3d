@@ -49,6 +49,7 @@ _submodules = [
     'mesh',
     'features',
     'operations',
+    'morphology',
     'detection',
 ]
 

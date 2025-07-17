@@ -19,7 +19,9 @@ import zarr
 from IPython.display import Image, Video, clear_output, display
 from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.filters import (
     threshold_isodata,
     threshold_li,
@@ -1593,20 +1595,58 @@ class _VolumeComparison:
         volume2: np.ndarray | da.core.Array,
         slice_axis: int,
         slice_index: int,
+        k3d: bool = False,
     ) -> None:
         self.volume1 = volume1
         self.volume2 = volume2
         self.slice_axis = slice_axis
         self.slice_index = slice_index
-        self.color_map = 'bwr'
-        self.comparison_type = 'difference'
+        self.k3d = k3d
 
-        self.dims = np.array(volume1.shape)
-        self.cbar_pad = 0.1
+        self.k3d_output1 = widgets.Output()
+        self.k3d_output2 = widgets.Output()
+        self.k3d_output3 = widgets.Output()
+        self.plt_output1 = widgets.Output()
+        self.plt_output2 = widgets.Output()
+        self.plt_output3 = widgets.Output()
 
+        self.update_comp_plot = False
+        self.update_plots = False
+        self.comparison_type = 'difference'  # Default comparison type
+
+        self.create_colormap()
         self.initialize_widgets()
         self.update_slice_axis(slice_axis)
         self.slice_index_widget.value = slice_index
+        if self.k3d:
+            self.initialize_k3d_plots()
+
+    def create_colormap(self) -> None:
+        # Combine Blues and Reds colormaps
+        blues = plt.cm.Blues_r(np.linspace(0.0, 1, 256))
+        reds = plt.cm.Reds(np.linspace(0.0, 1, 256))
+        colors = np.vstack((blues, reds))
+        self.diff_cmap = LinearSegmentedColormap.from_list('blue_red', colors)
+
+    def initialize_k3d_plots(self) -> None:
+        self.k3d_plot1 = qim3d.viz.volumetric(
+            self.volume1, show=False, color_map='Reds'
+        )
+        self.k3d_plot2 = qim3d.viz.volumetric(
+            self.volume2, show=False, color_map='Blues'
+        )
+        alpha = [
+            [0.0, 1.0],
+            [0.35, 0.0],
+            [0.65, 0.0],
+            [1, 1.0],
+        ]
+        self.k3d_plot3 = qim3d.viz.volumetric(
+            (self.volume1 - self.volume2),
+            show=False,
+            color_map=self.diff_cmap,
+            opacity_function=alpha,
+        )
 
     def update_slice_axis(self, slice_axis: int) -> None:
         self.slice_axis = slice_axis
@@ -1634,6 +1674,18 @@ class _VolumeComparison:
         )
         self.slice_index_widget.layout.width = '400px'
 
+    def slice_cmap(
+        self, cmap: str | LinearSegmentedColormap, color_range: tuple[float, float]
+    ) -> matplotlib.colors.ListedColormap:
+        if isinstance(cmap, str):
+            cmap = matplotlib.colormaps[cmap].resampled(256)
+        black = np.array([0, 0, 0, 1])
+        sampled_colors = cmap(np.linspace(0, 1, 256))
+        sampled_colors[: round(color_range[0] * 256), :] = black
+        sampled_colors[round(color_range[1] * 256) :, :] = black
+        newcmp = matplotlib.colors.ListedColormap(sampled_colors)
+        return newcmp
+
     def update(
         self,
         slice_axis: int,
@@ -1645,18 +1697,18 @@ class _VolumeComparison:
             self.update_slice_axis(slice_axis)
             slice_index = self.slice_index_widget.value
 
-        clear_output(wait=True)
         slice1 = np.take(self.volume1, slice_index, axis=slice_axis).astype(float)
         slice2 = np.take(self.volume2, slice_index, axis=slice_axis).astype(float)
-        fig, ax = plt.subplots(1, 3, figsize=(12, 5))
 
-        norm01 = matplotlib.colors.Normalize(
+        norm1 = matplotlib.colors.Normalize(
             vmin=min(slice1.min(), slice2.min()), vmax=max(slice1.max(), slice2.max())
         )
-        mappable01 = matplotlib.cm.ScalarMappable(norm=norm01)
 
-        self.comparison_type = comparison_type
         if comparison_type == 'difference':
+            newcmp = self.slice_cmap(self.diff_cmap, color_range)
+            cmap1 = self.slice_cmap('Reds', color_range)
+            cmap2 = self.slice_cmap('Blues', color_range)
+
             comparison = slice1 - slice2
             vrange = [comparison.min(), comparison.max()]
             # In the special cases add small epsilon since TwoSlopeNorm requires vmin, vcenter, vmax to be in strictly ascending order.
@@ -1666,50 +1718,141 @@ class _VolumeComparison:
                 vcenter=0.0,
                 vmax=max(0.0 + eps, vrange[1]),
             )
-            color_map = 'bwr'
+            # Create opacity function for k3d comparison plot
+            alpha = [
+                [0.0, 1.0],
+                [0.35, 0.0],
+                [0.65, 0.0],
+                [1, 1.0],
+            ]
+            # Create comparison k3d plot
+            if self.comparison_type != comparison_type and self.k3d:
+                comparison_k3d = self.volume1 - self.volume2
+
         else:
+            newcmp = self.slice_cmap('magma', color_range)
+            cmap1 = newcmp
+            cmap2 = newcmp
+            alpha = []
+
             if comparison_type == 'absolute difference':
                 comparison = np.abs(slice1 - slice2)
+                if self.comparison_type != comparison_type and self.k3d:
+                    comparison_k3d = np.abs(self.volume1 - self.volume2)
+
             elif comparison_type == 'quadratic difference':
                 comparison = (slice1 - slice2) ** 2
+                if self.comparison_type != comparison_type and self.k3d:
+                    comparison_k3d = (self.volume1 - self.volume2) ** 2
 
             vrange = [0.0, comparison.max()]
             norm2 = matplotlib.colors.Normalize(vmin=vrange[0], vmax=vrange[1])
-            color_map = 'magma'
 
-        nc = 256
-        lb = round(color_range[0] * nc)
-        ub = round(color_range[1] * nc)
+        if self.comparison_type != comparison_type and self.k3d:
+            # Update difference k3d plot
+            self.k3d_plot3 = qim3d.viz.volumetric(
+                comparison_k3d,
+                show=False,
+                color_map=self.diff_cmap
+                if comparison_type == 'difference'
+                else 'magma',
+                opacity_function=alpha,
+            )
+            self.update_comp_plot = True
 
-        cmap_obj = matplotlib.colormaps[color_map].resampled(nc)
-        newcolors = cmap_obj(np.linspace(0, 1, nc))
-        black = np.array([0, 0, 0, 1])
-        newcolors[:lb, :] = black
-        newcolors[ub:, :] = black
-        newcmp = matplotlib.colors.ListedColormap(newcolors)
+            if (
+                comparison_type == 'difference'
+                or (
+                    'quadratic' in comparison_type
+                    and 'absolute' not in self.comparison_type
+                )
+                or (
+                    'absolute' in comparison_type
+                    and 'quadratic' not in self.comparison_type
+                )
+            ):
+                # Update k3d plots 1 and 2 if colormap change is necessary (difference <-> quadratic/absolute)
+                self.k3d_plot1 = qim3d.viz.volumetric(
+                    self.volume1,
+                    show=False,
+                    color_map='Blues' if comparison_type == 'difference' else 'magma',
+                )
+                self.k3d_plot2 = qim3d.viz.volumetric(
+                    self.volume2,
+                    show=False,
+                    color_map='Reds' if comparison_type == 'difference' else 'magma',
+                )
+                self.update_plots = True
 
-        mappable2 = matplotlib.cm.ScalarMappable(norm=norm2, cmap=newcmp)
+        # Overwrite the comparison type in instance
+        self.comparison_type = comparison_type
 
-        ax[0].imshow(slice1, norm=norm01)
-        ax[0].set_title('volume1')
-        fig.colorbar(
-            mappable=mappable01, ax=ax[0], orientation='horizontal', pad=self.cbar_pad
-        )
+        # Create plots
+        fig_1, ax_1 = plt.subplots(figsize=(4, 4))
+        im1 = ax_1.imshow(slice1, norm=norm1, cmap=cmap1)
+        ax_1.set_title('Volume1')
+        divider1 = make_axes_locatable(ax_1)
+        cax1 = divider1.append_axes('bottom', size='5%', pad=0.3)
+        fig_1.colorbar(im1, cax=cax1, orientation='horizontal')
+        fig_1.tight_layout()
+        self.fig1 = fig_1
+        plt.close(fig_1)
 
-        ax[1].imshow(slice2, norm=norm01)
-        ax[1].set_title('volume2')
-        fig.colorbar(
-            mappable=mappable01, ax=ax[1], orientation='horizontal', pad=self.cbar_pad
-        )
+        fig_2, ax_2 = plt.subplots(figsize=(4, 4))
+        im2 = ax_2.imshow(slice2, norm=norm1, cmap=cmap2)
+        ax_2.set_title('Volume2')
+        divider2 = make_axes_locatable(ax_2)
+        cax2 = divider2.append_axes('bottom', size='5%', pad=0.3)
+        fig_2.colorbar(im2, cax=cax2, orientation='horizontal')
+        fig_2.tight_layout()
+        self.fig2 = fig_2
+        plt.close(fig_2)
 
-        ax[2].imshow(comparison, norm=norm2, cmap=newcmp)
-        ax[2].set_title(comparison_type)
-        fig.colorbar(
-            mappable=mappable2, ax=ax[2], orientation='horizontal', pad=self.cbar_pad
-        )
+        fig_3, ax_3 = plt.subplots(figsize=(4, 4))
+        im3 = ax_3.imshow(comparison, norm=norm2, cmap=newcmp)
+        ax_3.set_title(comparison_type)
+        divider3 = make_axes_locatable(ax_3)
+        cax3 = divider3.append_axes('bottom', size='5%', pad=0.3)
+        fig_3.colorbar(im3, cax=cax3, orientation='horizontal')
+        fig_3.tight_layout()
+        self.fig3 = fig_3
+        plt.close(fig_3)
 
-        fig.tight_layout()
-        plt.show()
+        # Visualize plt plot 1
+        self.plt_output1.clear_output(wait=True)
+        with self.plt_output1:
+            plt.figure(self.fig1)
+            plt.show()
+
+        # Visualize plt plot 2
+        self.plt_output2.clear_output(wait=True)
+        with self.plt_output2:
+            plt.figure(self.fig2)
+            plt.show()
+
+        # Visualize plt plot 3
+        self.plt_output3.clear_output(wait=True)
+        with self.plt_output3:
+            plt.figure(self.fig3)
+            plt.show()
+
+        if self.update_plots:
+            # Visualize k3d plot 1 (if there are changes)
+            self.k3d_output1.clear_output(wait=True)
+            with self.k3d_output1:
+                display(self.k3d_plot1)
+            # Visualize k3d plot 1 (if there are changes)
+            self.k3d_output2.clear_output(wait=True)
+            with self.k3d_output2:
+                display(self.k3d_plot2)
+            self.update_plots = False
+
+        # Visualize k3d plot 3 (if there are changes)
+        if self.update_comp_plot:
+            self.k3d_output3.clear_output(wait=True)
+            with self.k3d_output3:
+                display(self.k3d_plot3)
+            self.update_comp_plot = False
 
     def build_interactive(self) -> widgets.VBox:
         # Group widgets into two columns
@@ -1751,7 +1894,86 @@ class _VolumeComparison:
             },
         )
 
-        return widgets.VBox([controls, interactive_plot])
+        # Create height on plt outputs to prevent flickering
+        plt_layout = widgets.Layout(
+            height='400px',
+            width='99%',
+            overflow='hidden',
+        )
+
+        fig_layout = widgets.Layout(
+            width='400px',
+            height='100%',
+            display='flex',
+            flex_flow='column',
+            align_items='stretch',
+            justify_content='space-between',
+        )
+        self.plt_output1.layout = plt_layout
+        self.plt_output2.layout = plt_layout
+        self.plt_output3.layout = plt_layout
+
+        if self.k3d:
+            k3d_layout = widgets.Layout(
+                width='99%',  # Slightly smaller
+                height='400px',
+                overflow='hidden',
+                flex='1 1 0%',
+            )
+
+            self.k3d_output1.layout = k3d_layout
+            self.k3d_output2.layout = k3d_layout
+            self.k3d_output3.layout = k3d_layout
+
+            fig1 = widgets.VBox(
+                [self.plt_output1, self.k3d_output1],
+                layout=fig_layout,
+            )
+            fig2 = widgets.VBox(
+                [self.plt_output2, self.k3d_output2],
+                layout=fig_layout,
+            )
+            fig3 = widgets.VBox(
+                [self.plt_output3, self.k3d_output3],
+                layout=fig_layout,
+            )
+
+            with self.k3d_output1:
+                display(self.k3d_plot1)
+            with self.k3d_output2:
+                display(self.k3d_plot2)
+            with self.k3d_output3:
+                display(self.k3d_plot3)
+        else:  # if volumetric visualization should not  be shown
+            fig1 = widgets.VBox(
+                [self.plt_output1],
+                layout=fig_layout,
+            )
+            fig2 = widgets.VBox(
+                [self.plt_output2],
+                layout=fig_layout,
+            )
+            fig3 = widgets.VBox(
+                [self.plt_output3],
+                layout=fig_layout,
+            )
+
+        # Update visualization and return the widgets
+        self.plt_output1.clear_output(wait=True)
+        self.plt_output2.clear_output(wait=True)
+        self.plt_output3.clear_output(wait=True)
+        with self.plt_output1:
+            plt.figure(self.fig1)
+            plt.show()
+        with self.plt_output2:
+            plt.figure(self.fig2)
+            plt.show()
+        with self.plt_output3:
+            plt.figure(self.fig3)
+            plt.show()
+
+        figs = widgets.HBox([fig1, fig2, fig3])
+        return widgets.VBox([controls, interactive_plot, figs])
 
 
 def compare_volumes(
@@ -1759,6 +1981,7 @@ def compare_volumes(
     volume2: np.ndarray,
     slice_axis: int = 0,
     slice_index: int = None,
+    volumetric_visualization: bool = False,
 ) -> widgets.interactive:
     """
     Returns an interactive widget for comparing two volumes along slices.
@@ -1768,6 +1991,7 @@ def compare_volumes(
         volume2 (np.ndarray): The second volume.
         slice_axis (int, optional): Specifies the initial axis along which to slice.
         slice_index (int, optional): Specifies the initial index along slice_axis.
+        volumetric_visualization (bool, optional): Defines if k3d plots should also be shown.
 
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
@@ -1778,10 +2002,10 @@ def compare_volumes(
         ```python
         import qim3d
 
-        vol1 = qim3d.generate.volume(noise_scale=0.020)
-        vol2 = qim3d.generate.volume(noise_scale=0.021)
+        vol1 = qim3d.generate.volume(noise_scale=0.020, dtype='float32')
+        vol2 = qim3d.generate.volume(noise_scale=0.021, dtype='float32')
 
-        qim3d.viz.compare_volumes(vol1, vol2)
+        qim3d.viz.compare_volumes(vol1, vol2, volumetric_visualization=True)
 
         ```
         ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
@@ -1795,6 +2019,13 @@ def compare_volumes(
         msg = 'Volumes must have the same shape.'
         raise ValueError(msg)
 
+    if np.issubdtype(volume1.dtype, np.unsignedinteger) and np.issubdtype(
+        volume2.dtype, np.unsignedinteger
+    ):
+        log.warning(
+            'Volumes have unsigned integer datatypes. Beware of over-/underflow.'
+        )
+
     if slice_axis not in (0, 1, 2):
         msg = 'Invalid slice_axis.'
         raise ValueError(msg)
@@ -1805,7 +2036,9 @@ def compare_volumes(
         msg = 'slice_index must be an integer.'
         raise ValueError(msg)
 
-    vc = _VolumeComparison(volume1, volume2, slice_axis, slice_index)
+    vc = _VolumeComparison(
+        volume1, volume2, slice_axis, slice_index, volumetric_visualization
+    )
     return vc.build_interactive()
 
 
