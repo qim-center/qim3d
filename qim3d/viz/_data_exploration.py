@@ -1895,7 +1895,7 @@ def export_rotation(
         msg = f'Value "{camera_distance}" for camera distance is invalid. Use "auto" or a float value.'
         raise TypeError(msg)
 
-    if len(path) < 4 or '.' not in path:
+    if Path(path).suffix == '':
         print(f'Input path: "{path}" does not have a filetype. Defaulting to .gif.')
         path += '.gif'
 
