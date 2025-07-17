@@ -1849,17 +1849,19 @@ def save_rotation(
 
     Example:
         ```python
+        import qim3d
+
         vol = qim3d.generate.volume(noise_scale=0.0, base_shape=(128,64,80), shape='cylinder')
 
-    save_rotation('test_gif.gif',
-                vol,
-                degrees=360,
-                num_frames=120,
-                fps=30,
-                image_size=(768,768),
-                camera_height=1.5,
-                camera_distance='auto',
-                camera_focus='center')
+        save_rotation('test_gif.gif',
+                    vol,
+                    degrees=360,
+                    num_frames=120,
+                    fps=30,
+                    image_size=(768,768),
+                    camera_height=1.5,
+                    camera_distance='auto',
+                    camera_focus='center')
         ```
 
     """
@@ -1929,7 +1931,7 @@ def save_rotation(
         frames.append(img)
 
     if path[-4:] == '.gif':
-        imageio.mimsave(path, frames, fps=fps)
+        imageio.mimsave(path, frames, fps=fps, loop=0)
 
     elif path[-4:] == '.avi' or path[-4:] == '.mp4':
         writer = imageio.get_writer(path, fps=fps)
