@@ -26,7 +26,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - line_profile
             - threshold
             - compare_volumes
-            - save_rotation
+            - export_rotation
             
 ::: qim3d.viz.colormaps
     options:

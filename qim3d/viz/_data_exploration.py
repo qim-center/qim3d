@@ -16,7 +16,7 @@ import pyvista as pv
 import seaborn as sns
 import skimage.measure
 import zarr
-from IPython.display import clear_output, display
+from IPython.display import Image, Video, clear_output, display
 from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
 from matplotlib.figure import Figure
@@ -31,6 +31,13 @@ from skimage.filters import (
 )
 
 import qim3d
+from qim3d.utils import log
+
+# For progress bar in Jupyter notebooks
+try:
+    from tqdm.notebook import tqdm
+except ImportError:
+    from tqdm import tqdm
 
 
 def slices_grid(
@@ -1811,33 +1818,35 @@ def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
         return Path(default_dir) / input_path
 
 
-def save_rotation(
+def export_rotation(
     path: str,
     vol: np.ndarray,
     degrees: int = 360,
-    num_frames: int = 60,
-    fps: int = 10,
-    image_size: tuple[int, int] = (1024, 768),
+    num_frames: int = 180,
+    fps: int = 30,
+    image_size: tuple[int, int] | None = (256, 256),
     color_map: str = 'magma',
     camera_height: float = 2.0,
     camera_distance: float | str = 'auto',
     camera_focus: list | str = 'center',
+    show: bool = False,
 ) -> None:
     """
-    Save gif of rotation of volume.
+    Export a rotation animation of volume.
 
     Args:
         path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
         vol (np.ndarray): Volume to create .gif of.
         volume (np.ndarray): The volume to visualize
-        degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.as_integer_ratio
-        num_frames (int, optional): The amount of frames to generate. Defaults to 20.
-        fps (int, optional): The amount of frames per second in the resulting gif. This determines the speed of the rotation of the volume. Defaults to 10.
-        image_size (tuple of ints, optional): Determines pixelsize of resulting gif. Defaults to (1024,768).
+        degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.
+        num_frames (int, optional): The amount of frames to generate. Defaults to 180.
+        fps (int, optional): The amount of frames per second in the resulting animation. This determines the speed of the rotation of the volume. Defaults to 30.
+        image_size (tuple of ints or None, optional): Pixel size (width, height) of each frame. If None, the plotter's default size is used. Defaults to (256, 256).
         color_map (str, optional): Determines color map of volume. Defaults to 'magma'.
         camera_height (float, optional): Determines the height of the camera rotating around the volume. The float value represents a multiple of the height of the z-axis. Defaults to 2.0.
         camera_distance (int or string, optional): Determines the distance of the camera from the center point. If 'auto' is used, it will be auto calculated. Otherwise a float value representing voxel distance is expected. Defaults to 'auto'.
         camera_focus (list or str, optional): Determines the voxel that the camera rotates around. Using 'center' will default to the center of the volume. Otherwise a list of three integers is expected. Defaults to 'center'.
+        show (bool, optional): If True, the resulting animation will be shown in the Jupyter notebook. Defaults to False.
 
     Returns:
         None
@@ -1851,18 +1860,29 @@ def save_rotation(
         ```python
         import qim3d
 
-        vol = qim3d.generate.volume(noise_scale=0.0, base_shape=(128,64,80), shape='cylinder')
+        vol = qim3d.generate.volume()
 
-        save_rotation('test_gif.gif',
-                    vol,
-                    degrees=360,
-                    num_frames=120,
-                    fps=30,
-                    image_size=(768,768),
-                    camera_height=1.5,
-                    camera_distance='auto',
-                    camera_focus='center')
+        qim3d.viz.export_rotation('test.gif', vol, show=True)
         ```
+        ![export_rotation_defaults](../../assets/screenshots/export_rotation_defaults.gif)
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume(shape='tube')
+
+        qim3d.viz.export_rotation('test.webm', vol,
+                                  degrees = 360,
+                                  num_frames = 120,
+                                  fps = 30,
+                                  image_size = (512,512),
+                                  camera_height = 3.0,
+                                  camera_distance = 'auto',
+                                  camera_focus = 'center',
+                                  show = True)
+        ```
+        ![export_rotation_video](../../assets/screenshots/export_rotation_video.gif)
 
     """
     if not (
@@ -1917,7 +1937,7 @@ def save_rotation(
     # Set up orbit radius and fixed up
     radius = camera_distance
     fixed_up = [0, 1, 0]
-    for i in range(num_frames):
+    for i in tqdm(range(num_frames), desc='Rendering'):
         theta = radians_per_frame * i
         x = radius * np.sin(theta)
         z = radius * np.cos(theta)
@@ -1938,6 +1958,7 @@ def save_rotation(
         for frame in frames:
             writer.append_data(frame)
         writer.close()
+
     elif path[-5:] == '.webm':
         writer = imageio.get_writer(
             path, fps=fps, codec='vp9', ffmpeg_params=['-crf', '32']
@@ -1945,9 +1966,16 @@ def save_rotation(
         for frame in frames:
             writer.append_data(frame)
         writer.close()
+
     else:
         msg = 'Invalid file extension. Please use .gif, .avi, .mp4 or .webm'
         raise ValueError(msg)
 
     path = _get_save_path(path)
-    print('GIF saved to ' + str(path.resolve()))
+    log.info('File saved to ' + str(path.resolve()))
+
+    if show:
+        if path.suffix == '.gif':
+            display(Image(filename=path))
+        elif path.suffix in ['.avi', '.mp4', '.webm']:
+            display(Video(filename=path, html_attributes='controls autoplay loop'))
