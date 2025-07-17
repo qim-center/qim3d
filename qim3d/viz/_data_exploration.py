@@ -1887,7 +1887,7 @@ def export_rotation(
     """
     if not (
         camera_focus == 'center'
-        or (isinstance(camera_focus, np.ndarray, list) and len(camera_focus) == 3)
+        or (isinstance(camera_focus, (np.ndarray, list)) and len(camera_focus) == 3)
     ):
         msg = f'Value "{camera_focus}" for camera focus is invalid. Use "center" or a list of three values.'
         raise TypeError(msg)
