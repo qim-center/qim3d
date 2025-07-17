@@ -1996,7 +1996,7 @@ def compare_volumes(
         vol1 = qim3d.generate.volume(noise_scale=0.020, dtype='float32')
         vol2 = qim3d.generate.volume(noise_scale=0.021, dtype='float32')
 
-        qim3d.viz.compare_volumes(vol1, vol2)
+        qim3d.viz.compare_volumes(vol1, vol2, volumetric_visualization=True)
 
         ```
         ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
