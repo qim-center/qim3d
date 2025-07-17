@@ -3,17 +3,20 @@
 import math
 import warnings
 from collections.abc import Sequence
+from pathlib import Path
 from typing import Any, Literal
 
 import dask.array as da
+import imageio.v2 as imageio
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import pyvista as pv
 import seaborn as sns
 import skimage.measure
 import zarr
-from IPython.display import clear_output, display
+from IPython.display import Image, Video, clear_output, display
 from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
 from matplotlib.colors import LinearSegmentedColormap
@@ -30,7 +33,13 @@ from skimage.filters import (
 )
 
 import qim3d
-from qim3d.utils._logger import log
+from qim3d.utils import log
+
+# For progress bar in Jupyter notebooks
+try:
+    from tqdm.notebook import tqdm
+except ImportError:
+    from tqdm import tqdm
 
 
 def slices_grid(
@@ -2031,3 +2040,175 @@ def compare_volumes(
         volume1, volume2, slice_axis, slice_index, volumetric_visualization
     )
     return vc.build_interactive()
+
+
+def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
+    input_path = Path(user_input)
+
+    if input_path.is_absolute():
+        return input_path
+    else:
+        return Path(default_dir) / input_path
+
+
+def export_rotation(
+    path: str,
+    vol: np.ndarray,
+    degrees: int = 360,
+    num_frames: int = 180,
+    fps: int = 30,
+    image_size: tuple[int, int] | None = (256, 256),
+    color_map: str = 'magma',
+    camera_height: float = 2.0,
+    camera_distance: float | str = 'auto',
+    camera_focus: list | str = 'center',
+    show: bool = False,
+) -> None:
+    """
+    Export a rotation animation of volume.
+
+    Args:
+        path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
+        vol (np.ndarray): Volume to create .gif of.
+        volume (np.ndarray): The volume to visualize
+        degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.
+        num_frames (int, optional): The amount of frames to generate. Defaults to 180.
+        fps (int, optional): The amount of frames per second in the resulting animation. This determines the speed of the rotation of the volume. Defaults to 30.
+        image_size (tuple of ints or None, optional): Pixel size (width, height) of each frame. If None, the plotter's default size is used. Defaults to (256, 256).
+        color_map (str, optional): Determines color map of volume. Defaults to 'magma'.
+        camera_height (float, optional): Determines the height of the camera rotating around the volume. The float value represents a multiple of the height of the z-axis. Defaults to 2.0.
+        camera_distance (int or string, optional): Determines the distance of the camera from the center point. If 'auto' is used, it will be auto calculated. Otherwise a float value representing voxel distance is expected. Defaults to 'auto'.
+        camera_focus (list or str, optional): Determines the voxel that the camera rotates around. Using 'center' will default to the center of the volume. Otherwise a list of three integers is expected. Defaults to 'center'.
+        show (bool, optional): If True, the resulting animation will be shown in the Jupyter notebook. Defaults to False.
+
+    Returns:
+        None
+
+    Raises:
+        TypeError: If the camera focus argument is incorrectly used.
+        TypeError: If the camera_distance argument is incorrectly used.
+        ValueError: If the path contains an unrecognized file extension.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume()
+
+        qim3d.viz.export_rotation('test.gif', vol, show=True)
+        ```
+        ![export_rotation_defaults](../../assets/screenshots/export_rotation_defaults.gif)
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume(shape='tube')
+
+        qim3d.viz.export_rotation('test.webm', vol,
+                                  degrees = 360,
+                                  num_frames = 120,
+                                  fps = 30,
+                                  image_size = (512,512),
+                                  camera_height = 3.0,
+                                  camera_distance = 'auto',
+                                  camera_focus = 'center',
+                                  show = True)
+        ```
+        ![export_rotation_video](../../assets/screenshots/export_rotation_video.gif)
+
+    """
+    if not (
+        camera_focus == 'center'
+        or (isinstance(camera_focus, (np.ndarray, list)) and len(camera_focus) == 3)
+    ):
+        msg = f'Value "{camera_focus}" for camera focus is invalid. Use "center" or a list of three values.'
+        raise TypeError(msg)
+    if not (isinstance(camera_distance, float) or camera_distance == 'auto'):
+        msg = f'Value "{camera_distance}" for camera distance is invalid. Use "auto" or a float value.'
+        raise TypeError(msg)
+
+    if Path(path).suffix == '':
+        print(f'Input path: "{path}" does not have a filetype. Defaulting to .gif.')
+        path += '.gif'
+
+    # Handle img in (xyz) instead of (zyx) (due to rendering issues with the up-vector, ensure that z=y, such that we now have (x,z,y))
+    vol = np.transpose(vol, (2, 0, 1))
+
+    # Create a uniform grid
+    grid = pv.ImageData()
+    grid.dimensions = np.array(vol.shape) + 1  # PyVista dims are +1 from volume shape
+    grid.spacing = (1, 1, 1)
+    grid.origin = (0, 0, 0)
+    grid.cell_data['values'] = vol.flatten(order='F')  # Fortran order
+
+    # Initialize plotter
+    plotter = pv.Plotter(off_screen=True)
+    plotter.add_volume(grid, opacity='linear', cmap=color_map)
+    plotter.remove_scalar_bar()  # Remove colorbar
+
+    frames = []
+    camera_height = vol.shape[1] * camera_height
+
+    if camera_distance == 'auto':
+        bounds = np.array(plotter.bounds)  # (xmin, xmax, ymin, ymax, zmin, zmax)
+        diag = np.linalg.norm(
+            [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
+        )
+        camera_distance = diag * 2.0
+
+    if camera_focus == 'center':
+        _, center, _ = plotter.camera_position
+    else:
+        center = camera_focus
+
+    center = np.array(center)
+
+    angle_per_frame = degrees / num_frames
+    radians_per_frame = np.radians(angle_per_frame)
+
+    # Set up orbit radius and fixed up
+    radius = camera_distance
+    fixed_up = [0, 1, 0]
+    for i in tqdm(range(num_frames), desc='Rendering'):
+        theta = radians_per_frame * i
+        x = radius * np.sin(theta)
+        z = radius * np.cos(theta)
+        y = camera_height  # fixed height
+
+        eye = center + np.array([x, y, z])
+        plotter.camera_position = [eye.tolist(), center.tolist(), fixed_up]
+
+        plotter.render()
+        img = plotter.screenshot(return_img=True, window_size=image_size)
+        frames.append(img)
+
+    if path[-4:] == '.gif':
+        imageio.mimsave(path, frames, fps=fps, loop=0)
+
+    elif path[-4:] == '.avi' or path[-4:] == '.mp4':
+        writer = imageio.get_writer(path, fps=fps)
+        for frame in frames:
+            writer.append_data(frame)
+        writer.close()
+
+    elif path[-5:] == '.webm':
+        writer = imageio.get_writer(
+            path, fps=fps, codec='vp9', ffmpeg_params=['-crf', '32']
+        )
+        for frame in frames:
+            writer.append_data(frame)
+        writer.close()
+
+    else:
+        msg = 'Invalid file extension. Please use .gif, .avi, .mp4 or .webm'
+        raise ValueError(msg)
+
+    path = _get_save_path(path)
+    log.info('File saved to ' + str(path.resolve()))
+
+    if show:
+        if path.suffix == '.gif':
+            display(Image(filename=path))
+        elif path.suffix in ['.avi', '.mp4', '.webm']:
+            display(Video(filename=path, html_attributes='controls autoplay loop'))
