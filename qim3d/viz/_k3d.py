@@ -7,8 +7,6 @@ Volumetric visualization using K3D.
 
 """
 
-from typing import Optional, Union
-
 import k3d
 import matplotlib.pyplot as plt
 import numpy as np
@@ -29,13 +27,14 @@ def volumetric(
     grid_visible: bool = False,
     color_map: str = 'magma',
     constant_opacity: bool = False,
+    opacity_function: str | list = None,
     vmin: float | None = None,
     vmax: float | None = None,
     samples: int | str = 'auto',
     max_voxels: int = 512**3,
     data_type: str = 'scaled_float16',
     **kwargs,
-) -> Optional[k3d.Plot]:
+) -> k3d.Plot | None:
     """
     Visualizes a 3D volume using volumetric rendering.
 
@@ -51,6 +50,7 @@ def volumetric(
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
         color_map (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to 'magma'.
         constant_opacity (bool): Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to False.
+        opacity_function (str or list, optional): Applies an opacity function to the plot, enabling custom values for opaqueness. Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to [].
         vmin (float or None, optional): Together with vmax defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
         vmax (float or None, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
         samples (int or 'auto', optional): The number of samples to be used for the volume rendering in k3d. Input 'auto' for auto selection. Defaults to 'auto'.
@@ -145,12 +145,22 @@ def volumetric(
             color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
 
     # Default k3d.volume settings
-    opacity_function = []
     interpolation = True
+
     if constant_opacity:
+        log.warning(
+            'Deprecation warning: Keyword argument "constant_opacity" is deprecated and will be removed next release. Instead use opacity_function="constant".'
+        )
         # without these settings, the plot will look bad when color_map is created with qim3d.viz.colormaps.objects
         opacity_function = [0.0, float(constant_opacity), 1.0, float(constant_opacity)]
         interpolation = False
+    else:
+        if opacity_function == 'constant':
+            # without these settings, the plot will look bad when color_map is created with qim3d.viz.colormaps.objects
+            opacity_function = [0.0, float(True), 1.0, float(True)]
+            interpolation = False
+        elif opacity_function is None:
+            opacity_function = []
 
     # Create the volume plot
     plt_volume = k3d.volume(
@@ -188,7 +198,7 @@ def mesh(
     show: bool = True,
     save: bool = False,
     **kwargs,
-) -> Optional[Union[k3d.Plot, go.FigureWidget]]:
+) -> k3d.Plot | go.FigureWidget | None:
     """
     Visualize a 3D mesh using `pygel3d` or `k3d`. The visualization with the pygel3d backend provides higher-quality rendering, but it may take more time compared to using the k3d backend.
 

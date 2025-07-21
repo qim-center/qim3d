@@ -104,13 +104,18 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
     assert len(shape) == 3, 'Shape must be 3D'
     assert len(volume.shape) == 3, 'Volume must be 3D'
     assert all(isinstance(x, int) for x in shape), 'Shape tuple must contain integers'
-    assert all(
-        shape[i] >= volume.shape[i] for i in range(len(shape))
-    ), 'Padded shape must be larger than non-padded shape.'
 
-    new_z = (shape[0] - volume.shape[0]) / 2
-    new_y = (shape[1] - volume.shape[1]) / 2
-    new_x = (shape[2] - volume.shape[2]) / 2
+    shape_np = np.array(shape)
+    for i in range(len(shape_np)):
+        if shape_np[i] < volume.shape[i]:
+            print(
+                'Pad shape is smaller than the volume shape. Changing it to original shape volume.'
+            )
+            shape_np[i] = volume.shape[i]
+
+    new_z = (shape_np[0] - volume.shape[0]) / 2
+    new_y = (shape_np[1] - volume.shape[1]) / 2
+    new_x = (shape_np[2] - volume.shape[2]) / 2
 
     return pad(volume, x_axis=new_x, y_axis=new_y, z_axis=new_z)
 
