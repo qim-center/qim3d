@@ -1,8 +1,9 @@
 """Provides a collection of visualization functions."""
 
+import inspect
 import math
 import warnings
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Literal
 
@@ -662,27 +663,40 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     """
     Launch an interactive chunk explorer for a 3D or 5D OME-Zarr dataset.
 
-    Parameters
-    ----------
-    zarr_path : str
-        Filesystem path or URL to the OME-Zarr dataset root.
-    **kwargs
-        Additional keyword arguments forwarded to the visualization functions:
-        - For `visualization_method='slicer'`: passed to `qim3d.viz.slicer`
-        - For `visualization_method='slices'`: passed to `qim3d.viz.slices_grid`
-        - For `visualization_method='volume'`: passed to `qim3d.viz.volumetric`
-        Common kwargs include `cmap`, `vmin`, `vmax`, etc.
+    Args:
+        zarr_path (str):
+            Path to the OME-Zarr dataset.
 
-    Returns
-    -------
-    widgets.VBox
-        An interactive container widget with dropdowns for choosing the OME-Zarr scale,
-        chunk coordinates along each axis, and visualization method ('slicer', 'slices', or 'volume').
+        **kwargs:
+            Additional keyword arguments that are **selectively** forwarded
+            only to the visualization method that supports them. Any key
+            not accepted by the chosen method is ignored.
 
-    Raises
-    ------
-    ValueError
-        If the dataset's dimensionality is not 3 or 5.
+            The visualization methods available in this tool are:
+
+            - `slicer` → calls `qim3d.viz.slicer`
+            - `slices` → calls `qim3d.viz.slices_grid`
+            - `volume` → calls `qim3d.viz.volumetric`
+
+            Users select the desired method via the dropdown menu in the widget.
+
+    Raises:
+        ValueError: If the dataset's dimensionality is not 3 or 5.
+
+    Returns:
+        chunk_explorer (widgets.VBox): A widget containing dropdowns for selecting the OME-Zarr scale, chunk coordinates along each axis, and visualization method.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Visualize interactive chunks explorer
+        qim3d.viz.chunks('path/to/zarr/dataset.zarr')
+        ```
+        ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
+
+
+
 
     """
     # Load the Zarr dataset
@@ -693,6 +707,13 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
 
     def get_num_chunks(shape: Sequence[int], chunk_size: Sequence[int]) -> list[int]:
         return [(s + chunk_size[i] - 1) // chunk_size[i] for i, s in enumerate(shape)]
+
+    def _filter_kwargs(
+        function: Callable[..., Any], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Filter kwargs to only include those that are accepted by the function."""
+        sig = inspect.signature(function)
+        return {k: v for k, v in kwargs.items() if k in sig.parameters}
 
     def load_and_visualize(
         scale: int,
@@ -761,17 +782,20 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         info_label.value = info_html
 
         if visualization_method == 'slicer':
-            return qim3d.viz.slicer(chunk, **inner_kwargs)
+            kw = _filter_kwargs(qim3d.viz.slicer, inner_kwargs)
+            return qim3d.viz.slicer(chunk, **kw)
         if visualization_method == 'slices':
             out = widgets.Output()
             with out:
-                fig = qim3d.viz.slices_grid(chunk, **inner_kwargs)
+                kw = _filter_kwargs(qim3d.viz.slices_grid, inner_kwargs)
+                fig = qim3d.viz.slices_grid(chunk, **kw)
                 display(fig)
             return out
         # volume
         out = widgets.Output()
         with out:
-            vol = qim3d.viz.volumetric(chunk, show=False, **inner_kwargs)
+            kw = _filter_kwargs(qim3d.viz.volumetric, inner_kwargs)
+            vol = qim3d.viz.volumetric(chunk, show=False, **kw)
             display(vol)
         return out
 
