@@ -3,13 +3,15 @@
 import math
 import warnings
 from collections.abc import Sequence
-from typing import Literal, Dict, Any
+from typing import Any, Literal
 
 import dask.array as da
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.colors
+import plotly.graph_objects as go
 import seaborn as sns
 import skimage.measure
 import zarr
@@ -26,8 +28,6 @@ from skimage.filters import (
     threshold_triangle,
     threshold_yen,
 )
-import plotly.graph_objects as go
-import plotly.colors
 
 import qim3d
 
@@ -1449,7 +1449,7 @@ def threshold(
     output = widgets.Output()
 
     # Function to update the state and trigger visualization
-    def update_state(change: Dict[str, Any]) -> None:
+    def update_state(change: dict[str, Any]) -> None:
         # Update state based on widget values
         state['position'] = position_slider.value
         state['method'] = method_dropdown.value
@@ -1805,13 +1805,19 @@ class VolumePlaneSlicer:
     @staticmethod
     def matplotlib_to_plotly_cmap(cmap):
         lin = np.linspace(0, 1, 256)
-        rgbs = matplotlib.colormaps.get_cmap(cmap)(lin)[:,:3]
+        rgbs = matplotlib.colormaps.get_cmap(cmap)(lin)[:, :3]
         colorscale = [
-            [lin[i].item(), plotly.colors.label_rgb(plotly.colors.convert_to_RGB_255(rgbs[i]))]
+            [
+                lin[i].item(),
+                plotly.colors.label_rgb(plotly.colors.convert_to_RGB_255(rgbs[i])),
+            ]
             for i in range(len(lin))
         ]
         return colorscale
-    def __init__(self, volume, color_map='viridis', color_range=None, showscale=True, opacity=1.0):
+
+    def __init__(
+        self, volume, color_map='magma', color_range=None, showscale=True, opacity=1.0
+    ):
         self.volume = volume
         self.colorscale = self.matplotlib_to_plotly_cmap(color_map)
         self.showscale = showscale
@@ -1820,37 +1826,39 @@ class VolumePlaneSlicer:
         vmax = color_range[1] or volume.max()
         self.color_range = [vmin, vmax]
         self.z_max, self.y_max, self.x_max = volume.shape
-        self.x_slider = widgets.IntSlider(value=self.x_max // 2, min=0, max=self.x_max - 1, description='X')
-        self.y_slider = widgets.IntSlider(value=self.y_max // 2, min=0, max=self.y_max - 1, description='Y')
-        self.z_slider = widgets.IntSlider(value=self.z_max // 2, min=0, max=self.z_max - 1, description='Z')
-        self.opacity_slider = widgets.FloatSlider(value=opacity, min=0.0, max=1.0, step=0.05, description='Opacity')
+        self.x_slider = widgets.IntSlider(
+            value=self.x_max // 2, min=0, max=self.x_max - 1, description='X'
+        )
+        self.y_slider = widgets.IntSlider(
+            value=self.y_max // 2, min=0, max=self.y_max - 1, description='Y'
+        )
+        self.z_slider = widgets.IntSlider(
+            value=self.z_max // 2, min=0, max=self.z_max - 1, description='Z'
+        )
+        self.opacity_slider = widgets.FloatSlider(
+            value=opacity, min=0.0, max=1.0, step=0.05, description='Opacity'
+        )
 
-        self.show_x = widgets.Checkbox(value=True, description='Show X slice')
-        self.show_y = widgets.Checkbox(value=True, description='Show Y slice')
-        self.show_z = widgets.Checkbox(value=True, description='Show Z slice')
+        self.show_x = widgets.Checkbox(value=True, description='', indent=False)
+        self.show_y = widgets.Checkbox(value=True, description='', indent=False)
+        self.show_z = widgets.Checkbox(value=True, description='', indent=False)
 
         def section_title(text):
-            return widgets.HTML(f"<div style='text-align:center; font-weight:bold;'>{text}</div>")
+            return widgets.HTML(
+                f"<div style='text-align:center; font-weight:bold;'>{text}</div>"
+            )
 
-        slice_controls = widgets.VBox([
-            section_title("Slice position"),
-            self.z_slider,
-            self.y_slider,
-            self.x_slider
-        ])
+        z_controls = widgets.HBox([self.z_slider, self.show_z])
+        y_controls = widgets.HBox([self.y_slider, self.show_y])
+        x_controls = widgets.HBox([self.x_slider, self.show_x])
+        slice_controls = widgets.VBox([z_controls, y_controls, x_controls])
 
-        visibility_controls = widgets.VBox([
-            section_title("Visibility"),
-            self.show_z,
-            self.show_y,
-            self.show_x,
-            self.opacity_slider
-        ])
-
-        self.controls = widgets.HBox([
-            slice_controls,
-            visibility_controls
-        ])
+        self.controls = widgets.HBox(
+            [
+                slice_controls,
+                self.opacity_slider,
+            ]
+        )
 
         self.fig = go.FigureWidget()
         self._init_surfaces()
@@ -1864,7 +1872,7 @@ class VolumePlaneSlicer:
                 colorscale=self.colorscale,
                 showscale=self.showscale,
                 cmin=self.color_range[0],
-                cmax=self.color_range[1]
+                cmax=self.color_range[1],
             )
             for _ in range(3)
         ]
@@ -1876,12 +1884,12 @@ class VolumePlaneSlicer:
             scene=dict(
                 xaxis=dict(title='X', range=[0, self.x_max]),
                 yaxis=dict(title='Y', range=[0, self.y_max]),
-                zaxis=dict(title='Z', range=[0, self.z_max])
-            )
+                zaxis=dict(title='Z', range=[0, self.z_max]),
+            ),
         )
 
     def _update_plane(self, plane):
-        z, y, x = [np.arange(s) for s in [self.z_max, self.y_max, self.x_max]]
+        z, y, x = (np.arange(s) for s in [self.z_max, self.y_max, self.x_max])
         opacity = self.opacity_slider.value
 
         if plane == 'Z':
@@ -1903,7 +1911,7 @@ class VolumePlaneSlicer:
             surface = self.fig.data[2]
 
         else:
-            raise ValueError(f"Invalid plane: {plane}")
+            raise ValueError(f'Invalid plane: {plane}')
 
         self._update_surface(surface, X, Y, Z, data, opacity)
 
@@ -1940,7 +1948,7 @@ class VolumePlaneSlicer:
         try:
             owner_action_map[owner]()
         except KeyError:
-            raise ValueError(f"Unhandled slider or control: {owner}")
+            raise ValueError(f'Unhandled slider or control: {owner}')
 
     def _update_surface(self, surface, x, y, z, surfacecolor, opacity):
         surface.x = x
@@ -1951,18 +1959,23 @@ class VolumePlaneSlicer:
 
     def _set_observers(self):
         for control in [
-            self.x_slider, self.y_slider, self.z_slider,
+            self.x_slider,
+            self.y_slider,
+            self.z_slider,
             self.opacity_slider,
-            self.show_x, self.show_y, self.show_z
+            self.show_x,
+            self.show_y,
+            self.show_z,
         ]:
             control.observe(self._update_figure, names='value')
 
     def show(self):
         display(self.controls, self.fig)
 
+
 def planes(
     volume,
-    color_map=None,
+    color_map='magma',
     value_min=None,
     value_max=None,
 ) -> None:
@@ -1974,12 +1987,11 @@ def planes(
         color_map (str or matplotlib.colors.Colormap, optional): Specifies the matplotlib color map.
         value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range.
         value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range.
-        
+
     Returns:
         None
+
     """
     VolumePlaneSlicer(
-        volume=volume,
-        color_map=color_map,
-        color_range=[value_min, value_max]
+        volume=volume, color_map=color_map, color_range=[value_min, value_max]
     ).show()
