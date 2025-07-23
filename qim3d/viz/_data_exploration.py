@@ -3,6 +3,7 @@
 import inspect
 import math
 import warnings
+
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Literal
@@ -13,6 +14,7 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
 import pyvista as pv
 import seaborn as sns
 import skimage.measure
@@ -22,6 +24,7 @@ from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
+from scipy import ndimage
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from skimage.filters import (
     threshold_isodata,
@@ -2066,6 +2069,223 @@ def compare_volumes(
     return vc.build_interactive()
 
 
+class IsoSurface:
+    def __init__(self, vol: np.ndarray, colormap: str = 'magma') -> None:
+        # keep a float32 copy to save half the RAM up front
+        self.vol_full = np.transpose(vol, (1, 2, 0)).astype(np.float32)
+        self.value_min = self.vol_full.min()
+        self.value_max = self.vol_full.max()
+        self.cmap = colormap
+        self._resolution_cache = {}
+
+        self.out = widgets.Output()
+        self._build_widgets()
+        self._init_figure()  # FigureWidget – persistent
+        self._display_ui()
+
+    # ---------- widgets ----------
+    def _build_widgets(self) -> None:
+        self.thr = widgets.IntSlider(
+            value=int(self.value_max / 2),
+            min=self.value_min,
+            max=self.value_max,
+            step=1,
+            description='Threshold',
+            continuous_update=False,
+        )
+        self.resolution = widgets.IntSlider(
+            value=64,
+            min=32,
+            max=96,
+            step=1,
+            description='Resolution',
+            continuous_update=False,
+        )
+        self.trans = widgets.FloatSlider(
+            value=0,
+            min=0,
+            max=1,
+            step=0.1,
+            description='Transparency',
+            continuous_update=False,
+        )
+        self.cmapw = widgets.Dropdown(
+            options=[
+                'Blackbody',
+                'Bluered',
+                'Blues',
+                'Cividis',
+                'Earth',
+                'Electric',
+                'Greens',
+                'Greys',
+                'Hot',
+                'Jet',
+                'Magma',
+                'Picnic',
+                'Portland',
+                'Rainbow',
+                'RdBu',
+                'Reds',
+                'Viridis',
+                'YlGnBu',
+                'YlOrRd',
+            ],
+            value=self.cmap,
+            description='Colormap',
+        )
+        self.grid = widgets.Checkbox(value=True, description='Grid')
+
+        self.wireframe = widgets.Checkbox(value=False, description='Wireframe')
+
+        self.colorbar = widgets.Checkbox(value=False, description='Colorbar')
+
+        for w in (
+            self.thr,
+            self.resolution,
+            self.trans,
+            self.cmapw,
+            self.grid,
+            self.wireframe,
+            self.colorbar,
+        ):
+            w.observe(self._refresh, names='value')
+
+    # ---------- data prep ----------
+    def _resize_vol(self, resolution: int) -> dict:
+        original_z, original_y, original_x = np.shape(self.vol_full)
+        max_size = max(original_z, original_y, original_x)
+
+        # Compute uniform zoom factor to fit the target resolution
+        zoom_factor = resolution / max_size
+
+        # Resize the full volume
+        vol_zoomed = ndimage.zoom(
+            input=self.vol_full,
+            zoom=zoom_factor,
+            order=0,
+            prefilter=False,
+        )
+
+        # Generate corresponding 3D grid
+        x, y, z = vol_zoomed.shape
+        xg, yg, zg = np.mgrid[0:x, 0:y, 0:z]
+
+        # Cache the result with resolution as the key
+        return (xg, yg, zg, vol_zoomed)
+
+    # ---------- figure ----------
+    def _init_figure(self) -> None:
+        xg, yg, zg, v = self._resize_vol(resolution=self.resolution.value)
+        isoval = self.thr.value  # * float(v.max())
+        self.fig = go.FigureWidget(
+            data=[
+                go.Isosurface(
+                    x=xg.flatten(),
+                    y=yg.flatten(),
+                    z=zg.flatten(),
+                    cmin=v.min(),
+                    cmax=v.max(),
+                    value=v.flatten(),
+                    isomin=isoval,
+                    isomax=isoval,
+                    opacity=1 - self.trans.value,
+                    surface_count=1,
+                    caps={'x_show': False, 'y_show': False, 'z_show': False},
+                    showscale=self.colorbar.value,  # self.cbar.value,
+                    colorscale=self.cmapw.value,
+                )
+            ]
+        )
+        self._layout_axes()
+
+        self._last_resolution = self.resolution.value
+
+    def _layout_axes(self) -> None:
+        self.fig.update_layout(
+            scene_aspectmode='data',
+            margin={'l': 0, 'r': 0, 'b': 0, 't': 0},
+            scene={
+                'xaxis': {'visible': self.grid.value},
+                'yaxis': {'visible': self.grid.value},
+                'zaxis': {'visible': self.grid.value},
+            },
+        )
+
+    # ---------- redraw ----------
+    def _refresh(self, *_) -> None:
+        resolution = self.resolution.value
+        tr = self.fig.data[0]
+
+        surface_fill = 0.2 if self.wireframe.value else 1.0
+
+        xg, yg, zg, v = self._resize_vol(resolution)
+        isoval = self.thr.value  # * float(v.max())
+
+        if self._last_resolution == resolution:
+            # Only update visual parameters, not the volume data
+            tr.update(
+                isomin=isoval,
+                isomax=isoval,
+                surface={'fill': surface_fill},
+            )
+            tr.colorscale = self.cmapw.value
+            tr.showscale = self.colorbar.value
+            tr.opacity = 1 - self.trans.value
+        else:
+            # Update everything
+            tr.update(
+                x=xg.flatten(),
+                y=yg.flatten(),
+                z=zg.flatten(),
+                value=v.flatten(),
+                isomin=isoval,
+                isomax=isoval,
+                opacity=1 - self.trans.value,
+                showscale=self.colorbar.value,
+                colorscale=self.cmapw.value,
+                surface={'fill': surface_fill},
+            )
+
+            self._last_resolution = resolution
+        self._layout_axes()
+
+    # ---------- UI ----------
+    def _display_ui(self) -> None:
+        title = widgets.HTML("<h3 style='margin-top:0;'>Iso-Surface Visualizer</h3>")
+
+        controls = widgets.VBox(
+            [
+                title,
+                self.thr,
+                self.resolution,
+                self.trans,
+                self.cmapw,
+                self.colorbar,
+                self.grid,
+                self.wireframe,
+            ],
+            layout=widgets.Layout(
+                min_width='200px',
+            ),
+        )
+
+        ui = widgets.HBox(
+            [controls, self.fig], layout=widgets.Layout(width='100%', height='640px')
+        )
+
+        display(ui)
+
+
+# helper function
+def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
+    """
+    Creates an interactive iso-surface visualizer for a single surface level.
+
+    Args:
+        vol (np.ndarray): Volume to visualize an iso-surface of.
+        colormap: (str, optional): Initial colormap for the iso-surface. This can be changed in the interface
+=======
 def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
     input_path = Path(user_input)
 
@@ -2108,6 +2328,7 @@ def export_rotation(
     Returns:
         None
 
+
     Raises:
         TypeError: If the camera focus argument is incorrectly used.
         TypeError: If the camera_distance argument is incorrectly used.
@@ -2117,6 +2338,14 @@ def export_rotation(
         ```python
         import qim3d
 
+        vol = qim3d.generate.volume(noise_scale=0.020)
+        qim3d.viz.iso_surface(vol)
+        ```
+
+        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
+
+    """
+    IsoSurface(vol, colormap)
         vol = qim3d.generate.volume()
 
         qim3d.viz.export_rotation('test.gif', vol, show=True)
