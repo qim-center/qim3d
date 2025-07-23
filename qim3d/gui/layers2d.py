@@ -24,7 +24,8 @@ import gradio as gr
 import numpy as np
 
 # from qim3d.processing import layers2d as l2d
-from .interface import BaseInterface
+from qim3d.gui.interface import BaseInterface
+import qim3d
 
 # TODO figure out how not update anything and go through processing when there are no data loaded
 # So user could play with the widgets but it doesnt throw error
