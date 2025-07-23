@@ -1,4 +1,4 @@
-gradio==4.44
+gradio>=5
 h5py>=3.9.0
 localthickness>=0.1.2
 matplotlib>=3.8.0
