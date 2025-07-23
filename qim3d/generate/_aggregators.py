@@ -629,7 +629,7 @@ def volume_collection(
         volume_1 = qim3d.generate.volume(base_shape = (32,32,32), noise_scale = 0.0)
         volume_2 = qim3d.generate.volume(base_shape = (32,32,32), noise_scale = 0.2)
 
-        # Generate collection from predifined volumes
+        # Generate collection from predefined volumes
         volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 30,
                                                                      data = [volume_1, volume_2])
         # Visualize
