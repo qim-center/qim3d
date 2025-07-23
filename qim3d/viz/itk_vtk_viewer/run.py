@@ -5,7 +5,6 @@ import time
 import webbrowser
 from pathlib import Path
 
-import qim3d.utils
 from qim3d.utils._logger import log
 
 from .helpers import *
@@ -229,7 +228,7 @@ def itk_vtk(
         )
 
     except NotInstalledError:
-        message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let qim3D install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want qim3D to install itk-vtk-viewer now?"
+        message = "Itk-vtk-viewer is not installed or qim3d can not find it.\nYou can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using different method\n\to  Install itk-vtk-viewer yourself following https://kitware.github.io/itk-vtk-viewer/docs/cli.html#Installation\n\to  Let qim3d install itk-vtk-viewer now (it will also install node.js in qim3d library)\nDo you want qim3d to install itk-vtk-viewer now?"
         print(message)
         answer = input('[Y/n]:')
         if answer in 'Yy':

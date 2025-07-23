@@ -5,6 +5,7 @@ from ._cc import plot_cc
 from ._data_exploration import (
     chunks,
     compare_volumes,
+    export_rotation,
     fade_mask,
     histogram,
     iso_surface,
@@ -35,6 +36,8 @@ __all__ = [
     'slicer_orthogonal',
     'slices_grid',
     'threshold',
+    'compare_volumes',
+    'export_rotation',
     'circles',
     'mesh',
     'volumetric',

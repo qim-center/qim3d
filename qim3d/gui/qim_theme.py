@@ -1,5 +1,10 @@
 import gradio as gr
 
+LIGHT_BLUE = '#60a5fa'
+DARK_BLUE = "#2472d2"
+RUN_COLOR = '#198754'
+BRIGHT_RUN_COLOR = '#299764'
+CANCEL_COLOR = '#dc3545'
 
 class QimTheme(gr.themes.Default):
 
@@ -26,6 +31,7 @@ class QimTheme(gr.themes.Default):
         self.set_dark_mode_values()  # Checks the light mode setting inside
 
     def general_values(self):
+        self.set_data_explorer()
         self.set_button()
         self.set_h1()
 
@@ -35,6 +41,7 @@ class QimTheme(gr.themes.Default):
         self.set_light_checkbox()
         self.set_light_cancel_button()
         self.set_light_example()
+        self.set_light_slider()
 
     def set_dark_mode_values(self):
         if self.force_light_mode:
@@ -52,27 +59,32 @@ class QimTheme(gr.themes.Default):
             self.set_dark_checkbox()
             self.set_dark_cancel_button()
             # Example looks good by default in dark mode
+            self.set_dark_slider()
 
     def set_button(self):
         self.button_transition = '0.15s'
         self.button_large_text_weight = 'normal'
+        self.button_border_width = '1px'
+    
+    def set_data_explorer(self):
+        # Changes the color of the arrow
+        self.color_accent = LIGHT_BLUE
 
     def set_light_primary_button(self):
-        self.run_color = '#198754'
         self.button_primary_background_fill = '#FFFFFF'
-        self.button_primary_background_fill_hover = self.run_color
-        self.button_primary_border_color = self.run_color
-        self.button_primary_text_color = self.run_color
+        self.button_primary_background_fill_hover = RUN_COLOR
+        self.button_primary_border_color = RUN_COLOR
+        self.button_primary_border_color_hover = RUN_COLOR
+        self.button_primary_text_color = RUN_COLOR
         self.button_primary_text_color_hover = '#FFFFFF'
 
     def set_dark_primary_button(self):
-        self.bright_run_color = '#299764'
         self.button_primary_background_fill_dark = (
             self.button_primary_background_fill_hover
         )
-        self.button_primary_background_fill_hover_dark = self.bright_run_color
+        self.button_primary_background_fill_hover_dark = BRIGHT_RUN_COLOR
         self.button_primary_border_color_dark = self.button_primary_border_color
-        self.button_primary_border_color_hover_dark = self.bright_run_color
+        self.button_primary_border_color_hover_dark = BRIGHT_RUN_COLOR
 
     def set_light_secondary_button(self):
         self.button_secondary_background_fill = 'white'
@@ -88,29 +100,38 @@ class QimTheme(gr.themes.Default):
         self.text_xxl = '2.5rem'
 
     def set_light_checkbox(self):
-        light_blue = '#60a5fa'
-        self.checkbox_background_color_selected = light_blue
-        self.checkbox_border_color_selected = light_blue
-        self.checkbox_border_color_focus = light_blue
+        self.checkbox_background_color_selected = LIGHT_BLUE
+        self.checkbox_border_color_selected = LIGHT_BLUE
+        self.checkbox_border_color_focus = LIGHT_BLUE
 
     def set_dark_checkbox(self):
         self.checkbox_border_color_dark = self.neutral_500
-        self.checkbox_border_color_focus_dark = self.checkbox_border_color_focus_dark
+        self.checkbox_border_color_focus_dark = DARK_BLUE
+        self.checkbox_border_color_selected_dark = DARK_BLUE
+        self.checkbox_background_color_selected_dark = DARK_BLUE
+        self.checkbox_background_color_selected_dark = DARK_BLUE
 
     def set_light_cancel_button(self):
-        self.cancel_color = '#dc3545'
         self.button_cancel_background_fill = 'white'
-        self.button_cancel_background_fill_hover = self.cancel_color
-        self.button_cancel_border_color = self.cancel_color
-        self.button_cancel_text_color = self.cancel_color
+        self.button_cancel_background_fill_hover = CANCEL_COLOR
+        self.button_cancel_border_color = CANCEL_COLOR
+        self.button_cancel_text_color = CANCEL_COLOR
         self.button_cancel_text_color_hover = 'white'
 
     def set_dark_cancel_button(self):
-        self.button_cancel_background_fill_dark = self.cancel_color
+        self.button_cancel_background_fill_dark = CANCEL_COLOR
         self.button_cancel_background_fill_hover_dark = 'red'
-        self.button_cancel_border_color_dark = self.cancel_color
+        self.button_cancel_border_color_dark = CANCEL_COLOR
         self.button_cancel_border_color_hover_dark = 'red'
         self.button_cancel_text_color_dark = 'white'
+
+    def set_light_slider(self):
+        self.slider_color = LIGHT_BLUE
+    
+    def set_dark_slider(self):
+        self.slider_color_dark = DARK_BLUE
+
+
 
     # def _get_theme_css(self):
     #     sup = super()._get_theme_css()

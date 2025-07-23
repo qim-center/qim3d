@@ -27,6 +27,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - threshold
             - compare_volumes
             - iso_surface
+            - export_rotation
             
 ::: qim3d.viz.colormaps
     options:
