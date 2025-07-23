@@ -1971,8 +1971,9 @@ class IsoSurface:
                 colorscale=self.cmapw.value,
                 surface={'fill': surface_fill},
             )
-            self._layout_axes()
+
             self._last_resolution = resolution
+        self._layout_axes()
 
     # ---------- UI ----------
     def _display_ui(self) -> None:
@@ -2017,6 +2018,8 @@ def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
         vol = qim3d.generate.volume(noise_scale=0.020)
         qim3d.viz.iso_surface(vol)
         ```
+
+        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
 
     """
     IsoSurface(vol, colormap)
