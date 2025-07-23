@@ -1826,7 +1826,7 @@ class IsoSurface:
         self.resolution = widgets.IntSlider(
             value=64,
             min=32,
-            max=128,
+            max=96,
             step=1,
             description='Resolution',
             continuous_update=False,
