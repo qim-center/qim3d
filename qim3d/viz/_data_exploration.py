@@ -3,7 +3,6 @@
 import inspect
 import math
 import warnings
-
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Literal
@@ -24,8 +23,8 @@ from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
-from scipy import ndimage
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy import ndimage
 from skimage.filters import (
     threshold_isodata,
     threshold_li,
@@ -2285,7 +2284,11 @@ def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
     Args:
         vol (np.ndarray): Volume to visualize an iso-surface of.
         colormap: (str, optional): Initial colormap for the iso-surface. This can be changed in the interface
-=======
+
+    """
+    IsoSurface(vol, colormap)
+
+
 def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
     input_path = Path(user_input)
 
@@ -2344,7 +2347,6 @@ def export_rotation(
 
         ![volume_comparison](../../assets/screenshots/iso_surface.gif)
 
-    """
     IsoSurface(vol, colormap)
         vol = qim3d.generate.volume()
 
@@ -2373,7 +2375,11 @@ def export_rotation(
     """
     if not (
         camera_focus == 'center'
-        or (isinstance(camera_focus, (np.ndarray, list)) and len(camera_focus) == 3)
+        or (
+            isinstance(camera_focus, list | np.ndarray)
+            and not isinstance(camera_focus, str)
+            and len(camera_focus) == 3
+        )
     ):
         msg = f'Value "{camera_focus}" for camera focus is invalid. Use "center" or a list of three values.'
         raise TypeError(msg)
