@@ -1805,6 +1805,8 @@ class IsoSurface:
     def __init__(self, vol: np.ndarray, colormap: str = 'magma') -> None:
         # keep a float32 copy to save half the RAM up front
         self.vol_full = np.transpose(vol, (1, 2, 0)).astype(np.float32)
+        self.value_min = self.vol_full.min()
+        self.value_max = self.vol_full.max()
         self.cmap = colormap
         self._resolution_cache = {}
 
@@ -1815,11 +1817,11 @@ class IsoSurface:
 
     # ---------- widgets ----------
     def _build_widgets(self) -> None:
-        self.thr = widgets.FloatSlider(
-            value=0.5,
-            min=0.01,
-            max=1,
-            step=0.001,
+        self.thr = widgets.IntSlider(
+            value=int(self.value_max / 2),
+            min=self.value_min,
+            max=self.value_max,
+            step=1,
             description='Threshold',
             continuous_update=False,
         )
@@ -1868,6 +1870,8 @@ class IsoSurface:
 
         self.wireframe = widgets.Checkbox(value=False, description='Wireframe')
 
+        self.colorbar = widgets.Checkbox(value=False, description='Colorbar')
+
         for w in (
             self.thr,
             self.resolution,
@@ -1875,6 +1879,7 @@ class IsoSurface:
             self.cmapw,
             self.grid,
             self.wireframe,
+            self.colorbar,
         ):
             w.observe(self._refresh, names='value')
 
@@ -1904,21 +1909,22 @@ class IsoSurface:
     # ---------- figure ----------
     def _init_figure(self) -> None:
         xg, yg, zg, v = self._resize_vol(resolution=self.resolution.value)
-        isoval = self.thr.value * float(v.max())
-
+        isoval = self.thr.value  # * float(v.max())
         self.fig = go.FigureWidget(
             data=[
                 go.Isosurface(
                     x=xg.flatten(),
                     y=yg.flatten(),
                     z=zg.flatten(),
+                    cmin=v.min(),
+                    cmax=v.max(),
                     value=v.flatten(),
                     isomin=isoval,
                     isomax=isoval,
                     opacity=1 - self.trans.value,
                     surface_count=1,
                     caps={'x_show': False, 'y_show': False, 'z_show': False},
-                    showscale=False,  # self.cbar.value,
+                    showscale=self.colorbar.value,  # self.cbar.value,
                     colorscale=self.cmapw.value,
                 )
             ]
@@ -1946,7 +1952,7 @@ class IsoSurface:
         surface_fill = 0.2 if self.wireframe.value else 1.0
 
         xg, yg, zg, v = self._resize_vol(resolution)
-        isoval = self.thr.value * float(v.max())
+        isoval = self.thr.value  # * float(v.max())
 
         if self._last_resolution == resolution:
             # Only update visual parameters, not the volume data
@@ -1956,6 +1962,7 @@ class IsoSurface:
                 surface={'fill': surface_fill},
             )
             tr.colorscale = self.cmapw.value
+            tr.showscale = self.colorbar.value
             tr.opacity = 1 - self.trans.value
         else:
             # Update everything
@@ -1967,7 +1974,7 @@ class IsoSurface:
                 isomin=isoval,
                 isomax=isoval,
                 opacity=1 - self.trans.value,
-                showscale=False,
+                showscale=self.colorbar.value,
                 colorscale=self.cmapw.value,
                 surface={'fill': surface_fill},
             )
@@ -1986,14 +1993,17 @@ class IsoSurface:
                 self.resolution,
                 self.trans,
                 self.cmapw,
+                self.colorbar,
                 self.grid,
                 self.wireframe,
             ],
-            layout=widgets.Layout(min_width='260px'),
+            layout=widgets.Layout(
+                min_width='200px',
+            ),
         )
 
         ui = widgets.HBox(
-            [controls, self.fig], layout=widgets.Layout(width='100%', height='500px')
+            [controls, self.fig], layout=widgets.Layout(width='100%', height='640px')
         )
 
         display(ui)
