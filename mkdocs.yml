@@ -17,6 +17,7 @@ nav:
     - Detection: doc/image_analysis/detection.md
     - Segmentation: doc/image_analysis/segmentation.md
     - Operations: doc/image_analysis/operations.md
+    - Morphology: doc/image_analysis/morphology.md
     - Processing: doc/image_analysis/processing.md
     - Meshes: doc/image_analysis/mesh.md
   - Machine Learning: doc/ml/models.md

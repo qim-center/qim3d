@@ -127,6 +127,7 @@ def specific_placement(
 def _volume_collection(
     collection_shape: tuple = (200, 200, 200),
     num_volumes: int = 15,
+    data: np.ndarray | list[np.ndarray] | None = None,
     positions: list[tuple] = None,
     min_shape: tuple = (40, 40, 40),
     max_shape: tuple = (60, 60, 60),
@@ -154,6 +155,7 @@ def _volume_collection(
     Args:
         collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
         num_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
+        data (numpy.ndarray or list[numpy.ndarray], optional): Predefined volume(s) to use for the collection. If provided, the function will use these volumes instead of generating new ones. Defaults to None.
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
         min_shape (tuple of ints, optional): Minimum shape of the volumes. Defaults to (40, 40, 40).
         max_shape (tuple of ints, optional): Maximum shape of the volumes. Defaults to (60, 60, 60).
@@ -180,6 +182,8 @@ def _volume_collection(
         labels (numpy.ndarray): Array with labels for each voxel, same shape as volume_collection.
 
     Raises:
+        TypeError: If `data` is not a numpy array or list of numpy arrays.
+        ValueError: If `data` is provided but not a 3D numpy array.
         TypeError: If `collection_shape` is not 3D.
         ValueError: If volume parameters are invalid.
 
@@ -299,6 +303,38 @@ def _volume_collection(
 
     """
 
+    if data is not None:
+        if isinstance(data, np.ndarray):  # one volume
+            data_list = [data]
+        elif isinstance(data, list):  # a list of volumes
+            data_list = data
+        else:
+            msg = '`data` must be a numpy array or list of arrays'
+            raise TypeError(msg)
+        for idx, arr in enumerate(data_list):
+            if not (
+                isinstance(arr, np.ndarray) and arr.ndim == 3
+            ):  # check that they must be numpy arrays and 3D
+                msg = f'data[{idx}] must be a 3D numpy array'
+                raise ValueError(msg)
+    else:
+        data_list = None
+
+    if data_list is not None:
+        valid = []
+        for idx, vol in enumerate(data_list):
+            # check each dimension
+            if all(v <= c for v, c in zip(vol.shape, collection_shape)):
+                valid.append(vol)
+            else:
+                msg = f'Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}'
+                log.warning(msg)
+        data_list = valid
+        # if none remain, we can't build anything
+        if not data_list:
+            msg = f'No custom volumes fit within collection size {collection_shape}.'
+            raise ValueError(msg)
+
     if rotation_axes is None:
         rotation_axes = [(0, 1), (0, 2), (1, 2)]
 
@@ -373,17 +409,21 @@ def _volume_collection(
         threshold = rng.uniform(low=min_threshold, high=max_threshold)
         log.debug(f'- Threshold: {threshold:.3f}')
 
-        # Generate synthetic volume
-        blob = qim3d.generate.volume(
-            base_shape=blob_shape,
-            final_shape=final_shape,
-            noise_scale=noise_scale,
-            gamma=gamma,
-            max_value=max_value,
-            threshold=threshold,
-            smooth_borders=smooth_borders,
-            volume_shape=volume_shape,
-        )
+        # Pick volume from the list if provided, otherwise generate synthetic volume
+        if data_list is not None:
+            choice_i = rng.integers(len(data_list))
+            blob = data_list[choice_i].copy()
+        else:
+            blob = qim3d.generate.volume(
+                base_shape=blob_shape,
+                final_shape=final_shape,
+                noise_scale=noise_scale,
+                gamma=gamma,
+                max_value=max_value,
+                threshold=threshold,
+                smooth_borders=smooth_borders,
+                volume_shape=volume_shape,
+            )
 
         # Rotate volume
         if max_rotation_degrees > 0:
@@ -439,6 +479,7 @@ def _volume_collection(
 def volume_collection(
     num_volumes: int = 15,
     collection_shape: tuple = (200, 200, 200),
+    data: np.ndarray | list[np.ndarray] | None = None,
     positions: list[tuple] = None,
     shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
     shape_magnification_range: tuple[float] = (1.0, 1.0),
@@ -466,6 +507,7 @@ def volume_collection(
     Args:
         num_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
         collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
+        data (numpy.ndarray or list[numpy.ndarray], optional): Predefined volume(s) to use for the collection. If provided, the function will use these volumes instead of generating new ones. Defaults to None.
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
         shape_range (tuple of tuple of ints, optional): Determines the shape of the generated volumes with first element defining the minimum size and second element defining maximum. Defaults to ((40,40,40), (60,60,60)).
         shape_magnification_range (tuple of floats, optional): Range for scaling of volume shape in all dimensions. Defaults to (1.0, 1.0).
@@ -492,6 +534,8 @@ def volume_collection(
         labels (numpy.ndarray): Array with labels for each voxel, same shape as volume_collection.
 
     Raises:
+        TypeError: If `data` is not a numpy array or list of numpy arrays.
+        ValueError: If `data` is provided but not a 3D numpy array.
         ValueError: If `noise_type` is invalid.
         TypeError: If `collection_shape` is not 3D.
         ValueError: If volume parameters are invalid.
@@ -503,7 +547,8 @@ def volume_collection(
         import qim3d
 
         # Generate synthetic collection of volumes
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=15)
+        num_volumes = 15
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=num_volumes)
 
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection, grid_visible=True)
@@ -522,23 +567,7 @@ def volume_collection(
         ```
         ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
 
-    Example:
-        ```python
-        # Generate synthetic collection of dense objects
-        vol, labels = qim3d.generate.volume_collection(
-            value_range = (255, 255),
-            noise_range = (0.03, 0.04),
-            threshold_range = (0.99, 0.99),
-            gamma_range = (0.02, 0.02),
-            decay_rate_range = (10,10)
-            )
-
-        # Visualize the collection
-        qim3d.viz.volumetric(vol)
-        ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_dense_1.html" width="100%" height="500" frameborder="0"></iframe>
-
-    Example:
+    Example: Collection of fiber-like structures
         ```python
         import qim3d
 
@@ -566,7 +595,7 @@ def volume_collection(
         ```
         ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
 
-    Example:
+    Example: Create a collection of tubular (hollow) structures
         ```python
         import qim3d
 
@@ -594,9 +623,55 @@ def volume_collection(
         ```
         ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
 
+    Example: Using predefined volumes
+        ```python
+        import qim3d
+
+        # Generate two unique volumes to be used
+        volume_1 = qim3d.generate.volume(base_shape = (32,32,32), noise_scale = 0.0)
+        volume_2 = qim3d.generate.volume(base_shape = (32,32,32), noise_scale = 0.2)
+
+        # Generate collection from predefined volumes
+        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 30,
+                                                                     data = [volume_1, volume_2])
+        # Visualize
+        qim3d.viz.volumetric(volume_collection)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_from_given_volumes.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
 
     # Check valid input types
+    if data is not None:
+        if isinstance(data, np.ndarray):
+            data_list = [data]
+        elif isinstance(data, list):
+            data_list = data
+        else:
+            msg = '`data` must be a numpy array or list of arrays'
+            raise TypeError(msg)
+        for idx, arr in enumerate(data_list):
+            if not (isinstance(arr, np.ndarray) and arr.ndim == 3):
+                msg = f'data[{idx}] must be a 3D numpy array'
+                raise ValueError(msg)
+    else:
+        data_list = None
+
+    if data_list is not None:
+        valid = []
+        for idx, vol in enumerate(data_list):
+            # check each dimension
+            if all(v <= c for v, c in zip(vol.shape, collection_shape)):
+                valid.append(vol)
+            else:
+                msg = f'Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}'
+                log.warning(msg)
+        data_list = valid
+        # if none remain, we can't build anything
+        if not data_list:
+            msg = f'No custom volumes fit within collection size {collection_shape}.'
+            raise ValueError(msg)
+
     noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's', 'mixed', 'm']
     if noise_type not in noise_types:
         err = f'noise_type should be one of: {noise_types}'
@@ -695,6 +770,12 @@ def volume_collection(
         log.debug(f'- Noise type: {nti}')
 
         log.debug(f'- Seed: {seeds[i]}')
+
+        # Pick volume from the list if provided, otherwise generate synthetic volume
+        if data_list is not None:
+            choice_i = rng.integers(len(data_list))
+            blob = data_list[choice_i].copy()
+        else:
         # Generate synthetic volume
         blob = qim3d.generate.volume(
             base_shape=final_shape,
@@ -713,6 +794,7 @@ def volume_collection(
             hollow=hollow,
             seed=seeds[i],
         )
+
 
         # Rotate volume
         if rotation_degree_range[1] > 0:

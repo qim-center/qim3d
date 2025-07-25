@@ -1,22 +1,30 @@
 """Provides a collection of visualization functions."""
 
+import inspect
 import math
 import warnings
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
+from pathlib import Path
 from typing import Any, Literal
 
 import dask.array as da
+import imageio.v2 as imageio
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
+import pyvista as pv
 import seaborn as sns
 import skimage.measure
 import zarr
-from IPython.display import clear_output, display
+from IPython.display import Image, Video, clear_output, display
 from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from scipy import ndimage
 from skimage.filters import (
     threshold_isodata,
     threshold_li,
@@ -28,6 +36,13 @@ from skimage.filters import (
 )
 
 import qim3d
+from qim3d.utils import log
+
+# For progress bar in Jupyter notebooks
+try:
+    from tqdm.notebook import tqdm
+except ImportError:
+    from tqdm import tqdm
 
 
 def slices_grid(
@@ -73,7 +88,7 @@ def slices_grid(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         color_bar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
         color_bar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
-        **matplotlib_imshow_kwargs: Additional keyword arguments for the imshow function.
+        **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
         fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
@@ -354,7 +369,7 @@ def slicer(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
         color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
-        **matplotlib_imshow_kwargs: Additional keyword arguments for the imshow function.
+        **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
         slicer_obj (widgets.interactive): The interactive widget for visualizing slices of a 3D volume.
@@ -650,27 +665,40 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     """
     Launch an interactive chunk explorer for a 3D or 5D OME-Zarr dataset.
 
-    Parameters
-    ----------
-    zarr_path : str
-        Filesystem path or URL to the OME-Zarr dataset root.
-    **kwargs
-        Additional keyword arguments forwarded to the visualization functions:
-        - For `visualization_method='slicer'`: passed to `qim3d.viz.slicer`
-        - For `visualization_method='slices'`: passed to `qim3d.viz.slices_grid`
-        - For `visualization_method='volume'`: passed to `qim3d.viz.volumetric`
-        Common kwargs include `cmap`, `vmin`, `vmax`, etc.
+    Args:
+        zarr_path (str):
+            Path to the OME-Zarr dataset.
 
-    Returns
-    -------
-    widgets.VBox
-        An interactive container widget with dropdowns for choosing the OME-Zarr scale,
-        chunk coordinates along each axis, and visualization method ('slicer', 'slices', or 'volume').
+        **kwargs:
+            Additional keyword arguments that are **selectively** forwarded
+            only to the visualization method that supports them. Any key
+            not accepted by the chosen method is ignored.
 
-    Raises
-    ------
-    ValueError
-        If the dataset's dimensionality is not 3 or 5.
+            The visualization methods available in this tool are:
+
+            - `slicer` → calls `qim3d.viz.slicer`
+            - `slices` → calls `qim3d.viz.slices_grid`
+            - `volume` → calls `qim3d.viz.volumetric`
+
+            Users select the desired method via the dropdown menu in the widget.
+
+    Raises:
+        ValueError: If the dataset's dimensionality is not 3 or 5.
+
+    Returns:
+        chunk_explorer (widgets.VBox): A widget containing dropdowns for selecting the OME-Zarr scale, chunk coordinates along each axis, and visualization method.
+
+    Example:
+        ```python
+        import qim3d
+
+        # Visualize interactive chunks explorer
+        qim3d.viz.chunks('path/to/zarr/dataset.zarr')
+        ```
+        ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
+
+
+
 
     """
     # Load the Zarr dataset
@@ -681,6 +709,13 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
 
     def get_num_chunks(shape: Sequence[int], chunk_size: Sequence[int]) -> list[int]:
         return [(s + chunk_size[i] - 1) // chunk_size[i] for i, s in enumerate(shape)]
+
+    def _filter_kwargs(
+        function: Callable[..., Any], kwargs: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Filter kwargs to only include those that are accepted by the function."""
+        sig = inspect.signature(function)
+        return {k: v for k, v in kwargs.items() if k in sig.parameters}
 
     def load_and_visualize(
         scale: int,
@@ -749,17 +784,20 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         info_label.value = info_html
 
         if visualization_method == 'slicer':
-            return qim3d.viz.slicer(chunk, **inner_kwargs)
+            kw = _filter_kwargs(qim3d.viz.slicer, inner_kwargs)
+            return qim3d.viz.slicer(chunk, **kw)
         if visualization_method == 'slices':
             out = widgets.Output()
             with out:
-                fig = qim3d.viz.slices_grid(chunk, **inner_kwargs)
+                kw = _filter_kwargs(qim3d.viz.slices_grid, inner_kwargs)
+                fig = qim3d.viz.slices_grid(chunk, **kw)
                 display(fig)
             return out
         # volume
         out = widgets.Output()
         with out:
-            vol = qim3d.viz.volumetric(chunk, show=False, **inner_kwargs)
+            kw = _filter_kwargs(qim3d.viz.volumetric, inner_kwargs)
+            vol = qim3d.viz.volumetric(chunk, show=False, **kw)
             display(vol)
         return out
 
@@ -888,6 +926,15 @@ def histogram(
     Raises:
         ValueError: If `axis` is not a valid axis index (0, 1, or 2).
         ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol)
+        ```
+        ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
 
     """
     if not (0 <= axis < volume.ndim):
@@ -1248,7 +1295,7 @@ def line_profile(
     slice_index: int | str = 'middle',
     vertical_position: int | str = 'middle',
     horizontal_position: int | str = 'middle',
-    angle: int = 0,
+    angle: int = 0.0,
     fraction_range: tuple[float, float] = (0.00, 1.00),
     y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
@@ -1574,20 +1621,58 @@ class _VolumeComparison:
         volume2: np.ndarray | da.core.Array,
         slice_axis: int,
         slice_index: int,
+        k3d: bool = False,
     ) -> None:
         self.volume1 = volume1
         self.volume2 = volume2
         self.slice_axis = slice_axis
         self.slice_index = slice_index
-        self.color_map = 'bwr'
-        self.comparison_type = 'difference'
+        self.k3d = k3d
 
-        self.dims = np.array(volume1.shape)
-        self.cbar_pad = 0.1
+        self.k3d_output1 = widgets.Output()
+        self.k3d_output2 = widgets.Output()
+        self.k3d_output3 = widgets.Output()
+        self.plt_output1 = widgets.Output()
+        self.plt_output2 = widgets.Output()
+        self.plt_output3 = widgets.Output()
 
+        self.update_comp_plot = False
+        self.update_plots = False
+        self.comparison_type = 'difference'  # Default comparison type
+
+        self.create_colormap()
         self.initialize_widgets()
         self.update_slice_axis(slice_axis)
         self.slice_index_widget.value = slice_index
+        if self.k3d:
+            self.initialize_k3d_plots()
+
+    def create_colormap(self) -> None:
+        # Combine Blues and Reds colormaps
+        blues = plt.cm.Blues_r(np.linspace(0.0, 1, 256))
+        reds = plt.cm.Reds(np.linspace(0.0, 1, 256))
+        colors = np.vstack((blues, reds))
+        self.diff_cmap = LinearSegmentedColormap.from_list('blue_red', colors)
+
+    def initialize_k3d_plots(self) -> None:
+        self.k3d_plot1 = qim3d.viz.volumetric(
+            self.volume1, show=False, color_map='Reds'
+        )
+        self.k3d_plot2 = qim3d.viz.volumetric(
+            self.volume2, show=False, color_map='Blues'
+        )
+        alpha = [
+            [0.0, 1.0],
+            [0.35, 0.0],
+            [0.65, 0.0],
+            [1, 1.0],
+        ]
+        self.k3d_plot3 = qim3d.viz.volumetric(
+            (self.volume1 - self.volume2),
+            show=False,
+            color_map=self.diff_cmap,
+            opacity_function=alpha,
+        )
 
     def update_slice_axis(self, slice_axis: int) -> None:
         self.slice_axis = slice_axis
@@ -1615,6 +1700,18 @@ class _VolumeComparison:
         )
         self.slice_index_widget.layout.width = '400px'
 
+    def slice_cmap(
+        self, cmap: str | LinearSegmentedColormap, color_range: tuple[float, float]
+    ) -> matplotlib.colors.ListedColormap:
+        if isinstance(cmap, str):
+            cmap = matplotlib.colormaps[cmap].resampled(256)
+        black = np.array([0, 0, 0, 1])
+        sampled_colors = cmap(np.linspace(0, 1, 256))
+        sampled_colors[: round(color_range[0] * 256), :] = black
+        sampled_colors[round(color_range[1] * 256) :, :] = black
+        newcmp = matplotlib.colors.ListedColormap(sampled_colors)
+        return newcmp
+
     def update(
         self,
         slice_axis: int,
@@ -1626,18 +1723,18 @@ class _VolumeComparison:
             self.update_slice_axis(slice_axis)
             slice_index = self.slice_index_widget.value
 
-        clear_output(wait=True)
         slice1 = np.take(self.volume1, slice_index, axis=slice_axis).astype(float)
         slice2 = np.take(self.volume2, slice_index, axis=slice_axis).astype(float)
-        fig, ax = plt.subplots(1, 3, figsize=(12, 5))
 
-        norm01 = matplotlib.colors.Normalize(
+        norm1 = matplotlib.colors.Normalize(
             vmin=min(slice1.min(), slice2.min()), vmax=max(slice1.max(), slice2.max())
         )
-        mappable01 = matplotlib.cm.ScalarMappable(norm=norm01)
 
-        self.comparison_type = comparison_type
         if comparison_type == 'difference':
+            newcmp = self.slice_cmap(self.diff_cmap, color_range)
+            cmap1 = self.slice_cmap('Reds', color_range)
+            cmap2 = self.slice_cmap('Blues', color_range)
+
             comparison = slice1 - slice2
             vrange = [comparison.min(), comparison.max()]
             # In the special cases add small epsilon since TwoSlopeNorm requires vmin, vcenter, vmax to be in strictly ascending order.
@@ -1647,50 +1744,141 @@ class _VolumeComparison:
                 vcenter=0.0,
                 vmax=max(0.0 + eps, vrange[1]),
             )
-            color_map = 'bwr'
+            # Create opacity function for k3d comparison plot
+            alpha = [
+                [0.0, 1.0],
+                [0.35, 0.0],
+                [0.65, 0.0],
+                [1, 1.0],
+            ]
+            # Create comparison k3d plot
+            if self.comparison_type != comparison_type and self.k3d:
+                comparison_k3d = self.volume1 - self.volume2
+
         else:
+            newcmp = self.slice_cmap('magma', color_range)
+            cmap1 = newcmp
+            cmap2 = newcmp
+            alpha = []
+
             if comparison_type == 'absolute difference':
                 comparison = np.abs(slice1 - slice2)
+                if self.comparison_type != comparison_type and self.k3d:
+                    comparison_k3d = np.abs(self.volume1 - self.volume2)
+
             elif comparison_type == 'quadratic difference':
                 comparison = (slice1 - slice2) ** 2
+                if self.comparison_type != comparison_type and self.k3d:
+                    comparison_k3d = (self.volume1 - self.volume2) ** 2
 
             vrange = [0.0, comparison.max()]
             norm2 = matplotlib.colors.Normalize(vmin=vrange[0], vmax=vrange[1])
-            color_map = 'magma'
 
-        nc = 256
-        lb = round(color_range[0] * nc)
-        ub = round(color_range[1] * nc)
+        if self.comparison_type != comparison_type and self.k3d:
+            # Update difference k3d plot
+            self.k3d_plot3 = qim3d.viz.volumetric(
+                comparison_k3d,
+                show=False,
+                color_map=self.diff_cmap
+                if comparison_type == 'difference'
+                else 'magma',
+                opacity_function=alpha,
+            )
+            self.update_comp_plot = True
 
-        cmap_obj = matplotlib.colormaps[color_map].resampled(nc)
-        newcolors = cmap_obj(np.linspace(0, 1, nc))
-        black = np.array([0, 0, 0, 1])
-        newcolors[:lb, :] = black
-        newcolors[ub:, :] = black
-        newcmp = matplotlib.colors.ListedColormap(newcolors)
+            if (
+                comparison_type == 'difference'
+                or (
+                    'quadratic' in comparison_type
+                    and 'absolute' not in self.comparison_type
+                )
+                or (
+                    'absolute' in comparison_type
+                    and 'quadratic' not in self.comparison_type
+                )
+            ):
+                # Update k3d plots 1 and 2 if colormap change is necessary (difference <-> quadratic/absolute)
+                self.k3d_plot1 = qim3d.viz.volumetric(
+                    self.volume1,
+                    show=False,
+                    color_map='Blues' if comparison_type == 'difference' else 'magma',
+                )
+                self.k3d_plot2 = qim3d.viz.volumetric(
+                    self.volume2,
+                    show=False,
+                    color_map='Reds' if comparison_type == 'difference' else 'magma',
+                )
+                self.update_plots = True
 
-        mappable2 = matplotlib.cm.ScalarMappable(norm=norm2, cmap=newcmp)
+        # Overwrite the comparison type in instance
+        self.comparison_type = comparison_type
 
-        ax[0].imshow(slice1, norm=norm01)
-        ax[0].set_title('volume1')
-        fig.colorbar(
-            mappable=mappable01, ax=ax[0], orientation='horizontal', pad=self.cbar_pad
-        )
+        # Create plots
+        fig_1, ax_1 = plt.subplots(figsize=(4, 4))
+        im1 = ax_1.imshow(slice1, norm=norm1, cmap=cmap1)
+        ax_1.set_title('Volume1')
+        divider1 = make_axes_locatable(ax_1)
+        cax1 = divider1.append_axes('bottom', size='5%', pad=0.3)
+        fig_1.colorbar(im1, cax=cax1, orientation='horizontal')
+        fig_1.tight_layout()
+        self.fig1 = fig_1
+        plt.close(fig_1)
 
-        ax[1].imshow(slice2, norm=norm01)
-        ax[1].set_title('volume2')
-        fig.colorbar(
-            mappable=mappable01, ax=ax[1], orientation='horizontal', pad=self.cbar_pad
-        )
+        fig_2, ax_2 = plt.subplots(figsize=(4, 4))
+        im2 = ax_2.imshow(slice2, norm=norm1, cmap=cmap2)
+        ax_2.set_title('Volume2')
+        divider2 = make_axes_locatable(ax_2)
+        cax2 = divider2.append_axes('bottom', size='5%', pad=0.3)
+        fig_2.colorbar(im2, cax=cax2, orientation='horizontal')
+        fig_2.tight_layout()
+        self.fig2 = fig_2
+        plt.close(fig_2)
 
-        ax[2].imshow(comparison, norm=norm2, cmap=newcmp)
-        ax[2].set_title(comparison_type)
-        fig.colorbar(
-            mappable=mappable2, ax=ax[2], orientation='horizontal', pad=self.cbar_pad
-        )
+        fig_3, ax_3 = plt.subplots(figsize=(4, 4))
+        im3 = ax_3.imshow(comparison, norm=norm2, cmap=newcmp)
+        ax_3.set_title(comparison_type)
+        divider3 = make_axes_locatable(ax_3)
+        cax3 = divider3.append_axes('bottom', size='5%', pad=0.3)
+        fig_3.colorbar(im3, cax=cax3, orientation='horizontal')
+        fig_3.tight_layout()
+        self.fig3 = fig_3
+        plt.close(fig_3)
 
-        fig.tight_layout()
-        plt.show()
+        # Visualize plt plot 1
+        self.plt_output1.clear_output(wait=True)
+        with self.plt_output1:
+            plt.figure(self.fig1)
+            plt.show()
+
+        # Visualize plt plot 2
+        self.plt_output2.clear_output(wait=True)
+        with self.plt_output2:
+            plt.figure(self.fig2)
+            plt.show()
+
+        # Visualize plt plot 3
+        self.plt_output3.clear_output(wait=True)
+        with self.plt_output3:
+            plt.figure(self.fig3)
+            plt.show()
+
+        if self.update_plots:
+            # Visualize k3d plot 1 (if there are changes)
+            self.k3d_output1.clear_output(wait=True)
+            with self.k3d_output1:
+                display(self.k3d_plot1)
+            # Visualize k3d plot 1 (if there are changes)
+            self.k3d_output2.clear_output(wait=True)
+            with self.k3d_output2:
+                display(self.k3d_plot2)
+            self.update_plots = False
+
+        # Visualize k3d plot 3 (if there are changes)
+        if self.update_comp_plot:
+            self.k3d_output3.clear_output(wait=True)
+            with self.k3d_output3:
+                display(self.k3d_plot3)
+            self.update_comp_plot = False
 
     def build_interactive(self) -> widgets.VBox:
         # Group widgets into two columns
@@ -1732,7 +1920,86 @@ class _VolumeComparison:
             },
         )
 
-        return widgets.VBox([controls, interactive_plot])
+        # Create height on plt outputs to prevent flickering
+        plt_layout = widgets.Layout(
+            height='400px',
+            width='99%',
+            overflow='hidden',
+        )
+
+        fig_layout = widgets.Layout(
+            width='400px',
+            height='100%',
+            display='flex',
+            flex_flow='column',
+            align_items='stretch',
+            justify_content='space-between',
+        )
+        self.plt_output1.layout = plt_layout
+        self.plt_output2.layout = plt_layout
+        self.plt_output3.layout = plt_layout
+
+        if self.k3d:
+            k3d_layout = widgets.Layout(
+                width='99%',  # Slightly smaller
+                height='400px',
+                overflow='hidden',
+                flex='1 1 0%',
+            )
+
+            self.k3d_output1.layout = k3d_layout
+            self.k3d_output2.layout = k3d_layout
+            self.k3d_output3.layout = k3d_layout
+
+            fig1 = widgets.VBox(
+                [self.plt_output1, self.k3d_output1],
+                layout=fig_layout,
+            )
+            fig2 = widgets.VBox(
+                [self.plt_output2, self.k3d_output2],
+                layout=fig_layout,
+            )
+            fig3 = widgets.VBox(
+                [self.plt_output3, self.k3d_output3],
+                layout=fig_layout,
+            )
+
+            with self.k3d_output1:
+                display(self.k3d_plot1)
+            with self.k3d_output2:
+                display(self.k3d_plot2)
+            with self.k3d_output3:
+                display(self.k3d_plot3)
+        else:  # if volumetric visualization should not  be shown
+            fig1 = widgets.VBox(
+                [self.plt_output1],
+                layout=fig_layout,
+            )
+            fig2 = widgets.VBox(
+                [self.plt_output2],
+                layout=fig_layout,
+            )
+            fig3 = widgets.VBox(
+                [self.plt_output3],
+                layout=fig_layout,
+            )
+
+        # Update visualization and return the widgets
+        self.plt_output1.clear_output(wait=True)
+        self.plt_output2.clear_output(wait=True)
+        self.plt_output3.clear_output(wait=True)
+        with self.plt_output1:
+            plt.figure(self.fig1)
+            plt.show()
+        with self.plt_output2:
+            plt.figure(self.fig2)
+            plt.show()
+        with self.plt_output3:
+            plt.figure(self.fig3)
+            plt.show()
+
+        figs = widgets.HBox([fig1, fig2, fig3])
+        return widgets.VBox([controls, interactive_plot, figs])
 
 
 def compare_volumes(
@@ -1740,6 +2007,7 @@ def compare_volumes(
     volume2: np.ndarray,
     slice_axis: int = 0,
     slice_index: int = None,
+    volumetric_visualization: bool = False,
 ) -> widgets.interactive:
     """
     Returns an interactive widget for comparing two volumes along slices.
@@ -1749,6 +2017,7 @@ def compare_volumes(
         volume2 (np.ndarray): The second volume.
         slice_axis (int, optional): Specifies the initial axis along which to slice.
         slice_index (int, optional): Specifies the initial index along slice_axis.
+        volumetric_visualization (bool, optional): Defines if k3d plots should also be shown.
 
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
@@ -1759,10 +2028,10 @@ def compare_volumes(
         ```python
         import qim3d
 
-        vol1 = qim3d.generate.volume(noise_scale=0.020)
-        vol2 = qim3d.generate.volume(noise_scale=0.021)
+        vol1 = qim3d.generate.volume(noise_scale=0.020, dtype='float32')
+        vol2 = qim3d.generate.volume(noise_scale=0.021, dtype='float32')
 
-        qim3d.viz.compare_volumes(vol1, vol2)
+        qim3d.viz.compare_volumes(vol1, vol2, volumetric_visualization=True)
 
         ```
         ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
@@ -1776,6 +2045,13 @@ def compare_volumes(
         msg = 'Volumes must have the same shape.'
         raise ValueError(msg)
 
+    if np.issubdtype(volume1.dtype, np.unsignedinteger) and np.issubdtype(
+        volume2.dtype, np.unsignedinteger
+    ):
+        log.warning(
+            'Volumes have unsigned integer datatypes. Beware of over-/underflow.'
+        )
+
     if slice_axis not in (0, 1, 2):
         msg = 'Invalid slice_axis.'
         raise ValueError(msg)
@@ -1786,5 +2062,412 @@ def compare_volumes(
         msg = 'slice_index must be an integer.'
         raise ValueError(msg)
 
-    vc = _VolumeComparison(volume1, volume2, slice_axis, slice_index)
+    vc = _VolumeComparison(
+        volume1, volume2, slice_axis, slice_index, volumetric_visualization
+    )
     return vc.build_interactive()
+
+
+class IsoSurface:
+    def __init__(self, vol: np.ndarray, colormap: str = 'magma') -> None:
+        # keep a float32 copy to save half the RAM up front
+        self.vol_full = np.transpose(vol, (1, 2, 0)).astype(np.float32)
+        self.value_min = self.vol_full.min()
+        self.value_max = self.vol_full.max()
+        self.cmap = colormap
+        self._resolution_cache = {}
+
+        self.out = widgets.Output()
+        self._build_widgets()
+        self._init_figure()  # FigureWidget – persistent
+        self._display_ui()
+
+    # ---------- widgets ----------
+    def _build_widgets(self) -> None:
+        self.thr = widgets.IntSlider(
+            value=int(self.value_max / 2),
+            min=self.value_min,
+            max=self.value_max,
+            step=1,
+            description='Threshold',
+            continuous_update=False,
+        )
+        self.resolution = widgets.IntSlider(
+            value=64,
+            min=32,
+            max=96,
+            step=1,
+            description='Resolution',
+            continuous_update=False,
+        )
+        self.trans = widgets.FloatSlider(
+            value=0,
+            min=0,
+            max=1,
+            step=0.1,
+            description='Transparency',
+            continuous_update=False,
+        )
+        self.cmapw = widgets.Dropdown(
+            options=[
+                'Blackbody',
+                'Bluered',
+                'Blues',
+                'Cividis',
+                'Earth',
+                'Electric',
+                'Greens',
+                'Greys',
+                'Hot',
+                'Jet',
+                'Magma',
+                'Picnic',
+                'Portland',
+                'Rainbow',
+                'RdBu',
+                'Reds',
+                'Viridis',
+                'YlGnBu',
+                'YlOrRd',
+            ],
+            value=self.cmap,
+            description='Colormap',
+        )
+        self.grid = widgets.Checkbox(value=True, description='Grid')
+
+        self.wireframe = widgets.Checkbox(value=False, description='Wireframe')
+
+        self.colorbar = widgets.Checkbox(value=False, description='Colorbar')
+
+        for w in (
+            self.thr,
+            self.resolution,
+            self.trans,
+            self.cmapw,
+            self.grid,
+            self.wireframe,
+            self.colorbar,
+        ):
+            w.observe(self._refresh, names='value')
+
+    # ---------- data prep ----------
+    def _resize_vol(self, resolution: int) -> dict:
+        original_z, original_y, original_x = np.shape(self.vol_full)
+        max_size = max(original_z, original_y, original_x)
+
+        # Compute uniform zoom factor to fit the target resolution
+        zoom_factor = resolution / max_size
+
+        # Resize the full volume
+        vol_zoomed = ndimage.zoom(
+            input=self.vol_full,
+            zoom=zoom_factor,
+            order=0,
+            prefilter=False,
+        )
+
+        # Generate corresponding 3D grid
+        x, y, z = vol_zoomed.shape
+        xg, yg, zg = np.mgrid[0:x, 0:y, 0:z]
+
+        # Cache the result with resolution as the key
+        return (xg, yg, zg, vol_zoomed)
+
+    # ---------- figure ----------
+    def _init_figure(self) -> None:
+        xg, yg, zg, v = self._resize_vol(resolution=self.resolution.value)
+        isoval = self.thr.value  # * float(v.max())
+        self.fig = go.FigureWidget(
+            data=[
+                go.Isosurface(
+                    x=xg.flatten(),
+                    y=yg.flatten(),
+                    z=zg.flatten(),
+                    cmin=v.min(),
+                    cmax=v.max(),
+                    value=v.flatten(),
+                    isomin=isoval,
+                    isomax=isoval,
+                    opacity=1 - self.trans.value,
+                    surface_count=1,
+                    caps={'x_show': False, 'y_show': False, 'z_show': False},
+                    showscale=self.colorbar.value,  # self.cbar.value,
+                    colorscale=self.cmapw.value,
+                )
+            ]
+        )
+        self._layout_axes()
+
+        self._last_resolution = self.resolution.value
+
+    def _layout_axes(self) -> None:
+        self.fig.update_layout(
+            scene_aspectmode='data',
+            margin={'l': 0, 'r': 0, 'b': 0, 't': 0},
+            scene={
+                'xaxis': {'visible': self.grid.value},
+                'yaxis': {'visible': self.grid.value},
+                'zaxis': {'visible': self.grid.value},
+            },
+        )
+
+    # ---------- redraw ----------
+    def _refresh(self, *_) -> None:
+        resolution = self.resolution.value
+        tr = self.fig.data[0]
+
+        surface_fill = 0.2 if self.wireframe.value else 1.0
+
+        xg, yg, zg, v = self._resize_vol(resolution)
+        isoval = self.thr.value  # * float(v.max())
+
+        if self._last_resolution == resolution:
+            # Only update visual parameters, not the volume data
+            tr.update(
+                isomin=isoval,
+                isomax=isoval,
+                surface={'fill': surface_fill},
+            )
+            tr.colorscale = self.cmapw.value
+            tr.showscale = self.colorbar.value
+            tr.opacity = 1 - self.trans.value
+        else:
+            # Update everything
+            tr.update(
+                x=xg.flatten(),
+                y=yg.flatten(),
+                z=zg.flatten(),
+                value=v.flatten(),
+                isomin=isoval,
+                isomax=isoval,
+                opacity=1 - self.trans.value,
+                showscale=self.colorbar.value,
+                colorscale=self.cmapw.value,
+                surface={'fill': surface_fill},
+            )
+
+            self._last_resolution = resolution
+        self._layout_axes()
+
+    # ---------- UI ----------
+    def _display_ui(self) -> None:
+        title = widgets.HTML("<h3 style='margin-top:0;'>Iso-Surface Visualizer</h3>")
+
+        controls = widgets.VBox(
+            [
+                title,
+                self.thr,
+                self.resolution,
+                self.trans,
+                self.cmapw,
+                self.colorbar,
+                self.grid,
+                self.wireframe,
+            ],
+            layout=widgets.Layout(
+                min_width='200px',
+            ),
+        )
+
+        ui = widgets.HBox(
+            [controls, self.fig], layout=widgets.Layout(width='100%', height='640px')
+        )
+
+        display(ui)
+
+
+# helper function
+def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
+    """
+    Creates an interactive iso-surface visualizer for a single surface level.
+
+    Args:
+        vol (np.ndarray): Volume to visualize an iso-surface of.
+        colormap: (str, optional): Initial colormap for the iso-surface. This can be changed in the interface
+
+    """
+    IsoSurface(vol, colormap)
+
+
+def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
+    input_path = Path(user_input)
+
+    if input_path.is_absolute():
+        return input_path
+    else:
+        return Path(default_dir) / input_path
+
+
+def export_rotation(
+    path: str,
+    vol: np.ndarray,
+    degrees: int = 360,
+    num_frames: int = 180,
+    fps: int = 30,
+    image_size: tuple[int, int] | None = (256, 256),
+    color_map: str = 'magma',
+    camera_height: float = 2.0,
+    camera_distance: float | str = 'auto',
+    camera_focus: list | str = 'center',
+    show: bool = False,
+) -> None:
+    """
+    Export a rotation animation of volume.
+
+    Args:
+        path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
+        vol (np.ndarray): Volume to create .gif of.
+        volume (np.ndarray): The volume to visualize
+        degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.
+        num_frames (int, optional): The amount of frames to generate. Defaults to 180.
+        fps (int, optional): The amount of frames per second in the resulting animation. This determines the speed of the rotation of the volume. Defaults to 30.
+        image_size (tuple of ints or None, optional): Pixel size (width, height) of each frame. If None, the plotter's default size is used. Defaults to (256, 256).
+        color_map (str, optional): Determines color map of volume. Defaults to 'magma'.
+        camera_height (float, optional): Determines the height of the camera rotating around the volume. The float value represents a multiple of the height of the z-axis. Defaults to 2.0.
+        camera_distance (int or string, optional): Determines the distance of the camera from the center point. If 'auto' is used, it will be auto calculated. Otherwise a float value representing voxel distance is expected. Defaults to 'auto'.
+        camera_focus (list or str, optional): Determines the voxel that the camera rotates around. Using 'center' will default to the center of the volume. Otherwise a list of three integers is expected. Defaults to 'center'.
+        show (bool, optional): If True, the resulting animation will be shown in the Jupyter notebook. Defaults to False.
+
+    Returns:
+        None
+
+
+    Raises:
+        TypeError: If the camera focus argument is incorrectly used.
+        TypeError: If the camera_distance argument is incorrectly used.
+        ValueError: If the path contains an unrecognized file extension.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume(noise_scale=0.020)
+        qim3d.viz.iso_surface(vol)
+        ```
+
+        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
+
+    IsoSurface(vol, colormap)
+        vol = qim3d.generate.volume()
+
+        qim3d.viz.export_rotation('test.gif', vol, show=True)
+        ```
+        ![export_rotation_defaults](../../assets/screenshots/export_rotation_defaults.gif)
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume(shape='tube')
+
+        qim3d.viz.export_rotation('test.webm', vol,
+                                  degrees = 360,
+                                  num_frames = 120,
+                                  fps = 30,
+                                  image_size = (512,512),
+                                  camera_height = 3.0,
+                                  camera_distance = 'auto',
+                                  camera_focus = 'center',
+                                  show = True)
+        ```
+        ![export_rotation_video](../../assets/screenshots/export_rotation_video.gif)
+
+    """
+    if not (
+        camera_focus == 'center'
+        or (
+            isinstance(camera_focus, list | np.ndarray)
+            and not isinstance(camera_focus, str)
+            and len(camera_focus) == 3
+        )
+    ):
+        msg = f'Value "{camera_focus}" for camera focus is invalid. Use "center" or a list of three values.'
+        raise TypeError(msg)
+    if not (isinstance(camera_distance, float) or camera_distance == 'auto'):
+        msg = f'Value "{camera_distance}" for camera distance is invalid. Use "auto" or a float value.'
+        raise TypeError(msg)
+
+    if Path(path).suffix == '':
+        print(f'Input path: "{path}" does not have a filetype. Defaulting to .gif.')
+        path += '.gif'
+
+    # Handle img in (xyz) instead of (zyx) (due to rendering issues with the up-vector, ensure that z=y, such that we now have (x,z,y))
+    vol = np.transpose(vol, (2, 0, 1))
+
+    # Create a uniform grid
+    grid = pv.ImageData()
+    grid.dimensions = np.array(vol.shape) + 1  # PyVista dims are +1 from volume shape
+    grid.spacing = (1, 1, 1)
+    grid.origin = (0, 0, 0)
+    grid.cell_data['values'] = vol.flatten(order='F')  # Fortran order
+
+    # Initialize plotter
+    plotter = pv.Plotter(off_screen=True)
+    plotter.add_volume(grid, opacity='linear', cmap=color_map)
+    plotter.remove_scalar_bar()  # Remove colorbar
+
+    frames = []
+    camera_height = vol.shape[1] * camera_height
+
+    if camera_distance == 'auto':
+        bounds = np.array(plotter.bounds)  # (xmin, xmax, ymin, ymax, zmin, zmax)
+        diag = np.linalg.norm(
+            [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
+        )
+        camera_distance = diag * 2.0
+
+    if camera_focus == 'center':
+        _, center, _ = plotter.camera_position
+    else:
+        center = camera_focus
+
+    center = np.array(center)
+
+    angle_per_frame = degrees / num_frames
+    radians_per_frame = np.radians(angle_per_frame)
+
+    # Set up orbit radius and fixed up
+    radius = camera_distance
+    fixed_up = [0, 1, 0]
+    for i in tqdm(range(num_frames), desc='Rendering'):
+        theta = radians_per_frame * i
+        x = radius * np.sin(theta)
+        z = radius * np.cos(theta)
+        y = camera_height  # fixed height
+
+        eye = center + np.array([x, y, z])
+        plotter.camera_position = [eye.tolist(), center.tolist(), fixed_up]
+
+        plotter.render()
+        img = plotter.screenshot(return_img=True, window_size=image_size)
+        frames.append(img)
+
+    if path[-4:] == '.gif':
+        imageio.mimsave(path, frames, fps=fps, loop=0)
+
+    elif path[-4:] == '.avi' or path[-4:] == '.mp4':
+        writer = imageio.get_writer(path, fps=fps)
+        for frame in frames:
+            writer.append_data(frame)
+        writer.close()
+
+    elif path[-5:] == '.webm':
+        writer = imageio.get_writer(
+            path, fps=fps, codec='vp9', ffmpeg_params=['-crf', '32']
+        )
+        for frame in frames:
+            writer.append_data(frame)
+        writer.close()
+
+    else:
+        msg = 'Invalid file extension. Please use .gif, .avi, .mp4 or .webm'
+        raise ValueError(msg)
+
+    path = _get_save_path(path)
+    log.info('File saved to ' + str(path.resolve()))
+
+    if show:
+        if path.suffix == '.gif':
+            display(Image(filename=path))
+        elif path.suffix in ['.avi', '.mp4', '.webm']:
+            display(Video(filename=path, html_attributes='controls autoplay loop'))

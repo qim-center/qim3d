@@ -21,7 +21,7 @@ classifiers = [
 urls = { Homepage = "https://platform.qim.dk/qim3d" }
 requires-python = ">=3.10"
 dependencies = [
-    "gradio==4.44",
+    "gradio>=5.1",
     "h5py>=3.9.0",
     "localthickness>=0.1.2",
     "matplotlib>=3.8.0",
@@ -49,8 +49,10 @@ dependencies = [
     "dask-image>=2024.5.3",
     "scikit-image>=0.24.0",
     "trimesh>=4.4.9",
-    "PyGEL3D>=0.5.2",
+    "PyGEL3D>=0.6.1",
     "slgbuilder>=0.2.1",
+    "pyvista[jupyter]>=0.45",
+    "imageio-ffmpeg>=0.6"
 ]
 license = "MIT"
 
@@ -147,6 +149,7 @@ ignore = [
     "D211",
     "D212",
     "D401",
+    "D406", 
     "D407",
     "ANN002",
     "ANN003",
@@ -187,4 +190,4 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "--ignore=qim3d/tests/notebooks -p no:warnings"
+addopts = "-p no:warnings"       # "--ignore=qim3d/tests/notebooks -p no:warnings"

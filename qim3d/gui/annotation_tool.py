@@ -97,12 +97,13 @@ class Interface(BaseInterface):
             files = None
 
     def create_preview(self, img_editor: gr.ImageEditor) -> np.ndarray:
-        background = img_editor['background']
-        masks = img_editor['layers'][0]
-        overlay_image = qim3d.operations.overlay_rgb_images(background, masks)
-        return overlay_image
+        return img_editor['composite']
 
-    def cerate_download_list(self, img_editor: gr.ImageEditor) -> list[str]:
+    def create_download_list(self, img_editor: gr.ImageEditor) -> list[str]:
+        
+        if len(img_editor['layers']) == 0:
+            return []
+        
         masks_rgb = img_editor['layers'][0]
         mask_threshold = 200  # This value is based
 
@@ -178,5 +179,5 @@ class Interface(BaseInterface):
             fn = self.clear_files, inputs = None , outputs = None).then(                        # Prepares for handling the new update
             fn = self.create_preview, inputs = img_editor, outputs = overlay_img).then(         # Create the preview in top right corner                                           
             fn = self.set_visible, inputs = None, outputs = overlay_img).then(                  # Makes the preview visible
-            fn = self.cerate_download_list, inputs = img_editor, outputs = masks_download).then(# Separates the color mask and put them into file list
+            fn = self.create_download_list, inputs = img_editor, outputs = masks_download).then(# Separates the color mask and put them into file list
             fn = self.set_visible, inputs = None, outputs = masks_download)                     # Displays the download file list
