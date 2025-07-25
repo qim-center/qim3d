@@ -1470,7 +1470,7 @@ def threshold(
                 threshold_slider.disabled = True
                 threshold_slider.observe(update_state, names='value')
             else:
-                msg = f"Unsupported thresholding method: {state['method']}"
+                msg = f'Unsupported thresholding method: {state['method']}'
                 raise ValueError(msg)
 
         # Trigger visualization
@@ -1509,7 +1509,7 @@ def threshold(
                 ax=axes[1],
                 show=False,
             )
-            axes[1].set_title(f"Histogram with Threshold = {int(state['threshold'])}")
+            axes[1].set_title(f'Histogram with Threshold = {int(state['threshold'])}')
 
             # Binary mask
             mask = slice_img > state['threshold']
@@ -1803,7 +1803,9 @@ def compare_volumes(
 
 class VolumePlaneSlicer:
     @staticmethod
-    def matplotlib_to_plotly_cmap(cmap):
+    def matplotlib_to_plotly_cmap(
+        cmap: str | matplotlib.colors.Colormap,
+    ) -> list[list[float, str]]:
         lin = np.linspace(0, 1, 256)
         rgbs = matplotlib.colormaps.get_cmap(cmap)(lin)[:, :3]
         colorscale = [
@@ -1816,7 +1818,12 @@ class VolumePlaneSlicer:
         return colorscale
 
     def __init__(
-        self, volume, color_map='magma', color_range=None, showscale=True, opacity=1.0
+        self,
+        volume: np.ndarray,
+        color_map: str | matplotlib.colors.Colormap = 'magma',
+        color_range: list[float | None, float | None] = None,
+        showscale: bool = True,
+        opacity: float = 1.0,
     ):
         self.volume = volume
         self.colorscale = self.matplotlib_to_plotly_cmap(color_map)
@@ -1843,11 +1850,6 @@ class VolumePlaneSlicer:
         self.show_y = widgets.Checkbox(value=True, description='', indent=False)
         self.show_z = widgets.Checkbox(value=True, description='', indent=False)
 
-        def section_title(text):
-            return widgets.HTML(
-                f"<div style='text-align:center; font-weight:bold;'>{text}</div>"
-            )
-
         z_controls = widgets.HBox([self.z_slider, self.show_z])
         y_controls = widgets.HBox([self.y_slider, self.show_y])
         x_controls = widgets.HBox([self.x_slider, self.show_x])
@@ -1865,7 +1867,7 @@ class VolumePlaneSlicer:
         self._update_figure()
         self._set_observers()
 
-    def _init_surfaces(self):
+    def _init_surfaces(self) -> None:
         surfaces = [
             go.Surface(
                 opacity=0,
@@ -1880,42 +1882,43 @@ class VolumePlaneSlicer:
         self.fig.update_layout(
             width=1000,
             height=500,
-            margin=dict(l=0, r=0, t=0, b=0),
-            scene=dict(
-                xaxis=dict(title='X', range=[0, self.x_max]),
-                yaxis=dict(title='Y', range=[0, self.y_max]),
-                zaxis=dict(title='Z', range=[0, self.z_max]),
-            ),
+            margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
+            scene={
+                'xaxis': {'title': 'X', 'range': [0, self.x_max]},
+                'yaxis': {'title': 'Y', 'range': [0, self.y_max]},
+                'zaxis': {'title': 'Z', 'range': [0, self.z_max]},
+            },
         )
 
-    def _update_plane(self, plane):
+    def _update_plane(self, plane: Literal['X', 'Y', 'Z']) -> None:
         z, y, x = (np.arange(s) for s in [self.z_max, self.y_max, self.x_max])
         opacity = self.opacity_slider.value
 
         if plane == 'Z':
-            Y, X = np.meshgrid(y, x, indexing='ij')
-            Z = np.full_like(X, self.z_slider.value)
+            y_mesh, x_mesh = np.meshgrid(y, x, indexing='ij')
+            z_mesh = np.full_like(x_mesh, self.z_slider.value)
             data = self.volume[self.z_slider.value, :, :]
             surface = self.fig.data[0]
 
         elif plane == 'Y':
-            Z, X = np.meshgrid(z, x, indexing='ij')
-            Y = np.full_like(Z, self.y_slider.value)
+            z_mesh, x_mesh = np.meshgrid(z, x, indexing='ij')
+            y_mesh = np.full_like(z_mesh, self.y_slider.value)
             data = self.volume[:, self.y_slider.value, :]
             surface = self.fig.data[1]
 
         elif plane == 'X':
-            Z, Y = np.meshgrid(z, y, indexing='ij')
-            X = np.full_like(Z, self.x_slider.value)
+            z_mesh, y_mesh = np.meshgrid(z, y, indexing='ij')
+            x_mesh = np.full_like(z_mesh, self.x_slider.value)
             data = self.volume[:, :, self.x_slider.value]
             surface = self.fig.data[2]
 
         else:
-            raise ValueError(f'Invalid plane: {plane}')
+            msg = f'Invalid plane: {plane}'
+            raise ValueError(msg)
 
-        self._update_surface(surface, X, Y, Z, data, opacity)
+        self._update_surface(surface, x_mesh, y_mesh, z_mesh, data, opacity)
 
-    def _toggle_visibility(self, plane):
+    def _toggle_visibility(self, plane: Literal['X', 'Y', 'Z']) -> None:
         if plane == 'X':
             self.fig.data[2].visible = self.show_x.value
         elif plane == 'Y':
@@ -1923,12 +1926,12 @@ class VolumePlaneSlicer:
         elif plane == 'Z':
             self.fig.data[0].visible = self.show_z.value
 
-    def _update_opacity(self):
+    def _update_opacity(self) -> None:
         opacity = self.opacity_slider.value
         for surface in self.fig.data:
             surface.opacity = opacity
 
-    def _update_figure(self, change=None):
+    def _update_figure(self, change: dict = None) -> None:
         if change is None:
             for plane in ['X', 'Y', 'Z']:
                 self._update_plane(plane)
@@ -1947,17 +1950,26 @@ class VolumePlaneSlicer:
 
         try:
             owner_action_map[owner]()
-        except KeyError:
-            raise ValueError(f'Unhandled slider or control: {owner}')
+        except KeyError as err:
+            msg = f'Unhandled slider or control: {owner}'
+            raise ValueError(msg) from err
 
-    def _update_surface(self, surface, x, y, z, surfacecolor, opacity):
-        surface.x = x
-        surface.y = y
-        surface.z = z
+    def _update_surface(
+        self,
+        surface: go.Surface,
+        x_mesh: np.ndarray,
+        y_mesh: np.ndarray,
+        z_mesh: np.ndarray,
+        surfacecolor: np.ndarray,
+        opacity: float,
+    ) -> None:
+        surface.x = x_mesh
+        surface.y = y_mesh
+        surface.z = z_mesh
         surface.surfacecolor = surfacecolor
         surface.opacity = opacity
 
-    def _set_observers(self):
+    def _set_observers(self) -> None:
         for control in [
             self.x_slider,
             self.y_slider,
@@ -1969,15 +1981,15 @@ class VolumePlaneSlicer:
         ]:
             control.observe(self._update_figure, names='value')
 
-    def show(self):
+    def show(self) -> None:
         display(self.controls, self.fig)
 
 
 def planes(
-    volume,
-    color_map='magma',
-    value_min=None,
-    value_max=None,
+    volume: np.ndarray,
+    color_map: str | matplotlib.colors.Colormap = 'magma',
+    value_min: float = None,
+    value_max: float = None,
 ) -> None:
     """
     Displays an interactive 3D widget for viewing orthogonal cross-sections through a volume.
