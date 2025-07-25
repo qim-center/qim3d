@@ -1259,7 +1259,7 @@ def line_profile(
     slice_index: int | str = 'middle',
     vertical_position: int | str = 'middle',
     horizontal_position: int | str = 'middle',
-    angle: int = 0,
+    angle: float | int = 0,
     fraction_range: tuple[float, float] = (0.00, 1.00),
     y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
@@ -1340,7 +1340,7 @@ def line_profile(
         'horizontal_position',
     )
 
-    if not isinstance(angle, float):
+    if not isinstance(angle, float | int):
         msg = 'Invalid type for angle.'
         raise ValueError(msg)
     angle = round(angle) % 360
