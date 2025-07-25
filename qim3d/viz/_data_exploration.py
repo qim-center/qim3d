@@ -1259,7 +1259,7 @@ def line_profile(
     slice_index: int | str = 'middle',
     vertical_position: int | str = 'middle',
     horizontal_position: int | str = 'middle',
-    angle: float | int = 0,
+    angle: float = 0,
     fraction_range: tuple[float, float] = (0.00, 1.00),
     y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
@@ -2002,6 +2002,15 @@ def planes(
 
     Returns:
         None
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.shell_225x128x128
+        qim3d.viz.planes(vol)
+        ```
+        ![viz planes](../../assets/screenshots/viz-planes.gif)
 
     """
     VolumePlaneSlicer(
