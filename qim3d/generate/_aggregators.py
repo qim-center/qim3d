@@ -482,7 +482,7 @@ def volume_collection(
     data: np.ndarray | list[np.ndarray] | None = None,
     positions: list[tuple] = None,
     shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
-    volume_shape_zoom: tuple = (1.0, 1.0, 1.0),
+    shape_magnification_range: tuple[float] = (1.0, 1.0),
     noise_type: str = 'perlin',
     noise_range: tuple[float] = (0.02, 0.03),
     rotation_degree_range: tuple[int] = (0, 360),
@@ -498,6 +498,7 @@ def volume_collection(
     same_seed: bool = False,
     hollow: bool = False,
     seed: int = 0,
+    dtype: str = 'uint8',
     return_positions: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -509,7 +510,7 @@ def volume_collection(
         data (numpy.ndarray or list[numpy.ndarray], optional): Predefined volume(s) to use for the collection. If provided, the function will use these volumes instead of generating new ones. Defaults to None.
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
         shape_range (tuple of tuple of ints, optional): Determines the shape of the generated volumes with first element defining the minimum size and second element defining maximum. Defaults to ((40,40,40), (60,60,60)).
-        volume_shape_zoom (tuple of floats, optional): Scaling factors for each dimension of each volume. Defaults to (1.0, 1.0, 1.0).
+        shape_magnification_range (tuple of floats, optional): Range for scaling of volume shape in all dimensions. Defaults to (1.0, 1.0).
         noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex`, `perlin` or `mixed`. Defaults to perlin.
         noise_range (tuple of floats, optional): Determines range for noise. First element is minimum and second is maximum. Defaults to (0.02, 0.03).
         rotation_degree_range (tuple of ints, optional): Determines range for rotation angle in degrees. First element is minimum and second is maximum. Defaults to (0, 360).
@@ -525,6 +526,7 @@ def volume_collection(
         same_seed (bool, optional): Use the same seed for each generated volume. Note that in order to generate identical volumes, the min and max for the different parameters should be identical.
         hollow (bool, optional): Create hollow objects using qim3d.operations.make_hollow(). Defaults to False.
         seed (int, optional): Seed for reproducibility. Defaults to 0. Each generated volume will be generated with a randomly selected sub-seed generated from the original seed.
+        dtype (str, optional): dtype for resulting volume. Defaults to uint8.
         return_positions (bool, optional): Flag to return position of randomly placed blobs.
 
     Returns:
@@ -709,7 +711,7 @@ def volume_collection(
 
     # Initialize the 3D array for the shape
     collection_array = np.zeros(
-        (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=np.uint8
+        (collection_shape[0], collection_shape[1], collection_shape[2]), dtype=dtype
     )
     labels = np.zeros_like(collection_array)
 
@@ -717,9 +719,9 @@ def volume_collection(
     placed_positions = []
 
     if same_seed:
-        seeds = rng.integers(0, 255, size=1).repeat(1000)
+        seeds = rng.integers(0, 255, size=1).repeat(5000)
     else:
-        seeds = rng.integers(low=0, high=255, size=1000)
+        seeds = rng.integers(low=0, high=255, size=5000)
     nt = rng.random(size=1000)
 
     # Fill the 3D array with synthetic blobs
@@ -734,14 +736,14 @@ def volume_collection(
                 rng.integers(low=shape_range[0][i], high=shape_range[1][i])
                 for i in range(3)
             )
-        log.debug(f'- Blob shape: {blob_shape}')
 
-        # Scale volume shape
-        final_shape = tuple(
-            dim * zoom for dim, zoom in zip(blob_shape, volume_shape_zoom)
+        magnification = rng.uniform(
+            low=shape_magnification_range[0], high=shape_magnification_range[1]
         )
-        final_shape = tuple(int(x) for x in final_shape)
 
+        final_shape = tuple(int(dim * magnification) for dim in blob_shape)
+        log.debug(f'- Blob shape: {final_shape}')
+        # Check if should keep final_shape separate from base_shape
         # Sample noise scale
         noise_scale = rng.uniform(low=noise_range[0], high=noise_range[1])
         log.debug(f'- Object noise scale: {noise_scale:.4f}')
@@ -774,23 +776,25 @@ def volume_collection(
             choice_i = rng.integers(len(data_list))
             blob = data_list[choice_i].copy()
         else:
-            blob = qim3d.generate.volume(
-                base_shape=blob_shape,
-                final_shape=final_shape,
-                noise_scale=noise_scale,
-                noise_type=nti,
-                decay_rate=decay_rate,
-                gamma=gamma,
-                threshold=threshold,
-                max_value=max_value,
-                shape=shape,
-                tube_hole_ratio=tube_hole_ratio,
-                axis=axis,
-                order=1,
-                dtype='uint8',
-                hollow=hollow,
-                seed=seeds[i],
-            )
+        # Generate synthetic volume
+        blob = qim3d.generate.volume(
+            base_shape=final_shape,
+            final_shape=final_shape,
+            noise_scale=noise_scale,
+            noise_type=nti,
+            decay_rate=decay_rate,
+            gamma=gamma,
+            threshold=threshold,
+            max_value=max_value,
+            shape=shape,
+            tube_hole_ratio=tube_hole_ratio,
+            axis=axis,
+            order=1,
+            dtype=dtype,
+            hollow=hollow,
+            seed=seeds[i],
+        )
+
 
         # Rotate volume
         if rotation_degree_range[1] > 0:
