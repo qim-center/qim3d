@@ -1,16 +1,20 @@
+"""Visualization of volumetric data."""
+
 from . import _layers2d, colormaps
 from ._cc import plot_cc
 from ._data_exploration import (
     chunks,
+    compare_volumes,
+    export_rotation,
     fade_mask,
     histogram,
+    iso_surface,
     line_profile,
+    planes,
     slicer,
     slicer_orthogonal,
     slices_grid,
     threshold,
-    compare_volumes,
-    planes,
 )
 from ._detection import circles
 from ._k3d import mesh, volumetric
@@ -21,9 +25,11 @@ from ._structure_tensor import vectors
 from .itk_vtk_viewer import itk_vtk
 
 __all__ = [
+    '_layers2d',
     'colormaps',
     'plot_cc',
     'chunks',
+    'compare_volumes',
     'fade_mask',
     'histogram',
     'line_profile',
@@ -32,6 +38,7 @@ __all__ = [
     'slices_grid',
     'threshold',
     'compare_volumes',
+    'export_rotation',
     'planes',
     'circles',
     'mesh',
@@ -44,4 +51,5 @@ __all__ = [
     'image_preview',
     'vectors',
     'itk_vtk',
+    'iso_surface',
 ]
