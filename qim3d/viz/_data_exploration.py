@@ -13,6 +13,7 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.colors
 import plotly.graph_objects as go
 import pyvista as pv
 import seaborn as sns
@@ -1295,7 +1296,7 @@ def line_profile(
     slice_index: int | str = 'middle',
     vertical_position: int | str = 'middle',
     horizontal_position: int | str = 'middle',
-    angle: int = 0.0,
+    angle: int = 0,
     fraction_range: tuple[float, float] = (0.00, 1.00),
     y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
@@ -1376,7 +1377,7 @@ def line_profile(
         'horizontal_position',
     )
 
-    if not isinstance(angle, float):
+    if not isinstance(angle, float | int):
         msg = 'Invalid type for angle.'
         raise ValueError(msg)
     angle = round(angle) % 360
@@ -2471,3 +2472,220 @@ def export_rotation(
             display(Image(filename=path))
         elif path.suffix in ['.avi', '.mp4', '.webm']:
             display(Video(filename=path, html_attributes='controls autoplay loop'))
+
+
+class VolumePlaneSlicer:
+    @staticmethod
+    def matplotlib_to_plotly_cmap(
+        cmap: str | matplotlib.colors.Colormap,
+    ) -> list[list[float, str]]:
+        lin = np.linspace(0, 1, 256)
+        rgbs = matplotlib.colormaps.get_cmap(cmap)(lin)[:, :3]
+        colorscale = [
+            [
+                lin[i].item(),
+                plotly.colors.label_rgb(plotly.colors.convert_to_RGB_255(rgbs[i])),
+            ]
+            for i in range(len(lin))
+        ]
+        return colorscale
+
+    def __init__(
+        self,
+        volume: np.ndarray,
+        color_map: str | matplotlib.colors.Colormap = 'magma',
+        color_range: list[float | None, float | None] = None,
+        showscale: bool = True,
+        opacity: float = 1.0,
+    ):
+        self.volume = volume
+        self.colorscale = self.matplotlib_to_plotly_cmap(color_map)
+        self.showscale = showscale
+
+        vmin = color_range[0] or volume.min()
+        vmax = color_range[1] or volume.max()
+        self.color_range = [vmin, vmax]
+        self.z_max, self.y_max, self.x_max = volume.shape
+        self.x_slider = widgets.IntSlider(
+            value=self.x_max // 2, min=0, max=self.x_max - 1, description='X'
+        )
+        self.y_slider = widgets.IntSlider(
+            value=self.y_max // 2, min=0, max=self.y_max - 1, description='Y'
+        )
+        self.z_slider = widgets.IntSlider(
+            value=self.z_max // 2, min=0, max=self.z_max - 1, description='Z'
+        )
+        self.opacity_slider = widgets.FloatSlider(
+            value=opacity, min=0.0, max=1.0, step=0.05, description='Opacity'
+        )
+
+        self.show_x = widgets.Checkbox(value=True, description='', indent=False)
+        self.show_y = widgets.Checkbox(value=True, description='', indent=False)
+        self.show_z = widgets.Checkbox(value=True, description='', indent=False)
+
+        z_controls = widgets.HBox([self.z_slider, self.show_z])
+        y_controls = widgets.HBox([self.y_slider, self.show_y])
+        x_controls = widgets.HBox([self.x_slider, self.show_x])
+        slice_controls = widgets.VBox([z_controls, y_controls, x_controls])
+
+        self.controls = widgets.HBox(
+            [
+                slice_controls,
+                self.opacity_slider,
+            ]
+        )
+
+        self.fig = go.FigureWidget()
+        self._init_surfaces()
+        self._update_figure()
+        self._set_observers()
+
+    def _init_surfaces(self) -> None:
+        surfaces = [
+            go.Surface(
+                opacity=0,
+                colorscale=self.colorscale,
+                showscale=self.showscale,
+                cmin=self.color_range[0],
+                cmax=self.color_range[1],
+            )
+            for _ in range(3)
+        ]
+        self.fig.add_traces(surfaces)
+        self.fig.update_layout(
+            width=1000,
+            height=500,
+            margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
+            scene={
+                'xaxis': {'title': 'X', 'range': [0, self.x_max]},
+                'yaxis': {'title': 'Y', 'range': [0, self.y_max]},
+                'zaxis': {'title': 'Z', 'range': [0, self.z_max]},
+            },
+        )
+
+    def _update_plane(self, plane: Literal['X', 'Y', 'Z']) -> None:
+        z, y, x = (np.arange(s) for s in [self.z_max, self.y_max, self.x_max])
+        opacity = self.opacity_slider.value
+
+        if plane == 'Z':
+            y_mesh, x_mesh = np.meshgrid(y, x, indexing='ij')
+            z_mesh = np.full_like(x_mesh, self.z_slider.value)
+            data = self.volume[self.z_slider.value, :, :]
+            surface = self.fig.data[0]
+
+        elif plane == 'Y':
+            z_mesh, x_mesh = np.meshgrid(z, x, indexing='ij')
+            y_mesh = np.full_like(z_mesh, self.y_slider.value)
+            data = self.volume[:, self.y_slider.value, :]
+            surface = self.fig.data[1]
+
+        elif plane == 'X':
+            z_mesh, y_mesh = np.meshgrid(z, y, indexing='ij')
+            x_mesh = np.full_like(z_mesh, self.x_slider.value)
+            data = self.volume[:, :, self.x_slider.value]
+            surface = self.fig.data[2]
+
+        else:
+            msg = f'Invalid plane: {plane}'
+            raise ValueError(msg)
+
+        self._update_surface(surface, x_mesh, y_mesh, z_mesh, data, opacity)
+
+    def _toggle_visibility(self, plane: Literal['X', 'Y', 'Z']) -> None:
+        if plane == 'X':
+            self.fig.data[2].visible = self.show_x.value
+        elif plane == 'Y':
+            self.fig.data[1].visible = self.show_y.value
+        elif plane == 'Z':
+            self.fig.data[0].visible = self.show_z.value
+
+    def _update_opacity(self) -> None:
+        opacity = self.opacity_slider.value
+        for surface in self.fig.data:
+            surface.opacity = opacity
+
+    def _update_figure(self, change: dict = None) -> None:
+        if change is None:
+            for plane in ['X', 'Y', 'Z']:
+                self._update_plane(plane)
+            return
+
+        owner = change['owner']
+        owner_action_map = {
+            self.x_slider: lambda: self._update_plane('X'),
+            self.y_slider: lambda: self._update_plane('Y'),
+            self.z_slider: lambda: self._update_plane('Z'),
+            self.opacity_slider: self._update_opacity,
+            self.show_x: lambda: self._toggle_visibility('X'),
+            self.show_y: lambda: self._toggle_visibility('Y'),
+            self.show_z: lambda: self._toggle_visibility('Z'),
+        }
+
+        try:
+            owner_action_map[owner]()
+        except KeyError as err:
+            msg = f'Unhandled slider or control: {owner}'
+            raise ValueError(msg) from err
+
+    def _update_surface(
+        self,
+        surface: go.Surface,
+        x_mesh: np.ndarray,
+        y_mesh: np.ndarray,
+        z_mesh: np.ndarray,
+        surfacecolor: np.ndarray,
+        opacity: float,
+    ) -> None:
+        surface.x = x_mesh
+        surface.y = y_mesh
+        surface.z = z_mesh
+        surface.surfacecolor = surfacecolor
+        surface.opacity = opacity
+
+    def _set_observers(self) -> None:
+        for control in [
+            self.x_slider,
+            self.y_slider,
+            self.z_slider,
+            self.opacity_slider,
+            self.show_x,
+            self.show_y,
+            self.show_z,
+        ]:
+            control.observe(self._update_figure, names='value')
+
+    def show(self) -> None:
+        display(self.controls, self.fig)
+
+
+def planes(
+    volume: np.ndarray,
+    color_map: str | matplotlib.colors.Colormap = 'magma',
+    value_min: float = None,
+    value_max: float = None,
+) -> None:
+    """
+    Displays an interactive 3D widget for viewing orthogonal cross-sections through a volume.
+
+    Args:
+        volume (np.ndarray): The 3D volume of interest.
+        color_map (str or matplotlib.colors.Colormap, optional): Specifies the matplotlib color map.
+        value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range.
+        value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range.
+
+    Returns:
+        None
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.shell_225x128x128
+        qim3d.viz.planes(vol)
+        ```
+        ![viz planes](../../assets/screenshots/viz-planes.gif)
+
+    """
+    VolumePlaneSlicer(
+        volume=volume, color_map=color_map, color_range=[value_min, value_max]
+    ).show()
