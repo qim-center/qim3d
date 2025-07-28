@@ -13,6 +13,7 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - slicer
             - slicer_orthogonal
             - slices_grid
+            - planes
             - circles
             - chunks
             - itk_vtk
