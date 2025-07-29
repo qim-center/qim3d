@@ -2499,59 +2499,162 @@ class VolumePlaneSlicer:
         opacity: float = 1.0,
     ):
         self.volume = volume
-        self.colorscale = self.matplotlib_to_plotly_cmap(color_map)
+        self.color_map = color_map
+        self.initial_colorscale = self.matplotlib_to_plotly_cmap(color_map)
         self.showscale = showscale
+        self.opacity = opacity
 
+        color_range = color_range if color_range else [None, None]
         vmin = color_range[0] or volume.min()
         vmax = color_range[1] or volume.max()
         self.color_range = [vmin, vmax]
         self.z_max, self.y_max, self.x_max = volume.shape
-        self.x_slider = widgets.IntSlider(
-            value=self.x_max // 2, min=0, max=self.x_max - 1, description='X'
-        )
-        self.y_slider = widgets.IntSlider(
-            value=self.y_max // 2, min=0, max=self.y_max - 1, description='Y'
-        )
-        self.z_slider = widgets.IntSlider(
-            value=self.z_max // 2, min=0, max=self.z_max - 1, description='Z'
-        )
-        self.opacity_slider = widgets.FloatSlider(
-            value=opacity, min=0.0, max=1.0, step=0.05, description='Opacity'
-        )
-
-        self.show_x = widgets.Checkbox(value=True, description='', indent=False)
-        self.show_y = widgets.Checkbox(value=True, description='', indent=False)
-        self.show_z = widgets.Checkbox(value=True, description='', indent=False)
-
-        z_controls = widgets.HBox([self.z_slider, self.show_z])
-        y_controls = widgets.HBox([self.y_slider, self.show_y])
-        x_controls = widgets.HBox([self.x_slider, self.show_x])
-        slice_controls = widgets.VBox([z_controls, y_controls, x_controls])
-
-        self.controls = widgets.HBox(
-            [
-                slice_controls,
-                self.opacity_slider,
-            ]
-        )
 
         self.fig = go.FigureWidget()
+        self._init_controls()
         self._init_surfaces()
         self._update_figure()
         self._set_observers()
 
+    def _init_controls(self) -> None:
+        # Slice controls
+        slider_layout = widgets.Layout(width='400px')
+        self.x_slider = widgets.IntSlider(
+            value=self.x_max // 2,
+            min=0,
+            max=self.x_max - 1,
+            description='X',
+            layout=slider_layout,
+        )
+        self.y_slider = widgets.IntSlider(
+            value=self.y_max // 2,
+            min=0,
+            max=self.y_max - 1,
+            description='Y',
+            layout=slider_layout,
+        )
+        self.z_slider = widgets.IntSlider(
+            value=self.z_max // 2,
+            min=0,
+            max=self.z_max - 1,
+            description='Z',
+            layout=slider_layout,
+        )
+
+        checkbox_layout = widgets.Layout(width='20px')
+        self.show_x = widgets.Checkbox(
+            value=True, description='', indent=False, layout=checkbox_layout
+        )
+        self.show_y = widgets.Checkbox(
+            value=True, description='', indent=False, layout=checkbox_layout
+        )
+        self.show_z = widgets.Checkbox(
+            value=True, description='', indent=False, layout=checkbox_layout
+        )
+
+        hbox_layout = widgets.Layout(width='420px')
+        z_controls = widgets.HBox([self.z_slider, self.show_z], layout=hbox_layout)
+        y_controls = widgets.HBox([self.y_slider, self.show_y], layout=hbox_layout)
+        x_controls = widgets.HBox([self.x_slider, self.show_x], layout=hbox_layout)
+        slice_controls = widgets.VBox([z_controls, y_controls, x_controls])
+
+        # Visual controls
+        self.opacity_slider = widgets.FloatSlider(
+            value=self.opacity,
+            min=0.0,
+            max=1.0,
+            step=0.05,
+            description='Opacity',
+            layout=widgets.Layout(width='350px'),
+        )
+        is_int = np.issubdtype(self.volume.dtype, np.integer)
+        crange_slider_type = (
+            widgets.IntRangeSlider if is_int else widgets.FloatRangeSlider
+        )
+        self.crange_slider = crange_slider_type(
+            value=self.color_range,
+            min=self.color_range[0],
+            max=self.color_range[1],
+            step=1 if is_int else (self.color_range[1] - self.color_range[0]) / 100,
+            description='Color range',
+            continuous_update=True,
+            layout=widgets.Layout(width='400px'),
+        )
+
+        self.cmaps = [
+            'Blues',
+            'cividis',
+            'cool',
+            'gray',
+            'Greys',
+            'hot',
+            'hsv',
+            'inferno',
+            'magma',
+            'plasma',
+            'spring',
+            'viridis',
+            'tab10',
+            'turbo',
+            'nipy_spectral',
+        ]
+        if isinstance(self.color_map, matplotlib.colors.Colormap):
+            cmap_value = 'Custom'
+            cmap_options = [cmap_value] + self.cmaps
+        elif isinstance(self.color_map, str):
+            if self.color_map in self.cmaps:
+                cmap_value = self.color_map
+                cmap_options = self.cmaps
+            else:
+                cmap_value = self.color_map
+                cmap_options = [cmap_value] + self.cmaps
+
+        self.cmap_dropdown = widgets.Dropdown(
+            options=cmap_options,
+            value=cmap_value,
+            description='Colormap',
+            layout=widgets.Layout(width='300px'),
+        )
+
+        visual_controls = widgets.VBox(
+            [self.opacity_slider, self.crange_slider, self.cmap_dropdown],
+            layout=widgets.Layout(width='450px'),
+        )
+
+        # Combined controls
+        whitespace = widgets.Box(layout=widgets.Layout(width='100px'))
+        self.controls = widgets.HBox([slice_controls, whitespace, visual_controls])
+
     def _init_surfaces(self) -> None:
         surfaces = [
             go.Surface(
+                name='ZYX'[i],
                 opacity=0,
-                colorscale=self.colorscale,
-                showscale=self.showscale,
+                colorscale=self.initial_colorscale,
+                showscale=False,
                 cmin=self.color_range[0],
                 cmax=self.color_range[1],
+                showlegend=False,
             )
-            for _ in range(3)
+            for i in range(3)
         ]
         self.fig.add_traces(surfaces)
+
+        # dummy surface for the colorbar to avoid a lot of problems
+        colorbar_surface = go.Surface(
+            z=[[0, 0], [0, 0]],
+            surfacecolor=[[0, 1], [0, 1]],
+            opacity=0,
+            colorscale=self.initial_colorscale,
+            cmin=self.color_range[0],
+            cmax=self.color_range[1],
+            showscale=True,
+            hoverinfo='skip',
+            showlegend=False,
+        )
+        self.fig.add_trace(colorbar_surface)
+        # self.fig.data will be a list of the surfaces in the order they were added
+
         self.fig.update_layout(
             width=1000,
             height=500,
@@ -2560,6 +2663,13 @@ class VolumePlaneSlicer:
                 'xaxis': {'title': 'X', 'range': [0, self.x_max]},
                 'yaxis': {'title': 'Y', 'range': [0, self.y_max]},
                 'zaxis': {'title': 'Z', 'range': [0, self.z_max]},
+                'aspectmode': 'manual',
+                'aspectratio': {
+                    axis: (size / max(self.volume.shape)) * 1.3
+                    for axis, size in zip(
+                        ['x', 'y', 'z'], [self.x_max, self.y_max, self.z_max]
+                    )
+                },
             },
         )
 
@@ -2601,8 +2711,24 @@ class VolumePlaneSlicer:
 
     def _update_opacity(self) -> None:
         opacity = self.opacity_slider.value
-        for surface in self.fig.data:
+        for surface in self.fig.data[:3]:
             surface.opacity = opacity
+
+    def _update_crange(self) -> None:
+        crange = self.crange_slider.value
+        for surface in self.fig.data:
+            surface.cmin = crange[0]
+            surface.cmax = crange[1]
+
+    def _update_cmap(self) -> None:
+        cmap = self.cmap_dropdown.value
+        if cmap == 'Custom':
+            colorscale = self.initial_colorscale
+        else:
+            colorscale = self.matplotlib_to_plotly_cmap(cmap)
+
+        for surface in self.fig.data:
+            surface.colorscale = colorscale
 
     def _update_figure(self, change: dict = None) -> None:
         if change is None:
@@ -2615,10 +2741,12 @@ class VolumePlaneSlicer:
             self.x_slider: lambda: self._update_plane('X'),
             self.y_slider: lambda: self._update_plane('Y'),
             self.z_slider: lambda: self._update_plane('Z'),
-            self.opacity_slider: self._update_opacity,
             self.show_x: lambda: self._toggle_visibility('X'),
             self.show_y: lambda: self._toggle_visibility('Y'),
             self.show_z: lambda: self._toggle_visibility('Z'),
+            self.opacity_slider: self._update_opacity,
+            self.crange_slider: self._update_crange,
+            self.cmap_dropdown: self._update_cmap,
         }
 
         try:
@@ -2647,10 +2775,12 @@ class VolumePlaneSlicer:
             self.x_slider,
             self.y_slider,
             self.z_slider,
-            self.opacity_slider,
             self.show_x,
             self.show_y,
             self.show_z,
+            self.opacity_slider,
+            self.crange_slider,
+            self.cmap_dropdown,
         ]:
             control.observe(self._update_figure, names='value')
 
