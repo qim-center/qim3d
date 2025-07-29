@@ -151,7 +151,7 @@ def main():
             interface_class = qim3d.gui.layers2d.Interface
         else:
             print(
-                'Please select a tool by choosing one of the following flags:\n\t--data-explorer\n\t--iso3d\n\t--annotation-tool\n\t--local-thickness'
+                'Please select a tool by choosing one of the following flags:\n\t--data-explorer\n\t--iso3d\n\t--annotation-tool\n\t--local-thickness\n\t--layers'
             )
             return
         interface = (

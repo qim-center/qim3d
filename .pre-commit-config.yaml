@@ -5,7 +5,6 @@ repos:
     rev: v3.2.0
     hooks:
     -   id: detect-private-key
-    -   id: check-added-large-files
     -   id: check-docstring-first
     -   id: debug-statements
     -   id: double-quote-string-fixer

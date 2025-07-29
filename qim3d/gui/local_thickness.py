@@ -315,6 +315,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
         self.vmax_lt = np.max(self.vol_thickness)
 
     def thickness_histogram(self, nbins: int):
+        plt.close()
         # Ignore zero thickness
         non_zero_values = self.vol_thickness[self.vol_thickness > 0]
 
