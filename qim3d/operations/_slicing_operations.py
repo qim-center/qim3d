@@ -291,19 +291,16 @@ def get_random_slice(
     volume: np.ndarray, width: int, length: int, seed: int | None = None
 ) -> np.ndarray:
     """
-    Get a random slice from a 3D volume. Function based on the Slicer class by @laprade117.
-
-    Original implementation:
-    https://github.com/laprade117/interactive-unet/blob/master/interactive_unet/slicer.py
+    Extract a randomly oriented 2D slice from a 3D volume.
 
     Args:
-        volume (np.ndarray): The 3D volume from which to extract the slice.
-        width (int): The width of the slice.
-        length (int): The length of the slice.
-        seed (Optional[int]): Random seed for reproducibility.
+        volume (np.ndarray): The input 3D volume.
+        width (int): The width of the extracted slice.
+        length (int): The length of the extracted slice.
+        seed (int | None, optional): Seed for the random number generator, for reproducibility.
 
     Returns:
-        slice2d (np.ndarray): A 2D slice of the specified width and length.
+        np.ndarray: A 2D slice of shape (width, length) extracted from the volume.
 
     Example:
         ```python
@@ -313,6 +310,10 @@ def get_random_slice(
         slice2d = qim3d.operations.get_random_slice(data, width=64, length=100)
         ```
 
+    !!! quote "Reference"
+        This slicer is adapted from the
+        [interactive-unet](https://github.com/laprade117/interactive-unet/blob/master/interactive_unet/slicer.py)
+        package developed by William Laprade.
     """
 
     if seed is not None:
