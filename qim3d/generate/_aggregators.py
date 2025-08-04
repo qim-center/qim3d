@@ -776,24 +776,24 @@ def volume_collection(
             choice_i = rng.integers(len(data_list))
             blob = data_list[choice_i].copy()
         else:
-        # Generate synthetic volume
-        blob = qim3d.generate.volume(
-            base_shape=final_shape,
-            final_shape=final_shape,
-            noise_scale=noise_scale,
-            noise_type=nti,
-            decay_rate=decay_rate,
-            gamma=gamma,
-            threshold=threshold,
-            max_value=max_value,
-            shape=shape,
-            tube_hole_ratio=tube_hole_ratio,
-            axis=axis,
-            order=1,
-            dtype=dtype,
-            hollow=hollow,
-            seed=seeds[i],
-        )
+            # Generate synthetic volume
+            blob = qim3d.generate.volume(
+                base_shape=final_shape,
+                final_shape=final_shape,
+                noise_scale=noise_scale,
+                noise_type=nti,
+                decay_rate=decay_rate,
+                gamma=gamma,
+                threshold=threshold,
+                max_value=max_value,
+                shape=shape,
+                tube_hole_ratio=tube_hole_ratio,
+                axis=axis,
+                order=1,
+                dtype=dtype,
+                hollow=hollow,
+                seed=seeds[i],
+            )
 
 
         # Rotate volume
