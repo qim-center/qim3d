@@ -703,7 +703,9 @@ class ParameterVisualizer:
 
     Args:
         base_shape (tuple, optional): Determines the shape of the generate volume. This will not be update when exploring parameters and must be determined when generating the visualizer.
+        final_shape (tuple, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape. Defaults to None.
         seed (int, optional): Determines the seed for the volume generation. Enables the user to generate different volumes with the same parameters.
+        hollow (int, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0. Defaults to 0.
         initial_config (dict, optional): Dictionary that defines the starting parameters of the visualizer. Can be used if a specific setup is needed. The dictionary may contain the keywords: `noise_type`, `noise_scale`, `decay_rate`, `gamma`, `threshold`, `shape` and `tube_hole_ratio`.
         nsmin (float, optional): Determines minimum value for the noise scale slider. Defaults to 0.0.
         nsmax (float, optional): Determines maximum value for the noise scale slider. Defaults to 0.1.
@@ -729,13 +731,22 @@ class ParameterVisualizer:
         viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0, grid_visible=True)
         ```
         ![paramter_visualizer](../../assets/screenshots/viz-synthetic_parameters.gif)
+        
+    Accessing the current volume:
+            The most recently generated 3D volume can be retrieved at any time using the `.get_volume()` method:
 
+            ```python
+            vol = viz.get_volume()
+            ```
+            This returns the synthetic volume as a NumPy ndarray corresponding to the current widget parameters.
     """
 
     def __init__(
         self,
         base_shape: tuple = (128, 128, 128),
+        final_shape: tuple = None,
         seed: int = 0,
+        hollow: int = 0,
         initial_config: dict = None,
         nsmin: float = 0.0,
         nsmax: float = 0.1,
@@ -748,9 +759,17 @@ class ParameterVisualizer:
         grid_visible: bool = False,
     ):
         # Error checking:
-
         if not isinstance(base_shape, tuple) or len(base_shape) != 3:
             err = 'base_shape should be a tuple of three sizes.'
+            raise ValueError(err)
+        
+        if final_shape is not None:
+            if not isinstance(final_shape, tuple) or len(final_shape) != 3:
+                err = 'final_shape should be a tuple of three sizes or None.'
+                raise ValueError(err)
+
+        if hollow < 0 or isinstance(hollow, float):
+            err = 'Argument "hollow" should be 0 or a positive integer'
             raise ValueError(err)
 
         if nsmin > nsmax:
@@ -770,6 +789,8 @@ class ParameterVisualizer:
             raise ValueError(err)
 
         self.base_shape = base_shape
+        self.final_shape = final_shape
+        self.hollow = hollow
         self.seed = int(seed)
         self.axis = 0  # Not customizable
         self.max_value = 255  # Not customizable
@@ -805,6 +826,7 @@ class ParameterVisualizer:
     def _compute_volume(self) -> None:
         vol = volume(
             base_shape=self.base_shape,
+            final_shape=self.final_shape,
             noise_type=self.config['noise_type'],
             noise_scale=self.config['noise_scale'],
             decay_rate=self.config['decay_rate'],
@@ -813,10 +835,12 @@ class ParameterVisualizer:
             shape=self.config['shape'],
             tube_hole_ratio=self.config['tube_hole_ratio'],
             seed=self.seed,
+            hollow=self.hollow
         )
         return scale_to_float16(vol)
 
     def _build_widgets(self) -> None:
+        # Widgets
         self.noise_slider = widgets.FloatSlider(
             value=self.config['noise_scale'],
             min=self.nsmin,
@@ -865,6 +889,44 @@ class ParameterVisualizer:
             style={'description_width': 'initial'},
             continuous_update=False,
         )
+        self.base_shape_x_text = widgets.IntText(
+            value=self.base_shape[0],
+        )
+        self.base_shape_y_text = widgets.IntText(
+            value=self.base_shape[1],
+        )
+        self.base_shape_z_text = widgets.IntText(
+            value=self.base_shape[2],
+        )
+        self.final_same_as_base_checkbox =  widgets.Checkbox(
+            value=True,
+            description='Same as base_shape'
+        )
+        self.final_shape_x_text = widgets.IntText(
+            value=self.base_shape[0],
+        )
+        self.final_shape_y_text = widgets.IntText(
+            value=self.base_shape[1],
+        )
+        self.final_shape_z_text = widgets.IntText(
+            value=self.base_shape[2],
+        )
+        self.hollow_text = widgets.BoundedIntText(
+            value=self.hollow,
+            min=0,
+            max=1000, # chosen arbitrarily atm.
+            step=1,
+            description='Hollow'
+        )
+        self.colormap_dropdown = widgets.Dropdown(
+            options=['magma', 'viridis', 'gray', 'plasma'],
+            value='magma',
+            description='Colormap'
+        )
+        self.grid_checkbox = widgets.Checkbox(
+            value=self.grid_visible,
+            description='Show grid'
+        )
 
         # Observers
         self.noise_slider.observe(self._on_change, names='value')
@@ -874,11 +936,43 @@ class ParameterVisualizer:
         self.threshold_slider.observe(self._on_change, names='value')
         self.shape_dropdown.observe(self._on_change, names='value')
         self.tube_hole_ratio_slider.observe(self._on_change, names='value')
+        self.base_shape_x_text.observe(self._on_change, names='value')
+        self.base_shape_y_text.observe(self._on_change, names='value')
+        self.base_shape_z_text.observe(self._on_change, names='value')
+        self.final_shape_x_text.observe(self._on_change, names='value')
+        self.final_shape_y_text.observe(self._on_change, names='value')
+        self.final_shape_z_text.observe(self._on_change, names='value')
+        self.hollow_text.observe(self._on_change, names='value')
+        self.colormap_dropdown.observe(self._on_change, names='value')
+        self.grid_checkbox.observe(self._on_change, names='value')
+        self.final_same_as_base_checkbox.observe(self._on_checkbox_change, names='value')
+        self.final_same_as_base_checkbox.observe(self._on_change, names='value')
+        # Initial state
+        self._on_checkbox_change({'new': self.final_same_as_base_checkbox.value})
+
+    def _on_checkbox_change(self, change) -> None:
+        disabled = change['new']
+        self.final_shape_x_text.disabled = disabled
+        self.final_shape_y_text.disabled = disabled
+        self.final_shape_z_text.disabled = disabled
+        
+    def _get_base_shape(self) -> tuple:
+        # Check valid axes
+        for axis in [self.base_shape_x_text, self.base_shape_y_text, self.base_shape_z_text]:
+            if axis.value < 1:
+                axis.value = 1
+        return (self.base_shape_x_text.value, self.base_shape_y_text.value, self.base_shape_z_text.value)
+
+    def _get_final_shape(self) -> tuple:
+        if self.final_same_as_base_checkbox.value:
+            return None
+        else:
+            return (self.final_shape_x_text.value, self.final_shape_y_text.value, self.final_shape_z_text.value)
 
     def _setup_plot(self) -> None:
         vol = self._compute_volume()
 
-        cmap = plt.get_cmap('magma')
+        cmap = plt.get_cmap(self.colormap_dropdown.value)
         attr_vals = np.linspace(0.0, 1.0, num=cmap.N)
         rgb_vals = cmap(np.arange(0, cmap.N))[:, :3]
         color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
@@ -910,26 +1004,60 @@ class ParameterVisualizer:
         self.config['threshold'] = self.threshold_slider.value
         self.config['shape'] = self.shape_dropdown.value
         self.config['tube_hole_ratio'] = self.tube_hole_ratio_slider.value
+        self.base_shape = self._get_base_shape()
+        self.final_shape = self._get_final_shape()
+        self.hollow = self.hollow_text.value
+        # Update colormap
+        cmap = plt.get_cmap(self.colormap_dropdown.value)
+        attr_vals = np.linspace(0.0, 1.0, num=cmap.N)
+        rgb_vals = cmap(np.arange(0, cmap.N))[:, :3]
+        color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
+        self.plt_volume.color_map = color_map
+        # Update grid
+        self.plot.grid_visible = self.grid_checkbox.value
 
         new_vol = self._compute_volume()
         self.plt_volume.volume = new_vol
 
     def _display_ui(self) -> None:
-        controls = widgets.VBox(
+        small_box = widgets.Layout(width='65px')
+        for box in [
+            self.base_shape_x_text, self.base_shape_y_text, self.base_shape_z_text,
+            self.final_shape_x_text, self.final_shape_y_text, self.final_shape_z_text,
+        ]:
+            box.layout = small_box
+
+        self.base_shape_box = widgets.HBox([
+            widgets.Label("Base shape  "),
+            widgets.Label('x'), self.base_shape_x_text,
+            widgets.Label('y'), self.base_shape_y_text,
+            widgets.Label('z'), self.base_shape_z_text,
+        ])
+        self.final_shape_box = widgets.HBox([
+            widgets.Label("Final shape  "),
+            widgets.Label('x'), self.final_shape_x_text,
+            widgets.Label('y'), self.final_shape_y_text,
+            widgets.Label('z'), self.final_shape_z_text,
+        ])
+        
+        parameters_controls = widgets.VBox(
             [
+                self.base_shape_box,
+                self.final_shape_box,
+                self.final_same_as_base_checkbox,
+                self.hollow_text,
                 self.noise_type_dropdown,
                 self.noise_slider,
                 self.decay_slider,
                 self.gamma_slider,
                 self.threshold_slider,
                 self.shape_dropdown,
-                self.tube_hole_ratio_slider,
+                self.tube_hole_ratio_slider
             ]
         )
 
         # Controls styling
-
-        controls.layout = widgets.Layout(
+        parameters_controls.layout = widgets.Layout(
             display='flex',
             flex_flow='column',
             flex='0 1',
@@ -941,24 +1069,62 @@ class ParameterVisualizer:
             margin='0 1em 0 0',
         )
 
-        plot_output = widgets.Output()
+        visualization_controls = widgets.VBox([
+            self.colormap_dropdown,
+            self.grid_checkbox
+        ])
 
-        plot_output.layout = widgets.Layout(
-            flex='1 1 auto',  # Expand to fill remaining space
+        visualization_controls.layout = widgets.Layout(
+            display='flex',
+            flex_flow='column',
+            flex='0 1',
+            min_width='350px',  # Ensure it doesn't get too small
             height='auto',
+            overflow_y='auto',
             border='1px solid lightgray',
-            overflow='auto',
+            padding='10px',
             margin='0 1em 0 0',
         )
 
-        ui = widgets.HBox(
-            [controls, plot_output],
-            layout=widgets.Layout(
-                width='100%', display='flex', flex_flow='row', align_items='stretch'
-            ),
-        )
+        tabs = widgets.Tab(children=[parameters_controls, visualization_controls])
+        tabs.set_title(0, 'Parameters')
+        tabs.set_title(1, 'Visualization')
 
+        plot_output = widgets.Output()
+        plot_output.layout = widgets.Layout(
+            flex='1 1 auto',
+            height='auto',
+            border='1px solid lightgray',
+            overflow='auto',
+            min_width='500px',
+        )
         with plot_output:
             display(self.plot)
 
+        ui = widgets.HBox(
+            [tabs, plot_output],
+            layout=widgets.Layout(
+                width='100%',
+                display='flex',
+                flex_flow='row',
+                align_items='stretch'
+            ),
+        )
+
         display(ui)
+
+    def get_volume(self):
+        """
+        Retrieves the most recently generated volume from the visualizer.
+
+        Returns:
+            numpy.ndarray: The current synthetic 3D volume based on the widget parameters.
+        
+        Example:
+        ```python
+            viz = qim3d.generate.ParameterVisualizer()
+            vol = viz.get_volume()
+            '''
+        """
+        return self.plt_volume.volume
+
