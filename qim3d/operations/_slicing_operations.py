@@ -302,18 +302,32 @@ def get_random_slice(
     Returns:
         np.ndarray: A 2D slice of shape (width, length) extracted from the volume.
 
-    Example:
-        ```python
-        import qim3d
-        downloader = qim3d.io.Downloader()
-        data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
-        slice2d = qim3d.operations.get_random_slice(data, width=64, length=100)
-        ```
-
     !!! quote "Reference"
         This slicer is adapted from the
         [interactive-unet](https://github.com/laprade117/interactive-unet/blob/master/interactive_unet/slicer.py)
         package developed by William Laprade.
+
+    Example:
+        ```python
+        import qim3d
+        import numpy as np
+
+        vol = qim3d.examples.shell_225x128x128
+        qim3d.viz.slices_grid(vol)
+        ```
+        ![Normal slices](../../assets/screenshots/random_slice-before.png)
+
+        ```python
+        random_slices = []
+
+        for i in range(15):
+            random_slices.append(qim3d.operations.get_random_slice(vol, width=100, length=100))
+
+        qim3d.viz.slices_grid(np.array(random_slices))
+
+        ```
+        ![Random slices](../../assets/screenshots/random_slice-after.png)
+
     """
 
     if seed is not None:
