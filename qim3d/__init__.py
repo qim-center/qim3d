@@ -9,7 +9,7 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = '1.3.1'
+__version__ = '1.3.2'
 
 
 import importlib as _importlib
