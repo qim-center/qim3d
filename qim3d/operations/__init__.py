@@ -9,6 +9,7 @@ from ._common_operations_methods import (
 from ._slicing_operations import (
     get_random_slice,
     subsample,
+    ratio_subsample,
 )
 from ._volume_operations import (
     center_twist,
@@ -34,4 +35,5 @@ __all__ = [
     'trim',
     'get_random_slice',
     'subsample',
+    'ratio_subsample',
 ]
