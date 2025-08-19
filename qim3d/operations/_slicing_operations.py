@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.ndimage import map_coordinates
 
+from qim3d.utils import log
+
 
 class _Slicer:
     """Slicer class by @laprade117, with a customized `get_slice` method to support rectangular slices."""
@@ -343,3 +345,39 @@ def get_random_slice(
     slice2d = slicer.get_slice(volume, width=width, length=length)
 
     return slice2d
+
+
+def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
+    """
+    Return an evenly spaced subsample of a volume.
+
+    The returned volume is a **view** of the original volume, meaning that it references the same underlying memory but with modified strides. Thus changes to the returned volume will affect the original.
+
+    Args:
+        volume (np.ndarray): The input 3D volume to be subsampled.
+        coarseness (int or list[int]): Controls the spacing between sampled elements. Must be a positive integer. A value of 1 returns the original volume, a value of 2 samples every second element along each axis and so on. Can also be a list of length 3, a value for each dimension.
+
+    Returns:
+        np.ndarray: The subsampled 3D volume.
+
+    """
+    if isinstance(coarseness, int):
+        coarseness = tuple(coarseness for _ in range(3))
+
+    vol_subsample = volume[tuple(slice(None, None, step) for step in coarseness)]
+    ratio = vol_subsample.size / volume.size
+    log.info(f'Subsampled volume is {100*ratio:.3g}% of the original volume.')
+
+    # User warnings
+    min_elements = 1000
+    min_axis_len = 5
+    if vol_subsample.size < min_elements:
+        log.info(
+            f'User warning: less than {min_elements} elements in subsample. Consider using a lower coarseness for higher precision.'
+        )
+    elif np.min(vol_subsample.shape) < min_axis_len:
+        log.info(
+            f'User warning: subsampled volume contains an axis with size less than {min_axis_len}. Consider using a lower coarseness for higher precision.'
+        )
+
+    return vol_subsample

@@ -37,6 +37,7 @@ from skimage.filters import (
 )
 
 import qim3d
+import qim3d.operations
 from qim3d.utils import log
 
 # For progress bar in Jupyter notebooks
@@ -876,18 +877,20 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
 
 def histogram(
     volume: np.ndarray,
+    subsample_level: int | list[int] = 1,
+    ignore_zero: bool = True,
     bins: int | str = 'auto',
     slice_idx: int | str | None = None,
     vertical_line: int = None,
     axis: int = 0,
-    kde: bool = True,
+    kde: bool = False,
     log_scale: bool = False,
     despine: bool = True,
     show_title: bool = True,
     color: str = 'qim3d',
     edgecolor: str | None = None,
     figsize: tuple[float, float] = (8, 4.5),
-    element: str = 'step',
+    bin_style: Literal['bars', 'step', 'poly'] = 'step',
     return_fig: bool = False,
     show: bool = True,
     ax: plt.Axes | None = None,
@@ -900,19 +903,21 @@ def histogram(
 
     Args:
         volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
+        subsample_level (int or list[int], optional): A positive integer representing the coarseness of the subsampling. A value of 1 (default) uses the original volume, a value of 2 uses every second element along each axis and so on. Used to reduce the needed computation.
+        ignore_zero (bool, optional): Specifies if zero-values in the volume should be ignored.
         bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
         axis (int, optional): Axis along which to take a slice. Default is 0.
         slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
         vertical_line (int, optional): Intensity value for a vertical line to be drawn on the histogram. Default is None.
-        kde (bool, optional): Whether to overlay a kernel density estimate. Default is True.
+        kde (bool, optional): Whether to overlay a kernel density estimate.
         log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
         despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
         show_title (bool, optional): If True, displays a title with slice information. Default is True.
         color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
         edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
         figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
-        element (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
+        bin_style (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
         return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
         show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
         ax (matplotlib.axes.Axes, optional): Axes object where the histogram will be plotted. Default is None.
@@ -937,10 +942,23 @@ def histogram(
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
 
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol, subsample_level=3, kde=True, log_scale=True, bin_style='bars', edgecolor='white')
+        ```
+        ![viz histogram](../../assets/screenshots/viz-histogram-vol-2.png)
+
     """
     if not (0 <= axis < volume.ndim):
         msg = f'Axis must be an integer between 0 and {volume.ndim - 1}.'
         raise ValueError(msg)
+
+    title_suffixes = []
+    if subsample_level != 1:
+        volume = qim3d.operations.subsample(volume, subsample_level)
+        title_suffixes.append('subsampled shape')
 
     if slice_idx == 'middle':
         slice_idx = volume.shape[axis] // 2
@@ -955,7 +973,14 @@ def histogram(
             raise ValueError(msg)
     else:
         data = volume.ravel()
-        title = f'Intensity histogram for whole volume {volume.shape}'
+        title = f'Intensity histogram for volume {volume.shape}'
+
+    if ignore_zero:
+        data = data[data > 0]
+        title_suffixes.append('zero-values ignored')
+
+    if title_suffixes:
+        title += ' (' + ', '.join(title_suffixes) + ')'
 
     # Use provided Axes or create new figure
     if ax is None:
@@ -974,7 +999,7 @@ def histogram(
         bins=bins,
         kde=kde,
         color=color,
-        element=element,
+        element=bin_style,
         edgecolor=edgecolor,
         ax=ax,  # Plot directly on the specified Axes
         **sns_kwargs,
