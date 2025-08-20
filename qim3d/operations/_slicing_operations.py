@@ -1,6 +1,8 @@
 import numpy as np
 from scipy.ndimage import map_coordinates
 
+from qim3d.utils import log
+
 
 class _Slicer:
     """Slicer class by @laprade117, with a customized `get_slice` method to support rectangular slices."""
@@ -343,3 +345,81 @@ def get_random_slice(
     slice2d = slicer.get_slice(volume, width=width, length=length)
 
     return slice2d
+
+
+def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
+    """
+    Return an evenly spaced subsample of a volume.
+
+    The returned volume is a **view** of the original volume, meaning that it references the same underlying memory but with modified strides. Thus changes to the returned volume will affect the original.
+
+    Args:
+        volume (np.ndarray): The input 3D volume to be subsampled.
+        coarseness (int or list[int]): Controls the spacing between sampled elements. Must be a positive integer. A value of 1 returns the original volume, a value of 2 samples every second element along each axis and so on. Can also be a list of length 3, a value for each dimension.
+
+    Returns:
+        np.ndarray: The subsampled 3D volume.
+
+    """
+    if isinstance(coarseness, int):
+        coarseness = tuple(coarseness for _ in range(3))
+
+    vol_subsample = volume[tuple(slice(None, None, step) for step in coarseness)]
+    ratio = vol_subsample.size / volume.size
+    log.info(f'Subsampled volume has size {100*ratio:.3g}% of the original volume.')
+
+    # User warnings
+    min_elements = 1000
+    min_axis_len = 5
+    if vol_subsample.size < min_elements:
+        log.info(
+            f'User warning: less than {min_elements} elements in subsample. Consider using a lower coarseness for higher precision.'
+        )
+    elif np.min(vol_subsample.shape) < min_axis_len:
+        log.info(
+            f'User warning: subsampled volume contains an axis with size less than {min_axis_len}. Consider using a lower coarseness for higher precision.'
+        )
+
+    return vol_subsample
+
+def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
+    """
+    Return an evenly spaced subsample of a volume by targeting a desired ratio of elements to keep.
+
+    The function automatically chooses a stride that yields a subsample ratio as close as
+    possible to the requested ratio. The returned volume is a **view** of the original,
+    meaning that it references the same underlying memory with modified strides. Changes
+    to the returned volume will affect the original.
+
+    Args:
+        volume (np.ndarray): The input 3D volume to be subsampled.
+        ratio (float): The desired fraction of the original elements to keep (0 < ratio <= 1).
+
+    Returns:
+        np.ndarray: The subsampled 3D volume.
+    """
+    def calc_ratio(vol: np.ndarray, stride: int) -> float:
+        """Compute the achieved ratio given a stride value."""
+        shape = np.array(vol.shape)
+        steps_per_dim = np.floor((shape - 1) / stride) + 1
+        return np.prod(steps_per_dim) / vol.size
+
+    # Estimate ideal stride assuming perfect cube relationship: 1 / stride**3 ~= ratio
+    # Here stride is the number of elements and not the number of bytes.
+    float_stride = np.power(1 / ratio, 1 / 3)
+
+    if float_stride.is_integer():
+        stride = int(float_stride)
+    else:
+        stride_below = int(np.floor(float_stride))
+        stride_above = int(np.ceil(float_stride))
+        ratio_below = calc_ratio(volume, stride_below)
+        ratio_above = calc_ratio(volume, stride_above)
+        # Pick the stride yielding ratio closer to the target
+        stride = stride_above if abs(ratio_above - ratio) < abs(ratio_below - ratio) else stride_below
+
+    vol_subsample = volume[::stride, ::stride, ::stride]
+    actual_ratio = vol_subsample.size / volume.size
+    log.info(f'Subsampled volume has size {100*actual_ratio:.3g}% of the original volume. Used a spacing of {stride} in each axis.')
+
+    return vol_subsample
