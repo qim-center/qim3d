@@ -877,12 +877,12 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
 
 def histogram(
     volume: np.ndarray,
-    subsample_level: int | list[int] = 1,
+    coarseness: int | list[int] = 1,
     ignore_zero: bool = True,
     bins: int | str = 'auto',
     slice_idx: int | str | None = None,
+    slice_axis: int = 0,
     vertical_line: int = None,
-    axis: int = 0,
     kde: bool = False,
     log_scale: bool = False,
     despine: bool = True,
@@ -903,10 +903,10 @@ def histogram(
 
     Args:
         volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
-        subsample_level (int or list[int], optional): A positive integer representing the coarseness of the subsampling. A value of 1 (default) uses the original volume, a value of 2 uses every second element along each axis and so on. Used to reduce the needed computation.
+        coarseness (int or list[int], optional): A positive integer representing the coarseness of the subsampling. A value of 1 (default) uses the original volume, a value of 2 uses every second element along each axis and so on. Used to reduce the needed computation.
         ignore_zero (bool, optional): Specifies if zero-values in the volume should be ignored.
         bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
-        axis (int, optional): Axis along which to take a slice. Default is 0.
+        slice_axis (int, optional): Axis along which to take a slice. Default is 0.
         slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
         vertical_line (int, optional): Intensity value for a vertical line to be drawn on the histogram. Default is None.
@@ -930,7 +930,7 @@ def histogram(
             Otherwise, returns None.
 
     Raises:
-        ValueError: If `axis` is not a valid axis index (0, 1, or 2).
+        ValueError: If `slice_axis` is not a valid axis index (0, 1, or 2).
         ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
 
     Example:
@@ -942,34 +942,44 @@ def histogram(
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
 
+    Example: Histogram from a single slice
         ```python
         import qim3d
 
         vol = qim3d.examples.bone_128x128x128
-        qim3d.viz.histogram(vol, subsample_level=3, kde=True, log_scale=True, bin_style='bars', edgecolor='white')
+        qim3d.viz.histogram(vol, slice_idx=100, slice_axis=1, bin_style='bars', edgecolor='white')
         ```
-        ![viz histogram](../../assets/screenshots/viz-histogram-vol-2.png)
+        ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
+
+    Example: Using coarsness for faster computation
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol, coarseness=2, kde=True, log_scale=True)
+        ```
+        ![viz histogram](../../assets/screenshots/viz-histogram-coarse.png)
 
     """
-    if not (0 <= axis < volume.ndim):
+    if not (0 <= slice_axis < volume.ndim):
         msg = f'Axis must be an integer between 0 and {volume.ndim - 1}.'
         raise ValueError(msg)
 
     title_suffixes = []
-    if subsample_level != 1:
-        volume = qim3d.operations.subsample(volume, subsample_level)
+    if coarseness > 1:
+        volume = qim3d.operations.subsample(volume, coarseness)
         title_suffixes.append('subsampled shape')
 
     if slice_idx == 'middle':
-        slice_idx = volume.shape[axis] // 2
+        slice_idx = volume.shape[slice_axis] // 2
 
     if slice_idx is not None:
-        if 0 <= slice_idx < volume.shape[axis]:
-            img_slice = np.take(volume, indices=slice_idx, axis=axis)
+        if 0 <= slice_idx < volume.shape[slice_axis]:
+            img_slice = np.take(volume, indices=slice_idx, axis=slice_axis)
             data = img_slice.ravel()
-            title = f'Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {axis}'
+            title = f'Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {slice_axis}'
         else:
-            msg = f'Slice index out of range. Must be between 0 and {volume.shape[axis] - 1}.'
+            msg = f'Slice index out of range. Must be between 0 and {volume.shape[slice_axis] - 1}.'
             raise ValueError(msg)
     else:
         data = volume.ravel()

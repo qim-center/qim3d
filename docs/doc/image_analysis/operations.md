@@ -17,6 +17,8 @@ The `qim3d` library provides a set of methods for different operations on volume
             - stretch
             - center_twist
             - get_random_slice
+            - subsample
+            - ratio_subsample
 
 ::: qim3d.morphology
     options:
