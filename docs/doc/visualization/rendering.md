@@ -1,9 +1,8 @@
 ::: qim3d.viz
     options:
         members:
+            - export_rotation
             - circles
-            - iso_surface
             - local_thickness
             - plot_cc
             - vectors
-            - export_rotation

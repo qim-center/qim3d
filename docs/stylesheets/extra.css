@@ -25,6 +25,10 @@ code {
   font-weight: bold;
 }
 
+.md-nav:first-child {
+  font-size: 2.0em;
+  /* font-weight: 100; */
+}
 
 /* Colors for example box */
 
