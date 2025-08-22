@@ -10,7 +10,7 @@ code {
   border-radius: 6px !important;
 }
 
-/* 
+
 .md-content h1 {
   font-size: 2.5em !important;
 }
@@ -45,7 +45,15 @@ code {
   border-radius: 0px !important;
 }
 
+.md-nav__item .md-nav__link--active,
+.md-nav__item .md-nav__link--active code {
+  color: orange
+}
 
+.md-typeset a {
+  color: orange;
+  word-break: break-word;
+}
 
 .md-nav__link {
   font-size: 1.0em;
@@ -80,21 +88,6 @@ code {
 
 .md-sidebar{
   top:150px !important;
-} */
-
-.md-typeset a {
-  color: orange;
-  word-break: break-word;
-}
-.md-search__form:hover {
-  background-color: #d0d0d0 !important;
-}
-
-.md-nav__item .md-nav__link--active,
-.md-nav__item .md-nav__link--active code {
-  color: orange;
-  /* make bold */
-  font-weight: bold;
 }
 
 
@@ -103,11 +96,6 @@ code {
 .md-typeset .example>.admonition-title, .md-typeset .example>summary{
   background-color: #ff990020
 }
-
-.md-typeset .example>.admonition-title{
-  background-color: #ff990020
-}
-
 
 .md-typeset .example>.admonition-title:before, .md-typeset .example>summary:before {
   background-color: #ff9900
@@ -119,16 +107,6 @@ code {
 
 .md-typeset .example>.admonition-title:after, .md-typeset .example>summary:after {
   color: #ff9900;
-}
-
-.doc .doc-contents{
-  /* Marging by the end of each function */
-  margin-bottom: 10em;
-}
-
-body > div.md-container > main > div > div.md-content > article > div > div > p {
-  /* hide the paragraph from the __init__ */
-  display: none;
 }
 
 #playButton {
