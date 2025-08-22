@@ -10,78 +10,6 @@ code {
   border-radius: 6px !important;
 }
 
-/* 
-.md-content h1 {
-  font-size: 2.5em !important;
-}
-
-.md-content h2 {
-  margin-top: 5em !important;
-  font-size: 2em !important;
-}
-
-
-.md-content h3 {
-  margin-top: 2.5em !important;
-  font-size: 1.5em !important;
-} 
-
-.md-content h4 {
-  margin-top: 2em !important;
-  margin-bottom: -0.5em !important;
-
-  font-size: 1.1em !important;
-} 
-
-.md-search__form {
-  border-radius: 8px;
-}
-
-.md-search__form:hover {
-  background-color: #f0f0f0 !important;
-}
-
-.md-search__inner {
-  border-radius: 0px !important;
-}
-
-
-
-.md-nav__link {
-  font-size: 1.0em;
-}
-
-.md-nav:first-child {
-  font-size: 2.0em;
-}
-
-
-.md-tabs__list li:last-child {
-  margin-left: auto;
-}
-
-
-.md-header__source {
-  text-align: right;
-}
-
-.md-header__title {
-  margin-left: 0px !important;
-}
-
-
-.doc-module {
-  margin-top: 128px !important;
-}
-
-.md-main{
-  margin-bottom: 256px;
-}
-
-.md-sidebar{
-  top:150px !important;
-} */
-
 .md-typeset a {
   color: orange;
   word-break: break-word;
@@ -131,6 +59,11 @@ body > div.md-container > main > div > div.md-content > article > div > div > p 
   display: none;
 }
 
+body > header{
+  /* very soft drop shadow */
+  box-shadow: 0 0 16px rgba(0, 0, 0, 0.05) !important;
+  /* No borders */
+}
 #playButton {
   cursor: pointer;
   margin-top: 0.05em;
