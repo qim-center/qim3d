@@ -10,7 +10,11 @@ nav:
   - Data handling:
     - Input and Output: doc/data_handling/io.md
     - Synthetic data: doc/data_handling/generate.md
-  - Visualization: doc/visualization/viz.md
+  - Visualization:
+    - Display volumes: doc/visualization/viz.md
+    - Colormaps: doc/visualization/colormaps.md
+    - Explore data: doc/visualization/exploration.md
+    - Plot and render: doc/visualization/rendering.md
   - Image analysis:
     - Features: doc/image_analysis/features.md
     - Filters: doc/image_analysis/filters.md
@@ -37,9 +41,8 @@ theme:
     - navigation.sections
     - navigation.expand
     - navigation.instant
-    # - navigation.tracking
-    # - toc.integrate
-    # - toc.follow
+    - toc.integrate
+    - toc.follow
     - search.suggest
     # - content.tabs.link
     # - content.code.annotation
@@ -86,10 +89,12 @@ plugins:
         handlers:
           python:
             options:    
-              show_root_heading: true
+              show_root_heading: false
               show_source: true
               show_root_full_path: true
               show_object_full_path: true
               show_symbol_type_heading: false
               show_symbol_type_toc: false
               separate_signature: true
+              show_root_toc_entry: false
+              show_root_docstring: false

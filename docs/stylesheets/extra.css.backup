@@ -1,0 +1,116 @@
+/* 
+qim3d colors:
+#ff9900
+#cd4d00
+#990000
+*/
+
+
+code {
+  border-radius: 6px !important;
+}
+
+
+.md-content h1 {
+  font-size: 2.5em !important;
+}
+
+.md-content h2 {
+  margin-top: 5em !important;
+  font-size: 2em !important;
+}
+
+
+.md-content h3 {
+  margin-top: 2.5em !important;
+  font-size: 1.5em !important;
+} 
+
+.md-content h4 {
+  margin-top: 2em !important;
+  margin-bottom: -0.5em !important;
+
+  font-size: 1.1em !important;
+} 
+
+.md-search__form {
+  border-radius: 8px;
+}
+
+.md-search__form:hover {
+  background-color: #f0f0f0 !important;
+}
+
+.md-search__inner {
+  border-radius: 0px !important;
+}
+
+.md-nav__item .md-nav__link--active,
+.md-nav__item .md-nav__link--active code {
+  color: orange
+}
+
+.md-typeset a {
+  color: orange;
+  word-break: break-word;
+}
+
+.md-nav__link {
+  font-size: 1.0em;
+}
+
+.md-nav:first-child {
+  font-size: 2.0em;
+}
+
+
+.md-tabs__list li:last-child {
+  margin-left: auto;
+}
+
+
+.md-header__source {
+  text-align: right;
+}
+
+.md-header__title {
+  margin-left: 0px !important;
+}
+
+
+.doc-module {
+  margin-top: 128px !important;
+}
+
+.md-main{
+  margin-bottom: 256px;
+}
+
+.md-sidebar{
+  top:150px !important;
+}
+
+
+/* Colors for example box */
+
+.md-typeset .example>.admonition-title, .md-typeset .example>summary{
+  background-color: #ff990020
+}
+
+.md-typeset .example>.admonition-title:before, .md-typeset .example>summary:before {
+  background-color: #ff9900
+}
+
+.md-typeset .admonition.example, .md-typeset details.example {
+  border-color: #ff9900;
+}
+
+.md-typeset .example>.admonition-title:after, .md-typeset .example>summary:after {
+  color: #ff9900;
+}
+
+#playButton {
+  cursor: pointer;
+  margin-top: 0.05em;
+  vertical-align: middle;
+}
