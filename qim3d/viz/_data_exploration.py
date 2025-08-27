@@ -671,7 +671,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         zarr_path (str):
             Path to the OME-Zarr dataset.
 
-        **kwargs:
+        **kwargs (Any):
             Additional keyword arguments that are **selectively** forwarded
             only to the visualization method that supports them. Any key
             not accepted by the chosen method is ignored.
@@ -698,9 +698,6 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         qim3d.viz.chunks('path/to/zarr/dataset.zarr')
         ```
         ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
-
-
-
 
     """
     # Load the Zarr dataset
@@ -2362,7 +2359,6 @@ def export_rotation(
     Args:
         path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
         vol (np.ndarray): Volume to create .gif of.
-        volume (np.ndarray): The volume to visualize
         degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.
         num_frames (int, optional): The amount of frames to generate. Defaults to 180.
         fps (int, optional): The amount of frames per second in the resulting animation. This determines the speed of the rotation of the volume. Defaults to 30.
