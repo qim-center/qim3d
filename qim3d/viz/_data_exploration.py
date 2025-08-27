@@ -1576,7 +1576,7 @@ def threshold(
                 bins=32,
                 slice_idx=state['position'],
                 vertical_line=state['threshold'],
-                axis=1,
+                slice_axis=1,
                 kde=False,
                 ax=axes[1],
                 show=False,
