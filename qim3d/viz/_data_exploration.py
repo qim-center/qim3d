@@ -2321,6 +2321,15 @@ def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
         vol (np.ndarray): Volume to visualize an iso-surface of.
         colormap: (str, optional): Initial colormap for the iso-surface. This can be changed in the interface
 
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume(noise_scale=0.020)
+        qim3d.viz.iso_surface(vol)
+        ```
+        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
+
     """
     IsoSurface(vol, colormap)
 
@@ -2374,16 +2383,9 @@ def export_rotation(
         ValueError: If the path contains an unrecognized file extension.
 
     Example:
+        Creation of .gif file with default parameters of a generated volume.
         ```python
         import qim3d
-
-        vol = qim3d.generate.volume(noise_scale=0.020)
-        qim3d.viz.iso_surface(vol)
-        ```
-
-        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
-
-    IsoSurface(vol, colormap)
         vol = qim3d.generate.volume()
 
         qim3d.viz.export_rotation('test.gif', vol, show=True)
@@ -2391,6 +2393,7 @@ def export_rotation(
         ![export_rotation_defaults](../../assets/screenshots/export_rotation_defaults.gif)
 
     Example:
+        Creation of a .webm file with specified parameters of a generated volume in the shape of a tube.
         ```python
         import qim3d
 
