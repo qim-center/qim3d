@@ -7,7 +7,6 @@ import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Literal
-from collections.abc import Iterable
 
 import dask.array as da
 import imageio.v2 as imageio
@@ -50,6 +49,7 @@ except ImportError:
     from tqdm import tqdm
 
 ColormapLike = str | matplotlib.colors.Colormap
+
 
 def slices_grid(
     volume: np.ndarray,
@@ -2872,7 +2872,7 @@ class OverlaySlicer:
         self.vol2 = vol2
         self.display_size = display_size
 
-        if isinstance(cmaps, (str, matplotlib.colors.Colormap)):
+        if isinstance(cmaps, str | matplotlib.colors.Colormap):
             cmaps = (cmaps, cmaps)
         self.cmaps = tuple(matplotlib.cm.get_cmap(c) for c in cmaps)
         self.img_format = 'png'
@@ -2945,7 +2945,7 @@ class OverlaySlicer:
 
     @staticmethod
     def _normalize(arr: np.ndarray) -> np.ndarray:
-        """Normalize to float in the interval [0,1]"""
+        """Normalize to float in the interval [0,1]."""
         a = arr.astype(float)
         vmin = a.min()
         vmax = a.max()
