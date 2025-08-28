@@ -8,7 +8,6 @@ The `qim3d` library aims to provide easy ways to explore and get insights from v
             - planes
             - slicer_orthogonal
             - volumetric
-            - compare_volumes
             - itk_vtk
             - mesh
             - iso_surface
