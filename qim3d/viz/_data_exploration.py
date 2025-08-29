@@ -37,6 +37,7 @@ from skimage.filters import (
 )
 
 import qim3d
+import qim3d.operations
 from qim3d.utils import log
 
 # For progress bar in Jupyter notebooks
@@ -670,7 +671,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         zarr_path (str):
             Path to the OME-Zarr dataset.
 
-        **kwargs:
+        **kwargs (Any):
             Additional keyword arguments that are **selectively** forwarded
             only to the visualization method that supports them. Any key
             not accepted by the chosen method is ignored.
@@ -697,9 +698,6 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         qim3d.viz.chunks('path/to/zarr/dataset.zarr')
         ```
         ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
-
-
-
 
     """
     # Load the Zarr dataset
@@ -876,18 +874,20 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
 
 def histogram(
     volume: np.ndarray,
+    coarseness: int | list[int] = 1,
+    ignore_zero: bool = True,
     bins: int | str = 'auto',
     slice_idx: int | str | None = None,
+    slice_axis: int = 0,
     vertical_line: int = None,
-    axis: int = 0,
-    kde: bool = True,
+    kde: bool = False,
     log_scale: bool = False,
     despine: bool = True,
     show_title: bool = True,
     color: str = 'qim3d',
     edgecolor: str | None = None,
     figsize: tuple[float, float] = (8, 4.5),
-    element: str = 'step',
+    bin_style: Literal['bars', 'step', 'poly'] = 'step',
     return_fig: bool = False,
     show: bool = True,
     ax: plt.Axes | None = None,
@@ -900,19 +900,21 @@ def histogram(
 
     Args:
         volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
+        coarseness (int or list[int], optional): A positive integer representing the coarseness of the subsampling. A value of 1 (default) uses the original volume, a value of 2 uses every second element along each axis and so on. Used to reduce the needed computation.
+        ignore_zero (bool, optional): Specifies if zero-values in the volume should be ignored.
         bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
-        axis (int, optional): Axis along which to take a slice. Default is 0.
+        slice_axis (int, optional): Axis along which to take a slice. Default is 0.
         slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
         vertical_line (int, optional): Intensity value for a vertical line to be drawn on the histogram. Default is None.
-        kde (bool, optional): Whether to overlay a kernel density estimate. Default is True.
+        kde (bool, optional): Whether to overlay a kernel density estimate.
         log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
         despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
         show_title (bool, optional): If True, displays a title with slice information. Default is True.
         color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
         edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
         figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
-        element (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
+        bin_style (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
         return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
         show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
         ax (matplotlib.axes.Axes, optional): Axes object where the histogram will be plotted. Default is None.
@@ -925,7 +927,7 @@ def histogram(
             Otherwise, returns None.
 
     Raises:
-        ValueError: If `axis` is not a valid axis index (0, 1, or 2).
+        ValueError: If `slice_axis` is not a valid axis index (0, 1, or 2).
         ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
 
     Example:
@@ -937,25 +939,55 @@ def histogram(
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
 
+    Example: Histogram from a single slice
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol, slice_idx=100, slice_axis=1, bin_style='bars', edgecolor='white')
+        ```
+        ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
+
+    Example: Using coarsness for faster computation
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+        qim3d.viz.histogram(vol, coarseness=2, kde=True, log_scale=True)
+        ```
+        ![viz histogram](../../assets/screenshots/viz-histogram-coarse.png)
+
     """
-    if not (0 <= axis < volume.ndim):
+    if not (0 <= slice_axis < volume.ndim):
         msg = f'Axis must be an integer between 0 and {volume.ndim - 1}.'
         raise ValueError(msg)
 
+    title_suffixes = []
+    if coarseness > 1:
+        volume = qim3d.operations.subsample(volume, coarseness)
+        title_suffixes.append('subsampled shape')
+
     if slice_idx == 'middle':
-        slice_idx = volume.shape[axis] // 2
+        slice_idx = volume.shape[slice_axis] // 2
 
     if slice_idx is not None:
-        if 0 <= slice_idx < volume.shape[axis]:
-            img_slice = np.take(volume, indices=slice_idx, axis=axis)
+        if 0 <= slice_idx < volume.shape[slice_axis]:
+            img_slice = np.take(volume, indices=slice_idx, axis=slice_axis)
             data = img_slice.ravel()
-            title = f'Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {axis}'
+            title = f'Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {slice_axis}'
         else:
-            msg = f'Slice index out of range. Must be between 0 and {volume.shape[axis] - 1}.'
+            msg = f'Slice index out of range. Must be between 0 and {volume.shape[slice_axis] - 1}.'
             raise ValueError(msg)
     else:
         data = volume.ravel()
-        title = f'Intensity histogram for whole volume {volume.shape}'
+        title = f'Intensity histogram for volume {volume.shape}'
+
+    if ignore_zero:
+        data = data[data > 0]
+        title_suffixes.append('zero-values ignored')
+
+    if title_suffixes:
+        title += ' (' + ', '.join(title_suffixes) + ')'
 
     # Use provided Axes or create new figure
     if ax is None:
@@ -974,7 +1006,7 @@ def histogram(
         bins=bins,
         kde=kde,
         color=color,
-        element=element,
+        element=bin_style,
         edgecolor=edgecolor,
         ax=ax,  # Plot directly on the specified Axes
         **sns_kwargs,
@@ -1541,7 +1573,7 @@ def threshold(
                 bins=32,
                 slice_idx=state['position'],
                 vertical_line=state['threshold'],
-                axis=1,
+                slice_axis=1,
                 kde=False,
                 ax=axes[1],
                 show=False,
@@ -2286,6 +2318,15 @@ def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
         vol (np.ndarray): Volume to visualize an iso-surface of.
         colormap: (str, optional): Initial colormap for the iso-surface. This can be changed in the interface
 
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.generate.volume(noise_scale=0.020)
+        qim3d.viz.iso_surface(vol)
+        ```
+        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
+
     """
     IsoSurface(vol, colormap)
 
@@ -2318,7 +2359,6 @@ def export_rotation(
     Args:
         path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
         vol (np.ndarray): Volume to create .gif of.
-        volume (np.ndarray): The volume to visualize
         degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.
         num_frames (int, optional): The amount of frames to generate. Defaults to 180.
         fps (int, optional): The amount of frames per second in the resulting animation. This determines the speed of the rotation of the volume. Defaults to 30.
@@ -2339,16 +2379,9 @@ def export_rotation(
         ValueError: If the path contains an unrecognized file extension.
 
     Example:
+        Creation of .gif file with default parameters of a generated volume.
         ```python
         import qim3d
-
-        vol = qim3d.generate.volume(noise_scale=0.020)
-        qim3d.viz.iso_surface(vol)
-        ```
-
-        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
-
-    IsoSurface(vol, colormap)
         vol = qim3d.generate.volume()
 
         qim3d.viz.export_rotation('test.gif', vol, show=True)
@@ -2356,6 +2389,7 @@ def export_rotation(
         ![export_rotation_defaults](../../assets/screenshots/export_rotation_defaults.gif)
 
     Example:
+        Creation of a .webm file with specified parameters of a generated volume in the shape of a tube.
         ```python
         import qim3d
 
@@ -2499,59 +2533,162 @@ class VolumePlaneSlicer:
         opacity: float = 1.0,
     ):
         self.volume = volume
-        self.colorscale = self.matplotlib_to_plotly_cmap(color_map)
+        self.color_map = color_map
+        self.initial_colorscale = self.matplotlib_to_plotly_cmap(color_map)
         self.showscale = showscale
+        self.opacity = opacity
 
+        color_range = color_range if color_range else [None, None]
         vmin = color_range[0] or volume.min()
         vmax = color_range[1] or volume.max()
         self.color_range = [vmin, vmax]
         self.z_max, self.y_max, self.x_max = volume.shape
-        self.x_slider = widgets.IntSlider(
-            value=self.x_max // 2, min=0, max=self.x_max - 1, description='X'
-        )
-        self.y_slider = widgets.IntSlider(
-            value=self.y_max // 2, min=0, max=self.y_max - 1, description='Y'
-        )
-        self.z_slider = widgets.IntSlider(
-            value=self.z_max // 2, min=0, max=self.z_max - 1, description='Z'
-        )
-        self.opacity_slider = widgets.FloatSlider(
-            value=opacity, min=0.0, max=1.0, step=0.05, description='Opacity'
-        )
-
-        self.show_x = widgets.Checkbox(value=True, description='', indent=False)
-        self.show_y = widgets.Checkbox(value=True, description='', indent=False)
-        self.show_z = widgets.Checkbox(value=True, description='', indent=False)
-
-        z_controls = widgets.HBox([self.z_slider, self.show_z])
-        y_controls = widgets.HBox([self.y_slider, self.show_y])
-        x_controls = widgets.HBox([self.x_slider, self.show_x])
-        slice_controls = widgets.VBox([z_controls, y_controls, x_controls])
-
-        self.controls = widgets.HBox(
-            [
-                slice_controls,
-                self.opacity_slider,
-            ]
-        )
 
         self.fig = go.FigureWidget()
+        self._init_controls()
         self._init_surfaces()
         self._update_figure()
         self._set_observers()
 
+    def _init_controls(self) -> None:
+        # Slice controls
+        slider_layout = widgets.Layout(width='400px')
+        self.x_slider = widgets.IntSlider(
+            value=self.x_max // 2,
+            min=0,
+            max=self.x_max - 1,
+            description='X',
+            layout=slider_layout,
+        )
+        self.y_slider = widgets.IntSlider(
+            value=self.y_max // 2,
+            min=0,
+            max=self.y_max - 1,
+            description='Y',
+            layout=slider_layout,
+        )
+        self.z_slider = widgets.IntSlider(
+            value=self.z_max // 2,
+            min=0,
+            max=self.z_max - 1,
+            description='Z',
+            layout=slider_layout,
+        )
+
+        checkbox_layout = widgets.Layout(width='20px')
+        self.show_x = widgets.Checkbox(
+            value=True, description='', indent=False, layout=checkbox_layout
+        )
+        self.show_y = widgets.Checkbox(
+            value=True, description='', indent=False, layout=checkbox_layout
+        )
+        self.show_z = widgets.Checkbox(
+            value=True, description='', indent=False, layout=checkbox_layout
+        )
+
+        hbox_layout = widgets.Layout(width='420px')
+        z_controls = widgets.HBox([self.z_slider, self.show_z], layout=hbox_layout)
+        y_controls = widgets.HBox([self.y_slider, self.show_y], layout=hbox_layout)
+        x_controls = widgets.HBox([self.x_slider, self.show_x], layout=hbox_layout)
+        slice_controls = widgets.VBox([z_controls, y_controls, x_controls])
+
+        # Visual controls
+        self.opacity_slider = widgets.FloatSlider(
+            value=self.opacity,
+            min=0.0,
+            max=1.0,
+            step=0.05,
+            description='Opacity',
+            layout=widgets.Layout(width='350px'),
+        )
+        is_int = np.issubdtype(self.volume.dtype, np.integer)
+        crange_slider_type = (
+            widgets.IntRangeSlider if is_int else widgets.FloatRangeSlider
+        )
+        self.crange_slider = crange_slider_type(
+            value=self.color_range,
+            min=self.color_range[0],
+            max=self.color_range[1],
+            step=1 if is_int else (self.color_range[1] - self.color_range[0]) / 100,
+            description='Color range',
+            continuous_update=True,
+            layout=widgets.Layout(width='400px'),
+        )
+
+        self.cmaps = [
+            'Blues',
+            'cividis',
+            'cool',
+            'gray',
+            'Greys',
+            'hot',
+            'hsv',
+            'inferno',
+            'magma',
+            'plasma',
+            'spring',
+            'viridis',
+            'tab10',
+            'turbo',
+            'nipy_spectral',
+        ]
+        if isinstance(self.color_map, matplotlib.colors.Colormap):
+            cmap_value = 'Custom'
+            cmap_options = [cmap_value] + self.cmaps
+        elif isinstance(self.color_map, str):
+            if self.color_map in self.cmaps:
+                cmap_value = self.color_map
+                cmap_options = self.cmaps
+            else:
+                cmap_value = self.color_map
+                cmap_options = [cmap_value] + self.cmaps
+
+        self.cmap_dropdown = widgets.Dropdown(
+            options=cmap_options,
+            value=cmap_value,
+            description='Colormap',
+            layout=widgets.Layout(width='300px'),
+        )
+
+        visual_controls = widgets.VBox(
+            [self.opacity_slider, self.crange_slider, self.cmap_dropdown],
+            layout=widgets.Layout(width='450px'),
+        )
+
+        # Combined controls
+        whitespace = widgets.Box(layout=widgets.Layout(width='100px'))
+        self.controls = widgets.HBox([slice_controls, whitespace, visual_controls])
+
     def _init_surfaces(self) -> None:
         surfaces = [
             go.Surface(
+                name='ZYX'[i],
                 opacity=0,
-                colorscale=self.colorscale,
-                showscale=self.showscale,
+                colorscale=self.initial_colorscale,
+                showscale=False,
                 cmin=self.color_range[0],
                 cmax=self.color_range[1],
+                showlegend=False,
             )
-            for _ in range(3)
+            for i in range(3)
         ]
         self.fig.add_traces(surfaces)
+
+        # dummy surface for the colorbar to avoid a lot of problems
+        colorbar_surface = go.Surface(
+            z=[[0, 0], [0, 0]],
+            surfacecolor=[[0, 1], [0, 1]],
+            opacity=0,
+            colorscale=self.initial_colorscale,
+            cmin=self.color_range[0],
+            cmax=self.color_range[1],
+            showscale=True,
+            hoverinfo='skip',
+            showlegend=False,
+        )
+        self.fig.add_trace(colorbar_surface)
+        # self.fig.data will be a list of the surfaces in the order they were added
+
         self.fig.update_layout(
             width=1000,
             height=500,
@@ -2560,6 +2697,13 @@ class VolumePlaneSlicer:
                 'xaxis': {'title': 'X', 'range': [0, self.x_max]},
                 'yaxis': {'title': 'Y', 'range': [0, self.y_max]},
                 'zaxis': {'title': 'Z', 'range': [0, self.z_max]},
+                'aspectmode': 'manual',
+                'aspectratio': {
+                    axis: (size / max(self.volume.shape)) * 1.3
+                    for axis, size in zip(
+                        ['x', 'y', 'z'], [self.x_max, self.y_max, self.z_max]
+                    )
+                },
             },
         )
 
@@ -2601,8 +2745,24 @@ class VolumePlaneSlicer:
 
     def _update_opacity(self) -> None:
         opacity = self.opacity_slider.value
-        for surface in self.fig.data:
+        for surface in self.fig.data[:3]:
             surface.opacity = opacity
+
+    def _update_crange(self) -> None:
+        crange = self.crange_slider.value
+        for surface in self.fig.data:
+            surface.cmin = crange[0]
+            surface.cmax = crange[1]
+
+    def _update_cmap(self) -> None:
+        cmap = self.cmap_dropdown.value
+        if cmap == 'Custom':
+            colorscale = self.initial_colorscale
+        else:
+            colorscale = self.matplotlib_to_plotly_cmap(cmap)
+
+        for surface in self.fig.data:
+            surface.colorscale = colorscale
 
     def _update_figure(self, change: dict = None) -> None:
         if change is None:
@@ -2615,10 +2775,12 @@ class VolumePlaneSlicer:
             self.x_slider: lambda: self._update_plane('X'),
             self.y_slider: lambda: self._update_plane('Y'),
             self.z_slider: lambda: self._update_plane('Z'),
-            self.opacity_slider: self._update_opacity,
             self.show_x: lambda: self._toggle_visibility('X'),
             self.show_y: lambda: self._toggle_visibility('Y'),
             self.show_z: lambda: self._toggle_visibility('Z'),
+            self.opacity_slider: self._update_opacity,
+            self.crange_slider: self._update_crange,
+            self.cmap_dropdown: self._update_cmap,
         }
 
         try:
@@ -2647,10 +2809,12 @@ class VolumePlaneSlicer:
             self.x_slider,
             self.y_slider,
             self.z_slider,
-            self.opacity_slider,
             self.show_x,
             self.show_y,
             self.show_z,
+            self.opacity_slider,
+            self.crange_slider,
+            self.cmap_dropdown,
         ]:
             control.observe(self._update_figure, names='value')
 
