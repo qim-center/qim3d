@@ -21,7 +21,7 @@ import pyvista as pv
 import seaborn as sns
 import skimage.measure
 import zarr
-from IPython.display import Image, Video, clear_output, display
+from IPython.display import HTML, Image, Video, clear_output, display
 from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
 from matplotlib.colors import LinearSegmentedColormap
@@ -2861,11 +2861,13 @@ def planes(
 
 
 class OverlaySlicer:
+    _css_injected = False  # class-level flag
+
     def __init__(
         self,
         vol1: np.ndarray,
         vol2: np.ndarray,
-        display_size: int = 600,
+        display_size: int = 512,
         cmaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
     ):
         self.vol1 = vol1
@@ -2880,6 +2882,20 @@ class OverlaySlicer:
         self.slice_axis = 0
         self.slice_index = vol1.shape[self.slice_axis] // 2
 
+        # inject CSS
+        if not OverlaySlicer._css_injected:
+            display(
+                HTML("""
+            <style>
+            .pixelated {
+                image-rendering: pixelated !important;
+                image-rendering: crisp-edges !important;
+            }
+            </style>
+            """)
+            )
+            OverlaySlicer._css_injected = True
+
         self._init_widgets()
         self._update_slice_axis(self.slice_axis)
         self._set_observers()
@@ -2891,7 +2907,7 @@ class OverlaySlicer:
 
     def _init_widgets(self) -> None:
         self.fade_slider = widgets.FloatSlider(
-            value=0.0,
+            value=0.5,
             min=0.0,
             max=1.0,
             step=0.01,
@@ -2916,6 +2932,7 @@ class OverlaySlicer:
 
         # image + centering container
         self.img_widget = widgets.Image(format=self.img_format)
+        self.img_widget.add_class('pixelated')  # ensures nearest-neighbor
         self.img_box = widgets.Box(
             [self.img_widget],
             layout=widgets.Layout(
@@ -3024,7 +3041,7 @@ def overlay(
     volume1: np.ndarray,
     volume2: np.ndarray,
     colormaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
-    display_size: int = 600,
+    display_size: int = 512,
 ) -> widgets.interactive:
     """
     Returns an interactive widget for comparing two volumes along slices in a fading overlay image.
