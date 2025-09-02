@@ -987,7 +987,7 @@ class ParameterVisualizer:
         self.plot = k3d.plot(grid_visible=self.grid_visible)
         self.plt_volume = k3d.volume(
             vol,
-            bounds=[0, vol.shape[2], 0, vol.shape[1], 0, vol.shape[0]],
+            bounds=[0, vol.shape[0], 0, vol.shape[1], 0, vol.shape[2]],
             color_map=color_map,
             samples=samples,
             color_range=[np.min(vol), np.max(vol)],
@@ -1007,17 +1007,49 @@ class ParameterVisualizer:
         self.base_shape = self._get_base_shape()
         self.final_shape = self._get_final_shape()
         self.hollow = self.hollow_text.value
+       
         # Update colormap
         cmap = plt.get_cmap(self.colormap_dropdown.value)
         attr_vals = np.linspace(0.0, 1.0, num=cmap.N)
         rgb_vals = cmap(np.arange(0, cmap.N))[:, :3]
         color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
         self.plt_volume.color_map = color_map
+
         # Update grid
         self.plot.grid_visible = self.grid_checkbox.value
 
+        # Recompute volume
         new_vol = self._compute_volume()
-        self.plt_volume.volume = new_vol
+
+        # Recompute samples based on the new shape (same logic as in _setup_plot)
+        pixel_count = int(np.prod(new_vol.shape))
+        y1, x1 = 256, 16777216   # 256 samples at 256^3
+        y2, x2 = 32,  134217728  # 32 samples  at 512^3
+        a = (y1 - y2) / (x1 - x2)
+        b = y1 - a * x1
+        samples = int(min(max(a * pixel_count + b, 64), 512))
+
+        # If the shape changed, rebuild the K3D volume actor (needed for K3D)
+        if new_vol.shape != self.plt_volume.volume.shape:
+            # Remove old actor
+            self.plot -= self.plt_volume
+
+            # Build fresh actor with updated bounds/color_range/samples
+            self.plt_volume = k3d.volume(
+                new_vol,
+                bounds=[0, new_vol.shape[0], 0, new_vol.shape[1], 0, new_vol.shape[2]],
+                color_map=color_map,
+                samples=samples,
+                color_range=[float(np.min(new_vol)), float(np.max(new_vol))],
+                opacity_function=[],
+                interpolation=True,
+            )
+            self.plot += self.plt_volume
+        else:
+            # Same shape: just update data AND color_range
+            self.plt_volume.volume = new_vol
+            self.plt_volume.color_range = [float(np.min(new_vol)), float(np.max(new_vol))]
+
 
     def _display_ui(self) -> None:
         small_box = widgets.Layout(width='65px')
