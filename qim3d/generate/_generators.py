@@ -728,10 +728,10 @@ class ParameterVisualizer:
         ```python
         import qim3d
 
-        viz = qim3d.generate.ParameterVisualizer(base_shape=(128,128,128), seed=0, grid_visible=True)
+        viz = qim3d.generate.ParameterVisualizer()
         ```
         ![paramter_visualizer](../../assets/screenshots/viz-synthetic_parameters.gif)
-        
+
     Accessing the current volume:
             The most recently generated 3D volume can be retrieved at any time using the `.get_volume()` method:
 
@@ -739,6 +739,7 @@ class ParameterVisualizer:
             vol = viz.get_volume()
             ```
             This returns the synthetic volume as a NumPy ndarray corresponding to the current widget parameters.
+
     """
 
     def __init__(
@@ -762,7 +763,7 @@ class ParameterVisualizer:
         if not isinstance(base_shape, tuple) or len(base_shape) != 3:
             err = 'base_shape should be a tuple of three sizes.'
             raise ValueError(err)
-        
+
         if final_shape is not None:
             if not isinstance(final_shape, tuple) or len(final_shape) != 3:
                 err = 'final_shape should be a tuple of three sizes or None.'
@@ -835,7 +836,7 @@ class ParameterVisualizer:
             shape=self.config['shape'],
             tube_hole_ratio=self.config['tube_hole_ratio'],
             seed=self.seed,
-            hollow=self.hollow
+            hollow=self.hollow,
         )
         return scale_to_float16(vol)
 
@@ -898,9 +899,8 @@ class ParameterVisualizer:
         self.base_shape_z_text = widgets.IntText(
             value=self.base_shape[2],
         )
-        self.final_same_as_base_checkbox =  widgets.Checkbox(
-            value=True,
-            description='Same as base_shape'
+        self.final_same_as_base_checkbox = widgets.Checkbox(
+            value=True, description='Same as base_shape'
         )
         self.final_shape_x_text = widgets.IntText(
             value=self.base_shape[0],
@@ -914,18 +914,17 @@ class ParameterVisualizer:
         self.hollow_text = widgets.BoundedIntText(
             value=self.hollow,
             min=0,
-            max=1000, # chosen arbitrarily atm.
+            max=1000,  # chosen arbitrarily atm.
             step=1,
-            description='Hollow'
+            description='Hollow',
         )
         self.colormap_dropdown = widgets.Dropdown(
             options=['magma', 'viridis', 'gray', 'plasma'],
             value='magma',
-            description='Colormap'
+            description='Colormap',
         )
         self.grid_checkbox = widgets.Checkbox(
-            value=self.grid_visible,
-            description='Show grid'
+            value=self.grid_visible, description='Show grid'
         )
 
         # Observers
@@ -945,7 +944,9 @@ class ParameterVisualizer:
         self.hollow_text.observe(self._on_change, names='value')
         self.colormap_dropdown.observe(self._on_change, names='value')
         self.grid_checkbox.observe(self._on_change, names='value')
-        self.final_same_as_base_checkbox.observe(self._on_checkbox_change, names='value')
+        self.final_same_as_base_checkbox.observe(
+            self._on_checkbox_change, names='value'
+        )
         self.final_same_as_base_checkbox.observe(self._on_change, names='value')
         # Initial state
         self._on_checkbox_change({'new': self.final_same_as_base_checkbox.value})
@@ -955,19 +956,31 @@ class ParameterVisualizer:
         self.final_shape_x_text.disabled = disabled
         self.final_shape_y_text.disabled = disabled
         self.final_shape_z_text.disabled = disabled
-        
+
     def _get_base_shape(self) -> tuple:
         # Check valid axes
-        for axis in [self.base_shape_x_text, self.base_shape_y_text, self.base_shape_z_text]:
+        for axis in [
+            self.base_shape_x_text,
+            self.base_shape_y_text,
+            self.base_shape_z_text,
+        ]:
             if axis.value < 1:
                 axis.value = 1
-        return (self.base_shape_x_text.value, self.base_shape_y_text.value, self.base_shape_z_text.value)
+        return (
+            self.base_shape_x_text.value,
+            self.base_shape_y_text.value,
+            self.base_shape_z_text.value,
+        )
 
     def _get_final_shape(self) -> tuple:
         if self.final_same_as_base_checkbox.value:
             return None
         else:
-            return (self.final_shape_x_text.value, self.final_shape_y_text.value, self.final_shape_z_text.value)
+            return (
+                self.final_shape_x_text.value,
+                self.final_shape_y_text.value,
+                self.final_shape_z_text.value,
+            )
 
     def _setup_plot(self) -> None:
         vol = self._compute_volume()
@@ -1007,7 +1020,7 @@ class ParameterVisualizer:
         self.base_shape = self._get_base_shape()
         self.final_shape = self._get_final_shape()
         self.hollow = self.hollow_text.value
-       
+
         # Update colormap
         cmap = plt.get_cmap(self.colormap_dropdown.value)
         attr_vals = np.linspace(0.0, 1.0, num=cmap.N)
@@ -1023,8 +1036,8 @@ class ParameterVisualizer:
 
         # Recompute samples based on the new shape (same logic as in _setup_plot)
         pixel_count = int(np.prod(new_vol.shape))
-        y1, x1 = 256, 16777216   # 256 samples at 256^3
-        y2, x2 = 32,  134217728  # 32 samples  at 512^3
+        y1, x1 = 256, 16777216  # 256 samples at 256^3
+        y2, x2 = 32, 134217728  # 32 samples  at 512^3
         a = (y1 - y2) / (x1 - x2)
         b = y1 - a * x1
         samples = int(min(max(a * pixel_count + b, 64), 512))
@@ -1048,30 +1061,46 @@ class ParameterVisualizer:
         else:
             # Same shape: just update data AND color_range
             self.plt_volume.volume = new_vol
-            self.plt_volume.color_range = [float(np.min(new_vol)), float(np.max(new_vol))]
-
+            self.plt_volume.color_range = [
+                float(np.min(new_vol)),
+                float(np.max(new_vol)),
+            ]
 
     def _display_ui(self) -> None:
         small_box = widgets.Layout(width='65px')
         for box in [
-            self.base_shape_x_text, self.base_shape_y_text, self.base_shape_z_text,
-            self.final_shape_x_text, self.final_shape_y_text, self.final_shape_z_text,
+            self.base_shape_x_text,
+            self.base_shape_y_text,
+            self.base_shape_z_text,
+            self.final_shape_x_text,
+            self.final_shape_y_text,
+            self.final_shape_z_text,
         ]:
             box.layout = small_box
 
-        self.base_shape_box = widgets.HBox([
-            widgets.Label("Base shape  "),
-            widgets.Label('x'), self.base_shape_x_text,
-            widgets.Label('y'), self.base_shape_y_text,
-            widgets.Label('z'), self.base_shape_z_text,
-        ])
-        self.final_shape_box = widgets.HBox([
-            widgets.Label("Final shape  "),
-            widgets.Label('x'), self.final_shape_x_text,
-            widgets.Label('y'), self.final_shape_y_text,
-            widgets.Label('z'), self.final_shape_z_text,
-        ])
-        
+        self.base_shape_box = widgets.HBox(
+            [
+                widgets.Label('Base shape  '),
+                widgets.Label('x'),
+                self.base_shape_x_text,
+                widgets.Label('y'),
+                self.base_shape_y_text,
+                widgets.Label('z'),
+                self.base_shape_z_text,
+            ]
+        )
+        self.final_shape_box = widgets.HBox(
+            [
+                widgets.Label('Final shape  '),
+                widgets.Label('x'),
+                self.final_shape_x_text,
+                widgets.Label('y'),
+                self.final_shape_y_text,
+                widgets.Label('z'),
+                self.final_shape_z_text,
+            ]
+        )
+
         parameters_controls = widgets.VBox(
             [
                 self.base_shape_box,
@@ -1084,7 +1113,7 @@ class ParameterVisualizer:
                 self.gamma_slider,
                 self.threshold_slider,
                 self.shape_dropdown,
-                self.tube_hole_ratio_slider
+                self.tube_hole_ratio_slider,
             ]
         )
 
@@ -1101,10 +1130,9 @@ class ParameterVisualizer:
             margin='0 1em 0 0',
         )
 
-        visualization_controls = widgets.VBox([
-            self.colormap_dropdown,
-            self.grid_checkbox
-        ])
+        visualization_controls = widgets.VBox(
+            [self.colormap_dropdown, self.grid_checkbox]
+        )
 
         visualization_controls.layout = widgets.Layout(
             display='flex',
@@ -1136,10 +1164,7 @@ class ParameterVisualizer:
         ui = widgets.HBox(
             [tabs, plot_output],
             layout=widgets.Layout(
-                width='100%',
-                display='flex',
-                flex_flow='row',
-                align_items='stretch'
+                width='100%', display='flex', flex_flow='row', align_items='stretch'
             ),
         )
 
@@ -1151,12 +1176,12 @@ class ParameterVisualizer:
 
         Returns:
             numpy.ndarray: The current synthetic 3D volume based on the widget parameters.
-        
+
         Example:
         ```python
             viz = qim3d.generate.ParameterVisualizer()
             vol = viz.get_volume()
             '''
+
         """
         return self.plt_volume.volume
-
