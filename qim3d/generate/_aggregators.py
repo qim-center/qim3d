@@ -795,7 +795,6 @@ def volume_collection(
                 seed=seeds[i],
             )
 
-
         # Rotate volume
         if rotation_degree_range[1] > 0:
             angle = rng.uniform(
