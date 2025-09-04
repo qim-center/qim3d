@@ -437,13 +437,13 @@ def slicer(
         default_position = int( default_position * (volume.shape[slice_axis]-1))
     if isinstance(default_position, int):
         if default_position < 0:
-            position = volume.shape[slice_axis] - default_position
+            default_position = volume.shape[slice_axis] - default_position
         default_position = np.clip(default_position, a_min = 0, a_max = volume.shape[slice_axis]-1)
     else:
-        position = volume.shape[slice_axis] // 2
+        default_position = volume.shape[slice_axis] // 2
 
     position_slider = widgets.IntSlider(
-        value=position,
+        value=default_position,
         min=0,
         max=volume.shape[slice_axis] - 1,
         description='Slice',
