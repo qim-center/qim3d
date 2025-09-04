@@ -49,6 +49,7 @@ def slices_grid(
     color_bar_style: str = 'small',
     mask:np.ndarray = None,
     mask_alpha:float = 0.4,
+    mask_color_map:str = 'gray',
     **matplotlib_imshow_kwargs,
 ) -> matplotlib.figure.Figure:
     """
@@ -237,7 +238,7 @@ def slices_grid(
                     **matplotlib_imshow_kwargs,
                 )
                 if slice_mask is not None:
-                    ax.imshow(slice_mask, cmap = 'gray', alpha = mask_alpha)
+                    ax.imshow(slice_mask, cmap = mask_color_map, alpha = mask_alpha)
 
                 if display_positions:
                     ax.text(
@@ -344,7 +345,8 @@ def slicer(
     color_bar: str = None,
     mask:np.ndarray = None,
     mask_alpha:float = 0.4,
-    default_postion:float|int = None,
+    mask_color_map = 'gray',
+    default_position:float|int = 0.5,
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
     """
@@ -362,6 +364,10 @@ def slicer(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
         color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
+        mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
+        mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
+        mask_color_map (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
+        default_position (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
         **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
@@ -421,23 +427,18 @@ def slicer(
             color_bar=show_color_bar,
             mask = mask,
             mask_alpha = mask_alpha,
+            mask_color_map = mask_color_map,
             **matplotlib_imshow_kwargs,
         )
         return fig
 
         
-    if default_postion is not None:
-        if isinstance(default_postion, float):
-            default_postion = int( default_postion * (volume.shape[slice_axis]-1))
-        if isinstance(default_postion, int):
-            if default_postion > volume.shape[slice_axis]:
-                position = volume.shape[slice_axis] - 1
-            elif default_postion < 0:
-                position = volume.shape[slice_axis] - default_postion
-            else:
-                position = default_postion
-        else:
-            position = volume.shape[slice_axis] // 2
+    if isinstance(default_position, float):
+        default_position = int( default_position * (volume.shape[slice_axis]-1))
+    if isinstance(default_position, int):
+        if default_position < 0:
+            position = volume.shape[slice_axis] - default_position
+        default_position = np.clip(default_position, a_min = 0, a_max = volume.shape[slice_axis]-1)
     else:
         position = volume.shape[slice_axis] // 2
 
@@ -464,9 +465,10 @@ def slicer_orthogonal(
     display_positions: bool = False,
     interpolation: str | None = None,
     image_size: int = None,
-    colorbar:str = '',
+    color_bar:str = None,
     mask:np.ndarray = None,
     mask_alpha:float = 0.4,
+    mask_color_map:str = 'gray',
     default_z:float|int = 0.5,
     default_y:float|int = 0.5,
     default_x:float|int = 0.5,
@@ -484,7 +486,14 @@ def slicer_orthogonal(
         display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
-
+        color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
+        mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
+        mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
+        mask_color_map (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
+        default_x (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
+        default_y (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
+        default_z (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
+    
     Returns:
         slicer_orthogonal_obj (widgets.HBox): The interactive widget for visualizing orthogonal slices of a 3D volume.
 
@@ -503,7 +512,7 @@ def slicer_orthogonal(
         image_height = image_size
         image_width = image_size
 
-    get_slicer_for_axis = lambda slice_axis, colorbar, default_position: slicer(
+    get_slicer_for_axis = lambda slice_axis, default_position: slicer(
         volume,
         slice_axis=slice_axis,
         color_map=color_map,
@@ -513,15 +522,16 @@ def slicer_orthogonal(
         image_width=image_width,
         display_positions=display_positions,
         interpolation=interpolation,
-        color_bar=colorbar,
+        color_bar=color_bar,
         mask = mask,
         mask_alpha = mask_alpha,
-        default_postion=default_position
+        mask_color_map = mask_color_map,
+        default_position=default_position
     )
 
-    z_slicer = get_slicer_for_axis(slice_axis=0, colorbar = "slices" if 'z' in colorbar else None, default_position=default_z)
-    y_slicer = get_slicer_for_axis(slice_axis=1, colorbar = "slices" if 'y' in colorbar else None, default_position=default_y)
-    x_slicer = get_slicer_for_axis(slice_axis=2, colorbar = "slices" if 'x' in colorbar else None, default_position=default_x) 
+    z_slicer = get_slicer_for_axis(slice_axis=0, default_position=default_z)
+    y_slicer = get_slicer_for_axis(slice_axis=1, default_position=default_y)
+    x_slicer = get_slicer_for_axis(slice_axis=2, default_position=default_x) 
 
     z_slicer.children[0].description = 'Z'
     y_slicer.children[0].description = 'Y'
