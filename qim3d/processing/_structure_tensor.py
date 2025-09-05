@@ -46,10 +46,10 @@ def structure_tensor(
         ```python
         import qim3d
 
-        vol = qim3d.examples.NT_128x128x128
-        val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 2)
+        vol = qim3d.examples.fibers_150_150_150
+        val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 1)
         ```
-        ![structure tensor](../../assets/screenshots/structure_tensor_visualization.gif)
+        ![structure tensor](../../assets/screenshots/structure_tensor_visualization_fibers.gif)
 
 
     !!! info "Runtime and memory usage of the structure tensor method for different volume sizes"
