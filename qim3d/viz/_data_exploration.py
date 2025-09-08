@@ -3072,9 +3072,10 @@ def overlay(
         vol = qim3d.examples.cement_128x128x128
         binary = qim3d.filters.gaussian(vol, sigma=2) < 60
         labeled_volume, num_labels = qim3d.segmentation.watershed(binary)
+
         segm_cmap = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
 
-        qim3d.viz.overlay(vol, labeled_volume, colormaps=('grey', segm_cmap))
+        qim3d.viz.overlay(vol, labeled_volume, colormaps=('grey', segm_cmap), clim2=(0, num_labels))
         ```
         ![viz overlay](../../assets/screenshots/viz-overlay.gif)
 
