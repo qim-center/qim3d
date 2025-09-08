@@ -2869,6 +2869,8 @@ class OverlaySlicer:
         vol2: np.ndarray,
         display_size: int = 512,
         cmaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
+        clim1: tuple[float,float] = (None, None),
+        clim2: tuple[float,float] = (None, None),
     ):
         self.vol1 = vol1
         self.vol2 = vol2
@@ -2881,6 +2883,9 @@ class OverlaySlicer:
 
         self.slice_axis = 0
         self.slice_index = vol1.shape[self.slice_axis] // 2
+
+        self.clim1 = clim1
+        self.clim2 = clim2
 
         # inject CSS
         if not OverlaySlicer._css_injected:
@@ -2961,11 +2966,11 @@ class OverlaySlicer:
         self.slice_index_widget.value = axis_len // 2
 
     @staticmethod
-    def _normalize(arr: np.ndarray) -> np.ndarray:
+    def _normalize(arr: np.ndarray, clim: tuple[float, float] = (None, None)) -> np.ndarray:
         """Normalize to float in the interval [0,1]."""
         a = arr.astype(float)
-        vmin = a.min()
-        vmax = a.max()
+        vmin = clim[0] if clim[0] else a.min()
+        vmax = clim[1] if clim[1] else a.max()
         if vmax == vmin:
             vmax = vmin + 1.0
         return (a - vmin) / (vmax - vmin)
@@ -2974,8 +2979,8 @@ class OverlaySlicer:
         """Blends slices by first converting to the colormaps' RGB space."""
         slice_axis = self.slice_axis_widget.value
         slice_index = self.slice_index_widget.value
-        slice1 = self._normalize(np.take(self.vol1, slice_index, axis=slice_axis))
-        slice2 = self._normalize(np.take(self.vol2, slice_index, axis=slice_axis))
+        slice1 = self._normalize(np.take(self.vol1, slice_index, axis=slice_axis), clim=self.clim1)
+        slice2 = self._normalize(np.take(self.vol2, slice_index, axis=slice_axis), clim=self.clim2)
         # cmap requires values in the interval [0,1] for its call method and returns RGBA in [0,1] as the last axis
         # drop alpha
         slice1_rgb = self.cmaps[0](slice1)[..., :3]
@@ -3042,6 +3047,8 @@ def overlay(
     volume2: np.ndarray,
     colormaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
     display_size: int = 512,
+    clim1: tuple[float,float] = (None, None),
+    clim2: tuple[float,float] = (None, None),
 ) -> widgets.interactive:
     """
     Returns an interactive widget for comparing two volumes along slices in a fading overlay image.
@@ -3049,8 +3056,10 @@ def overlay(
     Args:
         volume1 (np.ndarray): The first volume.
         volume2 (np.ndarray): The second volume.
-        colormaps: (ColormapLike or tuple[ColormapLike, ColormapLike], optional): Specifies the colormaps used for each volume. A single value will be applied to both volumes.
-        display_size: (int, optional): Size in pixels of the image. If image is non-square, then the largest dimension will have display_size pixels.
+        colormaps (ColormapLike or tuple[ColormapLike, ColormapLike], optional): Specifies the colormaps used for each volume. A single value will be applied to both volumes.
+        display_size (int, optional): Size in pixels of the image. If image is non-square, then the largest dimension will have display_size pixels.
+        clim1 (tuple[float, float], optional): Set the color limits of volume1.
+        clim2 (tuple[float, float], optional): Set the color limits of volume2.
 
     Returns:
         widget (widgets.widget_box.VBox): The interactive widget.
@@ -3078,6 +3087,6 @@ def overlay(
         raise ValueError(msg)
 
     interactive_widget = OverlaySlicer(
-        vol1=volume1, vol2=volume2, cmaps=colormaps, display_size=display_size
+        vol1=volume1, vol2=volume2, cmaps=colormaps, display_size=display_size, clim1=clim1, clim2=clim2
     ).build_interactive()
     return interactive_widget
