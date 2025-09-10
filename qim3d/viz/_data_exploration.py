@@ -1,6 +1,7 @@
 """Provides a collection of visualization functions."""
 
 import inspect
+import functools
 import math
 import warnings
 from collections.abc import Callable, Sequence
@@ -46,7 +47,58 @@ try:
 except ImportError:
     from tqdm import tqdm
 
+def coarseness(*volumes: str):
+    """
+    Decorator for subsampling volumes before passing them into a function.
+    
+    Args:
+        *volumes (str): The parameter names of the volumes which are subsampled when the coarseness parameter is passed a value in the decorated function.
+    """
+    def find_kwargs(sig: inspect.Signature) -> str | None:
+        """Find the **kwargs parameter name, return None if it does not exist."""
+        for pname, param in sig.parameters.items():
+            if param.kind == inspect.Parameter.VAR_KEYWORD:
+                return pname
+        return None
 
+    def decorator(func: Callable) -> Callable:
+        sig = inspect.signature(func)
+        kwargs_pname = find_kwargs(sig)
+
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            # Handle if the original function does not have coarseness nor kwargs
+            if (
+                'coarseness' in kwargs
+                and 'coarseness' not in sig.parameters
+                and not kwargs_pname
+            ):
+                coarseness = kwargs.pop('coarseness') # remove it from kwargs, otherwise bind wont work
+            else:
+                coarseness = None
+            
+            boundargs = sig.bind(*args, **kwargs)
+            boundargs.apply_defaults()
+            mapping = boundargs.arguments
+            
+            if 'coarseness' in mapping:
+                coarseness = mapping.pop('coarseness')
+            elif kwargs_pname and 'coarseness' in mapping[kwargs_pname]:
+                # Handle if the original function has a **kwargs parameter.
+                # Have to modify mapping since boundargs.kwargs is dynamically computed from it.
+                coarseness = mapping[kwargs_pname].pop('coarseness')
+
+            if coarseness:
+                for pname in volumes:
+                    vol = mapping[pname]
+                    vol = qim3d.operations.subsample(vol, coarseness)
+                    mapping[pname] = vol
+            return func(*boundargs.args, **boundargs.kwargs)
+        return wrapper
+    return decorator
+
+
+@coarseness('volume')
 def slices_grid(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -341,7 +393,7 @@ def _get_slice_range(position: int, num_slices: int, n_total: int) -> np.ndarray
 
     return slice_idxs
 
-
+@coarseness('volume')
 def slicer(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -445,6 +497,7 @@ def slicer(
     return slicer_obj
 
 
+@coarseness('volume')
 def slicer_orthogonal(
     volume: np.ndarray,
     color_map: str = 'magma',
@@ -511,6 +564,7 @@ def slicer_orthogonal(
     return widgets.HBox([z_slicer, y_slicer, x_slicer])
 
 
+@coarseness('volume')
 def fade_mask(
     volume: np.ndarray,
     axis: int = 0,
@@ -872,6 +926,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     return container
 
 
+@coarseness('volume')
 def histogram(
     volume: np.ndarray,
     coarseness: int | list[int] = 1,
@@ -963,9 +1018,6 @@ def histogram(
         raise ValueError(msg)
 
     title_suffixes = []
-    if coarseness > 1:
-        volume = qim3d.operations.subsample(volume, coarseness)
-        title_suffixes.append('subsampled shape')
 
     if slice_idx == 'middle':
         slice_idx = volume.shape[slice_axis] // 2
@@ -1322,6 +1374,7 @@ class _LineProfile:
         return widgets.VBox([controls, interactive_plot])
 
 
+@coarseness('volume')
 def line_profile(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -1442,6 +1495,7 @@ def line_profile(
     return lp.build_interactive()
 
 
+@coarseness('volume')
 def threshold(
     volume: np.ndarray,
     cmap_image: str = 'magma',
@@ -2034,7 +2088,7 @@ class _VolumeComparison:
         figs = widgets.HBox([fig1, fig2, fig3])
         return widgets.VBox([controls, interactive_plot, figs])
 
-
+@coarseness('volume1', 'volume2')
 def compare_volumes(
     volume1: np.ndarray,
     volume2: np.ndarray,
@@ -2309,7 +2363,7 @@ class IsoSurface:
         display(ui)
 
 
-# helper function
+@coarseness('vol')
 def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
     """
     Creates an interactive iso-surface visualizer for a single surface level.
@@ -2822,6 +2876,7 @@ class VolumePlaneSlicer:
         display(self.controls, self.fig)
 
 
+@coarseness('volume')
 def planes(
     volume: np.ndarray,
     color_map: str | matplotlib.colors.Colormap = 'magma',
