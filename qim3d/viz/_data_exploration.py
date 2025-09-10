@@ -1,7 +1,7 @@
 """Provides a collection of visualization functions."""
 
-import inspect
 import functools
+import inspect
 import math
 import warnings
 from collections.abc import Callable, Sequence
@@ -47,13 +47,16 @@ try:
 except ImportError:
     from tqdm import tqdm
 
-def coarseness(*volumes: str):
+
+def coarseness(*volumes: str) -> Callable:
     """
     Decorator for subsampling volumes before passing them into a function.
-    
+
     Args:
         *volumes (str): The parameter names of the volumes which are subsampled when the coarseness parameter is passed a value in the decorated function.
+
     """
+
     def find_kwargs(sig: inspect.Signature) -> str | None:
         """Find the **kwargs parameter name, return None if it does not exist."""
         for pname, param in sig.parameters.items():
@@ -66,21 +69,23 @@ def coarseness(*volumes: str):
         kwargs_pname = find_kwargs(sig)
 
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs) -> Any:
             # Handle if the original function does not have coarseness nor kwargs
             if (
                 'coarseness' in kwargs
                 and 'coarseness' not in sig.parameters
                 and not kwargs_pname
             ):
-                coarseness = kwargs.pop('coarseness') # remove it from kwargs, otherwise bind wont work
+                coarseness = kwargs.pop(
+                    'coarseness'
+                )  # remove it from kwargs, otherwise bind wont work
             else:
                 coarseness = None
-            
+
             boundargs = sig.bind(*args, **kwargs)
             boundargs.apply_defaults()
             mapping = boundargs.arguments
-            
+
             if 'coarseness' in mapping:
                 coarseness = mapping.pop('coarseness')
             elif kwargs_pname and 'coarseness' in mapping[kwargs_pname]:
@@ -94,7 +99,9 @@ def coarseness(*volumes: str):
                     vol = qim3d.operations.subsample(vol, coarseness)
                     mapping[pname] = vol
             return func(*boundargs.args, **boundargs.kwargs)
+
         return wrapper
+
     return decorator
 
 
@@ -392,6 +399,7 @@ def _get_slice_range(position: int, num_slices: int, n_total: int) -> np.ndarray
         slice_idxs = np.arange(n_total - num_slices, n_total)
 
     return slice_idxs
+
 
 @coarseness('volume')
 def slicer(
@@ -2087,6 +2095,7 @@ class _VolumeComparison:
 
         figs = widgets.HBox([fig1, fig2, fig3])
         return widgets.VBox([controls, interactive_plot, figs])
+
 
 @coarseness('volume1', 'volume2')
 def compare_volumes(
