@@ -10,6 +10,7 @@ from ._data_exploration import (
     histogram,
     iso_surface,
     line_profile,
+    overlay,
     planes,
     slicer,
     slicer_orthogonal,
@@ -52,4 +53,5 @@ __all__ = [
     'vectors',
     'itk_vtk',
     'iso_surface',
+    'overlay',
 ]

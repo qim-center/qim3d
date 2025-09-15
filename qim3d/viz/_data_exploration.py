@@ -1,6 +1,7 @@
 """Provides a collection of visualization functions."""
 
 import inspect
+import io
 import math
 import warnings
 from collections.abc import Callable, Sequence
@@ -13,13 +14,14 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import PIL.Image
 import plotly.colors
 import plotly.graph_objects as go
 import pyvista as pv
 import seaborn as sns
 import skimage.measure
 import zarr
-from IPython.display import Image, Video, clear_output, display
+from IPython.display import HTML, Image, Video, clear_output, display
 from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
 from matplotlib.colors import LinearSegmentedColormap
@@ -45,6 +47,8 @@ try:
     from tqdm.notebook import tqdm
 except ImportError:
     from tqdm import tqdm
+
+ColormapLike = str | matplotlib.colors.Colormap
 
 
 def slices_grid(
@@ -2853,3 +2857,247 @@ def planes(
     VolumePlaneSlicer(
         volume=volume, color_map=color_map, color_range=[value_min, value_max]
     ).show()
+
+
+class OverlaySlicer:
+    _css_injected = False  # class-level flag
+
+    def __init__(
+        self,
+        vol1: np.ndarray,
+        vol2: np.ndarray,
+        display_size: int = 512,
+        cmaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
+        volume1_values: tuple[float, float] = (None, None),
+        volume2_values: tuple[float, float] = (None, None),
+    ):
+        self.vol1 = vol1
+        self.vol2 = vol2
+        self.display_size = display_size
+
+        if isinstance(cmaps, str | matplotlib.colors.Colormap):
+            cmaps = (cmaps, cmaps)
+        self.cmaps = tuple(matplotlib.cm.get_cmap(c) for c in cmaps)
+        self.img_format = 'png'
+
+        self.slice_axis = 0
+        self.slice_index = vol1.shape[self.slice_axis] // 2
+
+        self.volume1_values = volume1_values
+        self.volume2_values = volume2_values
+
+        # inject CSS
+        if not OverlaySlicer._css_injected:
+            display(
+                HTML("""
+            <style>
+            .pixelated {
+                image-rendering: pixelated !important;
+                image-rendering: crisp-edges !important;
+            }
+            </style>
+            """)
+            )
+            OverlaySlicer._css_injected = True
+
+        self._init_widgets()
+        self._update_slice_axis(self.slice_axis)
+        self._set_observers()
+        self._update(
+            slice_axis=self.slice_axis_widget.value,
+            slice_index=self.slice_index_widget.value,
+            fade=self.fade_slider.value,
+        )
+
+    def _init_widgets(self) -> None:
+        self.fade_slider = widgets.FloatSlider(
+            value=0.5,
+            min=0.0,
+            max=1.0,
+            step=0.01,
+            description='',
+            continuous_update=True,
+            readout=False,
+        )
+        self.fade_slider.layout.width = f'{self.display_size}px'
+        self.fade_slider.style = {'handle_color': None, 'description_width': '0px'}
+
+        self.slice_axis_widget = widgets.Dropdown(
+            options=[0, 1, 2], value=self.slice_axis, description='Slice axis'
+        )
+        self.slice_axis_widget.layout.width = '250px'
+
+        self.slice_index_widget = widgets.IntSlider(
+            min=0,
+            step=1,
+            description='Slice index',
+            layout=widgets.Layout(width='400px', height='auto'),
+        )
+
+        # image + centering container
+        self.img_widget = widgets.Image(format=self.img_format)
+        self.img_widget.add_class('pixelated')  # ensures nearest-neighbor
+        self.img_box = widgets.Box(
+            [self.img_widget],
+            layout=widgets.Layout(
+                width=f'{self.display_size}px',
+                justify_content='center',
+                align_items='center',
+            ),
+        )
+
+    def _set_observers(self) -> None:
+        self.fade_slider.observe(self._on_change, names='value')
+        self.slice_axis_widget.observe(self._on_change, names='value')
+        self.slice_index_widget.observe(self._on_change, names='value')
+
+    def _on_change(self, _change: dict) -> None:
+        self._update(
+            slice_axis=self.slice_axis_widget.value,
+            slice_index=self.slice_index_widget.value,
+            fade=self.fade_slider.value,
+        )
+
+    def _update_slice_axis(self, slice_axis: int) -> None:
+        self.slice_axis = slice_axis
+        axis_len = self.vol1.shape[slice_axis]
+        self.slice_index_widget.max = axis_len - 1
+        self.slice_index_widget.value = axis_len // 2
+
+    @staticmethod
+    def _normalize(
+        arr: np.ndarray, clim: tuple[float, float] = (None, None)
+    ) -> np.ndarray:
+        """Normalize to float in the interval [0,1]."""
+        a = arr.astype(float)
+        vmin = clim[0] if clim[0] else a.min()
+        vmax = clim[1] if clim[1] else a.max()
+        if vmax == vmin:
+            vmax = vmin + 1.0
+        return (a - vmin) / (vmax - vmin)
+
+    def _blend(self, fraction: float) -> np.ndarray:
+        """Blends slices by first converting to the colormaps' RGB space."""
+        slice_axis = self.slice_axis_widget.value
+        slice_index = self.slice_index_widget.value
+        slice1 = self._normalize(
+            np.take(self.vol1, slice_index, axis=slice_axis), clim=self.volume1_values
+        )
+        slice2 = self._normalize(
+            np.take(self.vol2, slice_index, axis=slice_axis), clim=self.volume2_values
+        )
+        # cmap requires values in the interval [0,1] for its call method and returns RGBA in [0,1] as the last axis
+        # drop alpha
+        slice1_rgb = self.cmaps[0](slice1)[..., :3]
+        slice2_rgb = self.cmaps[1](slice2)[..., :3]
+
+        slice_blended = (1.0 - fraction) * slice1_rgb + fraction * slice2_rgb
+        return slice_blended
+
+    def _rgb_arr_to_bytes(self, arr: np.ndarray) -> bytes:
+        arr = self._normalize(arr)
+        arr = (arr * 255).astype(np.uint8)
+
+        buf = io.BytesIO()
+        PIL.Image.fromarray(arr, mode='RGB').save(buf, format=self.img_format.upper())
+        return buf.getvalue()
+
+    def _update(self, slice_axis: int, slice_index: int, fade: float) -> None:
+        if slice_axis != self.slice_axis:
+            self._update_slice_axis(slice_axis)
+            slice_index = self.slice_index_widget.value
+
+        blended = self._blend(fade)
+        self.img_widget.value = self._rgb_arr_to_bytes(blended)
+
+        # --- make display_size the maximum dimension ---
+        h, w = blended.shape[:2]
+        if w >= h:
+            self.img_widget.layout.width = f'{self.display_size}px'
+            self.img_widget.layout.height = 'auto'
+        else:
+            self.img_widget.layout.width = 'auto'
+            self.img_widget.layout.height = f'{self.display_size}px'
+
+        # ensure the centering box and slider share the same width
+        self.img_box.layout.width = f'{self.display_size}px'
+        self.fade_slider.layout.width = f'{self.display_size}px'
+
+    # ---------- public builder ----------
+    def build_interactive(self) -> widgets.VBox:
+        left_label = widgets.Label('volume1', layout=widgets.Layout(width='auto'))
+        right_label = widgets.Label('volume2', layout=widgets.Layout(width='auto'))
+        labels_row = widgets.HBox(
+            [
+                left_label,
+                widgets.Box(layout=widgets.Layout(flex='1 1 auto')),
+                right_label,
+            ],
+            layout=widgets.Layout(width=f'{self.display_size}px'),
+        )
+
+        return widgets.VBox(
+            [
+                self.slice_axis_widget,
+                self.slice_index_widget,
+                self.img_box,
+                self.fade_slider,
+                labels_row,
+            ]
+        )
+
+
+def overlay(
+    volume1: np.ndarray,
+    volume2: np.ndarray,
+    volume1_values: tuple[float, float] = (None, None),
+    volume2_values: tuple[float, float] = (None, None),
+    colormaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
+    display_size: int = 512,
+) -> widgets.interactive:
+    """
+    Returns an interactive widget for comparing two volumes along slices in a fading overlay image.
+
+    Args:
+        volume1 (np.ndarray): The first volume.
+        volume2 (np.ndarray): The second volume.
+        volume1_values (tuple[float, float], optional): Set the color limits of volume1.
+        volume2_values (tuple[float, float], optional): Set the color limits of volume2.
+        colormaps (ColormapLike or tuple[ColormapLike, ColormapLike], optional): Specifies the colormaps used for each volume. A single value will be applied to both volumes.
+        display_size (int, optional): Size in pixels of the image. If image is non-square, then the largest dimension will have display_size pixels.
+
+    Returns:
+        widget (widgets.widget_box.VBox): The interactive widget.
+
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.cement_128x128x128
+        binary = qim3d.filters.gaussian(vol, sigma=2) < 60
+        labeled_volume, num_labels = qim3d.segmentation.watershed(binary)
+
+        segm_cmap = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
+
+        qim3d.viz.overlay(vol, labeled_volume, colormaps=('grey', segm_cmap), volume2_values=(0, num_labels))
+        ```
+        ![viz overlay](../../assets/screenshots/viz-overlay.gif)
+
+    """
+    if volume1.ndim != 3:
+        msg = 'Volume must be 3D.'
+        raise ValueError(msg)
+    if volume1.shape != volume2.shape:
+        msg = 'Volumes must have the same shape.'
+        raise ValueError(msg)
+
+    interactive_widget = OverlaySlicer(
+        vol1=volume1,
+        vol2=volume2,
+        cmaps=colormaps,
+        display_size=display_size,
+        volume1_values=volume1_values,
+        volume2_values=volume2_values,
+    ).build_interactive()
+    return interactive_widget
