@@ -1,4 +1,4 @@
-gradio==4.44
+gradio>=5.1
 h5py>=3.9.0
 localthickness>=0.1.2
 matplotlib>=3.8.0
@@ -25,9 +25,12 @@ olefile>=0.46
 psutil>=5.9.0
 structure-tensor>=0.2.1
 noise>=1.2.2
-zarr>=2.18.2
+zarr==2.18.4
 ome_zarr>=0.9.0
 dask-image>=2024.5.3
 trimesh>=4.4.9
 slgbuilder>=0.2.1
 PyGEL3D>=0.6.1
+pyvista[jupyter]>=0.45
+imageio-ffmpeg>=0.6
+numcodecs<0.16

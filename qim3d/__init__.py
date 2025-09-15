@@ -9,7 +9,7 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = '1.2.0'
+__version__ = '1.3.3'
 
 
 import importlib as _importlib
@@ -49,6 +49,7 @@ _submodules = [
     'mesh',
     'features',
     'operations',
+    'morphology',
     'detection',
 ]
 

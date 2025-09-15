@@ -16,3 +16,16 @@ The `qim3d` library provides a set of methods for different operations on volume
             - curve_warp
             - stretch
             - center_twist
+            - get_random_slice
+            - subsample
+            - ratio_subsample
+
+::: qim3d.morphology
+    options:
+        members:
+            - dilate
+            - erode
+            - opening
+            - closing
+            - black_tophat
+            - white_tophat
