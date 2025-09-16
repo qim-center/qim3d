@@ -33,3 +33,4 @@ slgbuilder>=0.2.1
 PyGEL3D>=0.6.1
 pyvista[jupyter]>=0.45
 imageio-ffmpeg>=0.6
+pygorpho>=1.0.1
