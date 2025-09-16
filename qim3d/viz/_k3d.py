@@ -15,12 +15,14 @@ import pygel3d
 from matplotlib.colors import Colormap
 from pygel3d import jupyter_display as jd
 
+from qim3d.utils._decorators import coarseness
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
 
 
+@coarseness('volume')
 def volumetric(
-    img: np.ndarray,
+    volume: np.ndarray,
     aspectmode: str = 'data',
     show: bool = True,
     save: bool = False,
@@ -39,7 +41,7 @@ def volumetric(
     Visualizes a 3D volume using volumetric rendering.
 
     Args:
-        img (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
+        volume (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
         aspectmode (str, optional): Determines the proportions of the scene's axes. Defaults to "data".
             If `'data'`, the axes are drawn in proportion with the axes' ranges.
             If `'cube'`, the axes are drawn as a cube, regardless of the axes' ranges.
@@ -89,7 +91,7 @@ def volumetric(
 
     """
 
-    pixel_count = img.shape[0] * img.shape[1] * img.shape[2]
+    pixel_count = volume.shape[0] * volume.shape[1] * volume.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
     if samples == 'auto':
         y1, x1 = 256, 16777216  # 256 samples at res 256*256*256=16.777.216
@@ -107,10 +109,10 @@ def volumetric(
         msg = "aspectmode should be either 'data' or 'cube'"
         raise ValueError(msg)
     # check if image should be downsampled for visualization
-    original_shape = img.shape
-    img = downscale_img(img, max_voxels=max_voxels)
+    original_shape = volume.shape
+    volume = downscale_img(volume, max_voxels=max_voxels)
 
-    new_shape = img.shape
+    new_shape = volume.shape
 
     if original_shape != new_shape:
         log.warning(
@@ -120,15 +122,15 @@ def volumetric(
     # Scale the image to float16 if needed
     if save:
         # When saving, we need float64
-        img = img.astype(np.float64)
+        volume = volume.astype(np.float64)
     else:
         if data_type == 'scaled_float16':
-            img = scale_to_float16(img)
+            volume = scale_to_float16(volume)
         else:
-            img = img.astype(data_type)
+            volume = volume.astype(data_type)
 
     # Set color ranges
-    color_range = [np.min(img), np.max(img)]
+    color_range = [np.min(volume), np.max(volume)]
     if vmin:
         color_range[0] = vmin
     if vmax:
@@ -164,9 +166,9 @@ def volumetric(
 
     # Create the volume plot
     plt_volume = k3d.volume(
-        img,
+        volume,
         bounds=(
-            [0, img.shape[2], 0, img.shape[1], 0, img.shape[0]]
+            [0, volume.shape[2], 0, volume.shape[1], 0, volume.shape[0]]
             if aspectmode.lower() == 'data'
             else None
         ),
