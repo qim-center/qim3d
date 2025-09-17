@@ -824,7 +824,10 @@ def load(
 
         vol = qim3d.io.load("path/to/image.tif", virtual_stack=True)
         ```
-        Volumes can also be loaded from a .tiff stack with one file per slice:
+
+    Example: Loading from Tiff stack
+        Volumes can also be loaded from a series of `.tiff` files. The stack means that we have one file per slice.
+
         ```python
         import qim3d
 
@@ -832,10 +835,12 @@ def load(
         vol = qim3d.generate.volume(noise_scale = 0.015)
 
         # Save as a .tiff stack
-        qim3d.io.save("slices", vol, basename="blob-slices", sliced_dim=0)
+        # The paremeter `basename` is used for the prefix of the files.
+        qim3d.io.save("data_directory", vol, basename="blob-slices", sliced_dim=0)
 
         # Load the volume from the .tiff stack
-        loaded_vol = qim3d.io.load("slices" , contains="blob-slices")
+        # Here we use `contains` to check the files that have that string in their names
+        loaded_vol = qim3d.io.load("data_directory" , contains="blob-slices", progress_bar=True)
         ```
 
     """
