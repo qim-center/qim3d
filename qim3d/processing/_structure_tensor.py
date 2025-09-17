@@ -46,7 +46,7 @@ def structure_tensor(
         ```python
         import qim3d
 
-        vol = qim3d.examples.fibers_150_150_150
+        vol = qim3d.examples.fibers_150x150x150
         val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 1)
         ```
         ![structure tensor](../../assets/screenshots/structure_tensor_visualization_fibers.gif)
