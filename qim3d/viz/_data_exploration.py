@@ -41,6 +41,7 @@ from skimage.filters import (
 import qim3d
 import qim3d.operations
 from qim3d.utils import log
+from qim3d.utils._decorators import coarseness
 
 # For progress bar in Jupyter notebooks
 try:
@@ -51,6 +52,7 @@ except ImportError:
 ColormapLike = str | matplotlib.colors.Colormap
 
 
+@coarseness('volume')
 def slices_grid(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -346,6 +348,7 @@ def _get_slice_range(position: int, num_slices: int, n_total: int) -> np.ndarray
     return slice_idxs
 
 
+@coarseness('volume')
 def slicer(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -449,6 +452,7 @@ def slicer(
     return slicer_obj
 
 
+@coarseness('volume')
 def slicer_orthogonal(
     volume: np.ndarray,
     color_map: str = 'magma',
@@ -515,6 +519,7 @@ def slicer_orthogonal(
     return widgets.HBox([z_slicer, y_slicer, x_slicer])
 
 
+@coarseness('volume')
 def fade_mask(
     volume: np.ndarray,
     axis: int = 0,
@@ -876,6 +881,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     return container
 
 
+@coarseness('volume')
 def histogram(
     volume: np.ndarray,
     coarseness: int | list[int] = 1,
@@ -967,9 +973,6 @@ def histogram(
         raise ValueError(msg)
 
     title_suffixes = []
-    if coarseness > 1:
-        volume = qim3d.operations.subsample(volume, coarseness)
-        title_suffixes.append('subsampled shape')
 
     if slice_idx == 'middle':
         slice_idx = volume.shape[slice_axis] // 2
@@ -1326,6 +1329,7 @@ class _LineProfile:
         return widgets.VBox([controls, interactive_plot])
 
 
+@coarseness('volume')
 def line_profile(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -1446,6 +1450,7 @@ def line_profile(
     return lp.build_interactive()
 
 
+@coarseness('volume')
 def threshold(
     volume: np.ndarray,
     cmap_image: str = 'magma',
@@ -2039,6 +2044,7 @@ class _VolumeComparison:
         return widgets.VBox([controls, interactive_plot, figs])
 
 
+@coarseness('volume1', 'volume2')
 def compare_volumes(
     volume1: np.ndarray,
     volume2: np.ndarray,
@@ -2313,7 +2319,7 @@ class IsoSurface:
         display(ui)
 
 
-# helper function
+@coarseness('vol')
 def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
     """
     Creates an interactive iso-surface visualizer for a single surface level.
@@ -2826,6 +2832,7 @@ class VolumePlaneSlicer:
         display(self.controls, self.fig)
 
 
+@coarseness('volume')
 def planes(
     volume: np.ndarray,
     color_map: str | matplotlib.colors.Colormap = 'magma',
