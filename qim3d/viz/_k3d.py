@@ -32,8 +32,9 @@ def volumetric(
     vmin: float | None = None,
     vmax: float | None = None,
     samples: int | str = 'auto',
-    max_voxels: int = 128**3,
+    max_voxels: int = 256**3,
     data_type: str = 'scaled_float16',
+    camera_mode: str = 'orbit',
     **kwargs,
 ) -> Optional[k3d.Plot]:
     """
@@ -55,8 +56,9 @@ def volumetric(
         vmax (float or None, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
         samples (int or 'auto', optional): The number of samples to be used for the volume rendering in k3d. Input 'auto' for auto selection. Defaults to 'auto'.
             Lower values will render faster but with lower quality.
-        max_voxels (int, optional): Defaults to 512^3.
+        max_voxels (int, optional): Defaults to 256^3.
         data_type (str, optional): Default to 'scaled_float16'.
+        camera_mode (str, optional): Camera interaction mode, being 'orbit', 'trackball' or 'fly'. Defaults to 'orbit'.
         **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
@@ -106,6 +108,11 @@ def volumetric(
     if aspectmode.lower() not in ['data', 'cube']:
         msg = "aspectmode should be either 'data' or 'cube'"
         raise ValueError(msg)
+    
+    if camera_mode not in ['orbit', 'trackball', 'fly']:
+        msg = "camera_mode should be either 'orbit', 'trackbal' or 'fly'"
+        raise ValueError(msg)
+    
     # check if image should be downsampled for visualization
     original_shape = img.shape
     img = downscale_img(img, max_voxels=max_voxels)
@@ -168,7 +175,7 @@ def volumetric(
     )
     plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume
-    plot.camera_mode = "orbit"
+    plot.camera_mode = camera_mode
     if save:
         # Save html to disk
         with open(str(save), 'w', encoding='utf-8') as fp:
