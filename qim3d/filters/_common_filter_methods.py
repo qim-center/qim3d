@@ -241,12 +241,12 @@ class Pipeline:
             *args: Variable number of filter instances to be applied sequentially.
 
         """
-        self.filters = {}
+        self.filters = []
 
-        for idx, fn in enumerate(args):
-            self._add_filter(str(idx), fn)
+        for fn in args:
+            self._add_filter(fn)
 
-    def _add_filter(self, name: str, fn: Type[FilterBase]):
+    def _add_filter(self, fn: Type[FilterBase]):
         """
         Adds a filter to the sequence.
 
@@ -265,7 +265,7 @@ class Pipeline:
             raise AssertionError(
                 f'filters should be instances of one of the following classes: {filter_names}'
             )
-        self.filters[name] = fn
+        self.filters.append(fn)
 
     def append(self, fn: FilterBase):
         """
@@ -289,7 +289,7 @@ class Pipeline:
             ```
 
         """
-        self._add_filter(str(len(self.filters)), fn)
+        self._add_filter(fn)
 
     def __call__(self, input):
         """
@@ -302,7 +302,7 @@ class Pipeline:
             The filtered image or volume after applying all sequential filters.
 
         """
-        for fn in self.filters.values():
+        for fn in self.filters:
             input = fn(input)
         return input
 
