@@ -4,14 +4,16 @@ The `qim3d` library provides a set of methods for filtering volumes.
 
 ::: qim3d.filters
     options:
+        filters: ["!^_"]
         members:
             - gaussian
             - median
+            - sobel
             - maximum
             - minimum
             - tophat
+            - Pipeline
 
-::: qim3d.filters.Pipeline
+<!-- ::: qim3d.filters.Pipeline
     options:
-        members:
-            - append
+        show_root_heading: true -->
