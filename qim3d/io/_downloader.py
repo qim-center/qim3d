@@ -7,6 +7,10 @@ from collections.abc import Callable
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlparse
 
+import fsspec
+import zarr
+import shutil
+
 import outputformat as ouf
 from tqdm import tqdm
 
@@ -138,56 +142,103 @@ class Downloader:
         for folder in folders:
             setattr(self, folder, _Myfolder(folder))
 
-    def __call__(self, url: str, load_file: bool = False, virtual_stack: bool = True):
-        """Download any file given its URL. If load_file=True, also call qim3d.io.load()."""
+    def __call__(
+        self, 
+        url: str, 
+        load_file: bool = False, 
+        virtual_stack: bool = True, 
+        offline: bool = True, 
+        output_dir: str = "."
+    ):
+        """
+        Download any file given its URL.
 
-        # Determine file name
+        Parameters
+        ----------
+        url : str
+            File or Zarr/OME-Zarr store URL.
+        load_file : bool
+            If True, call qim3d.io.load() after download.
+        virtual_stack : bool
+            Passed to qim3d.io.load().
+        offline : bool
+            If True, download locally. If False and format is zarr or ome zarr, stream directly.
+        output_dir : str
+            Base directory to save files. Default = current working directory.
+
+        Returns
+        -------
+        Local path or Zarr store (if streaming).
+        """
+
         parsed = urlparse(url)
-        fname = os.path.basename(parsed.path)
-        download_dir = os.path.join(os.getcwd(), 'downloads')
-        os.makedirs(download_dir, exist_ok=True)
-        dest = os.path.join(download_dir, fname)
+        fname = os.path.basename(parsed.path.rstrip("/"))  # works for file or zarr folder
+        dest = os.path.join(output_dir, fname)             # path inside output_dir
 
-        # Skip if already exists
+        # --- Zarr / OME-Zarr store ---
+        if fname.endswith(".zarr") or fname.endswith(".ome.zarr"):
+            if offline:
+                if os.path.exists(dest):
+                    log.warning(f"Zarr store already downloaded:\n{os.path.abspath(dest)}")
+                else:
+                    log.info(f"Downloading Zarr store {fname}\n{url}")
+                    files = fsspec.open_files(f"{url}/**", mode="rb")  # recursive glob
+                    for f in tqdm(files, desc=f"Downloading {fname}"):
+                        relpath = f.path.split(url)[-1].lstrip("/")
+                        local_path = os.path.join(dest, relpath)
+                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
+                        with f as src, open(local_path, "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+
+                if load_file:
+                    log.info(f"\nLoading local Zarr store {fname}")
+                    return load(path=dest, virtual_stack=virtual_stack)
+                return dest
+
+            else:
+                # Online streaming (no download)
+                log.info(f"Streaming Zarr store directly from {url}")
+                store = fsspec.get_mapper(url)
+                if load_file:
+                    return zarr.open(store, mode="r")
+                return store
+
+        # --- Regular single file ---
         if os.path.exists(dest):
-            log.warning(f'File already downloaded:\n{os.path.abspath(dest)}')
+            log.warning(f"File already downloaded:\n{os.path.abspath(dest)}")
             if load_file:
                 return load(path=dest, virtual_stack=virtual_stack)
-            return
+            return dest
         else:
-            log.info(f'Downloading {ouf.b(fname, return_str=True)}\n{url}')
-            # get size if available
+            log.info(f"Downloading file {fname}\n{url}")
             try:
                 total = _get_file_size(url)
             except (HTTPError, URLError):
                 total = None
 
-            with tqdm(
-                total=total,
-                unit='B',
-                unit_scale=True,
-                unit_divisor=1024,
-                ncols=80,
-            ) as pbar:
+            os.makedirs(output_dir, exist_ok=True)
+            with tqdm(total=total, unit="B", unit_scale=True, unit_divisor=1024, ncols=80) as pbar:
                 try:
                     urllib.request.urlretrieve(
                         url,
                         dest,
-                        reporthook=lambda blocknum, bs, total: _update_progress(
-                            pbar, blocknum, bs
-                        ),
+                        reporthook=lambda blocknum, bs, total: _update_progress(pbar, blocknum, bs),
                     )
                 except HTTPError as http_err:
-                    msg = f'Failed to download {url!r}: server returned HTTP {http_err.code}'
-                    raise FileNotFoundError(msg) from http_err
+                    raise FileNotFoundError(
+                        f"Failed to download {url!r}: server returned HTTP {http_err.code}"
+                    ) from http_err
                 except URLError as url_err:
-                    msg = f'Failed to reach {url!r}: {url_err.reason}'
-                    raise ConnectionError(msg) from url_err
+                    raise ConnectionError(
+                        f"Failed to reach {url!r}: {url_err.reason}"
+                    ) from url_err
 
-        # Load the file if requested
         if load_file:
-            log.info(f'\nLoading {fname}')
+            log.info(f"\nLoading {fname}")
             return load(path=dest, virtual_stack=virtual_stack)
+
+        return dest
+
 
     def list_files(self) -> None:
         """Generate and print formatted folder, file, and size information."""
