@@ -7,6 +7,27 @@ import numpy as np
 
 import qim3d.gui
 
+COLORMAPS = [
+            'Blackbody',
+            'Bluered',
+            'Blues',
+            'Cividis',
+            'Earth',
+            'Electric',
+            'Greens',
+            'Greys',
+            'Hot',
+            'Jet',
+            'Magma',
+            'Picnic',
+            'Portland',
+            'Rainbow',
+            'RdBu',
+            'Reds',
+            'Viridis',
+            'YlGnBu',
+            'YlOrRd',
+        ]
 
 # TODO: when offline it throws an error in cli
 class BaseInterface(ABC):

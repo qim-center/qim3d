@@ -24,7 +24,7 @@ import plotly.graph_objects as go
 from scipy import ndimage
 
 import qim3d
-from qim3d.gui.interface import InterfaceWithExamples
+from qim3d.gui.interface import InterfaceWithExamples, COLORMAPS
 from qim3d.utils._logger import log
 
 
@@ -273,27 +273,7 @@ class Interface(InterfaceWithExamples):
                 with gr.Tab('Misc'):
                     with gr.Row():
                         colormap = gr.Dropdown(
-                            choices=[
-                                'Blackbody',
-                                'Bluered',
-                                'Blues',
-                                'Cividis',
-                                'Earth',
-                                'Electric',
-                                'Greens',
-                                'Greys',
-                                'Hot',
-                                'Jet',
-                                'Magma',
-                                'Picnic',
-                                'Portland',
-                                'Rainbow',
-                                'RdBu',
-                                'Reds',
-                                'Viridis',
-                                'YlGnBu',
-                                'YlOrRd',
-                            ],
+                            choices=COLORMAPS,
                             value='Magma',
                             label='Colormap',
                         )
