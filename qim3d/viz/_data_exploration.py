@@ -3,6 +3,7 @@
 import inspect
 import math
 import warnings
+from collections import OrderedDict
 from collections.abc import Callable, Sequence
 from pathlib import Path
 from typing import Any, Literal
@@ -2531,34 +2532,112 @@ class VolumePlaneSlicer:
         color_range: list[float | None, float | None] = None,
         showscale: bool = True,
         opacity: float = 1.0,
+        max_display_dim: int = 256,
+        resample_order: int = 0,
+        slice_cache_size: int = 128,
+        downsample: bool = False,
     ):
+        """
+        max_display_dim: largest axis size used for interactive rendering (keeps UI snappy).
+        resample_order: interpolation order passed to scipy.ndimage.zoom when creating display volume.
+        """
         self.volume = volume
+        self.orig_shape = volume.shape
         self.color_map = color_map
         self.initial_colorscale = self.matplotlib_to_plotly_cmap(color_map)
         self.showscale = showscale
         self.opacity = opacity
 
+        # color range
         color_range = color_range if color_range else [None, None]
-        vmin = color_range[0] or volume.min()
-        vmax = color_range[1] or volume.max()
+        vmin = color_range[0] or float(volume.min())
+        vmax = color_range[1] or float(volume.max())
         self.color_range = [vmin, vmax]
-        self.z_max, self.y_max, self.x_max = volume.shape
 
+        # --- prepare a downsampled "display" volume to keep interactivity fast ---
+        self.max_display_dim = max_display_dim
+        self.resample_order = resample_order
+        self.downsample = bool(downsample)
+
+        largest = max(self.orig_shape)
+        if not self.downsample:
+            # Downsampling is disabled — use full-resolution volume for display.
+            scale = 1.0
+            self.display_volume = self.volume
+        else:
+            if largest > self.max_display_dim:
+                # Do NOT resample the whole volume up front for large inputs.
+                # We compute per-slice downsampled images on demand instead.
+                scale = self.max_display_dim / float(largest)
+                self.display_volume = None
+            else:
+                # Small input: create a display volume equal to the full volume (no extra resampling).
+                scale = 1.0
+                self.display_volume = self.volume
+
+        # store mapping scales from original -> display
+        # If we didn't build a small display_volume (large inputs), compute the
+        # expected display_shape by scaling the original shape. This avoids
+        # accessing .shape on None.
+        if self.display_volume is not None:
+            self.display_shape = self.display_volume.shape
+        else:
+            # compute integer display dims by scaling each original axis
+            self.display_shape = tuple(
+                max(1, int(round(s * scale))) for s in self.orig_shape
+            )
+
+        self.scale_factors = [
+            self.display_shape[i] / float(self.orig_shape[i]) for i in range(3)
+        ]
+
+        # expose original shape components early so mesh coords can use them
+        self.z_max, self.y_max, self.x_max = self.orig_shape
+
+        # per-slice downsample cache (LRU)
+        self._slice_cache: OrderedDict = OrderedDict()
+        self._slice_cache_size = slice_cache_size
+
+        # precompute mesh templates for the display resolution and cache them
+        dz, dy, dx = self.display_shape
+        z_coords = np.linspace(0, self.z_max - 1, dz)
+        y_coords = np.linspace(0, self.y_max - 1, dy)
+        x_coords = np.linspace(0, self.x_max - 1, dx)
+
+        # Mesh templates (only once)
+        # Z-plane templates: x_mesh_Z, y_mesh_Z (z value will be set to original slider index)
+        y_mesh_z, x_mesh_z = np.meshgrid(y_coords, x_coords, indexing='ij')
+        # Y-plane templates: z_mesh_Y, x_mesh_Y (y value will be set)
+        z_mesh_y, x_mesh_y = np.meshgrid(z_coords, x_coords, indexing='ij')
+        # X-plane templates: z_mesh_X, y_mesh_X (x value will be set)
+        z_mesh_x, y_mesh_x = np.meshgrid(z_coords, y_coords, indexing='ij')
+
+        self._mesh_cache = {
+            'Z': (x_mesh_z, y_mesh_z),  # shapes match a (y,x) slice
+            'Y': (x_mesh_y, z_mesh_y),  # shapes match a (z,x) slice
+            'X': (y_mesh_x, z_mesh_x),  # shapes match a (z,y) slice
+        }
+
+        self.z_max, self.y_max, self.x_max = self.orig_shape
+
+        # Figure + UI
         self.fig = go.FigureWidget()
         self._init_controls()
         self._init_surfaces()
-        self._update_figure()
+        self._update_figure()  # initialize display from cached meshes & display_volume
         self._set_observers()
 
     def _init_controls(self) -> None:
         # Slice controls
         slider_layout = widgets.Layout(width='400px')
+        # Note: sliders remain indexed in original volume coordinates
         self.x_slider = widgets.IntSlider(
             value=self.x_max // 2,
             min=0,
             max=self.x_max - 1,
             description='X',
             layout=slider_layout,
+            continuous_update=True,
         )
         self.y_slider = widgets.IntSlider(
             value=self.y_max // 2,
@@ -2566,6 +2645,7 @@ class VolumePlaneSlicer:
             max=self.y_max - 1,
             description='Y',
             layout=slider_layout,
+            continuous_update=True,
         )
         self.z_slider = widgets.IntSlider(
             value=self.z_max // 2,
@@ -2573,6 +2653,7 @@ class VolumePlaneSlicer:
             max=self.z_max - 1,
             description='Z',
             layout=slider_layout,
+            continuous_update=True,
         )
 
         checkbox_layout = widgets.Layout(width='20px')
@@ -2660,15 +2741,19 @@ class VolumePlaneSlicer:
         self.controls = widgets.HBox([slice_controls, whitespace, visual_controls])
 
     def _init_surfaces(self) -> None:
+        # initialize three surfaces using display meshes cached earlier
+        colorscale = self.initial_colorscale
         surfaces = [
             go.Surface(
                 name='ZYX'[i],
                 opacity=0,
-                colorscale=self.initial_colorscale,
+                colorscale=colorscale,
                 showscale=False,
                 cmin=self.color_range[0],
                 cmax=self.color_range[1],
                 showlegend=False,
+                # Do not provide surfacecolor here to avoid pre-loading data for every plane.
+                surfacecolor=None,
             )
             for i in range(3)
         ]
@@ -2687,61 +2772,160 @@ class VolumePlaneSlicer:
             showlegend=False,
         )
         self.fig.add_trace(colorbar_surface)
-        # self.fig.data will be a list of the surfaces in the order they were added
 
+        # Let Plotly automatically fit the scene to the data by using
+        # aspectmode='data' and autosize. Use exact voxel ranges (0..N-1).
         self.fig.update_layout(
-            width=1000,
-            height=500,
+            autosize=True,
             margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
             scene={
-                'xaxis': {'title': 'X', 'range': [0, self.x_max]},
-                'yaxis': {'title': 'Y', 'range': [0, self.y_max]},
-                'zaxis': {'title': 'Z', 'range': [0, self.z_max]},
-                'aspectmode': 'manual',
-                'aspectratio': {
-                    axis: (size / max(self.volume.shape)) * 1.3
-                    for axis, size in zip(
-                        ['x', 'y', 'z'], [self.x_max, self.y_max, self.z_max]
-                    )
-                },
+                'xaxis': {'title': 'X', 'range': [0, self.x_max - 1]},
+                'yaxis': {'title': 'Y', 'range': [0, self.y_max - 1]},
+                'zaxis': {'title': 'Z', 'range': [0, self.z_max - 1]},
+                'aspectmode': 'data',
             },
         )
 
+    def _map_index_to_display(self, orig_idx: int, axis: int) -> int:
+        # axis: 0->z,1->y,2->x
+        mapped = int(round(orig_idx * self.scale_factors[axis]))
+        # clip
+        mapped = max(0, min(mapped, self.display_shape[axis] - 1))
+        return mapped
+
+    def _get_display_slice(self, orig_idx: int, axis: int) -> np.ndarray:
+        """
+        Returns a downsampled 2D slice at display resolution for the given original index and axis
+        and caches results to keep the UI responsive.
+        """
+
+        key = (axis, int(orig_idx))
+        if key in self._slice_cache:
+            self._slice_cache.move_to_end(key)
+            return self._slice_cache[key]
+
+        # get original slice (high-res)
+        if self.display_volume is not None:
+            # fast path: use precomputed display volume
+            if axis == 0:
+                disp_idx = self._map_index_to_display(orig_idx, 0)
+                slice2d = self.display_volume[disp_idx, :, :]
+            elif axis == 1:
+                disp_idx = self._map_index_to_display(orig_idx, 1)
+                slice2d = self.display_volume[:, disp_idx, :]
+            else:
+                disp_idx = self._map_index_to_display(orig_idx, 2)
+                slice2d = self.display_volume[:, :, disp_idx]
+        else:
+            if axis == 0:
+                orig_slice = np.take(self.volume, indices=orig_idx, axis=0)
+                target_shape = (
+                    self.display_shape[1],
+                    self.display_shape[2],
+                )  # (dy, dx)
+            elif axis == 1:
+                orig_slice = np.take(self.volume, indices=orig_idx, axis=1)
+                target_shape = (
+                    self.display_shape[0],
+                    self.display_shape[2],
+                )  # (dz, dx)
+            else:
+                orig_slice = np.take(self.volume, indices=orig_idx, axis=2)
+                target_shape = (
+                    self.display_shape[0],
+                    self.display_shape[1],
+                )  # (dz, dy)
+
+            out_h, out_w = int(target_shape[0]), int(target_shape[1])
+
+            zoom_factors = (
+                float(out_h) / orig_slice.shape[0],
+                float(out_w) / orig_slice.shape[1],
+            )
+            slice2d = ndimage.zoom(
+                orig_slice,
+                zoom=zoom_factors,
+                order=self.resample_order,
+                prefilter=False,
+            )
+
+        slice2d = np.ascontiguousarray(slice2d)
+
+        # cache result with simple LRU eviction
+        if slice2d.dtype != np.float32:
+            slice2d = slice2d.astype(np.float32, copy=False)
+
+        self._slice_cache[key] = slice2d
+        if len(self._slice_cache) > self._slice_cache_size:
+            self._slice_cache.popitem(last=False)
+
+        return slice2d
+
     def _update_plane(self, plane: Literal['X', 'Y', 'Z']) -> None:
-        z, y, x = (np.arange(s) for s in [self.z_max, self.y_max, self.x_max])
+        """
+        Use cached meshes and the downsampled display_volume.
+        Sliders still operate in original coordinates; we map those to display indices.
+        """
         opacity = self.opacity_slider.value
 
         if plane == 'Z':
-            y_mesh, x_mesh = np.meshgrid(y, x, indexing='ij')
-            z_mesh = np.full_like(x_mesh, self.z_slider.value)
-            data = self.volume[self.z_slider.value, :, :]
+            # Z-plane: x/y meshes are already in original coordinate space
+            x_mesh, y_mesh = self._mesh_cache['Z']
+            z_mesh = np.full_like(x_mesh, float(self.z_slider.value))
+            data = self._get_display_slice(self.z_slider.value, axis=0)
             surface = self.fig.data[0]
 
         elif plane == 'Y':
-            z_mesh, x_mesh = np.meshgrid(z, x, indexing='ij')
-            y_mesh = np.full_like(z_mesh, self.y_slider.value)
-            data = self.volume[:, self.y_slider.value, :]
+            x_mesh, z_mesh = self._mesh_cache['Y']
+            y_mesh = np.full_like(z_mesh, float(self.y_slider.value))
+            data = self._get_display_slice(self.y_slider.value, axis=1)
             surface = self.fig.data[1]
 
         elif plane == 'X':
-            z_mesh, y_mesh = np.meshgrid(z, y, indexing='ij')
-            x_mesh = np.full_like(z_mesh, self.x_slider.value)
-            data = self.volume[:, :, self.x_slider.value]
+            y_mesh, z_mesh = self._mesh_cache['X']
+            x_mesh = np.full_like(z_mesh, float(self.x_slider.value))
+            data = self._get_display_slice(self.x_slider.value, axis=2)
             surface = self.fig.data[2]
 
         else:
             msg = f'Invalid plane: {plane}'
             raise ValueError(msg)
 
-        self._update_surface(surface, x_mesh, y_mesh, z_mesh, data, opacity)
+        # Only update attributes that change each slider move:
+        # update geometry references (x/y/z) from cached templates and surfacecolor
+        # this avoids repeated meshgrid allocations
+        with self.fig.batch_update():
+            surface.x = x_mesh
+            surface.y = y_mesh
+            surface.z = z_mesh
+            surface.surfacecolor = data
+            surface.opacity = opacity
 
     def _toggle_visibility(self, plane: Literal['X', 'Y', 'Z']) -> None:
+        # Toggle plotly visibility flag first
         if plane == 'X':
             self.fig.data[2].visible = self.show_x.value
+            # If turning on, ensure we have the slice loaded; do NOT load when turning off.
+            if self.show_x.value:
+                # Only load if surfacecolor is absent or empty
+                sc = getattr(self.fig.data[2], 'surfacecolor', None)
+                if sc is None or (hasattr(sc, 'size') and np.size(sc) == 0):
+                    self._update_plane('X')
         elif plane == 'Y':
             self.fig.data[1].visible = self.show_y.value
+            if self.show_y.value:
+                sc = getattr(self.fig.data[1], 'surfacecolor', None)
+                if sc is None or (hasattr(sc, 'size') and np.size(sc) == 0):
+                    self._update_plane('Y')
         elif plane == 'Z':
             self.fig.data[0].visible = self.show_z.value
+            if self.show_z.value:
+                sc = getattr(self.fig.data[0], 'surfacecolor', None)
+                if sc is None or (hasattr(sc, 'size') and np.size(sc) == 0):
+                    self._update_plane('Z')
+        else:
+            msg = f'Invalid plane: {plane}'
+            raise ValueError(msg)
 
     def _update_opacity(self) -> None:
         opacity = self.opacity_slider.value
@@ -2766,8 +2950,14 @@ class VolumePlaneSlicer:
 
     def _update_figure(self, change: dict = None) -> None:
         if change is None:
-            for plane in ['X', 'Y', 'Z']:
-                self._update_plane(plane)
+            # initial populate: only initialize planes that are visible to avoid
+            # loading slices for planes that the user doesn't want to see.
+            if self.show_x.value:
+                self._update_plane('X')
+            if self.show_y.value:
+                self._update_plane('Y')
+            if self.show_z.value:
+                self._update_plane('Z')
             return
 
         owner = change['owner']
@@ -2798,6 +2988,7 @@ class VolumePlaneSlicer:
         surfacecolor: np.ndarray,
         opacity: float,
     ) -> None:
+        # kept for compatibility; other code now calls _update_plane directly
         surface.x = x_mesh
         surface.y = y_mesh
         surface.z = z_mesh
@@ -2827,6 +3018,7 @@ def planes(
     color_map: str | matplotlib.colors.Colormap = 'magma',
     value_min: float = None,
     value_max: float = None,
+    downsample: bool = False,
 ) -> None:
     """
     Displays an interactive 3D widget for viewing orthogonal cross-sections through a volume.
@@ -2836,6 +3028,7 @@ def planes(
         color_map (str or matplotlib.colors.Colormap, optional): Specifies the matplotlib color map.
         value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range.
         value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range.
+        downsample (bool, optional): If True, large volumes are downsampled for interactive display. This keeps the UI responsive. Defaults to False.
 
     Returns:
         None
@@ -2851,5 +3044,8 @@ def planes(
 
     """
     VolumePlaneSlicer(
-        volume=volume, color_map=color_map, color_range=[value_min, value_max]
+        volume=volume,
+        color_map=color_map,
+        color_range=[value_min, value_max],
+        downsample=downsample,
     ).show()
