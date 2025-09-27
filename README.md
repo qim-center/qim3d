@@ -10,7 +10,7 @@ The `qim3d` (kɪm θriː diː) library is designed to make it easier to work wit
 
 You can easily load and process 3D image data from various file formats, apply filters and transformations to the data, visualize the results using interactive plots and 3D rendering, and perform quantitative analysis on the images.
 
-Documentation available at https://platform.qim.dk/qim3d/
+Documentation available at https://docs.qim.dk/qim3d/
 
 For more information on the QIM center visit https://qim.dk/
 

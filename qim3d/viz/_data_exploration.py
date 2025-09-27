@@ -1,6 +1,7 @@
 """Provides a collection of visualization functions."""
 
 import inspect
+import io
 import math
 import warnings
 from collections import OrderedDict
@@ -14,13 +15,14 @@ import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
+import PIL.Image
 import plotly.colors
 import plotly.graph_objects as go
 import pyvista as pv
 import seaborn as sns
 import skimage.measure
 import zarr
-from IPython.display import Image, Video, clear_output, display
+from IPython.display import HTML, Image, Video, clear_output, display
 from ipywidgets import widgets
 from ipywidgets.widgets import Output, Widget
 from matplotlib.colors import LinearSegmentedColormap
@@ -40,6 +42,7 @@ from skimage.filters import (
 import qim3d
 import qim3d.operations
 from qim3d.utils import log
+from qim3d.utils._decorators import coarseness
 
 # For progress bar in Jupyter notebooks
 try:
@@ -47,7 +50,10 @@ try:
 except ImportError:
     from tqdm import tqdm
 
+ColormapLike = str | matplotlib.colors.Colormap
 
+
+@coarseness('volume')
 def slices_grid(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -65,6 +71,9 @@ def slices_grid(
     interpolation: str | None = None,
     color_bar: bool = False,
     color_bar_style: str = 'small',
+    mask:np.ndarray = None,
+    mask_alpha:float = 0.4,
+    mask_color_map:str = 'gray',
     **matplotlib_imshow_kwargs,
 ) -> matplotlib.figure.Figure:
     """
@@ -221,6 +230,7 @@ def slices_grid(
             slice_idx = i * max_columns + j
             try:
                 slice_img = volume.take(slice_idxs[slice_idx], axis=slice_axis)
+                slice_mask = None if mask is None else mask.take(slice_idxs[slice_idx], axis = slice_axis)
 
                 if not color_bar:
                     # If value_min is higher than the highest value in the
@@ -251,6 +261,8 @@ def slices_grid(
                     vmax=new_value_max,
                     **matplotlib_imshow_kwargs,
                 )
+                if slice_mask is not None:
+                    ax.imshow(slice_mask, cmap = mask_color_map, alpha = mask_alpha)
 
                 if display_positions:
                     ax.text(
@@ -343,6 +355,7 @@ def _get_slice_range(position: int, num_slices: int, n_total: int) -> np.ndarray
     return slice_idxs
 
 
+@coarseness('volume')
 def slicer(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -355,6 +368,10 @@ def slicer(
     interpolation: str | None = None,
     image_size: int = None,
     color_bar: str = None,
+    mask:np.ndarray = None,
+    mask_alpha:float = 0.4,
+    mask_color_map = 'gray',
+    default_position:float|int = 0.5,
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
     """
@@ -372,6 +389,10 @@ def slicer(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
         color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
+        mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
+        mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
+        mask_color_map (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
+        default_position (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
         **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
@@ -429,12 +450,25 @@ def slicer(
             num_slices=1,
             display_figure=True,
             color_bar=show_color_bar,
+            mask = mask,
+            mask_alpha = mask_alpha,
+            mask_color_map = mask_color_map,
             **matplotlib_imshow_kwargs,
         )
         return fig
 
+        
+    if isinstance(default_position, float):
+        default_position = int( default_position * (volume.shape[slice_axis]-1))
+    if isinstance(default_position, int):
+        if default_position < 0:
+            default_position = volume.shape[slice_axis] - default_position
+        default_position = np.clip(default_position, a_min = 0, a_max = volume.shape[slice_axis]-1)
+    else:
+        default_position = volume.shape[slice_axis] // 2
+
     position_slider = widgets.IntSlider(
-        value=volume.shape[slice_axis] // 2,
+        value=default_position,
         min=0,
         max=volume.shape[slice_axis] - 1,
         description='Slice',
@@ -446,6 +480,7 @@ def slicer(
     return slicer_obj
 
 
+@coarseness('volume')
 def slicer_orthogonal(
     volume: np.ndarray,
     color_map: str = 'magma',
@@ -456,6 +491,13 @@ def slicer_orthogonal(
     display_positions: bool = False,
     interpolation: str | None = None,
     image_size: int = None,
+    color_bar:str = None,
+    mask:np.ndarray = None,
+    mask_alpha:float = 0.4,
+    mask_color_map:str = 'gray',
+    default_z:float|int = 0.5,
+    default_y:float|int = 0.5,
+    default_x:float|int = 0.5,
 ) -> widgets.interactive:
     """
     Interactive widget for visualizing orthogonal slices of a 3D volume.
@@ -470,7 +512,14 @@ def slicer_orthogonal(
         display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
-
+        color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
+        mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
+        mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
+        mask_color_map (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
+        default_x (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
+        default_y (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
+        default_z (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
+    
     Returns:
         slicer_orthogonal_obj (widgets.HBox): The interactive widget for visualizing orthogonal slices of a 3D volume.
 
@@ -489,7 +538,7 @@ def slicer_orthogonal(
         image_height = image_size
         image_width = image_size
 
-    get_slicer_for_axis = lambda slice_axis: slicer(
+    get_slicer_for_axis = lambda slice_axis, default_position: slicer(
         volume,
         slice_axis=slice_axis,
         color_map=color_map,
@@ -499,11 +548,16 @@ def slicer_orthogonal(
         image_width=image_width,
         display_positions=display_positions,
         interpolation=interpolation,
+        color_bar=color_bar,
+        mask = mask,
+        mask_alpha = mask_alpha,
+        mask_color_map = mask_color_map,
+        default_position=default_position
     )
 
-    z_slicer = get_slicer_for_axis(slice_axis=0)
-    y_slicer = get_slicer_for_axis(slice_axis=1)
-    x_slicer = get_slicer_for_axis(slice_axis=2)
+    z_slicer = get_slicer_for_axis(slice_axis=0, default_position=default_z)
+    y_slicer = get_slicer_for_axis(slice_axis=1, default_position=default_y)
+    x_slicer = get_slicer_for_axis(slice_axis=2, default_position=default_x) 
 
     z_slicer.children[0].description = 'Z'
     y_slicer.children[0].description = 'Y'
@@ -512,6 +566,7 @@ def slicer_orthogonal(
     return widgets.HBox([z_slicer, y_slicer, x_slicer])
 
 
+@coarseness('volume')
 def fade_mask(
     volume: np.ndarray,
     axis: int = 0,
@@ -873,6 +928,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     return container
 
 
+@coarseness('volume')
 def histogram(
     volume: np.ndarray,
     coarseness: int | list[int] = 1,
@@ -964,9 +1020,6 @@ def histogram(
         raise ValueError(msg)
 
     title_suffixes = []
-    if coarseness > 1:
-        volume = qim3d.operations.subsample(volume, coarseness)
-        title_suffixes.append('subsampled shape')
 
     if slice_idx == 'middle':
         slice_idx = volume.shape[slice_axis] // 2
@@ -1323,6 +1376,7 @@ class _LineProfile:
         return widgets.VBox([controls, interactive_plot])
 
 
+@coarseness('volume')
 def line_profile(
     volume: np.ndarray,
     slice_axis: int = 0,
@@ -1443,6 +1497,7 @@ def line_profile(
     return lp.build_interactive()
 
 
+@coarseness('volume')
 def threshold(
     volume: np.ndarray,
     cmap_image: str = 'magma',
@@ -2036,6 +2091,7 @@ class _VolumeComparison:
         return widgets.VBox([controls, interactive_plot, figs])
 
 
+@coarseness('volume1', 'volume2')
 def compare_volumes(
     volume1: np.ndarray,
     volume2: np.ndarray,
@@ -2310,7 +2366,7 @@ class IsoSurface:
         display(ui)
 
 
-# helper function
+@coarseness('vol')
 def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
     """
     Creates an interactive iso-surface visualizer for a single surface level.
@@ -3013,6 +3069,7 @@ class VolumePlaneSlicer:
         display(self.controls, self.fig)
 
 
+@coarseness('volume')
 def planes(
     volume: np.ndarray,
     color_map: str | matplotlib.colors.Colormap = 'magma',
@@ -3049,3 +3106,247 @@ def planes(
         color_range=[value_min, value_max],
         downsample=downsample,
     ).show()
+
+
+class OverlaySlicer:
+    _css_injected = False  # class-level flag
+
+    def __init__(
+        self,
+        vol1: np.ndarray,
+        vol2: np.ndarray,
+        display_size: int = 512,
+        cmaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
+        volume1_values: tuple[float, float] = (None, None),
+        volume2_values: tuple[float, float] = (None, None),
+    ):
+        self.vol1 = vol1
+        self.vol2 = vol2
+        self.display_size = display_size
+
+        if isinstance(cmaps, str | matplotlib.colors.Colormap):
+            cmaps = (cmaps, cmaps)
+        self.cmaps = tuple(matplotlib.cm.get_cmap(c) for c in cmaps)
+        self.img_format = 'png'
+
+        self.slice_axis = 0
+        self.slice_index = vol1.shape[self.slice_axis] // 2
+
+        self.volume1_values = volume1_values
+        self.volume2_values = volume2_values
+
+        # inject CSS
+        if not OverlaySlicer._css_injected:
+            display(
+                HTML("""
+            <style>
+            .pixelated {
+                image-rendering: pixelated !important;
+                image-rendering: crisp-edges !important;
+            }
+            </style>
+            """)
+            )
+            OverlaySlicer._css_injected = True
+
+        self._init_widgets()
+        self._update_slice_axis(self.slice_axis)
+        self._set_observers()
+        self._update(
+            slice_axis=self.slice_axis_widget.value,
+            slice_index=self.slice_index_widget.value,
+            fade=self.fade_slider.value,
+        )
+
+    def _init_widgets(self) -> None:
+        self.fade_slider = widgets.FloatSlider(
+            value=0.5,
+            min=0.0,
+            max=1.0,
+            step=0.01,
+            description='',
+            continuous_update=True,
+            readout=False,
+        )
+        self.fade_slider.layout.width = f'{self.display_size}px'
+        self.fade_slider.style = {'handle_color': None, 'description_width': '0px'}
+
+        self.slice_axis_widget = widgets.Dropdown(
+            options=[0, 1, 2], value=self.slice_axis, description='Slice axis'
+        )
+        self.slice_axis_widget.layout.width = '250px'
+
+        self.slice_index_widget = widgets.IntSlider(
+            min=0,
+            step=1,
+            description='Slice index',
+            layout=widgets.Layout(width='400px', height='auto'),
+        )
+
+        # image + centering container
+        self.img_widget = widgets.Image(format=self.img_format)
+        self.img_widget.add_class('pixelated')  # ensures nearest-neighbor
+        self.img_box = widgets.Box(
+            [self.img_widget],
+            layout=widgets.Layout(
+                width=f'{self.display_size}px',
+                justify_content='center',
+                align_items='center',
+            ),
+        )
+
+    def _set_observers(self) -> None:
+        self.fade_slider.observe(self._on_change, names='value')
+        self.slice_axis_widget.observe(self._on_change, names='value')
+        self.slice_index_widget.observe(self._on_change, names='value')
+
+    def _on_change(self, _change: dict) -> None:
+        self._update(
+            slice_axis=self.slice_axis_widget.value,
+            slice_index=self.slice_index_widget.value,
+            fade=self.fade_slider.value,
+        )
+
+    def _update_slice_axis(self, slice_axis: int) -> None:
+        self.slice_axis = slice_axis
+        axis_len = self.vol1.shape[slice_axis]
+        self.slice_index_widget.max = axis_len - 1
+        self.slice_index_widget.value = axis_len // 2
+
+    @staticmethod
+    def _normalize(
+        arr: np.ndarray, clim: tuple[float, float] = (None, None)
+    ) -> np.ndarray:
+        """Normalize to float in the interval [0,1]."""
+        a = arr.astype(float)
+        vmin = clim[0] if clim[0] else a.min()
+        vmax = clim[1] if clim[1] else a.max()
+        if vmax == vmin:
+            vmax = vmin + 1.0
+        return (a - vmin) / (vmax - vmin)
+
+    def _blend(self, fraction: float) -> np.ndarray:
+        """Blends slices by first converting to the colormaps' RGB space."""
+        slice_axis = self.slice_axis_widget.value
+        slice_index = self.slice_index_widget.value
+        slice1 = self._normalize(
+            np.take(self.vol1, slice_index, axis=slice_axis), clim=self.volume1_values
+        )
+        slice2 = self._normalize(
+            np.take(self.vol2, slice_index, axis=slice_axis), clim=self.volume2_values
+        )
+        # cmap requires values in the interval [0,1] for its call method and returns RGBA in [0,1] as the last axis
+        # drop alpha
+        slice1_rgb = self.cmaps[0](slice1)[..., :3]
+        slice2_rgb = self.cmaps[1](slice2)[..., :3]
+
+        slice_blended = (1.0 - fraction) * slice1_rgb + fraction * slice2_rgb
+        return slice_blended
+
+    def _rgb_arr_to_bytes(self, arr: np.ndarray) -> bytes:
+        arr = self._normalize(arr)
+        arr = (arr * 255).astype(np.uint8)
+
+        buf = io.BytesIO()
+        PIL.Image.fromarray(arr, mode='RGB').save(buf, format=self.img_format.upper())
+        return buf.getvalue()
+
+    def _update(self, slice_axis: int, slice_index: int, fade: float) -> None:
+        if slice_axis != self.slice_axis:
+            self._update_slice_axis(slice_axis)
+            slice_index = self.slice_index_widget.value
+
+        blended = self._blend(fade)
+        self.img_widget.value = self._rgb_arr_to_bytes(blended)
+
+        # --- make display_size the maximum dimension ---
+        h, w = blended.shape[:2]
+        if w >= h:
+            self.img_widget.layout.width = f'{self.display_size}px'
+            self.img_widget.layout.height = 'auto'
+        else:
+            self.img_widget.layout.width = 'auto'
+            self.img_widget.layout.height = f'{self.display_size}px'
+
+        # ensure the centering box and slider share the same width
+        self.img_box.layout.width = f'{self.display_size}px'
+        self.fade_slider.layout.width = f'{self.display_size}px'
+
+    # ---------- public builder ----------
+    def build_interactive(self) -> widgets.VBox:
+        left_label = widgets.Label('volume1', layout=widgets.Layout(width='auto'))
+        right_label = widgets.Label('volume2', layout=widgets.Layout(width='auto'))
+        labels_row = widgets.HBox(
+            [
+                left_label,
+                widgets.Box(layout=widgets.Layout(flex='1 1 auto')),
+                right_label,
+            ],
+            layout=widgets.Layout(width=f'{self.display_size}px'),
+        )
+
+        return widgets.VBox(
+            [
+                self.slice_axis_widget,
+                self.slice_index_widget,
+                self.img_box,
+                self.fade_slider,
+                labels_row,
+            ]
+        )
+
+
+def overlay(
+    volume1: np.ndarray,
+    volume2: np.ndarray,
+    volume1_values: tuple[float, float] = (None, None),
+    volume2_values: tuple[float, float] = (None, None),
+    colormaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
+    display_size: int = 512,
+) -> widgets.interactive:
+    """
+    Returns an interactive widget for comparing two volumes along slices in a fading overlay image.
+
+    Args:
+        volume1 (np.ndarray): The first volume.
+        volume2 (np.ndarray): The second volume.
+        volume1_values (tuple[float, float], optional): Set the color limits of volume1.
+        volume2_values (tuple[float, float], optional): Set the color limits of volume2.
+        colormaps (ColormapLike or tuple[ColormapLike, ColormapLike], optional): Specifies the colormaps used for each volume. A single value will be applied to both volumes.
+        display_size (int, optional): Size in pixels of the image. If image is non-square, then the largest dimension will have display_size pixels.
+
+    Returns:
+        widget (widgets.widget_box.VBox): The interactive widget.
+
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.cement_128x128x128
+        binary = qim3d.filters.gaussian(vol, sigma=2) < 60
+        labeled_volume, num_labels = qim3d.segmentation.watershed(binary)
+
+        segm_cmap = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
+
+        qim3d.viz.overlay(vol, labeled_volume, colormaps=('grey', segm_cmap), volume2_values=(0, num_labels))
+        ```
+        ![viz overlay](../../assets/screenshots/viz-overlay.gif)
+
+    """
+    if volume1.ndim != 3:
+        msg = 'Volume must be 3D.'
+        raise ValueError(msg)
+    if volume1.shape != volume2.shape:
+        msg = 'Volumes must have the same shape.'
+        raise ValueError(msg)
+
+    interactive_widget = OverlaySlicer(
+        vol1=volume1,
+        vol2=volume2,
+        cmaps=colormaps,
+        display_size=display_size,
+        volume1_values=volume1_values,
+        volume2_values=volume2_values,
+    ).build_interactive()
+    return interactive_widget
