@@ -147,7 +147,6 @@ class Downloader:
         load_file: bool = False,
         virtual_stack: bool = True,
         scale: int = 0,
-        numpy: bool = False,
     ) -> object:
         """
         Download any file given its URL.
@@ -159,13 +158,11 @@ class Downloader:
         output_dir : str
             Base directory to save files. Default = current working directory.
         load_file : bool
-            If True, call qim3d.io.load() after download. In the case of Zarr/OME-Zarr, returns a dask array.
+            If True load the file after download.
         virtual_stack : bool
-            Passed to qim3d.io.load().
+            If true it loads the file on demand as a virtual stack. In the case of
         scale : int
             If load_file is True and the file is a Zarr/OME-Zarr store, scale factor to load. Default = 0 (full resolution).
-        numpy : bool
-            If load_file is True and the file is a Zarr/OME-Zarr store, whether to return a dask array. Default = True.
 
 
         Returns
@@ -188,10 +185,14 @@ class Downloader:
                 log.info(f'Downloading Zarr store {fname}\n{url}')
                 download(url, output_dir=output_dir)  # return always None
             if load_file:
+                # If virtual stack == True --> dask array --> need to call False in load (we don't want call .compute())
+                # If virtual stack == False --> numpy array --> need to call True in load (we want call .compute())
                 log.info(
-                    f"\nLoading scale={scale} from {fname} as {'numpy array' if numpy else 'dask array'}"
+                    f"\nLoading scale={scale} from {fname} as {'numpy array' if not virtual_stack else 'dask array'}"
                 )
-                return qim3d.io.import_ome_zarr(dest, scale=scale, load=numpy)
+                return qim3d.io.import_ome_zarr(
+                    dest, scale=scale, load=not virtual_stack
+                )
             return dest
 
         # --- Regular single file ---
