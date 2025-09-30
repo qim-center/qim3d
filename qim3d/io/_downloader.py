@@ -7,17 +7,13 @@ from collections.abc import Callable
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlparse
 
-import fsspec
-import zarr
-import shutil
-
 import outputformat as ouf
 from tqdm import tqdm
 
 import qim3d
 from qim3d.io import load
 from qim3d.utils import log
-import ome_zarr
+
 from ome_zarr.utils import download
 __all__ = ['Downloader', 'download_file']
 
