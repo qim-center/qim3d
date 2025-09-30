@@ -14,9 +14,11 @@ import shutil
 import outputformat as ouf
 from tqdm import tqdm
 
+import qim3d
 from qim3d.io import load
 from qim3d.utils import log
-
+import ome_zarr
+from ome_zarr.utils import download
 __all__ = ['Downloader', 'download_file']
 
 
@@ -145,63 +147,53 @@ class Downloader:
     def __call__(
         self, 
         url: str, 
+        output_dir: str = ".",
         load_file: bool = False, 
         virtual_stack: bool = True, 
-        offline: bool = True, 
-        output_dir: str = "."
-    ):
+        scale: int = 0,
+        numpy: bool = False,
+    ) -> object:
         """
         Download any file given its URL.
 
         Parameters
         ----------
         url : str
-            File or Zarr/OME-Zarr store URL.
-        load_file : bool
-            If True, call qim3d.io.load() after download.
-        virtual_stack : bool
-            Passed to qim3d.io.load().
-        offline : bool
-            If True, download locally. If False and format is zarr or ome zarr, stream directly.
+            URL of the file to download. Supported formats are regular files (Tiff, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM) and Zarr/OME-Zarr stores (.zarr).
         output_dir : str
             Base directory to save files. Default = current working directory.
+        load_file : bool
+            If True, call qim3d.io.load() after download. In the case of Zarr/OME-Zarr, returns a dask array.
+        virtual_stack : bool
+            Passed to qim3d.io.load().
+        scale : int
+            If load_file is True and the file is a Zarr/OME-Zarr store, scale factor to load. Default = 0 (full resolution).
+        dask : bool
+            If load_file is True and the file is a Zarr/OME-Zarr store, whether to return a dask array. Default = True.            
+        
 
         Returns
         -------
-        Local path or Zarr store (if streaming).
+        If load_file is False, returns the path to the downloaded file or Zarr store.
+        If load_file is True and the file is a regular file, returns the loaded image (numpy array or virtual stack).
+        If load_file is True and the file is a Zarr/OME-Zarr store, returns a dask array (if numpy=False) or numpy array (if numpy=True).
         """
 
         parsed = urlparse(url)
-        fname = os.path.basename(parsed.path.rstrip("/"))  # works for file or zarr folder
-        dest = os.path.join(output_dir, fname)             # path inside output_dir
-
+        fname = os.path.basename(parsed.path.rstrip("/"))  
+        dest = os.path.join(output_dir, fname)             
+        
         # --- Zarr / OME-Zarr store ---
         if fname.endswith(".zarr") or fname.endswith(".ome.zarr"):
-            if offline:
-                if os.path.exists(dest):
-                    log.warning(f"Zarr store already downloaded:\n{os.path.abspath(dest)}")
-                else:
-                    log.info(f"Downloading Zarr store {fname}\n{url}")
-                    files = fsspec.open_files(f"{url}/**", mode="rb")  # recursive glob
-                    for f in tqdm(files, desc=f"Downloading {fname}"):
-                        relpath = f.path.split(url)[-1].lstrip("/")
-                        local_path = os.path.join(dest, relpath)
-                        os.makedirs(os.path.dirname(local_path), exist_ok=True)
-                        with f as src, open(local_path, "wb") as dst:
-                            shutil.copyfileobj(src, dst)
-
-                if load_file:
-                    log.info(f"\nLoading local Zarr store {fname}")
-                    return load(path=dest, virtual_stack=virtual_stack)
-                return dest
-
+            if os.path.exists(dest):
+                log.warning(f"Zarr store already downloaded:\n{os.path.abspath(dest)}")
             else:
-                # Online streaming (no download)
-                log.info(f"Streaming Zarr store directly from {url}")
-                store = fsspec.get_mapper(url)
-                if load_file:
-                    return zarr.open(store, mode="r")
-                return store
+                log.info(f"Downloading Zarr store {fname}\n{url}")
+                download(url, output_dir=output_dir) # return always None
+            if load_file:
+                log.info(f"\nLoading scale={scale} from {fname} as {'numpy array' if numpy else 'dask array'}")
+                return qim3d.io.import_ome_zarr(dest, scale=scale, load=numpy)
+            return dest
 
         # --- Regular single file ---
         if os.path.exists(dest):
