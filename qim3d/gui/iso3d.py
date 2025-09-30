@@ -24,9 +24,8 @@ import plotly.graph_objects as go
 from scipy import ndimage
 
 import qim3d
-from qim3d.gui.interface import InterfaceWithExamples, COLORMAPS
+from qim3d.gui.interface import InterfaceWithExamples
 from qim3d.utils._logger import log
-
 
 # TODO img in launch should be self.img
 class Interface(InterfaceWithExamples):
@@ -192,7 +191,7 @@ class Interface(InterfaceWithExamples):
         # as it otherwise is not deleted
         os.remove('iso3d.html')
 
-    def define_interface(self, **kwargs):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         gr.Markdown(
             """
                 This tool uses Plotly Volume (https://plotly.com/python/3d-volume-plots/) to create iso surfaces from voxels based on their intensity levels.
@@ -273,7 +272,27 @@ class Interface(InterfaceWithExamples):
                 with gr.Tab('Misc'):
                     with gr.Row():
                         colormap = gr.Dropdown(
-                            choices=COLORMAPS,
+                            choices=[
+                                'Blackbody',
+                                'Bluered',
+                                'Blues',
+                                'Cividis',
+                                'Earth',
+                                'Electric',
+                                'Greens',
+                                'Greys',
+                                'Hot',
+                                'Jet',
+                                'Magma',
+                                'Picnic',
+                                'Portland',
+                                'Rainbow',
+                                'RdBu',
+                                'Reds',
+                                'Viridis',
+                                'YlGnBu',
+                                'YlOrRd',
+                            ],
                             value='Magma',
                             label='Colormap',
                         )

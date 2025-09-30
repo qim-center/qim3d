@@ -129,7 +129,7 @@ class Interface(BaseInterface):
 
         return files_list
 
-    def define_interface(self, **kwargs):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         brush = gr.Brush(
             colors=[
                 'rgb(255,50,100)',
