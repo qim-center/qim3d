@@ -8,13 +8,13 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlparse
 
 import outputformat as ouf
+from ome_zarr.utils import download
 from tqdm import tqdm
 
 import qim3d
 from qim3d.io import load
 from qim3d.utils import log
 
-from ome_zarr.utils import download
 __all__ = ['Downloader', 'download_file']
 
 
@@ -44,7 +44,7 @@ class _Myfolder:
                 file_name = file_name.replace('%20', '_')
                 file_name = file_name.replace('-', '_')
 
-            setattr(self, f'{file_name.split(".")[0]}', self._make_fn(folder, file))
+            setattr(self, f'{file_name.split('.')[0]}', self._make_fn(folder, file))
 
     def _make_fn(self, folder: str, file: str) -> Callable[[bool, bool], object]:
         """
@@ -141,11 +141,11 @@ class Downloader:
             setattr(self, folder, _Myfolder(folder))
 
     def __call__(
-        self, 
-        url: str, 
-        output_dir: str = ".",
-        load_file: bool = False, 
-        virtual_stack: bool = True, 
+        self,
+        url: str,
+        output_dir: str = '.',
+        load_file: bool = False,
+        virtual_stack: bool = True,
         scale: int = 0,
         numpy: bool = False,
     ) -> object:
@@ -164,69 +164,73 @@ class Downloader:
             Passed to qim3d.io.load().
         scale : int
             If load_file is True and the file is a Zarr/OME-Zarr store, scale factor to load. Default = 0 (full resolution).
-        dask : bool
-            If load_file is True and the file is a Zarr/OME-Zarr store, whether to return a dask array. Default = True.            
-        
+        numpy : bool
+            If load_file is True and the file is a Zarr/OME-Zarr store, whether to return a dask array. Default = True.
+
 
         Returns
         -------
         If load_file is False, returns the path to the downloaded file or Zarr store.
         If load_file is True and the file is a regular file, returns the loaded image (numpy array or virtual stack).
         If load_file is True and the file is a Zarr/OME-Zarr store, returns a dask array (if numpy=False) or numpy array (if numpy=True).
+
         """
 
         parsed = urlparse(url)
-        fname = os.path.basename(parsed.path.rstrip("/"))  
-        dest = os.path.join(output_dir, fname)             
-        
+        fname = os.path.basename(parsed.path.rstrip('/'))
+        dest = os.path.join(output_dir, fname)
+
         # --- Zarr / OME-Zarr store ---
-        if fname.endswith(".zarr") or fname.endswith(".ome.zarr"):
+        if fname.endswith(('.zarr', '.ome.zarr')):
             if os.path.exists(dest):
-                log.warning(f"Zarr store already downloaded:\n{os.path.abspath(dest)}")
+                log.warning(f'Zarr store already downloaded:\n{os.path.abspath(dest)}')
             else:
-                log.info(f"Downloading Zarr store {fname}\n{url}")
-                download(url, output_dir=output_dir) # return always None
+                log.info(f'Downloading Zarr store {fname}\n{url}')
+                download(url, output_dir=output_dir)  # return always None
             if load_file:
-                log.info(f"\nLoading scale={scale} from {fname} as {'numpy array' if numpy else 'dask array'}")
+                log.info(
+                    f"\nLoading scale={scale} from {fname} as {'numpy array' if numpy else 'dask array'}"
+                )
                 return qim3d.io.import_ome_zarr(dest, scale=scale, load=numpy)
             return dest
 
         # --- Regular single file ---
         if os.path.exists(dest):
-            log.warning(f"File already downloaded:\n{os.path.abspath(dest)}")
+            log.warning(f'File already downloaded:\n{os.path.abspath(dest)}')
             if load_file:
                 return load(path=dest, virtual_stack=virtual_stack)
             return dest
         else:
-            log.info(f"Downloading file {fname}\n{url}")
+            log.info(f'Downloading file {fname}\n{url}')
             try:
                 total = _get_file_size(url)
             except (HTTPError, URLError):
                 total = None
 
             os.makedirs(output_dir, exist_ok=True)
-            with tqdm(total=total, unit="B", unit_scale=True, unit_divisor=1024, ncols=80) as pbar:
+            with tqdm(
+                total=total, unit='B', unit_scale=True, unit_divisor=1024, ncols=80
+            ) as pbar:
                 try:
                     urllib.request.urlretrieve(
                         url,
                         dest,
-                        reporthook=lambda blocknum, bs, total: _update_progress(pbar, blocknum, bs),
+                        reporthook=lambda blocknum, bs, total: _update_progress(
+                            pbar, blocknum, bs
+                        ),
                     )
                 except HTTPError as http_err:
-                    raise FileNotFoundError(
-                        f"Failed to download {url!r}: server returned HTTP {http_err.code}"
-                    ) from http_err
+                    msg = f'Failed to download {url!r}: server returned HTTP {http_err.code}'
+                    raise FileNotFoundError(msg) from http_err
                 except URLError as url_err:
-                    raise ConnectionError(
-                        f"Failed to reach {url!r}: {url_err.reason}"
-                    ) from url_err
+                    msg = f'Failed to reach {url!r}: {url_err.reason}'
+                    raise ConnectionError(msg) from url_err
 
         if load_file:
-            log.info(f"\nLoading {fname}")
+            log.info(f'\nLoading {fname}')
             return load(path=dest, virtual_stack=virtual_stack)
 
         return dest
-
 
     def list_files(self) -> None:
         """Generate and print formatted folder, file, and size information."""
