@@ -151,25 +151,55 @@ class Downloader:
         """
         Download any file given its URL.
 
-        Parameters
-        ----------
-        url : str
-            URL of the file to download. Supported formats are regular files (Tiff, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM) and Zarr/OME-Zarr stores (.zarr).
-        output_dir : str
-            Base directory to save files. Default = current working directory.
-        load_file : bool
-            If True load the file after download.
-        virtual_stack : bool
-            If true it loads the file on demand as a virtual stack. In the case of
-        scale : int
-            If load_file is True and the file is a Zarr/OME-Zarr store, scale factor to load. Default = 0 (full resolution).
+        Args:
+            url (str):
+                URL of the file to download. Supported formats are regular files
+                (TIFF, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM) and
+                Zarr/OME-Zarr stores (.zarr).
+            output_dir (str, optional):
+                Base directory to save files. Default is the current working directory.
+            load_file (bool, optional):
+                If True, load the file after download. Default is False.
+            virtual_stack (bool, optional):
+                If True and the file format supports it, load the file on demand
+                as a virtual stack (lazy loading). Default is True.
+            scale (int, optional):
+                If `load_file` is True and the file is a Zarr/OME-Zarr store, the scale parameter specifies the resolution level to load. Default is 0 (full resolution).
 
+        Returns:
+        str or numpy.ndarray or dask.array.Array:
+            - If `load_file` is False, returns the path to the downloaded file
+            or Zarr store.
+            - If `load_file` is True and the file is a **regular file**:
+                - Returns a NumPy array if `virtual_stack=False`.
+                - Returns a virtual stack (lazy-loaded NumPy-like object) if
+                `virtual_stack=True`.
+            - If `load_file` is True and the file is a **Zarr/OME-Zarr store**:
+                - Returns a NumPy array at the requested `scale` if
+                `virtual_stack=False`.
+                - Returns a Dask array at the requested `scale` if
+                `virtual_stack=True`.
 
-        Returns
-        -------
-        If load_file is False, returns the path to the downloaded file or Zarr store.
-        If load_file is True and the file is a regular file, returns the loaded image (numpy array or virtual stack).
-        If load_file is True and the file is a Zarr/OME-Zarr store, returns a dask array (if numpy=False) or numpy array (if numpy=True).
+        Example:
+            ```python
+            import qim3d
+
+            downloader = qim3d.io.Downloader()
+
+            # Download a file without loading
+            path = downloader(
+                url="https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Cowry_Shell/Cowry_DOWNSAMPLED.tif",
+                output_dir=".",
+                load_file=False
+            )
+
+            # Download and load directly as a NumPy array
+            data = downloader(
+                url="https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Cowry_Shell/Cowry_DOWNSAMPLED.tif",
+                load_file=True,
+                virtual_stack=False
+            )
+            ```
 
         """
 
