@@ -2601,6 +2601,9 @@ class VolumePlaneSlicer:
         self.initial_colorscale = self.matplotlib_to_plotly_cmap(color_map)
         self.showscale = showscale
         self.opacity = opacity
+        self.continuous_update = self.volume.size <= 250**3  # only for small volumes
+
+        self._last_indices = {}
 
         color_range = color_range if color_range else [None, None]
         vmin = color_range[0] or volume.min()
@@ -2634,7 +2637,7 @@ class VolumePlaneSlicer:
             max=self.x_max - 1,
             description='X',
             layout=slider_layout,
-            continuous_update=False,
+            continuous_update=self.continuous_update,
         )
         self.y_slider = widgets.IntSlider(
             value=self.y_max // 2,
@@ -2642,7 +2645,7 @@ class VolumePlaneSlicer:
             max=self.y_max - 1,
             description='Y',
             layout=slider_layout,
-            continuous_update=False,
+            continuous_update=self.continuous_update,
         )
         self.z_slider = widgets.IntSlider(
             value=self.z_max // 2,
@@ -2650,7 +2653,7 @@ class VolumePlaneSlicer:
             max=self.z_max - 1,
             description='Z',
             layout=slider_layout,
-            continuous_update=False,
+            continuous_update=self.continuous_update,
         )
 
         checkbox_layout = widgets.Layout(width='20px')
@@ -2678,6 +2681,7 @@ class VolumePlaneSlicer:
             step=0.05,
             description='Opacity',
             layout=widgets.Layout(width='350px'),
+            continuous_update=self.continuous_update,
         )
         is_int = np.issubdtype(self.volume.dtype, np.integer)
         crange_slider_type = (
@@ -2689,7 +2693,7 @@ class VolumePlaneSlicer:
             max=self.color_range[1],
             step=1 if is_int else (self.color_range[1] - self.color_range[0]) / 100,
             description='Color range',
-            continuous_update=True,
+            continuous_update=self.continuous_update,
             layout=widgets.Layout(width='400px'),
         )
 
@@ -2863,7 +2867,7 @@ class VolumePlaneSlicer:
         )
         if getattr(self, '_last_key', None) == key:
             return
-        self.last_key = key
+        self._last_key = key
 
         with self.fig.batch_update():
             opacity = self.opacity_slider.value
@@ -2876,11 +2880,11 @@ class VolumePlaneSlicer:
                 data = data.astype(np.float32, copy=False)
                 s = self.fig.data[0]
                 # Update constant Z-plane only if index changed
-                if not hasattr(s, 'last_k') or s.last_k != k:
+                if self._last_indices.get('k') != k:
                     s.z = np.full(
                         (self.y_max, self.x_max), self.z_axis[k], dtype=np.float32
                     )
-                    s.last_k = k
+                    self._last_indices['k'] = k
                 q = self._quantize_to_u8(data)
                 s.surfacecolor = q
                 s.opacity = opacity
@@ -2892,11 +2896,11 @@ class VolumePlaneSlicer:
                     data = np.ascontiguousarray(data)
                 data = data.astype(np.float32, copy=False)
                 s = self.fig.data[1]
-                if not hasattr(s, 'last_j') or s.last_j != j:
+                if self._last_indices.get('j') != j:
                     s.y = np.full(
                         (self.z_max, self.x_max), self.y_axis[j], dtype=np.float32
                     )
-                    s.last_j = j
+                    self._last_indices['j'] = j
                 q = self._quantize_to_u8(data)
                 s.surfacecolor = q
                 s.opacity = opacity
@@ -2908,11 +2912,11 @@ class VolumePlaneSlicer:
                     data = np.ascontiguousarray(data)
                 data = data.astype(np.float32, copy=False)
                 s = self.fig.data[2]
-                if not hasattr(s, 'last_i') or s.last_i != i:
+                if self._last_indices.get('i') != i:
                     s.x = np.full(
                         (self.z_max, self.y_max), self.x_axis[i], dtype=np.float32
                     )
-                    s.last_i = i
+                    self._last_indices['i'] = i
                 q = self._quantize_to_u8(data)
                 s.surfacecolor = q
                 s.opacity = opacity
