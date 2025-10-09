@@ -267,7 +267,7 @@ class DataSaver:
 
         ds.save_as(path)
 
-    def save_to_zarr(self, path: str | os.PathLike, data: da.core.Array):
+    def save_to_zarr(self, path: str | os.PathLike, data: da.Array):
         """
         Saves a Dask array to a Zarr array on disk.
 
@@ -276,7 +276,7 @@ class DataSaver:
             data (dask.array.core.Array): The Dask array to be saved to disk.
 
         Returns:
-            zarr.core.Array: The Zarr array saved on disk.
+            zarr.Array: The Zarr array saved on disk.
 
         """
 

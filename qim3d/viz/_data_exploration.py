@@ -105,7 +105,7 @@ def slices_grid(
         fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
 
     Raises:
-        ValueError: If the input is not a numpy.ndarray or da.core.Array.
+        ValueError: If the input is not a numpy.ndarray or da.Array.
         ValueError: If the slice_axis to slice along is not a valid choice, i.e. not an integer between 0 and the number of dimensions of the volume minus 1.
         ValueError: If the file or array is not a volume with at least 3 dimensions.
         ValueError: If the `position` keyword argument is not a integer, list of integers or one of the following strings: "start", "mid" or "end".
@@ -131,7 +131,7 @@ def slices_grid(
         interpolation = 'none'
 
     # Numpy array or Torch tensor input
-    if not isinstance(volume, np.ndarray | da.core.Array):
+    if not isinstance(volume, np.ndarray | da.Array):
         msg = 'Data type not supported'
         raise ValueError(msg)
 
@@ -144,7 +144,7 @@ def slices_grid(
         msg = f"Value '{color_bar_style}' is not valid for colorbar style. Please select from {color_bar_style_options}."
         raise ValueError(msg)
 
-    if isinstance(volume, da.core.Array):
+    if isinstance(volume, da.Array):
         volume = volume.compute()
 
     # Ensure axis is a valid choice
@@ -214,7 +214,7 @@ def slices_grid(
         axs = [axs]  # Convert to a list for uniformity
 
     # Convert to NumPy array in order to use the numpy.take method
-    if isinstance(volume, da.core.Array):
+    if isinstance(volume, da.Array):
         volume = volume.compute()
 
     if color_bar:
@@ -854,7 +854,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
             vol = qim3d.viz.volumetric(chunk, show=False, **kw)
             display(vol)
         return out
-
+    # print(zarr_data.chunks)
     scale_opts = {f'{i} {zarr_data[i].shape}': i for i in range(len(zarr_data))}
     drop_style = {'description_width': '120px'}
     scale_dd = widgets.Dropdown(
@@ -1444,7 +1444,7 @@ def line_profile(
             msg = 'Axis position must be of type int or str.'
             raise TypeError(msg)
 
-    if not isinstance(volume, np.ndarray | da.core.Array):
+    if not isinstance(volume, np.ndarray | da.Array):
         msg = 'Data type for volume not supported.'
         raise ValueError(msg)
     if volume.ndim != 3:
@@ -1705,8 +1705,8 @@ def threshold(
 class _VolumeComparison:
     def __init__(
         self,
-        volume1: np.ndarray | da.core.Array,
-        volume2: np.ndarray | da.core.Array,
+        volume1: np.ndarray | da.Array,
+        volume2: np.ndarray | da.Array,
         slice_axis: int,
         slice_index: int,
         k3d: bool = False,
