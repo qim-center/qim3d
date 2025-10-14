@@ -6,4 +6,4 @@ The `qim3d` library provides a set of methods for data segmentation.
     options:
       members:
         - watershed
-        - get_3d_cc
+        - connected_components

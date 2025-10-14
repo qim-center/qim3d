@@ -160,7 +160,7 @@ def slices_grid(
         type(color_map) == matplotlib.colors.LinearSegmentedColormap
         or color_map == 'segmentation'
     ):
-        num_labels = len(np.unique(volume))
+        num_labels = volume.max()
 
         if color_map == 'segmentation':
             color_map = qim3d.viz.colormaps.segmentation(num_labels)
