@@ -404,9 +404,11 @@ def vector_field_3d(
 
     Example:
         ```python
+        import qim3d 
+
         vol = qim3d.examples.fibers_150x150x150
         val, vec = qim3d.processing.structure_tensor(vol)
-        fig = plot_structure_tensor_cones(vec, val, sampling_step=6, max_cones=60000, sizeref=0.08)
+        fig = vector_field_3d(vec, val, sampling_step=6, max_cones=60000, cone_size=2.5)
         fig.show()
         ```
 
