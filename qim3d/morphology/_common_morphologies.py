@@ -53,14 +53,14 @@ def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
 
 
 def dilate(
-    vol: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
     Dilate an image. If method is either pygorpho.linear or pygorpho.flat, the dilation methods from [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used. These methods require a GPU, and we therefore recommend using the
     [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
 
     Args:
-        vol (np.ndarray): The volume to dilate.
+        volume (np.ndarray): The volume to dilate.
         kernel (int or np.ndarray): The structuring element/kernel to use while performing dilation. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
         method (str, optional): Determines the method for dilation. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
         **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
@@ -94,12 +94,12 @@ def dilate(
     """
 
     try:
-        vol = np.asarray(vol)
+        volume = np.asarray(volume)
     except TypeError as e:
         err = 'Input volume must be array-like.'
         raise TypeError(err) from e
 
-    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
         kernel = _create_kernel(kernel)
@@ -109,7 +109,7 @@ def dilate(
             err = 'no CUDA device available. Use method=scipy.ndimage.'
             raise RuntimeError(err)
 
-        return pg.flat.dilate(vol, kernel, **kwargs)
+        return pg.flat.dilate(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
         assert isinstance(
@@ -122,13 +122,13 @@ def dilate(
             err = 'no CUDA device available. Use method=scipy.ndimage.'
             raise RuntimeError(err)
 
-        return pg.flat.linear_dilate(vol, linesteps, linelens)
+        return pg.flat.linear_dilate(volume, linesteps, linelens)
 
     elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
-        return ndi.grey_dilation(vol, footprint=kernel, **kwargs)
+        return ndi.grey_dilation(volume, footprint=kernel, **kwargs)
 
     else:
         err = 'Unknown closing method.'
@@ -136,13 +136,13 @@ def dilate(
 
 
 def erode(
-    vol: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
     Erode an image. If method is either pygorpho.linear or pygorpho.flat, the erosion methods from [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used. These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
 
     Args:
-            vol (np.ndarray): The volume to erode.
+            volume (np.ndarray): The volume to erode.
             kernel (int or np.ndarray): The structuring element/kernel to use while performing erosion. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
             method (str, optional): Determines the method for erosion. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
             **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
@@ -175,12 +175,12 @@ def erode(
     """
 
     try:
-        vol = np.asarray(vol)
+        volume = np.asarray(volume)
     except TypeError as e:
         err = 'Input volume must be array-like.'
         raise TypeError(err) from e
 
-    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
         kernel = _create_kernel(kernel)
@@ -190,7 +190,7 @@ def erode(
             err = 'no CUDA device available. Use method=scipy.ndimage.'
             raise RuntimeError(err)
 
-        return pg.flat.erode(vol, kernel, **kwargs)
+        return pg.flat.erode(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
         assert isinstance(
@@ -202,13 +202,13 @@ def erode(
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.linear_erode(vol, linesteps, linelens, **kwargs)
+        return pg.flat.linear_erode(volume, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
-        return ndi.grey_erosion(vol, footprint=kernel, **kwargs)
+        return ndi.grey_erosion(volume, footprint=kernel, **kwargs)
 
     else:
         err = 'Unknown closing method.'
@@ -216,7 +216,7 @@ def erode(
 
 
 def opening(
-    vol: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
     Morphologically open a volume.
@@ -225,7 +225,7 @@ def opening(
     These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
 
     Args:
-        vol (np.ndarray): The volume to open.
+        volume (np.ndarray): The volume to open.
         kernel (int or np.ndarray): The structuring element/kernel to use while performing erosion. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
         method (str, optional): Determines the method for opening. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
         **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
@@ -269,12 +269,12 @@ def opening(
     """
 
     try:
-        vol = np.asarray(vol)
+        volume = np.asarray(volume)
     except TypeError as e:
         err = 'Input volume must be array-like.'
         raise TypeError(err) from e
 
-    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
         kernel = _create_kernel(kernel)
@@ -284,7 +284,7 @@ def opening(
             err = 'no CUDA device available. Use method=scipy.ndimage.'
             raise RuntimeError(err)
 
-        return pg.flat.open(vol, kernel, **kwargs)
+        return pg.flat.open(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
         assert isinstance(
@@ -296,13 +296,13 @@ def opening(
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.linear_open(vol, linesteps, linelens, **kwargs)
+        return pg.flat.linear_open(volume, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
-        return ndi.grey_opening(vol, footprint=kernel, **kwargs)
+        return ndi.grey_opening(volume, footprint=kernel, **kwargs)
 
     else:
         err = 'Unknown closing method.'
@@ -310,7 +310,7 @@ def opening(
 
 
 def closing(
-    vol: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
     Morphologically close a volume.
@@ -319,7 +319,7 @@ def closing(
     These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
 
     Args:
-        vol (np.ndarray): The volume to be closed.
+        volume (np.ndarray): The volume to be closed.
         kernel (int or np.ndarray): The structuring element/kernel to use while performing opening. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
         method (str, optional): Determines the method for closing. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
         **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
@@ -354,12 +354,12 @@ def closing(
     """
 
     try:
-        vol = np.asarray(vol)
+        volume = np.asarray(volume)
     except TypeError as e:
         err = 'Input volume must be array-like.'
         raise TypeError(err) from e
 
-    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
         kernel = _create_kernel(kernel)
@@ -369,7 +369,7 @@ def closing(
             err = 'no CUDA device available. Use method=scipy.ndimage.'
             raise RuntimeError(err)
 
-        return pg.flat.close(vol, kernel, **kwargs)
+        return pg.flat.close(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
         assert isinstance(
@@ -381,13 +381,13 @@ def closing(
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.linear_close(vol, linesteps, linelens, **kwargs)
+        return pg.flat.linear_close(volume, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
-        return ndi.grey_closing(vol, footprint=kernel, **kwargs)
+        return ndi.grey_closing(volume, footprint=kernel, **kwargs)
 
     else:
         err = 'Unknown closing method.'
@@ -395,7 +395,7 @@ def closing(
 
 
 def black_tophat(
-    vol: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
     Perform black tophat operation on a volume.
@@ -405,7 +405,7 @@ def black_tophat(
     These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
 
     Args:
-        vol (np.ndarray): The volume to perform the black tophat on.
+        volume (np.ndarray): The volume to perform the black tophat on.
         kernel (int or np.ndarray): The structuring element/kernel to use while performing opening. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
         method (str, optional): Determines the method for black tophat. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
         **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
@@ -437,12 +437,12 @@ def black_tophat(
     """
 
     try:
-        vol = np.asarray(vol)
+        volume = np.asarray(volume)
     except TypeError as e:
         err = 'Input volume must be array-like.'
         raise TypeError(err) from e
 
-    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
         kernel = _create_kernel(kernel)
@@ -452,7 +452,7 @@ def black_tophat(
             err = 'no CUDA device available. Use method=scipy.ndimage.'
             raise RuntimeError(err)
 
-        return pg.flat.bothat(vol, kernel, **kwargs)
+        return pg.flat.bothat(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
         assert isinstance(
@@ -464,13 +464,13 @@ def black_tophat(
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.bothat(vol, linesteps, linelens, **kwargs)
+        return pg.flat.bothat(volume, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
-        return ndi.black_tophat(vol, footprint=kernel, **kwargs)
+        return ndi.black_tophat(volume, footprint=kernel, **kwargs)
 
     else:
         err = 'Unknown closing method.'
@@ -478,7 +478,7 @@ def black_tophat(
 
 
 def white_tophat(
-    vol: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
     Perform white tophat operation on a volume.
@@ -488,7 +488,7 @@ def white_tophat(
     These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
 
     Args:
-        vol (np.ndarray): The volume to perform the white tophat on.
+        volume (np.ndarray): The volume to perform the white tophat on.
         kernel (int or np.ndarray): The structuring element/kernel to use while performing opening. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
         method (str, optional): Determines the method for white tophat. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
         **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
@@ -521,12 +521,12 @@ def white_tophat(
     """
 
     try:
-        vol = np.asarray(vol)
+        volume = np.asarray(volume)
     except TypeError as e:
         err = 'Input volume must be array-like.'
         raise TypeError(err) from e
 
-    assert len(vol.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
     if method == 'pygorpho.flat':
         kernel = _create_kernel(kernel)
@@ -536,7 +536,7 @@ def white_tophat(
             err = 'no CUDA device available. Use method=scipy.ndimage.'
             raise RuntimeError(err)
 
-        return pg.flat.tophat(vol, kernel, **kwargs)
+        return pg.flat.tophat(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
         assert isinstance(
@@ -548,13 +548,13 @@ def white_tophat(
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.tophat(vol, linesteps, linelens, **kwargs)
+        return pg.flat.tophat(volume, linesteps, linelens, **kwargs)
 
     elif method == 'scipy.ndimage':
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
 
-        return ndi.white_tophat(vol, footprint=kernel, **kwargs)
+        return ndi.white_tophat(volume, footprint=kernel, **kwargs)
 
     else:
         err = 'Unknown closing method.'

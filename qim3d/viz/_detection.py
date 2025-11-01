@@ -8,7 +8,7 @@ import qim3d
 
 def circles(
     blobs: tuple[float, float, float, float],
-    vol: np.ndarray,
+    volume: np.ndarray,
     alpha: float = 0.5,
     color: str = '#ff9900',
     **kwargs,
@@ -59,7 +59,7 @@ def circles(
     def _slicer(z_slice):
         clear_output(wait=True)
         fig = qim3d.viz.slices_grid(
-            vol[z_slice : z_slice + 1],
+            volume[z_slice : z_slice + 1],
             num_slices=1,
             color_map='gray',
             display_figure=False,
@@ -92,9 +92,9 @@ def circles(
         return fig
 
     position_slider = widgets.IntSlider(
-        value=vol.shape[0] // 2,
+        value=volume.shape[0] // 2,
         min=0,
-        max=vol.shape[0] - 1,
+        max=volume.shape[0] - 1,
         description='Slice',
         continuous_update=True,
     )

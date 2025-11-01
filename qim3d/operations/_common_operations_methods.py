@@ -4,7 +4,7 @@ import qim3d.filters as filters
 
 
 def remove_background(
-    vol: np.ndarray,
+    volume: np.ndarray,
     median_filter_size: int = 2,
     min_object_radius: int = 3,
     background: str = 'dark',
@@ -14,14 +14,14 @@ def remove_background(
     Remove background from a volume using a qim3d filters.
 
     Args:
-        vol (np.ndarray): The volume to remove background from.
+        volume (np.ndarray): The volume to remove background from.
         median_filter_size (int, optional): The size of the median filter. Defaults to 2.
         min_object_radius (int, optional): The radius of the structuring element for the tophat filter. Defaults to 3.
         background ('dark' or 'bright, optional): The background type. Can be 'dark' or 'bright'. Defaults to 'dark'.
         **median_kwargs (Any): Additional keyword arguments for the Median filter.
 
     Returns:
-        filtered_vol (np.ndarray): The volume with background removed.
+        filtered_volume (np.ndarray): The volume with background removed.
 
 
     Example:
@@ -50,11 +50,11 @@ def remove_background(
     )
 
     # Apply the pipeline to the volume
-    return pipeline(vol)
+    return pipeline(volume)
 
 
 def fade_mask(
-    vol: np.ndarray,
+    volume: np.ndarray,
     decay_rate: float = 10,
     ratio: float = 0.5,
     geometry: str = 'spherical',
@@ -66,7 +66,7 @@ def fade_mask(
     Apply edge fading to a volume.
 
     Args:
-        vol (np.ndarray): The volume to apply edge fading to.
+        volume (np.ndarray): The volume to apply edge fading to.
         decay_rate (float, optional): The decay rate of the fading. Defaults to 10.
         ratio (float, optional): The ratio of the volume to fade. Defaults to 0.5.
         geometry ('spherical' or 'cylindrical', optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
@@ -94,16 +94,16 @@ def fade_mask(
         <iframe src="https://platform.qim.dk/k3d/fly_faded.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
-    if axis < 0 or axis >= vol.ndim:
+    if axis < 0 or axis >= volume.ndim:
         error = 'Axis must be between 0 and the number of dimensions of the volume'
         raise ValueError(error)
 
     # Generate the coordinates of each point in the array
-    shape = vol.shape
+    shape = volume.shape
     z, y, x = np.indices(shape)
 
     # Store the original maximum value of the volume
-    original_max_value = np.max(vol)
+    original_max_value = np.max(volume)
 
     # Calculate the center of the array
     center = np.array([(s - 1) / 2 for s in shape])
@@ -143,7 +143,7 @@ def fade_mask(
         fade_array = -(fade_array - 1)
 
     # Apply the fading to the volume
-    vol_faded = vol * fade_array
+    vol_faded = volume * fade_array
 
     # Normalize the volume to retain the original maximum value
     vol_normalized = vol_faded * (original_max_value / np.max(vol_faded))
@@ -240,14 +240,14 @@ def overlay_rgb_images(
 
 
 def make_hollow(
-    vol: np.ndarray,
+    volume: np.ndarray,
     thickness: int,
 ) -> np.ndarray:
     """
     Make a volume hollow by applying a mask created by a minimum filter and an xor-gate.
 
     Args:
-        vol (np.ndarray): The volume to hollow.
+        volume (np.ndarray): The volume to hollow.
         thickness (int): The thickness of the shell after hollowing.
 
     Returns:
@@ -271,7 +271,7 @@ def make_hollow(
 
     """
     # Create base mask
-    vol_mask_base = vol > 0
+    vol_mask_base = volume > 0
 
     # apply minimum filter to the mask
     vol_eroded = filters.minimum(vol_mask_base, size=thickness)
@@ -279,6 +279,6 @@ def make_hollow(
     vol_mask = np.logical_xor(vol_mask_base, vol_eroded)
 
     # Apply the mask to the original volume to remove 'inner' voxels
-    vol_hollowed = vol * vol_mask
+    vol_hollowed = volume * vol_mask
 
     return vol_hollowed

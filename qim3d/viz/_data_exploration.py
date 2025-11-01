@@ -57,48 +57,48 @@ def slices_grid(
     volume: np.ndarray,
     slice_axis: int = 0,
     slice_positions: str | int | list[int] | None = None,
-    num_slices: int = 15,
+    n_slices: int = 15,
     max_columns: int = 5,
-    color_map: str = 'magma',
-    value_min: float = None,
-    value_max: float = None,
+    colormap: str = 'magma',
+    min_value: float = None,
+    max_value: float = None,
     image_size: int = None,
     image_height: int = 2,
     image_width: int = 2,
     display_figure: bool = False,
     display_positions: bool = True,
     interpolation: str | None = None,
-    color_bar: bool = False,
-    color_bar_style: str = 'small',
+    colorbar: bool = False,
+    colorbar_style: str = 'small',
     mask:np.ndarray = None,
     mask_alpha:float = 0.4,
-    mask_color_map:str = 'gray',
+    mask_colormap:str = 'gray',
     **matplotlib_imshow_kwargs,
 ) -> matplotlib.figure.Figure:
     """
     Displays one or several slices from a 3d volume.
 
-    By default if `slice_positions` is None, slices_grid plots `num_slices` linearly spaced slices.
-    If `slice_positions` is given as a string or integer, slices_grid will plot an overview with `num_slices` figures around that position.
-    If `slice_positions` is given as a list, `num_slices` will be ignored and the slices from `slice_positions` will be plotted.
+    By default if `slice_positions` is None, slices_grid plots `n_slices` linearly spaced slices.
+    If `slice_positions` is given as a string or integer, slices_grid will plot an overview with `n_slices` figures around that position.
+    If `slice_positions` is given as a list, `n_slices` will be ignored and the slices from `slice_positions` will be plotted.
 
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
         slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
         slice_positions (int or list[int] or str or None, optional): One or several slicing levels. If None, linearly spaced slices will be displayed. Defaults to None.
-        num_slices (int, optional): Defines how many slices the user wants to be displayed. Defaults to 15.
+        n_slices (int, optional): Defines how many slices the user wants to be displayed. Defaults to 15.
         max_columns (int, optional): The maximum number of columns to be plotted. Defaults to 5.
-        color_map (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
-        value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
+        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored.
         image_height (int, optional): Height of the figure.
         image_width (int, optional): Width of the figure.
         display_figure (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
         display_positions (bool, optional): If True, displays the position of the slices. Defaults to True.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
-        color_bar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
-        color_bar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
+        colorbar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
+        colorbar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
         **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
@@ -109,14 +109,14 @@ def slices_grid(
         ValueError: If the slice_axis to slice along is not a valid choice, i.e. not an integer between 0 and the number of dimensions of the volume minus 1.
         ValueError: If the file or array is not a volume with at least 3 dimensions.
         ValueError: If the `position` keyword argument is not a integer, list of integers or one of the following strings: "start", "mid" or "end".
-        ValueError: If the color_bar_style keyword argument is not one of the following strings: 'small' or 'large'.
+        ValueError: If the colorbar_style keyword argument is not one of the following strings: 'small' or 'large'.
 
     Example:
         ```python
         import qim3d
 
         vol = qim3d.examples.shell_225x128x128
-        qim3d.viz.slices_grid(vol, num_slices=15)
+        qim3d.viz.slices_grid(vol, n_slices=15)
         ```
         ![Grid of slices](../../assets/screenshots/viz-slices.png)
 
@@ -139,9 +139,9 @@ def slices_grid(
         msg = 'The provided object is not a volume as it has less than 3 dimensions.'
         raise ValueError(msg)
 
-    color_bar_style_options = ['small', 'large']
-    if color_bar_style not in color_bar_style_options:
-        msg = f"Value '{color_bar_style}' is not valid for colorbar style. Please select from {color_bar_style_options}."
+    colorbar_style_options = ['small', 'large']
+    if colorbar_style not in colorbar_style_options:
+        msg = f"Value '{colorbar_style}' is not valid for colorbar style. Please select from {colorbar_style_options}."
         raise ValueError(msg)
 
     if isinstance(volume, da.core.Array):
@@ -154,26 +154,26 @@ def slices_grid(
 
     # Here we deal with the case that the user wants to use the objects colormap directly
     if (
-        type(color_map) == matplotlib.colors.LinearSegmentedColormap
-        or color_map == 'segmentation'
+        type(colormap) == matplotlib.colors.LinearSegmentedColormap
+        or colormap == 'segmentation'
     ):
         num_labels = volume.max()
 
-        if color_map == 'segmentation':
-            color_map = qim3d.viz.colormaps.segmentation(num_labels)
-        # If value_min and value_max are not set like this, then in case the
+        if colormap == 'segmentation':
+            colormap = qim3d.viz.colormaps.segmentation(num_labels)
+        # If min_value and max_value are not set like this, then in case the
         # number of objects changes on new slice, objects might change
         # colors. So when using a slider, the same object suddently
         # changes color (flickers), which is confusing and annoying.
-        value_min = 0
-        value_max = num_labels
+        min_value = 0
+        max_value = num_labels
 
     # Get total number of slices in the specified dimension
     n_total = volume.shape[slice_axis]
 
     # Position is not provided - will use linearly spaced slices
     if slice_positions is None:
-        slice_idxs = np.linspace(0, n_total - 1, num_slices, dtype=int)
+        slice_idxs = np.linspace(0, n_total - 1, n_slices, dtype=int)
     # Position is a string
     elif isinstance(slice_positions, str) and slice_positions.lower() in [
         'start',
@@ -181,14 +181,14 @@ def slices_grid(
         'end',
     ]:
         if slice_positions.lower() == 'start':
-            slice_idxs = _get_slice_range(0, num_slices, n_total)
+            slice_idxs = _get_slice_range(0, n_slices, n_total)
         elif slice_positions.lower() == 'mid':
-            slice_idxs = _get_slice_range(n_total // 2, num_slices, n_total)
+            slice_idxs = _get_slice_range(n_total // 2, n_slices, n_total)
         elif slice_positions.lower() == 'end':
-            slice_idxs = _get_slice_range(n_total - 1, num_slices, n_total)
+            slice_idxs = _get_slice_range(n_total - 1, n_slices, n_total)
     #  Position is an integer
     elif isinstance(slice_positions, int):
-        slice_idxs = _get_slice_range(slice_positions, num_slices, n_total)
+        slice_idxs = _get_slice_range(slice_positions, n_slices, n_total)
     # Position is a list of integers
     elif isinstance(slice_positions, list) and all(
         isinstance(idx, int) for idx in slice_positions
@@ -199,8 +199,8 @@ def slices_grid(
         raise ValueError(msg)
 
     # Make grid
-    nrows = math.ceil(num_slices / max_columns)
-    ncols = min(num_slices, max_columns)
+    nrows = math.ceil(n_slices / max_columns)
+    ncols = min(n_slices, max_columns)
 
     # Generate figure
     fig, axs = plt.subplots(
@@ -217,11 +217,11 @@ def slices_grid(
     if isinstance(volume, da.core.Array):
         volume = volume.compute()
 
-    if color_bar:
+    if colorbar:
         # In this case, we want the vrange to be constant across the
-        # slices, which makes them all comparable to a single color_bar.
-        new_value_min = value_min if value_min is not None else np.min(volume)
-        new_value_max = value_max if value_max is not None else np.max(volume)
+        # slices, which makes them all comparable to a single colorbar.
+        new_min_value = min_value if min_value is not None else np.min(volume)
+        new_max_value = max_value if max_value is not None else np.max(volume)
 
     # Run through each ax of the grid
     for i, ax_row in enumerate(axs):
@@ -231,37 +231,37 @@ def slices_grid(
                 slice_img = volume.take(slice_idxs[slice_idx], axis=slice_axis)
                 slice_mask = None if mask is None else mask.take(slice_idxs[slice_idx], axis = slice_axis)
 
-                if not color_bar:
-                    # If value_min is higher than the highest value in the
+                if not colorbar:
+                    # If min_value is higher than the highest value in the
                     # image ValueError is raised. We don't want to
                     # override the values because next slices might be okay
-                    new_value_min = (
+                    new_min_value = (
                         None
                         if (
-                            isinstance(value_min, float | int)
-                            and value_min > np.max(slice_img)
+                            isinstance(min_value, float | int)
+                            and min_value > np.max(slice_img)
                         )
-                        else value_min
+                        else min_value
                     )
-                    new_value_max = (
+                    new_max_value = (
                         None
                         if (
-                            isinstance(value_max, float | int)
-                            and value_max < np.min(slice_img)
+                            isinstance(max_value, float | int)
+                            and max_value < np.min(slice_img)
                         )
-                        else value_max
+                        else max_value
                     )
 
                 ax.imshow(
                     slice_img,
-                    cmap=color_map,
+                    cmap=colormap,
                     interpolation=interpolation,
-                    vmin=new_value_min,
-                    vmax=new_value_max,
+                    vmin=new_min_value,
+                    vmax=new_max_value,
                     **matplotlib_imshow_kwargs,
                 )
                 if slice_mask is not None:
-                    ax.imshow(slice_mask, cmap = mask_color_map, alpha = mask_alpha)
+                    ax.imshow(slice_mask, cmap = mask_colormap, alpha = mask_alpha)
 
                 if display_positions:
                     ax.text(
@@ -295,30 +295,30 @@ def slices_grid(
             # Hide the axis, so that we have a nice grid
             ax.axis('off')
 
-    if color_bar:
+    if colorbar:
         with warnings.catch_warnings():
             warnings.simplefilter('ignore', category=UserWarning)
             fig.tight_layout()
 
         norm = matplotlib.colors.Normalize(
-            vmin=new_value_min, vmax=new_value_max, clip=True
+            vmin=new_min_value, vmax=new_max_value, clip=True
         )
-        mappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=color_map)
+        mappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=colormap)
 
-        if color_bar_style == 'small':
+        if colorbar_style == 'small':
             # Figure coordinates of top-right axis
             tr_pos = np.atleast_1d(axs[0])[-1].get_position()
             # The width is divided by ncols to make it the same relative size to the images
-            color_bar_ax = fig.add_axes(
+            colorbar_ax = fig.add_axes(
                 [tr_pos.x1 + 0.05 / ncols, tr_pos.y0, 0.05 / ncols, tr_pos.height]
             )
-            fig.colorbar(mappable=mappable, cax=color_bar_ax, orientation='vertical')
-        elif color_bar_style == 'large':
+            fig.colorbar(mappable=mappable, cax=colorbar_ax, orientation='vertical')
+        elif colorbar_style == 'large':
             # Figure coordinates of bottom- and top-right axis
             br_pos = np.atleast_1d(axs[-1])[-1].get_position()
             tr_pos = np.atleast_1d(axs[0])[-1].get_position()
             # The width is divided by ncols to make it the same relative size to the images
-            color_bar_ax = fig.add_axes(
+            colorbar_ax = fig.add_axes(
                 [
                     br_pos.xmax + 0.05 / ncols,
                     br_pos.y0 + 0.0015,
@@ -326,7 +326,7 @@ def slices_grid(
                     (tr_pos.y1 - br_pos.y0) - 0.0015,
                 ]
             )
-            fig.colorbar(mappable=mappable, cax=color_bar_ax, orientation='vertical')
+            fig.colorbar(mappable=mappable, cax=colorbar_ax, orientation='vertical')
 
     if display_figure:
         plt.show()
@@ -336,20 +336,20 @@ def slices_grid(
     return fig
 
 
-def _get_slice_range(position: int, num_slices: int, n_total: int) -> np.ndarray:
+def _get_slice_range(position: int, n_slices: int, n_total: int) -> np.ndarray:
     """Helper function for `slices`. Returns the range of slices to be displayed around the given position."""
-    start_idx = position - num_slices // 2
+    start_idx = position - n_slices // 2
     end_idx = (
-        position + num_slices // 2
-        if num_slices % 2 == 0
-        else position + num_slices // 2 + 1
+        position + n_slices // 2
+        if n_slices % 2 == 0
+        else position + n_slices // 2 + 1
     )
     slice_idxs = np.arange(start_idx, end_idx)
 
     if slice_idxs[0] < 0:
-        slice_idxs = np.arange(0, num_slices)
+        slice_idxs = np.arange(0, n_slices)
     elif slice_idxs[-1] > n_total:
-        slice_idxs = np.arange(n_total - num_slices, n_total)
+        slice_idxs = np.arange(n_total - n_slices, n_total)
 
     return slice_idxs
 
@@ -358,18 +358,18 @@ def _get_slice_range(position: int, num_slices: int, n_total: int) -> np.ndarray
 def slicer(
     volume: np.ndarray,
     slice_axis: int = 0,
-    color_map: str = 'magma',
-    value_min: float = None,
-    value_max: float = None,
+    colormap: str = 'magma',
+    min_value: float = None,
+    max_value: float = None,
     image_height: int = 3,
     image_width: int = 3,
     display_positions: bool = False,
     interpolation: str | None = None,
     image_size: int = None,
-    color_bar: str = None,
+    colorbar: str = None,
     mask:np.ndarray = None,
     mask_alpha:float = 0.4,
-    mask_color_map = 'gray',
+    mask_colormap = 'gray',
     default_position:float|int = 0.5,
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
@@ -379,18 +379,18 @@ def slicer(
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
         slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
-        color_map (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to 'magma'.
-        value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to 'magma'.
+        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         image_height (int, optional): Height of the figure. Defaults to 3.
         image_width (int, optional): Width of the figure. Defaults to 3.
         display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
-        color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
+        colorbar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
         mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
         mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
-        mask_color_map (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
+        mask_colormap (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
         default_position (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
         **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
@@ -412,15 +412,15 @@ def slicer(
         image_height = image_size
         image_width = image_size
 
-    color_bar_options = [None, 'slices', 'volume']
-    if color_bar not in color_bar_options:
+    colorbar_options = [None, 'slices', 'volume']
+    if colorbar not in colorbar_options:
         msg = (
-            f"Unrecognized value '{color_bar}' for parameter color_bar. "
-            f'Expected one of {color_bar_options}.'
+            f"Unrecognized value '{colorbar}' for parameter colorbar. "
+            f'Expected one of {colorbar_options}.'
         )
         raise ValueError(msg)
-    show_color_bar = color_bar is not None
-    if color_bar == 'slices':
+    show_colorbar = colorbar is not None
+    if colorbar == 'slices':
         # Precompute the minimum and maximum along each slice for faster widget sliding.
         non_slice_axes = tuple(i for i in range(volume.ndim) if i != slice_axis)
         slice_mins = np.min(volume, axis=non_slice_axes)
@@ -428,30 +428,30 @@ def slicer(
 
     # Create the interactive widget
     def _slicer(slice_positions: int) -> Figure:
-        if color_bar == 'slices':
+        if colorbar == 'slices':
             dynamic_min = slice_mins[slice_positions]
             dynamic_max = slice_maxs[slice_positions]
         else:
-            dynamic_min = value_min
-            dynamic_max = value_max
+            dynamic_min = min_value
+            dynamic_max = max_value
 
         fig = slices_grid(
             volume,
             slice_axis=slice_axis,
-            color_map=color_map,
-            value_min=dynamic_min,
-            value_max=dynamic_max,
+            colormap=colormap,
+            min_value=dynamic_min,
+            max_value=dynamic_max,
             image_height=image_height,
             image_width=image_width,
             display_positions=display_positions,
             interpolation=interpolation,
             slice_positions=slice_positions,
-            num_slices=1,
+            n_slices=1,
             display_figure=True,
-            color_bar=show_color_bar,
+            colorbar=show_colorbar,
             mask = mask,
             mask_alpha = mask_alpha,
-            mask_color_map = mask_color_map,
+            mask_colormap = mask_colormap,
             **matplotlib_imshow_kwargs,
         )
         return fig
@@ -482,18 +482,18 @@ def slicer(
 @coarseness('volume')
 def slicer_orthogonal(
     volume: np.ndarray,
-    color_map: str = 'magma',
-    value_min: float = None,
-    value_max: float = None,
+    colormap: str = 'magma',
+    min_value: float = None,
+    max_value: float = None,
     image_height: int = 3,
     image_width: int = 3,
     display_positions: bool = False,
     interpolation: str | None = None,
     image_size: int = None,
-    color_bar:str = None,
+    colorbar:str = None,
     mask:np.ndarray = None,
     mask_alpha:float = 0.4,
-    mask_color_map:str = 'gray',
+    mask_colormap:str = 'gray',
     default_z:float|int = 0.5,
     default_y:float|int = 0.5,
     default_x:float|int = 0.5,
@@ -503,18 +503,18 @@ def slicer_orthogonal(
 
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
-        color_map (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
-        value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
+        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         image_height (int, optional): Height of the figure.
         image_width (int, optional): Width of the figure.
         display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
-        color_bar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
+        colorbar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
         mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
         mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
-        mask_color_map (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
+        mask_colormap (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
         default_x (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
         default_y (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
         default_z (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
@@ -527,7 +527,7 @@ def slicer_orthogonal(
         import qim3d
 
         vol = qim3d.examples.fly_150x256x256
-        qim3d.viz.slicer_orthogonal(vol, color_map="magma")
+        qim3d.viz.slicer_orthogonal(vol, colormap="magma")
         ```
         ![viz slicer_orthogonal](../../assets/screenshots/viz-orthogonal.gif)
 
@@ -540,17 +540,17 @@ def slicer_orthogonal(
     get_slicer_for_axis = lambda slice_axis, default_position: slicer(
         volume,
         slice_axis=slice_axis,
-        color_map=color_map,
-        value_min=value_min,
-        value_max=value_max,
+        colormap=colormap,
+        min_value=min_value,
+        max_value=max_value,
         image_height=image_height,
         image_width=image_width,
         display_positions=display_positions,
         interpolation=interpolation,
-        color_bar=color_bar,
+        colorbar=colorbar,
         mask = mask,
         mask_alpha = mask_alpha,
-        mask_color_map = mask_color_map,
+        mask_colormap = mask_colormap,
         default_position=default_position
     )
 
@@ -569,9 +569,9 @@ def slicer_orthogonal(
 def fade_mask(
     volume: np.ndarray,
     axis: int = 0,
-    color_map: str = 'magma',
-    value_min: float = None,
-    value_max: float = None,
+    colormap: str = 'magma',
+    min_value: float = None,
+    max_value: float = None,
 ) -> widgets.interactive:
     """
     Interactive widget for visualizing the effect of edge fading on a 3D volume.
@@ -581,9 +581,9 @@ def fade_mask(
     Args:
         volume (np.ndarray): The volume to apply edge fading to.
         axis (int, optional): The axis along which to apply the fading. Defaults to 0.
-        color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        value_min (float or None, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        value_max (float or None, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        colormap (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        min_value (float or None, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float or None, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
 
     Returns:
         slicer_obj (widgets.HBox): The interactive widget for visualizing fade mask on slices of a 3D volume.
@@ -609,21 +609,21 @@ def fade_mask(
         fig, axes = plt.subplots(1, 3, figsize=(9, 3))
 
         slice_img = volume[position, :, :]
-        # If value_min is higher than the highest value in the image ValueError is raised
+        # If min_value is higher than the highest value in the image ValueError is raised
         # We don't want to override the values because next slices might be okay
-        new_value_min = (
+        new_min_value = (
             None
-            if (isinstance(value_min, float | int) and value_min > np.max(slice_img))
-            else value_min
+            if (isinstance(min_value, float | int) and min_value > np.max(slice_img))
+            else min_value
         )
-        new_value_max = (
+        new_max_value = (
             None
-            if (isinstance(value_max, float | int) and value_max < np.min(slice_img))
-            else value_max
+            if (isinstance(max_value, float | int) and max_value < np.min(slice_img))
+            else max_value
         )
 
         axes[0].imshow(
-            slice_img, cmap=color_map, vmin=new_value_min, vmax=new_value_max
+            slice_img, cmap=colormap, vmin=new_min_value, vmax=new_max_value
         )
         axes[0].set_title('Original')
         axes[0].axis('off')
@@ -636,7 +636,7 @@ def fade_mask(
             axis=axis,
             invert=invert,
         )
-        axes[1].imshow(mask[position, :, :], cmap=color_map)
+        axes[1].imshow(mask[position, :, :], cmap=colormap)
         axes[1].set_title('Mask')
         axes[1].axis('off')
 
@@ -648,21 +648,21 @@ def fade_mask(
             axis=axis,
             invert=invert,
         )
-        # If value_min is higher than the highest value in the image ValueError is raised
+        # If min_value is higher than the highest value in the image ValueError is raised
         # We don't want to override the values because next slices might be okay
         slice_img = masked_volume[position, :, :]
-        new_value_min = (
+        new_min_value = (
             None
-            if (isinstance(value_min, float | int) and value_min > np.max(slice_img))
-            else value_min
+            if (isinstance(min_value, float | int) and min_value > np.max(slice_img))
+            else min_value
         )
-        new_value_max = (
+        new_max_value = (
             None
-            if (isinstance(value_max, float | int) and value_max < np.min(slice_img))
-            else value_max
+            if (isinstance(max_value, float | int) and max_value < np.min(slice_img))
+            else max_value
         )
         axes[2].imshow(
-            slice_img, cmap=color_map, vmin=new_value_min, vmax=new_value_max
+            slice_img, cmap=colormap, vmin=new_min_value, vmax=new_max_value
         )
         axes[2].set_title('Masked')
         axes[2].axis('off')
@@ -933,7 +933,7 @@ def histogram(
     coarseness: int | list[int] = 1,
     ignore_zero: bool = True,
     bins: int | str = 'auto',
-    slice_idx: int | str | None = None,
+    slice_index: int | str | None = None,
     slice_axis: int = 0,
     vertical_line: int = None,
     kde: bool = False,
@@ -960,7 +960,7 @@ def histogram(
         ignore_zero (bool, optional): Specifies if zero-values in the volume should be ignored.
         bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
         slice_axis (int, optional): Axis along which to take a slice. Default is 0.
-        slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
+        slice_index (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
         vertical_line (int, optional): Intensity value for a vertical line to be drawn on the histogram. Default is None.
         kde (bool, optional): Whether to overlay a kernel density estimate.
@@ -984,7 +984,7 @@ def histogram(
 
     Raises:
         ValueError: If `slice_axis` is not a valid axis index (0, 1, or 2).
-        ValueError: If `slice_idx` is an integer and is out of range for the specified axis.
+        ValueError: If `slice_index` is an integer and is out of range for the specified axis.
 
     Example:
         ```python
@@ -1000,7 +1000,7 @@ def histogram(
         import qim3d
 
         vol = qim3d.examples.bone_128x128x128
-        qim3d.viz.histogram(vol, slice_idx=100, slice_axis=1, bin_style='bars', edgecolor='white')
+        qim3d.viz.histogram(vol, slice_index=100, slice_axis=1, bin_style='bars', edgecolor='white')
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
 
@@ -1020,14 +1020,14 @@ def histogram(
 
     title_suffixes = []
 
-    if slice_idx == 'middle':
-        slice_idx = volume.shape[slice_axis] // 2
+    if slice_index == 'middle':
+        slice_index = volume.shape[slice_axis] // 2
 
-    if slice_idx is not None:
-        if 0 <= slice_idx < volume.shape[slice_axis]:
-            img_slice = np.take(volume, indices=slice_idx, axis=slice_axis)
+    if slice_index is not None:
+        if 0 <= slice_index < volume.shape[slice_axis]:
+            img_slice = np.take(volume, indices=slice_index, axis=slice_axis)
             data = img_slice.ravel()
-            title = f'Intensity histogram of slice #{slice_idx} {img_slice.shape} along axis {slice_axis}'
+            title = f'Intensity histogram of slice #{slice_index} {img_slice.shape} along axis {slice_axis}'
         else:
             msg = f'Slice index out of range. Must be between 0 and {volume.shape[slice_axis] - 1}.'
             raise ValueError(msg)
@@ -1499,9 +1499,9 @@ def line_profile(
 @coarseness('volume')
 def threshold(
     volume: np.ndarray,
-    cmap_image: str = 'magma',
-    vmin: float = None,
-    vmax: float = None,
+    colormap: str = 'magma',
+    min_value: float = None,
+    max_value: float = None,
 ) -> widgets.VBox:
     """
     An interactive interface to explore thresholding on a
@@ -1513,9 +1513,9 @@ def threshold(
 
     Args:
         volume (np.ndarray): 3D volume to threshold.
-        cmap_image (str, optional): Colormap for the original image. Defaults to 'viridis'.
-        vmin (float, optional): Minimum value for the colormap. Defaults to None.
-        vmax (float, optional): Maximum value for the colormap. Defaults to None.
+        colormap (str, optional): Colormap for the original image. Defaults to 'viridis'.
+        min_value (float, optional): Minimum value for the colormap. Defaults to None.
+        max_value (float, optional): Maximum value for the colormap. Defaults to None.
 
     Returns:
         slicer_obj (widgets.VBox): The interactive widget for thresholding a 3D volume.
@@ -1608,17 +1608,17 @@ def threshold(
             fig, axes = plt.subplots(1, 4, figsize=(25, 5))
 
             # Original image
-            new_vmin = (
+            new_min_value = (
                 None
-                if (isinstance(vmin, float | int) and vmin > np.max(slice_img))
-                else vmin
+                if (isinstance(min_value, float | int) and min_value > np.max(slice_img))
+                else min_value
             )
-            new_vmax = (
+            new_max_value = (
                 None
-                if (isinstance(vmax, float | int) and vmax < np.min(slice_img))
-                else vmax
+                if (isinstance(max_value, float | int) and max_value < np.min(slice_img))
+                else max_value
             )
-            axes[0].imshow(slice_img, cmap=cmap_image, vmin=new_vmin, vmax=new_vmax)
+            axes[0].imshow(slice_img, cmap=colormap, vmin=new_min_value, vmax=new_max_value)
             axes[0].set_title('Original')
             axes[0].axis('off')
 
@@ -1626,7 +1626,7 @@ def threshold(
             histogram(
                 volume=volume,
                 bins=32,
-                slice_idx=state['position'],
+                slice_index=state['position'],
                 vertical_line=state['threshold'],
                 slice_axis=1,
                 kde=False,
@@ -1648,7 +1648,7 @@ def threshold(
                 background=slice_img,
                 foreground=mask_rgb,
             )
-            axes[3].imshow(masked_volume, vmin=new_vmin, vmax=new_vmax)
+            axes[3].imshow(masked_volume, vmin=new_min_value, vmax=new_max_value)
             axes[3].set_title('Overlay')
             axes[3].axis('off')
 
@@ -1744,10 +1744,10 @@ class _VolumeComparison:
 
     def initialize_k3d_plots(self) -> None:
         self.k3d_plot1 = qim3d.viz.volumetric(
-            self.volume1, show=False, color_map='Reds'
+            self.volume1, show=False, colormap='Reds'
         )
         self.k3d_plot2 = qim3d.viz.volumetric(
-            self.volume2, show=False, color_map='Blues'
+            self.volume2, show=False, colormap='Blues'
         )
         alpha = [
             [0.0, 1.0],
@@ -1758,7 +1758,7 @@ class _VolumeComparison:
         self.k3d_plot3 = qim3d.viz.volumetric(
             (self.volume1 - self.volume2),
             show=False,
-            color_map=self.diff_cmap,
+            colormap=self.diff_cmap,
             opacity_function=alpha,
         )
 
@@ -1789,10 +1789,10 @@ class _VolumeComparison:
         self.slice_index_widget.layout.width = '400px'
 
     def slice_cmap(
-        self, cmap: str | LinearSegmentedColormap, color_range: tuple[float, float]
+        self, colormap: str | LinearSegmentedColormap, color_range: tuple[float, float]
     ) -> matplotlib.colors.ListedColormap:
-        if isinstance(cmap, str):
-            cmap = matplotlib.colormaps[cmap].resampled(256)
+        if isinstance(colormap, str):
+            cmap = matplotlib.colormaps[colormap].resampled(256)
         black = np.array([0, 0, 0, 1])
         sampled_colors = cmap(np.linspace(0, 1, 256))
         sampled_colors[: round(color_range[0] * 256), :] = black
@@ -1867,7 +1867,7 @@ class _VolumeComparison:
             self.k3d_plot3 = qim3d.viz.volumetric(
                 comparison_k3d,
                 show=False,
-                color_map=self.diff_cmap
+                colormap=self.diff_cmap
                 if comparison_type == 'difference'
                 else 'magma',
                 opacity_function=alpha,
@@ -1889,12 +1889,12 @@ class _VolumeComparison:
                 self.k3d_plot1 = qim3d.viz.volumetric(
                     self.volume1,
                     show=False,
-                    color_map='Blues' if comparison_type == 'difference' else 'magma',
+                    colormap='Blues' if comparison_type == 'difference' else 'magma',
                 )
                 self.k3d_plot2 = qim3d.viz.volumetric(
                     self.volume2,
                     show=False,
-                    color_map='Reds' if comparison_type == 'difference' else 'magma',
+                    colormap='Reds' if comparison_type == 'difference' else 'magma',
                 )
                 self.update_plots = True
 
@@ -2158,11 +2158,11 @@ def compare_volumes(
 
 
 class IsoSurface:
-    def __init__(self, vol: np.ndarray, colormap: str = 'magma') -> None:
+    def __init__(self, volume: np.ndarray, colormap: str = 'magma') -> None:
         # keep a float32 copy to save half the RAM up front
-        self.vol_full = np.transpose(vol, (1, 2, 0)).astype(np.float32)
-        self.value_min = self.vol_full.min()
-        self.value_max = self.vol_full.max()
+        self.vol_full = np.transpose(volume, (1, 2, 0)).astype(np.float32)
+        self.min_value = self.vol_full.min()
+        self.max_value = self.vol_full.max()
         self.cmap = colormap
         self._resolution_cache = {}
 
@@ -2174,9 +2174,9 @@ class IsoSurface:
     # ---------- widgets ----------
     def _build_widgets(self) -> None:
         self.thr = widgets.IntSlider(
-            value=int(self.value_max / 2),
-            min=self.value_min,
-            max=self.value_max,
+            value=int(self.max_value / 2),
+            min=self.min_value,
+            max=self.max_value,
             step=1,
             description='Threshold',
             continuous_update=False,
@@ -2365,8 +2365,8 @@ class IsoSurface:
         display(ui)
 
 
-@coarseness('vol')
-def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
+@coarseness('volume')
+def iso_surface(volume: np.ndarray, colormap: str = 'Magma') -> None:
     """
     Creates an interactive iso-surface visualizer for a single surface level.
 
@@ -2384,7 +2384,7 @@ def iso_surface(vol: np.ndarray, colormap: str = 'Magma') -> None:
         ![volume_comparison](../../assets/screenshots/iso_surface.gif)
 
     """
-    IsoSurface(vol, colormap)
+    IsoSurface(volume, colormap)
 
 
 def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
@@ -2398,12 +2398,12 @@ def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
 
 def export_rotation(
     path: str,
-    vol: np.ndarray,
+    volume: np.ndarray,
     degrees: int = 360,
-    num_frames: int = 180,
+    n_frames: int = 180,
     fps: int = 30,
     image_size: tuple[int, int] | None = (256, 256),
-    color_map: str = 'magma',
+    colormap: str = 'magma',
     camera_height: float = 2.0,
     camera_distance: float | str = 'auto',
     camera_focus: list | str = 'center',
@@ -2414,12 +2414,12 @@ def export_rotation(
 
     Args:
         path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
-        vol (np.ndarray): Volume to create .gif of.
+        volume (np.ndarray): Volume to create .gif of.
         degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.
-        num_frames (int, optional): The amount of frames to generate. Defaults to 180.
+        n_frames (int, optional): The amount of frames to generate. Defaults to 180.
         fps (int, optional): The amount of frames per second in the resulting animation. This determines the speed of the rotation of the volume. Defaults to 30.
         image_size (tuple of ints or None, optional): Pixel size (width, height) of each frame. If None, the plotter's default size is used. Defaults to (256, 256).
-        color_map (str, optional): Determines color map of volume. Defaults to 'magma'.
+        colormap (str, optional): Determines color map of volume. Defaults to 'magma'.
         camera_height (float, optional): Determines the height of the camera rotating around the volume. The float value represents a multiple of the height of the z-axis. Defaults to 2.0.
         camera_distance (int or string, optional): Determines the distance of the camera from the center point. If 'auto' is used, it will be auto calculated. Otherwise a float value representing voxel distance is expected. Defaults to 'auto'.
         camera_focus (list or str, optional): Determines the voxel that the camera rotates around. Using 'center' will default to the center of the volume. Otherwise a list of three integers is expected. Defaults to 'center'.
@@ -2453,7 +2453,7 @@ def export_rotation(
 
         qim3d.viz.export_rotation('test.webm', vol,
                                   degrees = 360,
-                                  num_frames = 120,
+                                  n_frames = 120,
                                   fps = 30,
                                   image_size = (512,512),
                                   camera_height = 3.0,
@@ -2483,7 +2483,7 @@ def export_rotation(
         path += '.gif'
 
     # Handle img in (xyz) instead of (zyx) (due to rendering issues with the up-vector, ensure that z=y, such that we now have (x,z,y))
-    vol = np.transpose(vol, (2, 0, 1))
+    vol = np.transpose(volume, (2, 0, 1))
 
     # Create a uniform grid
     grid = pv.ImageData()
@@ -2494,7 +2494,7 @@ def export_rotation(
 
     # Initialize plotter
     plotter = pv.Plotter(off_screen=True)
-    plotter.add_volume(grid, opacity='linear', cmap=color_map)
+    plotter.add_volume(grid, opacity='linear', cmap=colormap)
     plotter.remove_scalar_bar()  # Remove colorbar
 
     frames = []
@@ -2514,13 +2514,13 @@ def export_rotation(
 
     center = np.array(center)
 
-    angle_per_frame = degrees / num_frames
+    angle_per_frame = degrees / n_frames
     radians_per_frame = np.radians(angle_per_frame)
 
     # Set up orbit radius and fixed up
     radius = camera_distance
     fixed_up = [0, 1, 0]
-    for i in tqdm(range(num_frames), desc='Rendering'):
+    for i in tqdm(range(n_frames), desc='Rendering'):
         theta = radians_per_frame * i
         x = radius * np.sin(theta)
         z = radius * np.cos(theta)
@@ -2583,14 +2583,14 @@ class VolumePlaneSlicer:
     def __init__(
         self,
         volume: np.ndarray,
-        color_map: str | matplotlib.colors.Colormap = 'magma',
+        colormap: str | matplotlib.colors.Colormap = 'magma',
         color_range: list[float | None, float | None] = None,
         showscale: bool = True,
         opacity: float = 1.0,
     ):
         self.volume = volume
-        self.color_map = color_map
-        self.initial_colorscale = self.matplotlib_to_plotly_cmap(color_map)
+        self.colormap = colormap
+        self.initial_colorscale = self.matplotlib_to_plotly_cmap(colormap)
         self.showscale = showscale
         self.opacity = opacity
 
@@ -2688,15 +2688,15 @@ class VolumePlaneSlicer:
             'turbo',
             'nipy_spectral',
         ]
-        if isinstance(self.color_map, matplotlib.colors.Colormap):
+        if isinstance(self.colormap, matplotlib.colors.Colormap):
             cmap_value = 'Custom'
             cmap_options = [cmap_value] + self.cmaps
-        elif isinstance(self.color_map, str):
-            if self.color_map in self.cmaps:
-                cmap_value = self.color_map
+        elif isinstance(self.colormap, str):
+            if self.colormap in self.cmaps:
+                cmap_value = self.colormap
                 cmap_options = self.cmaps
             else:
-                cmap_value = self.color_map
+                cmap_value = self.colormap
                 cmap_options = [cmap_value] + self.cmaps
 
         self.cmap_dropdown = widgets.Dropdown(
@@ -2881,18 +2881,18 @@ class VolumePlaneSlicer:
 @coarseness('volume')
 def planes(
     volume: np.ndarray,
-    color_map: str | matplotlib.colors.Colormap = 'magma',
-    value_min: float = None,
-    value_max: float = None,
+    colormap: str | matplotlib.colors.Colormap = 'magma',
+    min_value: float = None,
+    max_value: float = None,
 ) -> None:
     """
     Displays an interactive 3D widget for viewing orthogonal cross-sections through a volume.
 
     Args:
         volume (np.ndarray): The 3D volume of interest.
-        color_map (str or matplotlib.colors.Colormap, optional): Specifies the matplotlib color map.
-        value_min (float, optional): Together with value_max define the data range the colormap covers. By default colormap covers the full range.
-        value_max (float, optional): Together with value_min define the data range the colormap covers. By default colormap covers the full range.
+        colormap (str or matplotlib.colors.Colormap, optional): Specifies the matplotlib color map.
+        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range.
+        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range.
 
     Returns:
         None
@@ -2908,7 +2908,7 @@ def planes(
 
     """
     VolumePlaneSlicer(
-        volume=volume, color_map=color_map, color_range=[value_min, value_max]
+        volume=volume, colormap=colormap, color_range=[min_value, max_value]
     ).show()
 
 
