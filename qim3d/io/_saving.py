@@ -289,14 +289,15 @@ class DataSaver:
             da.to_zarr(data, path, overwrite=self.replace)
 
         else:
-            zarr_array = zarr.open(
-                path,
-                mode='w',
-                shape=data.shape,
-                chunks=self.chunk_shape,
-                dtype=data.dtype,
-            )
-            zarr_array[:] = data
+            # zarr_array = zarr.open(
+            #     path,
+            #     mode='w',
+            #     shape=data.shape,
+            #     chunks=self.chunk_shape,
+            #     dtype=data.dtype,
+            # )
+            # zarr_array[:] = data
+            zarr.api.synchronous.save(path, data, zarr_version = 3)
 
     def save_PIL(self, path: str | os.PathLike, data: np.ndarray):
         """

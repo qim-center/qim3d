@@ -2,6 +2,7 @@
 
 import inspect
 import io
+import os
 import math
 import warnings
 from collections.abc import Callable, Sequence
@@ -720,11 +721,11 @@ def fade_mask(
 
 def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     """
-    Launch an interactive chunk explorer for a 3D or 5D OME-Zarr dataset.
+    Launch an interactive chunk explorer for a 3D or 5D OME-Zarr/Zarr dataset.
 
     Args:
         zarr_path (str):
-            Path to the OME-Zarr dataset.
+            Path to the OME-Zarr/Zarr dataset.
 
         **kwargs (Any):
             Additional keyword arguments that are **selectively** forwarded
@@ -755,7 +756,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
 
     """
-    # Load the Zarr dataset
+    # Opens the Zarr dataset - doesn't load to memory yet
     zarr_data = zarr.open(zarr_path, mode='r')
 
     title = widgets.HTML('<h2>Chunk Explorer</h2>')
@@ -772,12 +773,13 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         return {k: v for k, v in kwargs.items() if k in sig.parameters}
 
     def load_and_visualize(
-        scale: int,
+        key: int,
         *coords: int,
         visualization_method: Literal['slicer', 'slices', 'volume'],
         **inner_kwargs: object,
     ) -> Widget | Figure | Output:
-        arr = da.from_zarr(zarr_data[scale])
+        key = _path_from_dropdown(key)
+        arr = da.from_zarr(zarr_data) if isinstance(zarr_data, zarr.Array) else da.from_zarr(zarr_data[key])
         shape = arr.shape
         chunksz = arr.chunks
 
@@ -854,14 +856,29 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
             vol = qim3d.viz.volumetric(chunk, show=False, **kw)
             display(vol)
         return out
-    # print(zarr_data.chunks)
-    scale_opts = {f'{i} {zarr_data[i].shape}': i for i in range(len(zarr_data))}
+    
+    def _path_from_dropdown(string:str):
+        return string.split('(')[0].strip()
+    
+    if isinstance(zarr_data, zarr.Group): 
+        scale_opts = [f'{key} {zarr_data[key].shape}' for key in sorted(zarr_data.keys())]
+    elif isinstance(zarr_data, zarr.Array):
+        scale_opts = [f'{zarr_data.shape}',]
     drop_style = {'description_width': '120px'}
     scale_dd = widgets.Dropdown(
-        options=scale_opts, value=0, description='Scale:', style=drop_style
+        options=scale_opts, description='Scale:', style=drop_style
     )
 
-    first_shape = zarr_data[0].shape
+    # first_shape = zarr_data[0].shape
+    if isinstance(zarr_data, zarr.Array):
+        first_shape = zarr_data.shape
+        chunks = zarr_data.chunks
+    else:
+        first_array = zarr_data[_path_from_dropdown(scale_opts[0])]
+        first_shape = first_array.shape
+        chunks = first_array.chunks
+
+
     if len(first_shape) == 3:
         axis_names = ['Z', 'Y', 'X']
     elif len(first_shape) == 5:
@@ -870,7 +887,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         msg = f'Only 3D or 5D supported, got ndim={len(first_shape)}'
         raise ValueError(msg)
 
-    counts0 = get_num_chunks(first_shape, zarr_data[0].chunks)
+    counts0 = get_num_chunks(first_shape, chunks)
     axis_dds = []
     for name, cnt in zip(axis_names, counts0):
         dd = widgets.Dropdown(
@@ -893,10 +910,11 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         for dd in (*axis_dds, method_dd):
             dd.observe(_update_vis, names='value')
 
-    def _update_coords(scale: int) -> None:
+    def _update_coords(key: str) -> None:
         disable_observers()
-        shp = zarr_data[scale].shape
-        cnts = get_num_chunks(shp, zarr_data[scale].chunks)
+        key = _path_from_dropdown(key)
+        shp = zarr_data[key].shape
+        cnts = get_num_chunks(shp, zarr_data[key].chunks)
         for dd, c in zip(axis_dds, cnts):
             dd.options = list(range(c))
             dd.disabled = c == 1
