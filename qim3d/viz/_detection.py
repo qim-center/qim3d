@@ -60,8 +60,8 @@ def circles(
         clear_output(wait=True)
         fig = qim3d.viz.slices_grid(
             volume[z_slice : z_slice + 1],
-            num_slices=1,
-            color_map='gray',
+            n_slices=1,
+            colormap='gray',
             display_figure=False,
             display_positions=False,
             **kwargs,

@@ -1792,9 +1792,9 @@ class _VolumeComparison:
         self, colormap: str | LinearSegmentedColormap, color_range: tuple[float, float]
     ) -> matplotlib.colors.ListedColormap:
         if isinstance(colormap, str):
-            cmap = matplotlib.colormaps[colormap].resampled(256)
+            colormap = matplotlib.colormaps[colormap].resampled(256)
         black = np.array([0, 0, 0, 1])
-        sampled_colors = cmap(np.linspace(0, 1, 256))
+        sampled_colors = colormap(np.linspace(0, 1, 256))
         sampled_colors[: round(color_range[0] * 256), :] = black
         sampled_colors[round(color_range[1] * 256) :, :] = black
         newcmp = matplotlib.colors.ListedColormap(sampled_colors)
