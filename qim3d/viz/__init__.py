@@ -1,7 +1,7 @@
 """Visualization of volumetric data."""
 
 from . import _layers2d, colormaps
-from ._cc import plot_cc
+from ._connected_components import plot_connected_components
 from ._data_exploration import (
     chunks,
     compare_volumes,
@@ -28,7 +28,7 @@ from .itk_vtk_viewer import itk_vtk
 __all__ = [
     '_layers2d',
     'colormaps',
-    'plot_cc',
+    'plot_connected_components',
     'chunks',
     'compare_volumes',
     'fade_mask',

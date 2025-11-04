@@ -2,12 +2,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import qim3d
-from qim3d.segmentation._connected_components import CC
+from qim3d.segmentation._connected_components import ConnectedComponents
 from qim3d.utils._logger import log
 
 
-def plot_cc(
-    connected_components: CC,
+def plot_connected_components(
+    connected_components: ConnectedComponents,
     component_indexs: list | tuple = None,
     max_cc_to_plot: int = 32,
     overlay: np.ndarray = None,
