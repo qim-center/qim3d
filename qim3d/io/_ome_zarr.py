@@ -50,7 +50,7 @@ class OMEScaler(
         self.method = method
 
     def scaleZYX(self, base: da.core.Array):
-        """Downsample using :z:`scipy.ndimage.zoom`."""
+        """Downsample using :func:`scipy.ndimage.zoom`."""
         rv = [base]
         log.info(f'- Scale 0: {rv[-1].shape}')
 
