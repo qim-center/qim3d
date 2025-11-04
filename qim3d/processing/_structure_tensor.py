@@ -1,7 +1,6 @@
 """Wrapper for the structure tensor function from the structure_tensor package."""
 
 import logging
-from typing import Literal
 
 import numpy as np
 from IPython.display import display
@@ -13,7 +12,6 @@ def structure_tensor(
     rho: float = 6.0,
     base_noise: bool = True,
     smallest: bool = True,
-    sort: Literal['desc', 'asc'] = 'desc',
     visualize: bool = False,
     **viz_kwargs,
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -31,8 +29,7 @@ def structure_tensor(
         sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing. Defaults to 1.0.
         rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed. Defaults to 6.0.
         base_noise (bool, optional): A flag indicating whether to add a small noise to the volume. Default is True.
-        smallest (bool, optional): A flag indicating that only the smallest eigenvalue should be returned. Default is True.
-        sort (str): Order of eigenvalues in `val`. "desc" means val[0] is largest eigenvalue, "asc" means val[0] is smallest. Default is "desc".
+        smallest (bool, optional): A flag indicating that only the eigenvector corresponding to the smallest eigenvalue should be returned. Default is True.
         visualize (bool, optional): Whether to visualize the structure tensor. Default is False.
         **viz_kwargs (Any): Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
 
@@ -40,8 +37,8 @@ def structure_tensor(
         ValueError: If the input volume is not 3D.
 
     Returns:
-        val: An array with shape `(3, *vol.shape)` containing the eigenvalues of the structure tensor.
-        vec: An array with shape `(3, *vol.shape)` if `smallest` is `True`, otherwise `(3, 3, *vol.shape)` containing eigenvectors.
+        val: An array with shape `(3, *vol.shape)` containing the eigenvalues of the structure tensor in descending order.
+        vec: An array with shape `(3, *vol.shape)` if `smallest` is `True`, otherwise `(3, 3, *vol.shape)` containing eigenvectors in descending order.
 
     Example:
         ```python
@@ -110,7 +107,7 @@ def structure_tensor(
 
     # Compute the eigenvalues and eigenvectors of the structure tensor
     full = not smallest
-    val, vec = st.eig_special_3d(s_vol, full=full, eigenvalue_order=sort)
+    val, vec = st.eig_special_3d(s_vol, full=full)
 
     if visualize:
         from qim3d.viz import vectors
