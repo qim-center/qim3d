@@ -50,7 +50,7 @@ class OMEScaler(
         self.method = method
 
     def scaleZYX(self, base: da.core.Array):
-        """Downsample using :func:`scipy.ndimage.zoom`."""
+        """Downsample using :z:`scipy.ndimage.zoom`."""
         rv = [base]
         log.info(f'- Scale 0: {rv[-1].shape}')
 
@@ -156,6 +156,23 @@ class OMEScaler(
             log.info(f'- Scale {i+1}: {rv[-1].shape}')
 
         return list(rv)
+
+    def scaleZYXdask_coarsen(self, base:da.core.Array):
+        """
+        Export 3D image data to OME-Zarr format using dask.coarsen
+        """
+        rv = [base]
+        log.info(f'- Scale 0: {rv[-1].shape}')
+
+        for i in range(self.max_layer):
+            log.debug(f"\nScale {i+1}\n{'-'*32}")
+            
+            scaled = da.coarsen(np.mean, rv[-1], {0:2, 1:2, 2:2}, trim_excess=True)
+            rv.append(scaled)
+            log.info(f'- Scale {i+1}: {rv[-1].shape}')
+
+        return list(rv)
+
 
     def scaleZYXdask_legacy(self, base):
         """Downsample using the original OME-Zarr python library"""
