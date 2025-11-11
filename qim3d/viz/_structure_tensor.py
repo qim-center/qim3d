@@ -285,8 +285,10 @@ def vectors(
 
         return fig
 
+    print(vec.shape)
     if vec.ndim == 5:
-        vec = vec[0, ...]
+        vec = vec[2, ...]
+        print(vec.shape)
         msg = 'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         log.warning(msg)
 
@@ -345,11 +347,10 @@ def vectors(
 def vector_field_3d(
     vec: np.ndarray,
     val: np.ndarray,
-    smallest: bool = True,
-    sort: Literal['desc', 'asc'] = 'desc',
+    select_eigen: Literal['smallest', 'largest', 'middle'] = 'smallest',
     sampling_step: int = 4,
-    max_cones: int = 54000,
-    cone_size: float = 0.1,
+    max_cones: int = 50000,
+    cone_size: float = 1,
     decay_rate: float = 0.0,
     verbose: bool = True,
     colormap: str = 'Portland',
@@ -358,57 +359,67 @@ def vector_field_3d(
     **kwargs,
 ) -> go.Figure:
     """
-    Visualize 3D structure tensor vectors as cones in Plotly. Pay attention to provide to the function the parameters `smallest` and `sort` that have been used to generate the eigenvalue and eigenvectors.
+    Visualize 3D structure tensor eigenvectors as cones in Plotly.
+
+    Each cone represents an eigenvector whose direction and size indicate the dominant local orientation and the magnitude of the corresponding eigenvalue.
+    If `sampling_step` is greater than 1, each cone represents the average orientation and magnitude within that sampled region.
+
+    The function is designed to work directly with the outputs of `qim3d.processing.structure_tensor()`.
+    It's important to provide the same parameters (`smallest` and `sort`) used during eigen decomposition
+    to ensure that the visualization correctly matches the orientation conventions.
 
     Args:
-        val : ndarray
-            Eigenvalues from structure tensor, shape (3, *vol.shape)
-        vec : ndarray
-            Eigenvectors from structure tensor. Either:
-            - (3, nx, ny, nz) if smallest=False
-            - (3, 3, nx, ny, nz) if smallest=True
-        smallest : bool
-            Whether the input `vec` contains all three eigenvectors per voxel (smallest=False)
-            or only the eigenvector corresponding to the smallest eigenvalue (smallest=True). Default is True.
-        sort : str
-            Order of eigenvalues in `val`. "desc" means val[0] is largest eigenvalue, "asc" means val[0] is smallest. Default is "desc".
-        sampling_step : int
-            Grid spacing for sampling points. Default is 4.
-        max_cones : int
-            Maximum number of cones to display. If more points are sampled, only the top N
-            locations with highest eigenvalues are shown. Useful for large volumes. Default is 54000.
-        cone_size : float
-            Scaling factor for the cone size so that cone visual length is equal to vector
-            magnitude multiplied by cone_size. Default is 0.1.
-        decay_rate : float
-            Rate of exponential decay applied to downscale weak orientations. Higher values lead to stronger suppression of weak directions. Default is 0.0 (no decay).
-        verbose : bool
-            Whether to print progress and info messages. Default is True.
-        colormap : str
-            Colorscale for cones.
-        cmin : float, optional
-            Minimum color scale value. Defaults to None (uses min of vector magnitudes).
-        cmax : float, optional
-            Maximum color scale value. Defaults to None (uses max of vector magnitudes).
+        val (np.ndarray): Eigenvalues from the structure tensor, with shape `(3, *vol.shape)`.
+        vec (np.ndarray): Eigenvectors from the structure tensor.
+            Shape depends on the `smallest` parameter from qim3d.processing.structure_tensor():
 
-        **kwargs : additional keyword arguments for go.Cone.
-        For full options, see [Plotly Cone Documentation](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Cone.html).
+            - `(3, nx, ny, nz)` if `smallest=True`
+            - `(3, 3, nx, ny, nz)` if `smallest=False`
+
+        select_eigen (Literal["smallest","largest","middle"], optional):
+            If vec has shape `(3, 3, nx, ny, nz)`, specifies which eigenvector to visualize.
+        sampling_step (int, optional):
+            Grid spacing for sampling points.
+            Default is `4`.
+        max_cones (int, optional):
+            Maximum number of cones to display. If more points are sampled,
+            only the locations with the highest eigenvalues are kept.
+            Default is `50000`.
+        cone_size (float, optional):
+            Scaling factor for cone length, proportional to vector magnitude.
+            Default is `1`.
+        decay_rate (float, optional):
+            Rate of exponential decay applied to weaken low-strength orientations.
+            Default is `0.0` (no decay).
+        verbose (bool, optional):
+            Whether to print progress and info messages.
+            Default is `True`.
+        colormap (str, optional):
+            Name of the Plotly colorscale used for cones.
+            Default is `"Portland"`.
+        cmin (float, optional):
+            Minimum value for color scale. If `None`, uses the minimum vector magnitude.
+        cmax (float, optional):
+            Maximum value for color scale. If `None`, uses the maximum vector magnitude.
+        **kwargs:
+            Additional keyword arguments passed to `plotly.graph_objects.Cone`.
+            See the [Plotly Cone documentation](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Cone.html)
+            for full customization options.
 
     Raises:
-        ValueError :
-            If `full` and `eigenvalue_order` combination is invalid.
+        ValueError: If an invalid combination of `smallest` and `sort` is provided.
 
     Returns:
-        fig : plotly.graph_objects.Figure
-            Interactive 3D cone plot.
+        fig (plotly.graph_objects.Figure):
+            Interactive 3D Plotly figure showing cone representations of local orientation vectors.
 
     Example:
         ```python
-        import qim3d 
+        import qim3d
 
         vol = qim3d.examples.fibers_150x150x150
-        val, vec = qim3d.processing.structure_tensor(vol)
-        fig = vector_field_3d(vec, val, sampling_step=6, max_cones=60000, cone_size=2.5)
+        val, vec = qim3d.processing.structure_tensor(vol, smallest=True)
+        fig = qim3d.viz.vector_field_3d(vec, val, sampling_step=6, max_cones=60000, cone_size=2.5, smallest=True)
         fig.show()
         ```
 
@@ -429,41 +440,28 @@ def vector_field_3d(
         | **Linear structure (fiber)**   | One large, two small (λ₁ ≫ λ₂, λ₃) | Eigenvector with **largest** eigenvalue → line direction  |
         | **Isotropic region (flat)**    | All similar (λ₁ ≈ λ₂ ≈ λ₃)        | No dominant direction                                  |
 
-        So based on what you are interested in visualizing, you may want to select different eigenvectors using the `full` parameter when computing the structure tensor.
+        So based on what you are interested in visualizing, you may want to select different eigenvectors using the `smallest` and `sort` parameters when computing the structure tensor.
 
     """
+    if vec.ndim == 4:
+        val = val[2]  # smallest eigenvalue is in the last index
+    elif vec.ndim == 5:
+        if select_eigen == 'smallest':
+            val = val[2]
+            vec = vec[2, ...]
+        elif select_eigen == 'largest':
+            val = val[0]
+            vec = vec[0, ...]
+        elif select_eigen == 'middle':
+            val = val[1]
+            vec = vec[1, ...]
+        else:
+            msg = f'Invalid select_eigen value: {select_eigen}. Choose from "smallest", "largest", or "middle".'
+            raise ValueError(msg)
+    vec = np.transpose(vec, (1, 2, 3, 0))
+    print(f'vec shape after transpose: {vec.shape}')
 
-    if not smallest and sort == 'desc':
-        dominant_val = val[0]  # largest eigenvalue
-        dominant_vec = vec[:, 0, :, :, :]
-        dominant_vec = np.transpose(dominant_vec, (1, 2, 3, 0))
-        if verbose:
-            log.info(
-                'Plotting eigenvectors corresponding to largest eigenvalues (smallest=False, desc order).'
-            )
-
-    elif not smallest and sort == 'asc':
-        dominant_val = val[0]  # smallest eigenvalue (since ascending order)
-        dominant_vec = vec[:, 0, :, :, :]
-        dominant_vec = np.transpose(dominant_vec, (1, 2, 3, 0))
-        if verbose:
-            log.info(
-                'Plotting eigenvectors corresponding to smallest eigenvalues (smallest=False, asc order).'
-            )
-
-    elif smallest:
-        dominant_val = val[0]
-        dominant_vec = np.transpose(vec, (1, 2, 3, 0))
-        if verbose:
-            log.info(
-                'Plotting eigenvectors corresponding to smallest eigenvalues (smallest=True).'
-            )
-
-    else:
-        msg = "Invalid combination of 'smallest' and 'sort' parameters."
-        raise ValueError(msg)
-
-    nx, ny, nz, _ = dominant_vec.shape
+    nx, ny, nz, _ = vec.shape
     if verbose:
         log.info(f'Original number of grid points: {nx * ny * nz}')
     half = sampling_step // 2
@@ -483,8 +481,8 @@ def vector_field_3d(
                 y0, y1 = max(py - half, 0), min(py + half + 1, ny)
                 z0, z1 = max(pz - half, 0), min(pz + half + 1, nz)
 
-                region_vecs = dominant_vec[x0:x1, y0:y1, z0:z1, :]
-                region_vals = dominant_val[x0:x1, y0:y1, z0:z1]
+                region_vecs = vec[x0:x1, y0:y1, z0:z1, :]
+                region_vals = val[x0:x1, y0:y1, z0:z1]
 
                 avg_vec = region_vecs.mean(axis=(0, 1, 2))
                 avg_val = region_vals.mean()
@@ -507,6 +505,7 @@ def vector_field_3d(
         log.info(f'Number of grid points sampled: {len(values)}')
         log.info(f'Number of cones actually plotted: {len(points_top)}')
 
+    print(f'vectors_top shape: {vectors_top.shape}')
     # Normalize vectors and scale by eigenvalue magnitude
     norms = np.linalg.norm(vectors_top, axis=1, keepdims=True)
     norms[norms == 0] = 1
