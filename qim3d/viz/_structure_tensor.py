@@ -285,9 +285,8 @@ def vectors(
 
         return fig
 
-    print(vec.shape)
     if vec.ndim == 5:
-        vec = vec[2, ...]
+        vec = vec[0, ...]
         print(vec.shape)
         msg = 'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         log.warning(msg)
@@ -351,7 +350,6 @@ def vector_field_3d(
     sampling_step: int = 4,
     max_cones: int = 50000,
     cone_size: float = 1,
-    decay_rate: float = 0.0,
     verbose: bool = True,
     colormap: str = 'Portland',
     cmin: float = None,
@@ -364,9 +362,7 @@ def vector_field_3d(
     Each cone represents an eigenvector whose direction and size indicate the dominant local orientation and the magnitude of the corresponding eigenvalue.
     If `sampling_step` is greater than 1, each cone represents the average orientation and magnitude within that sampled region.
 
-    The function is designed to work directly with the outputs of `qim3d.processing.structure_tensor()`.
-    It's important to provide the same parameters (`smallest` and `sort`) used during eigen decomposition
-    to ensure that the visualization correctly matches the orientation conventions.
+    The function is designed to work directly with the outputs of `qim3d.processing.structure_tensor()` which is in ascendic order by default.
 
     Args:
         val (np.ndarray): Eigenvalues from the structure tensor, with shape `(3, *vol.shape)`.
@@ -388,9 +384,6 @@ def vector_field_3d(
         cone_size (float, optional):
             Scaling factor for cone length, proportional to vector magnitude.
             Default is `1`.
-        decay_rate (float, optional):
-            Rate of exponential decay applied to weaken low-strength orientations.
-            Default is `0.0` (no decay).
         verbose (bool, optional):
             Whether to print progress and info messages.
             Default is `True`.
@@ -418,8 +411,8 @@ def vector_field_3d(
         import qim3d
 
         vol = qim3d.examples.fibers_150x150x150
-        val, vec = qim3d.processing.structure_tensor(vol, smallest=True)
-        fig = qim3d.viz.vector_field_3d(vec, val, sampling_step=6, max_cones=60000, cone_size=2.5, smallest=True)
+        val, vec = qim3d.processing.structure_tensor(vol, smallest = False)
+        fig = qim3d.viz.vector_field_3d(vec, val, sampling_step=6, max_cones=50000, cone_size= 2, select_eigen="smallest")
         fig.show()
         ```
 
@@ -444,14 +437,14 @@ def vector_field_3d(
 
     """
     if vec.ndim == 4:
-        val = val[2]  # smallest eigenvalue is in the last index
+        val = val[0]  # smallest eigenvalue is in the last index
     elif vec.ndim == 5:
         if select_eigen == 'smallest':
-            val = val[2]
-            vec = vec[2, ...]
-        elif select_eigen == 'largest':
             val = val[0]
             vec = vec[0, ...]
+        elif select_eigen == 'largest':
+            val = val[2]
+            vec = vec[2, ...]
         elif select_eigen == 'middle':
             val = val[1]
             vec = vec[1, ...]
@@ -512,9 +505,12 @@ def vector_field_3d(
     unit_vecs = vectors_top / norms
 
     # Apply decay to downscale weak directions
-    scaled_strength = values_top * np.exp(
-        -decay_rate * (1 - values_top / values_top.max())
-    )
+    # scaled_strength = values_top * np.exp(
+    #     -decay_rate * (1 - values_top / values_top.max())
+    # )
+    # scaled_strength = np.log(values_top - values_top.min() + 1)
+
+    scaled_strength = np.log1p(values_top)
 
     u = unit_vecs[:, 0] * scaled_strength
     v = unit_vecs[:, 1] * scaled_strength
