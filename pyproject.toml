@@ -53,7 +53,8 @@ dependencies = [
     "slgbuilder>=0.2.1",
     "pyvista[jupyter]>=0.45",
     "imageio-ffmpeg>=0.6",
-    "numcodecs<0.16"
+    "numcodecs<0.16",
+    "pygorpho>=1.0.1"
 ]
 license = "MIT"
 
