@@ -15,32 +15,35 @@ import pygel3d
 from matplotlib.colors import Colormap
 from pygel3d import jupyter_display as jd
 
+from qim3d.utils._decorators import coarseness
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
 from qim3d.mesh._common_mesh_methods import SurfaceMesh, VolumeMesh
 
 
+@coarseness('volume')
 def volumetric(
-    img: np.ndarray,
+    volume: np.ndarray,
     aspectmode: str = 'data',
     show: bool = True,
     save: bool = False,
     grid_visible: bool = False,
-    color_map: str = 'magma',
+    colormap: str = 'magma',
     constant_opacity: bool = False,
     opacity_function: str | list = None,
-    vmin: float | None = None,
-    vmax: float | None = None,
+    min_value: float | None = None,
+    max_value: float | None = None,
     samples: int | str = 'auto',
-    max_voxels: int = 512**3,
+    max_voxels: int = 256**3,
     data_type: str = 'scaled_float16',
+    camera_mode: str = 'orbit',
     **kwargs,
 ) -> k3d.Plot | None:
     """
     Visualizes a 3D volume using volumetric rendering.
 
     Args:
-        img (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
+        volume (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
         aspectmode (str, optional): Determines the proportions of the scene's axes. Defaults to "data".
             If `'data'`, the axes are drawn in proportion with the axes' ranges.
             If `'cube'`, the axes are drawn as a cube, regardless of the axes' ranges.
@@ -49,15 +52,16 @@ def volumetric(
             If a string is provided, it's interpreted as the file path where the HTML
             file will be saved. Defaults to False.
         grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
-        color_map (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to 'magma'.
-        constant_opacity (bool): Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to False.
-        opacity_function (str or list, optional): Applies an opacity function to the plot, enabling custom values for opaqueness. Set to True if doing an object label visualization with a corresponding color_map; otherwise, the plot may appear poorly. Defaults to [].
-        vmin (float or None, optional): Together with vmax defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        vmax (float or None, optional): Together with vmin defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        colormap (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to 'magma'.
+        constant_opacity (bool): Set to True if doing an object label visualization with a corresponding colormap; otherwise, the plot may appear poorly. Defaults to False.
+        opacity_function (str or list, optional): Applies an opacity function to the plot, enabling custom values for opaqueness. Set to True if doing an object label visualization with a corresponding colormap; otherwise, the plot may appear poorly. Defaults to [].
+        min_value (float or None, optional): Together with max_value defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float or None, optional): Together with min_value defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
         samples (int or 'auto', optional): The number of samples to be used for the volume rendering in k3d. Input 'auto' for auto selection. Defaults to 'auto'.
             Lower values will render faster but with lower quality.
-        max_voxels (int, optional): Defaults to 512^3.
+        max_voxels (int, optional): Defaults to 256^3.
         data_type (str, optional): Default to 'scaled_float16'.
+        camera_mode (str, optional): Camera interaction mode, being 'orbit', 'trackball' or 'fly'. Defaults to 'orbit'.
         **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
 
     Returns:
@@ -67,7 +71,7 @@ def volumetric(
         ValueError: If `aspectmode` is not `'data'` or `'cube'`.
 
     Tip:
-        The function can be used for object label visualization using a `color_map` created with `qim3d.viz.colormaps.objects` along with setting `objects=True`. The latter ensures appropriate rendering.
+        The function can be used for object label visualization using a `colormap` created with `qim3d.viz.colormaps.objects` along with setting `objects=True`. The latter ensures appropriate rendering.
 
     Example:
         Display a volume inline:
@@ -90,7 +94,7 @@ def volumetric(
 
     """
 
-    pixel_count = img.shape[0] * img.shape[1] * img.shape[2]
+    pixel_count = volume.shape[0] * volume.shape[1] * volume.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
     if samples == 'auto':
         y1, x1 = 256, 16777216  # 256 samples at res 256*256*256=16.777.216
@@ -107,11 +111,16 @@ def volumetric(
     if aspectmode.lower() not in ['data', 'cube']:
         msg = "aspectmode should be either 'data' or 'cube'"
         raise ValueError(msg)
+    
+    if camera_mode not in ['orbit', 'trackball', 'fly']:
+        msg = "camera_mode should be either 'orbit', 'trackbal' or 'fly'"
+        raise ValueError(msg)
+    
     # check if image should be downsampled for visualization
-    original_shape = img.shape
-    img = downscale_img(img, max_voxels=max_voxels)
+    original_shape = volume.shape
+    volume = downscale_img(volume, max_voxels=max_voxels)
 
-    new_shape = img.shape
+    new_shape = volume.shape
 
     if original_shape != new_shape:
         log.warning(
@@ -121,29 +130,29 @@ def volumetric(
     # Scale the image to float16 if needed
     if save:
         # When saving, we need float64
-        img = img.astype(np.float64)
+        volume = volume.astype(np.float64)
     else:
         if data_type == 'scaled_float16':
-            img = scale_to_float16(img)
+            volume = scale_to_float16(volume)
         else:
-            img = img.astype(data_type)
+            volume = volume.astype(data_type)
 
     # Set color ranges
-    color_range = [np.min(img), np.max(img)]
-    if vmin:
-        color_range[0] = vmin
-    if vmax:
-        color_range[1] = vmax
+    color_range = [np.min(volume), np.max(volume)]
+    if min_value:
+        color_range[0] = min_value
+    if max_value:
+        color_range[1] = max_value
 
-    # Handle the different formats that color_map can take
-    if color_map:
-        if isinstance(color_map, str):
-            color_map = plt.get_cmap(color_map)  # Convert to Colormap object
-        if isinstance(color_map, Colormap):
-            # Convert to the format of color_map required by k3d.volume
-            attr_vals = np.linspace(0.0, 1.0, num=color_map.N)
-            rgb_vals = color_map(np.arange(0, color_map.N))[:, :3]
-            color_map = np.column_stack((attr_vals, rgb_vals)).tolist()
+    # Handle the different formats that colormap can take
+    if colormap:
+        if isinstance(colormap, str):
+            colormap = plt.get_cmap(colormap)  # Convert to Colormap object
+        if isinstance(colormap, Colormap):
+            # Convert to the format of colormap required by k3d.volume
+            attr_vals = np.linspace(0.0, 1.0, num=colormap.N)
+            rgb_vals = colormap(np.arange(0, colormap.N))[:, :3]
+            colormap = np.column_stack((attr_vals, rgb_vals)).tolist()
 
     # Default k3d.volume settings
     interpolation = True
@@ -152,12 +161,12 @@ def volumetric(
         log.warning(
             'Deprecation warning: Keyword argument "constant_opacity" is deprecated and will be removed next release. Instead use opacity_function="constant".'
         )
-        # without these settings, the plot will look bad when color_map is created with qim3d.viz.colormaps.objects
+        # without these settings, the plot will look bad when colormap is created with qim3d.viz.colormaps.objects
         opacity_function = [0.0, float(constant_opacity), 1.0, float(constant_opacity)]
         interpolation = False
     else:
         if opacity_function == 'constant':
-            # without these settings, the plot will look bad when color_map is created with qim3d.viz.colormaps.objects
+            # without these settings, the plot will look bad when colormap is created with qim3d.viz.colormaps.objects
             opacity_function = [0.0, float(True), 1.0, float(True)]
             interpolation = False
         elif opacity_function is None:
@@ -165,13 +174,13 @@ def volumetric(
 
     # Create the volume plot
     plt_volume = k3d.volume(
-        img,
+        volume,
         bounds=(
-            [0, img.shape[2], 0, img.shape[1], 0, img.shape[0]]
+            [0, volume.shape[2], 0, volume.shape[1], 0, volume.shape[0]]
             if aspectmode.lower() == 'data'
             else None
         ),
-        color_map=color_map,
+        colormap=colormap,
         samples=samples,
         color_range=color_range,
         opacity_function=opacity_function,
@@ -179,6 +188,7 @@ def volumetric(
     )
     plot = k3d.plot(grid_visible=grid_visible, **kwargs)
     plot += plt_volume
+    plot.camera_mode = camera_mode
     if save:
         # Save html to disk
         with open(str(save), 'w', encoding='utf-8') as fp:

@@ -34,7 +34,7 @@ def rearrange_colors(randRGBcolors_old, min_dist=0.5):
 
 
 def segmentation(
-    num_labels: int,
+    n_labels: int,
     style: str = 'bright',
     first_color_background: bool = True,
     last_color_background: bool = False,
@@ -46,7 +46,7 @@ def segmentation(
     Creates a random colormap to be used together with matplotlib. Useful for segmentation tasks
 
     Args:
-        num_labels (int): Number of labels (size of colormap).
+        n_labels (int): Number of labels (size of colormap).
         style (str, optional): 'bright' for strong colors, 'soft' for pastel colors, 'earth' for yellow/green/blue colors, 'ocean' for blue/purple/pink colors. Defaults to 'bright'.
         first_color_background (bool, optional): If True, the first color is used as background. Defaults to True.
         last_color_background (bool, optional): If True, the last color is used as background. Defaults to False.
@@ -62,10 +62,10 @@ def segmentation(
         ```python
         import qim3d
 
-        cmap_bright = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'bright', first_color_background=True, background_color="black", min_dist=0.7)
-        cmap_soft = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'soft', first_color_background=True, background_color="black", min_dist=0.2)
-        cmap_earth = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'earth', first_color_background=True, background_color="black", min_dist=0.8)
-        cmap_ocean = qim3d.viz.colormaps.segmentation(num_labels=100, style = 'ocean', first_color_background=True, background_color="black", min_dist=0.9)
+        cmap_bright = qim3d.viz.colormaps.segmentation(n_labels=100, style = 'bright', first_color_background=True, background_color="black", min_dist=0.7)
+        cmap_soft = qim3d.viz.colormaps.segmentation(n_labels=100, style = 'soft', first_color_background=True, background_color="black", min_dist=0.2)
+        cmap_earth = qim3d.viz.colormaps.segmentation(n_labels=100, style = 'earth', first_color_background=True, background_color="black", min_dist=0.8)
+        cmap_ocean = qim3d.viz.colormaps.segmentation(n_labels=100, style = 'ocean', first_color_background=True, background_color="black", min_dist=0.9)
 
         display(cmap_bright)
         display(cmap_soft)
@@ -79,9 +79,9 @@ def segmentation(
 
         vol = qim3d.examples.cement_128x128x128
         binary = qim3d.filters.gaussian(vol, sigma = 2) < 60
-        labeled_volume, num_labels = qim3d.segmentation.watershed(binary)
+        labeled_volume, n_labels = qim3d.segmentation.watershed(binary)
 
-        color_map = qim3d.viz.colormaps.segmentation(num_labels, style = 'bright')
+        color_map = qim3d.viz.colormaps.segmentation(n_labels, style = 'bright')
         qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=color_map)
         ```
         ![colormap objects](../../assets/screenshots/viz-colormaps-objects.gif)
@@ -117,8 +117,8 @@ def segmentation(
                 f'Invalid color name "{background_color}". Please choose from {list(color_dict.keys())}.'
             )
 
-    # Add one to num_labels to include the background color
-    num_labels += 1
+    # Add one to n_labels to include the background color
+    n_labels += 1
 
     # Create a new random generator, to locally set seed
     rng = np.random.default_rng(seed)
@@ -131,7 +131,7 @@ def segmentation(
                 rng.uniform(low=0.4, high=1),
                 rng.uniform(low=0.9, high=1),
             )
-            for i in range(num_labels)
+            for i in range(n_labels)
         ]
 
         # Convert HSV list to RGB
@@ -151,7 +151,7 @@ def segmentation(
                 rng.uniform(low=low, high=high),
                 rng.uniform(low=low, high=high),
             )
-            for i in range(num_labels)
+            for i in range(n_labels)
         ]
 
     # Generate color map for earthy colors, based on LAB
@@ -162,7 +162,7 @@ def segmentation(
                 rng.uniform(low=-120, high=70),
                 rng.uniform(low=-70, high=70),
             )
-            for i in range(num_labels)
+            for i in range(n_labels)
         ]
 
         # Convert LAB list to RGB
@@ -178,7 +178,7 @@ def segmentation(
                 rng.uniform(low=-128, high=160),
                 rng.uniform(low=-128, high=0),
             )
-            for i in range(num_labels)
+            for i in range(n_labels)
         ]
 
         # Convert LAB list to RGB
@@ -197,6 +197,6 @@ def segmentation(
         randRGBcolors[-1] = background_color
 
     # Create colormap
-    objects = LinearSegmentedColormap.from_list('objects', randRGBcolors, N=num_labels)
+    objects = LinearSegmentedColormap.from_list('objects', randRGBcolors, N=n_labels)
 
     return objects

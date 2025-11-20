@@ -2,18 +2,18 @@ import numpy as np
 
 from qim3d.utils._logger import log
 
-def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, int]:
+def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, int]:
     """
     Apply watershed segmentation to a binary volume.
 
     Args:
-        bin_vol (np.ndarray): Binary volume to segment. The input should be a 3D binary image where non-zero elements
+        binary_volume (np.ndarray): Binary volume to segment. The input should be a 3D binary image where non-zero elements
                               represent the objects to be segmented.
         min_distance (int): Minimum number of pixels separating peaks in the distance transform. Peaks that are
                             too close will be merged, affecting the number of segmented objects. Default is 5.
 
     Returns:
-        labeled_vol (np.ndarray): A 3D array of the same shape as the input `bin_vol`, where each segmented object is assigned a unique integer label.
+        labeled_vol (np.ndarray): A 3D array of the same shape as the input `binary_volume`, where each segmented object is assigned a unique integer label.
         num_labels (int): The total number of unique objects found in the labeled volume.
 
     Example:
@@ -21,14 +21,14 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
         import qim3d
 
         vol = qim3d.examples.cement_128x128x128
-        bin_vol = qim3d.filters.gaussian(vol, sigma = 2)<60
+        binary_volume = qim3d.filters.gaussian(vol, sigma = 2)<60
 
-        fig1 = qim3d.viz.slices_grid(bin_vol, slice_axis=1, display_figure=True)
+        fig1 = qim3d.viz.slices_grid(binary_volume, slice_axis=1, display_figure=True)
         ```
         ![operations-watershed_before](../../assets/screenshots/operations-watershed_before.png)
 
         ```python
-        labeled_volume, num_labels = qim3d.segmentation.watershed(bin_vol)
+        labeled_volume, num_labels = qim3d.segmentation.watershed(binary_volume)
 
         cmap = qim3d.viz.colormaps.segmentation(num_labels)
         fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, color_map=cmap, display_figure=True)
@@ -39,17 +39,17 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
     import scipy
     import skimage
 
-    if len(np.unique(bin_vol)) > 2:
+    if len(np.unique(binary_volume)) > 2:
         raise ValueError(
-            'bin_vol has to be binary volume - it must contain max 2 unique values.'
+            'binary_volume has to be binary volume - it must contain max 2 unique values.'
         )
 
     # Compute distance transform of binary volume
-    distance = scipy.ndimage.distance_transform_edt(bin_vol)
+    distance = scipy.ndimage.distance_transform_edt(binary_volume)
 
     # Find peak coordinates in distance transform
     coords = skimage.feature.peak_local_max(
-        distance, min_distance=min_distance, labels=bin_vol
+        distance, min_distance=min_distance, labels=binary_volume
     )
 
     # Create a mask with peak coordinates
@@ -61,7 +61,7 @@ def watershed(bin_vol: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, i
 
     # Apply watershed segmentation
     labeled_volume = skimage.segmentation.watershed(
-        -distance, markers=markers, mask=bin_vol
+        -distance, markers=markers, mask=binary_volume
     )
 
     # Extract number of objects found
