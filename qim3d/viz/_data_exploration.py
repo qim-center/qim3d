@@ -1530,6 +1530,7 @@ def threshold(
     cmap_image: str = 'magma',
     vmin: float = None,
     vmax: float = None,
+    slice_axis:int = 0
 ) -> widgets.VBox:
     """
     An interactive interface to explore thresholding on a
@@ -1541,9 +1542,10 @@ def threshold(
 
     Args:
         volume (np.ndarray): 3D volume to threshold.
-        cmap_image (str, optional): Colormap for the original image. Defaults to 'viridis'.
+        cmap_image (str, optional): Colormap for the original image. Defaults to 'magma'.
         vmin (float, optional): Minimum value for the colormap. Defaults to None.
         vmax (float, optional): Maximum value for the colormap. Defaults to None.
+        slice_axis (int, optional): Alongside which axis to to take slices. Defaults to 0.
 
     Returns:
         slicer_obj (widgets.VBox): The interactive widget for thresholding a 3D volume.
@@ -1583,9 +1585,17 @@ def threshold(
     # Centralized state dictionary to track current parameters
     state = {
         'position': volume.shape[0] // 2,
-        'threshold': int((volume.min() + volume.max()) / 2),
         'method': 'Manual',
     }
+
+    if np.issubdtype(volume.dtype, np.integer):
+        step = 1
+        state['threshold'] = int((volume.min() + volume.max()) / 2)
+    elif np.issubdtype(volume.dtype, np.floating):
+        step = (volume.max() - volume.min())/1000
+        state['threshold'] = (volume.min() + volume.max()) / 2
+    else:
+        pass
 
     threshold_methods = {
         'Otsu': threshold_otsu,
@@ -1630,7 +1640,7 @@ def threshold(
 
     # Visualization function
     def update_visualization() -> None:
-        slice_img = volume[state['position'], :, :]
+        slice_img = np.take(volume, state['position'], axis = slice_axis)
         with output:
             output.clear_output(wait=True)  # Clear previous plot
             fig, axes = plt.subplots(1, 4, figsize=(25, 5))
@@ -1655,28 +1665,32 @@ def threshold(
                 volume=volume,
                 bins=32,
                 slice_idx=state['position'],
+                slice_axis=slice_axis,
                 vertical_line=state['threshold'],
-                slice_axis=1,
                 kde=False,
                 ax=axes[1],
                 show=False,
             )
-            axes[1].set_title(f"Histogram with Threshold = {int(state['threshold'])}")
+            thr = state['threshold']
+            if isinstance(step, float):
+                thr = f'{thr:.3f}'
+            else:
+                thr = int(thr)
+            axes[1].set_title(f"Histogram with Threshold = {thr}")
 
             # Binary mask
-            mask = slice_img > state['threshold']
+            mask = slice_img >= state['threshold']
             axes[2].imshow(mask, cmap='gray')
             axes[2].set_title('Binary mask')
             axes[2].axis('off')
 
             # Overlay
-            mask_rgb = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)
-            mask_rgb[:, :, 0] = mask
-            masked_volume = qim3d.operations.overlay_rgb_images(
-                background=slice_img,
-                foreground=mask_rgb,
-            )
-            axes[3].imshow(masked_volume, vmin=new_vmin, vmax=new_vmax)
+            mask_rgb = np.zeros((mask.shape[0], mask.shape[1], 4), dtype=np.uint8)
+            mask_rgb[:, :, 0] = mask*255 # Set red channel to the mask
+            mask_rgb[:, :, 3] = mask*255 # Mask has alpha 1, background has alpha 0
+
+            axes[3].imshow(slice_img, vmin=new_vmin, vmax=new_vmax, cmap = 'gray')
+            axes[3].imshow(mask_rgb, alpha = 0.5)
             axes[3].set_title('Overlay')
             axes[3].axis('off')
 
@@ -1690,11 +1704,13 @@ def threshold(
         description='Slice',
     )
 
-    threshold_slider = widgets.IntSlider(
+    threshold_slider = widgets.FloatSlider(
         value=state['threshold'],
         min=volume.min(),
         max=volume.max(),
+        step = step,
         description='Threshold',
+        readout_format = 'd' if step == 1 else '.3f'
     )
 
     method_dropdown = widgets.Dropdown(
