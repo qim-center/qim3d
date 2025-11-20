@@ -12,7 +12,7 @@ def local_thickness(
     image_lt: np.ndarray,
     max_projection: bool = False,
     axis: int = 0,
-    slice_idx: Optional[Union[int, float]] = None,
+    slice_index: Optional[Union[int, float]] = None,
     show: bool = False,
     figsize: Tuple[int, int] = (15, 5),
 ) -> Union[plt.Figure, widgets.interactive]:
@@ -28,7 +28,7 @@ def local_thickness(
         axis (int, optional): The axis along which to visualize the local thickness.
             Unused for 2D images.
             Defaults to 0.
-        slice_idx (int or float, optional): The initial slice to be visualized. The slice index
+        slice_index (int or float, optional): The initial slice to be visualized. The slice index
             can afterwards be changed. If value is an integer, it will be the index of the slice
             to be visualized. If value is a float between 0 and 1, it will be multiplied by the
             number of slices and rounded to the nearest integer. If None, the middle slice will
@@ -55,10 +55,10 @@ def local_thickness(
 
     """
 
-    def _local_thickness(image, image_lt, show, figsize, axis=None, slice_idx=None):
-        if slice_idx is not None:
-            image = image.take(slice_idx, axis=axis)
-            image_lt = image_lt.take(slice_idx, axis=axis)
+    def _local_thickness(image, image_lt, show, figsize, axis=None, slice_index=None):
+        if slice_index is not None:
+            image = image.take(slice_index, axis=axis)
+            image_lt = image_lt.take(slice_index, axis=axis)
 
         fig, axs = plt.subplots(1, 3, figsize=figsize, layout='constrained')
 
@@ -89,27 +89,27 @@ def local_thickness(
     # Get the middle slice if the input is 3D
     if len(image.shape) == 3:
         if max_projection:
-            if slice_idx is not None:
+            if slice_index is not None:
                 log.warning(
-                    'slice_idx is not used for max_projection. It will be ignored.'
+                    'slice_index is not used for max_projection. It will be ignored.'
                 )
             image = image.max(axis=axis)
             image_lt = image_lt.max(axis=axis)
             return _local_thickness(image, image_lt, show, figsize)
         else:
-            if slice_idx is None:
-                slice_idx = image.shape[axis] // 2
-            elif isinstance(slice_idx, float):
-                if slice_idx < 0 or slice_idx > 1:
+            if slice_index is None:
+                slice_index = image.shape[axis] // 2
+            elif isinstance(slice_index, float):
+                if slice_index < 0 or slice_index > 1:
                     raise ValueError(
-                        'Values of slice_idx of float type must be between 0 and 1.'
+                        'Values of slice_index of float type must be between 0 and 1.'
                     )
-                slice_idx = int(slice_idx * image.shape[0]) - 1
-            slide_idx_slider = widgets.IntSlider(
+                slice_index = int(slice_index * image.shape[0]) - 1
+            slice_index_slider = widgets.IntSlider(
                 min=0,
                 max=image.shape[axis] - 1,
                 step=1,
-                value=slice_idx,
+                value=slice_index,
                 description='Slice index',
                 layout=widgets.Layout(width='450px'),
             )
@@ -120,7 +120,7 @@ def local_thickness(
                 show=widgets.fixed(True),
                 figsize=widgets.fixed(figsize),
                 axis=widgets.fixed(axis),
-                slice_idx=slide_idx_slider,
+                slice_index=slice_index_slider,
             )
             widget_obj.layout = widgets.Layout(align_items='center')
             if show:
@@ -131,6 +131,6 @@ def local_thickness(
             log.warning(
                 'max_projection is only used for 3D images. It will be ignored.'
             )
-        if slice_idx is not None:
-            log.warning('slice_idx is only used for 3D images. It will be ignored.')
+        if slice_index is not None:
+            log.warning('slice_index is only used for 3D images. It will be ignored.')
         return _local_thickness(image, image_lt, show, figsize)

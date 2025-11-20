@@ -5,7 +5,7 @@ import numpy as np
 from qim3d.utils._logger import log
 
 def blobs(
-    vol: np.ndarray,
+    volume: np.ndarray,
     background: str = 'dark',
     min_sigma: float = 1,
     max_sigma: float = 50,
@@ -19,7 +19,7 @@ def blobs(
     Extract blobs from a volume using Difference of Gaussian (DoG) method, and retrieve a binary volume with the blobs marked as True
 
     Args:
-        vol (np.ndarray): The volume to detect blobs in.
+        volume (np.ndarray): The volume to detect blobs in.
         background (str): 'dark' if background is darker than the blobs, 'bright' if background is lighter than the blobs. Defaults to 'dark'.
         min_sigma (float): The minimum standard deviation for Gaussian kernel. Defaults to 1.
         max_sigma (float): The maximum standard deviation for Gaussian kernel. Defaults to 50.
@@ -68,10 +68,10 @@ def blobs(
 
     if background == 'bright':
         log.info('Bright background selected, volume will be inverted.')
-        vol = np.invert(vol)
+        volume = np.invert(volume)
 
     blobs = blob_dog(
-        vol,
+        volume,
         min_sigma=min_sigma,
         max_sigma=max_sigma,
         sigma_ratio=sigma_ratio,
@@ -85,17 +85,17 @@ def blobs(
     blobs[:, 3] = blobs[:, 3] * np.sqrt(3)
 
     # Create binary mask of detected blobs
-    vol_shape = vol.shape
-    binary_volume = np.zeros(vol_shape, dtype=bool)
+    volume_shape = volume.shape
+    binary_volume = np.zeros(volume_shape, dtype=bool)
 
     for z, y, x, radius in blobs:
         # Calculate the bounding box around the blob
         z_start = max(0, int(z - radius))
-        z_end = min(vol_shape[0], int(z + radius) + 1)
+        z_end = min(volume_shape[0], int(z + radius) + 1)
         y_start = max(0, int(y - radius))
-        y_end = min(vol_shape[1], int(y + radius) + 1)
+        y_end = min(volume_shape[1], int(y + radius) + 1)
         x_start = max(0, int(x - radius))
-        x_end = min(vol_shape[2], int(x + radius) + 1)
+        x_end = min(volume_shape[2], int(x + radius) + 1)
 
         z_indices, y_indices, x_indices = np.indices(
             (z_end - z_start, y_end - y_start, x_end - x_start)

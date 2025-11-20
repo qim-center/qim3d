@@ -15,12 +15,12 @@ logging.getLogger().setLevel(previous_logging_level)
 
 def vectors(
     volume: np.ndarray,
-    vec: np.ndarray,
+    vectors: np.ndarray,
     axis: int = 0,
-    volume_cmap: str = 'grey',
-    vmin: float | None = None,
-    vmax: float | None = None,
-    slice_idx: Union[int, float] | None = None,
+    volume_colormap: str = 'grey',
+    min_value: float | None = None,
+    max_value: float | None = None,
+    slice_index: Union[int, float] | None = None,
     grid_size: int = 10,
     interactive: bool = True,
     figsize: Tuple[int, int] = (10, 5),
@@ -31,12 +31,12 @@ def vectors(
 
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
-        vec (np.ndarray): The eigenvectors of the structure tensor.
+        vectors (np.ndarray): The eigenvectors of the structure tensor.
         axis (int, optional): The axis along which to visualize the orientation. Defaults to 0.
-        volume_cmap (str, optional): Defines colormap for display of the volume
-        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        slice_idx (int or float or None, optional): The initial slice to be visualized. The slice index
+        volume_colormap (str, optional): Defines colormap for display of the volume
+        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        slice_index (int or float or None, optional): The initial slice to be visualized. The slice index
             can afterwards be changed. If value is an integer, it will be the index of the slice
             to be visualized. If value is a float between 0 and 1, it will be multiplied by the
             number of slices and rounded to the nearest integer. If None, the middle slice will
@@ -95,25 +95,25 @@ def vectors(
         grid_size = min(max(min_grid_size, grid_size), max_grid_size)
         log.warning(f'Adjusting grid size to {grid_size} as it is out of bounds.')
 
-    def _structure_tensor(volume, vec, axis, slice_idx, grid_size, figsize, show):
+    def _structure_tensor(volume, vectors, axis, slice_index, grid_size, figsize, show):
         # Choose the appropriate slice based on the specified dimension
         if axis == 0:
-            data_slice = volume[slice_idx, :, :]
-            vectors_slice_x = vec[0, slice_idx, :, :]
-            vectors_slice_y = vec[1, slice_idx, :, :]
-            vectors_slice_z = vec[2, slice_idx, :, :]
+            data_slice = volume[slice_index, :, :]
+            vectors_slice_x = vectors[0, slice_index, :, :]
+            vectors_slice_y = vectors[1, slice_index, :, :]
+            vectors_slice_z = vectors[2, slice_index, :, :]
 
         elif axis == 1:
-            data_slice = volume[:, slice_idx, :]
-            vectors_slice_x = vec[0, :, slice_idx, :]
-            vectors_slice_y = vec[2, :, slice_idx, :]
-            vectors_slice_z = vec[1, :, slice_idx, :]
+            data_slice = volume[:, slice_index, :]
+            vectors_slice_x = vectors[0, :, slice_index, :]
+            vectors_slice_y = vectors[2, :, slice_index, :]
+            vectors_slice_z = vectors[1, :, slice_index, :]
 
         elif axis == 2:
-            data_slice = volume[:, :, slice_idx]
-            vectors_slice_x = vec[1, :, :, slice_idx]
-            vectors_slice_y = vec[2, :, :, slice_idx]
-            vectors_slice_z = vec[0, :, :, slice_idx]
+            data_slice = volume[:, :, slice_index]
+            vectors_slice_x = vectors[1, :, :, slice_index]
+            vectors_slice_y = vectors[2, :, :, slice_index]
+            vectors_slice_z = vectors[0, :, :, slice_index]
 
         else:
             raise ValueError('Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.')
@@ -173,9 +173,9 @@ def vectors(
             angles='xy',
         )
 
-        ax[0].imshow(data_slice, cmap=volume_cmap, vmin=vmin, vmax=vmax)
+        ax[0].imshow(data_slice, cmap=volume_colormap, vmin=min_value, vmax=max_value)
         ax[0].set_title(
-            f'Orientation vectors (slice {slice_idx})'
+            f'Orientation vectors (slice {slice_index})'
             if not interactive
             else 'Orientation vectors'
         )
@@ -242,7 +242,7 @@ def vectors(
 
         ax[2].imshow(data_slice_orientation_colored)
         ax[2].set_title(
-            f'Colored orientations (slice {slice_idx})'
+            f'Colored orientations (slice {slice_index})'
             if not interactive
             else 'Colored orientations'
         )
@@ -255,28 +255,28 @@ def vectors(
 
         return fig
 
-    if vec.ndim == 5:
-        vec = vec[0, ...]
+    if vectors.ndim == 5:
+        vectors = vectors[0, ...]
         log.warning(
             'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         )
 
-    if slice_idx is None:
-        slice_idx = volume.shape[axis] // 2
+    if slice_index is None:
+        slice_index = volume.shape[axis] // 2
 
-    elif isinstance(slice_idx, float):
-        if slice_idx < 0 or slice_idx > 1:
+    elif isinstance(slice_index, float):
+        if slice_index < 0 or slice_index > 1:
             raise ValueError(
-                'Values of slice_idx of float type must be between 0 and 1.'
+                'Values of slice_index of float type must be between 0 and 1.'
             )
-        slice_idx = int(slice_idx * volume.shape[0]) - 1
+        slice_index = int(slice_index * volume.shape[0]) - 1
 
     if interactive:
-        slide_idx_slider = widgets.IntSlider(
+        slice_index_slider = widgets.IntSlider(
             min=0,
             max=volume.shape[axis] - 1,
             step=1,
-            value=slice_idx,
+            value=slice_index,
             description='Slice index',
             layout=widgets.Layout(width='450px'),
         )
@@ -293,15 +293,15 @@ def vectors(
         widget_obj = widgets.interactive(
             _structure_tensor,
             volume=widgets.fixed(volume),
-            vec=widgets.fixed(vec),
+            vectors=widgets.fixed(vectors),
             axis=widgets.fixed(axis),
-            slice_idx=slide_idx_slider,
+            slice_index=slice_index_slider,
             grid_size=grid_size_slider,
             figsize=widgets.fixed(figsize),
             show=widgets.fixed(True),
         )
         # Arrange sliders horizontally
-        sliders_box = widgets.HBox([slide_idx_slider, grid_size_slider])
+        sliders_box = widgets.HBox([slice_index_slider, grid_size_slider])
         widget_obj = widgets.VBox([sliders_box, widget_obj.children[-1]])
         widget_obj.layout.align_items = 'center'
 
@@ -311,4 +311,4 @@ def vectors(
         return widget_obj
 
     else:
-        return _structure_tensor(volume, vec, axis, slice_idx, grid_size, figsize, show)
+        return _structure_tensor(volume, vectors, axis, slice_index, grid_size, figsize, show)

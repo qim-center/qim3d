@@ -84,9 +84,9 @@ def plot_metrics(
 
 def grid_overview(
     data: list ,
-    num_images: int = 7,
-    cmap_im: str = 'gray',
-    cmap_segm: str = 'viridis',
+    n_images: int = 7,
+    colormap_im: str = 'gray',
+    colormap_segm: str = 'viridis',
     alpha: float = 0.5,
     show: bool = False,
 ) -> matplotlib.figure.Figure:
@@ -99,9 +99,9 @@ def grid_overview(
 
     Args:
         data (list or torch.utils.data.Dataset): A list of tuples or Torch dataset containing image, label, (and mask data).
-        num_images (int, optional): The maximum number of images to display. Defaults to 7.
-        cmap_im (str, optional): The colormap to be used for displaying input images. Defaults to 'gray'.
-        cmap_segm (str, optional): The colormap to be used for displaying labels. Defaults to 'viridis'.
+        n_images (int, optional): The maximum number of images to display. Defaults to 7.
+        colormap_im (str, optional): The colormap to be used for displaying input images. Defaults to 'gray'.
+        colormap_segm (str, optional): The colormap to be used for displaying labels. Defaults to 'viridis'.
         alpha (float, optional): The transparency level of the label and mask overlays. Defaults to 0.5.
         show (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
 
@@ -114,7 +114,7 @@ def grid_overview(
 
     Notes:
         - If the image data is RGB, the color map is ignored and the user is informed.
-        - The number of displayed images is limited to the minimum between `num_images`
+        - The number of displayed images is limited to the minimum between `n_images`
             and the length of the data.
         - The grid layout and dimensions vary based on the presence of a mask.
 
@@ -128,16 +128,16 @@ def grid_overview(
         log.info('Input images are RGB: color map is ignored')
 
     # Check if dataset have at least specified number of images
-    if len(data) < num_images:
+    if len(data) < n_images:
         log.warning(
-            'Not enough images in the dataset. Changing num_images=%d to num_images=%d',
-            num_images,
+            'Not enough images in the dataset. Changing n_images=%d to n_images=%d',
+            n_images,
             len(data),
         )
-        num_images = len(data)
+        n_images = len(data)
 
     # Adapt segmentation cmap so that background is transparent
-    colors_segm = colormaps.get_cmap(cmap_segm)(np.linspace(0, 1, 256))
+    colors_segm = colormaps.get_cmap(colormap_segm)(np.linspace(0, 1, 256))
     colors_segm[:128, 3] = 0
     custom_cmap = LinearSegmentedColormap.from_list('CustomCmap', colors_segm)
 
@@ -149,10 +149,10 @@ def grid_overview(
     row_titles = ['Input images', 'Ground truth segmentation', 'Mask']
 
     # Make new list such that possible augmentations remain identical for all three rows
-    plot_data = [data[idx] for idx in range(num_images)]
+    plot_data = [data[idx] for idx in range(n_images)]
 
     fig = plt.figure(
-        figsize=(2 * num_images, 9 if has_mask else 6), constrained_layout=True
+        figsize=(2 * n_images, 9 if has_mask else 6), constrained_layout=True
     )
 
     # create 2 (3) x 1 subfigs
@@ -160,15 +160,15 @@ def grid_overview(
     for row, subfig in enumerate(subfigs):
         subfig.suptitle(row_titles[row], fontsize=22)
 
-        # create 1 x num_images subplots per subfig
-        axs = subfig.subplots(nrows=1, ncols=num_images)
+        # create 1 x n_images subplots per subfig
+        axs = subfig.subplots(nrows=1, ncols=n_images)
         for col, ax in enumerate(np.atleast_1d(axs)):
             if row in [1, 2]:  # Ground truth segmentation and mask
-                ax.imshow(plot_data[col][0].squeeze(), cmap=cmap_im)
+                ax.imshow(plot_data[col][0].squeeze(), cmap=colormap_im)
                 ax.imshow(plot_data[col][row].squeeze(), cmap=custom_cmap, alpha=alpha)
                 ax.axis('off')
             else:
-                ax.imshow(plot_data[col][row].squeeze(), cmap=cmap_im)
+                ax.imshow(plot_data[col][row].squeeze(), cmap=colormap_im)
                 ax.axis('off')
 
     if show:
@@ -180,9 +180,9 @@ def grid_overview(
 
 def grid_pred(
     in_targ_preds: tuple[np.ndarray, np.ndarray, np.ndarray],
-    num_images: int = 7,
-    cmap_im: str = 'gray',
-    cmap_segm: str = 'viridis',
+    n_images: int = 7,
+    colormap_im: str = 'gray',
+    colormap_segm: str = 'viridis',
     alpha: float = 0.5,
     show: bool = False,
 ) -> matplotlib.figure.Figure:
@@ -196,14 +196,14 @@ def grid_pred(
         - Row 3: Ground truth segmentations overlaying input images
         - Row 4: Comparison between true and predicted segmentations overlaying input images
 
-    Each row consists of `num_images` subplots, where each subplot corresponds to an image from the dataset.
+    Each row consists of `n_images` subplots, where each subplot corresponds to an image from the dataset.
     The function utilizes various color maps for visualization and applies transparency to the segmentations.
 
     Args:
         in_targ_preds (tuple): A tuple containing input images, target segmentations, and predicted segmentations.
-        num_images (int, optional): Number of images to display. Defaults to 7.
-        cmap_im (str, optional): Color map for input images. Defaults to "gray".
-        cmap_segm (str, optional): Color map for segmentations. Defaults to "viridis".
+        n_images (int, optional): Number of images to display. Defaults to 7.
+        colormap_im (str, optional): Color map for input images. Defaults to "gray".
+        colormap_segm (str, optional): Color map for segmentations. Defaults to "viridis".
         alpha (float, optional): Alpha value for transparency. Defaults to 0.5.
         show (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
 
@@ -218,29 +218,29 @@ def grid_pred(
         dataset = MySegmentationDataset()
         model = MySegmentationModel()
         in_targ_preds = qim3d.ml.inference(dataset,model)
-        qim3d.viz.grid_pred(in_targ_preds, cmap_im='viridis', alpha=0.5)
+        qim3d.viz.grid_pred(in_targ_preds, colormap_im='viridis', alpha=0.5)
 
     """
     import torch
 
     # Check if dataset have at least specified number of images
-    if len(in_targ_preds[0]) < num_images:
+    if len(in_targ_preds[0]) < n_images:
         log.warning(
-            'Not enough images in the dataset. Changing num_images=%d to num_images=%d',
-            num_images,
+            'Not enough images in the dataset. Changing n_images=%d to n_images=%d',
+            n_images,
             len(in_targ_preds[0]),
         )
-        num_images = len(in_targ_preds[0])
+        n_images = len(in_targ_preds[0])
 
     # Take only the number of images from in_targ_preds
-    inputs, targets, preds = (items[:num_images] for items in in_targ_preds)
+    inputs, targets, preds = (items[:n_images] for items in in_targ_preds)
 
     # Adapt segmentation cmap so that background is transparent
-    colors_segm = colormaps.get_cmap(cmap_segm)(np.linspace(0, 1, 256))
+    colors_segm = colormaps.get_cmap(colormap_segm)(np.linspace(0, 1, 256))
     colors_segm[:128, 3] = 0
     custom_cmap = LinearSegmentedColormap.from_list('CustomCmap', colors_segm)
 
-    N = num_images
+    N = n_images
     H = inputs[0].shape[-2]
     W = inputs[0].shape[-1]
 
@@ -256,30 +256,30 @@ def grid_pred(
         'True vs. predicted segmentation',
     ]
 
-    fig = plt.figure(figsize=(2 * num_images, 10), constrained_layout=True)
+    fig = plt.figure(figsize=(2 * n_images, 10), constrained_layout=True)
 
     # create 3 x 1 subfigs
     subfigs = fig.subfigures(nrows=4, ncols=1)
     for row, subfig in enumerate(subfigs):
         subfig.suptitle(row_titles[row], fontsize=22)
 
-        # create 1 x num_images subplots per subfig
-        axs = subfig.subplots(nrows=1, ncols=num_images)
+        # create 1 x n_images subplots per subfig
+        axs = subfig.subplots(nrows=1, ncols=n_images)
         for col, ax in enumerate(np.atleast_1d(axs)):
             if row == 0:
-                ax.imshow(inputs[col], cmap=cmap_im)
+                ax.imshow(inputs[col], cmap=colormap_im)
                 ax.axis('off')
 
             elif row == 1:  # Predicted segmentation
-                ax.imshow(inputs[col], cmap=cmap_im)
+                ax.imshow(inputs[col], cmap=colormap_im)
                 ax.imshow(preds[col], cmap=custom_cmap, alpha=alpha)
                 ax.axis('off')
             elif row == 2:  # Ground truth segmentation
-                ax.imshow(inputs[col], cmap=cmap_im)
+                ax.imshow(inputs[col], cmap=colormap_im)
                 ax.imshow(targets[col], cmap=custom_cmap, alpha=alpha)
                 ax.axis('off')
             else:
-                ax.imshow(inputs[col], cmap=cmap_im)
+                ax.imshow(inputs[col], cmap=colormap_im)
                 ax.imshow(comp_rgb[col].permute(1, 2, 0), alpha=alpha)
                 ax.axis('off')
 
@@ -291,31 +291,31 @@ def grid_pred(
 
 
 def vol_masked(
-    vol: np.ndarray, vol_mask: np.ndarray, viz_delta: int = 128
+    volume: np.ndarray, volume_mask: np.ndarray, viz_delta: int = 128
 ) -> np.ndarray:
     """
     Applies masking to a volume based on a binary volume mask.
 
-    This function takes a volume array `vol` and a corresponding binary volume mask `vol_mask`.
+    This function takes a volume array `volume` and a corresponding binary volume mask `volume_mask`.
     It computes the masked volume where pixels outside the mask are set to the background value,
     and pixels inside the mask are set to foreground.
 
 
     Args:
-        vol (ndarray): The input volume as a NumPy array.
-        vol_mask (ndarray): The binary mask volume as a NumPy array with the same shape as `vol`.
+        volume (ndarray): The input volume as a NumPy array.
+        volume_mask (ndarray): The binary mask volume as a NumPy array with the same shape as `volume`.
         viz_delta (int, optional): Value added to the volume before applying the mask to visualize masked regions.
             Defaults to 128.
 
     Returns:
-        ndarray: The masked volume with the same shape as `vol`, where pixels outside the mask are set
+        ndarray: The masked volume with the same shape as `volume`, where pixels outside the mask are set
             to the background value (negative).
 
 
     """
 
-    background = (vol.astype('float') + viz_delta) * (1 - vol_mask) * -1
-    foreground = (vol.astype('float') + viz_delta) * vol_mask
-    vol_masked_result = background + foreground
+    background = (volume.astype('float') + viz_delta) * (1 - volume_mask) * -1
+    foreground = (volume.astype('float') + viz_delta) * volume_mask
+    volume_masked_result = background + foreground
 
-    return vol_masked_result
+    return volume_masked_result

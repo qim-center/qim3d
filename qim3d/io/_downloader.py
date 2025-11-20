@@ -123,7 +123,7 @@ class Downloader:
         downloader.list_files()
         data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
 
-        qim3d.viz.slicer_orthogonal(data, color_map="magma")
+        qim3d.viz.slicer_orthogonal(data, colormap="magma")
         ```
         ![cowry shell](../../assets/screenshots/cowry_shell_slicer.gif)
 
