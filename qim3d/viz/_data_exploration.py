@@ -70,9 +70,9 @@ def slices_grid(
     interpolation: str | None = None,
     color_bar: bool = False,
     color_bar_style: str = 'small',
-    mask:np.ndarray = None,
-    mask_alpha:float = 0.4,
-    mask_color_map:str = 'gray',
+    mask: np.ndarray = None,
+    mask_alpha: float = 0.4,
+    mask_color_map: str = 'gray',
     **matplotlib_imshow_kwargs,
 ) -> matplotlib.figure.Figure:
     """
@@ -99,6 +99,9 @@ def slices_grid(
         interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
         color_bar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
         color_bar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
+        mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
+        mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
+        mask_color_map (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
         **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
 
     Returns:
@@ -229,7 +232,11 @@ def slices_grid(
             slice_idx = i * max_columns + j
             try:
                 slice_img = volume.take(slice_idxs[slice_idx], axis=slice_axis)
-                slice_mask = None if mask is None else mask.take(slice_idxs[slice_idx], axis = slice_axis)
+                slice_mask = (
+                    None
+                    if mask is None
+                    else mask.take(slice_idxs[slice_idx], axis=slice_axis)
+                )
 
                 if not color_bar:
                     # If value_min is higher than the highest value in the
@@ -261,7 +268,7 @@ def slices_grid(
                     **matplotlib_imshow_kwargs,
                 )
                 if slice_mask is not None:
-                    ax.imshow(slice_mask, cmap = mask_color_map, alpha = mask_alpha)
+                    ax.imshow(slice_mask, cmap=mask_color_map, alpha=mask_alpha)
 
                 if display_positions:
                     ax.text(
@@ -367,10 +374,10 @@ def slicer(
     interpolation: str | None = None,
     image_size: int = None,
     color_bar: str = None,
-    mask:np.ndarray = None,
-    mask_alpha:float = 0.4,
-    mask_color_map = 'gray',
-    default_position:float|int = 0.5,
+    mask: np.ndarray = None,
+    mask_alpha: float = 0.4,
+    mask_color_map: str = 'gray',
+    default_position: float = 0.5,
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
     """
@@ -449,20 +456,21 @@ def slicer(
             num_slices=1,
             display_figure=True,
             color_bar=show_color_bar,
-            mask = mask,
-            mask_alpha = mask_alpha,
-            mask_color_map = mask_color_map,
+            mask=mask,
+            mask_alpha=mask_alpha,
+            mask_color_map=mask_color_map,
             **matplotlib_imshow_kwargs,
         )
         return fig
 
-        
     if isinstance(default_position, float):
-        default_position = int( default_position * (volume.shape[slice_axis]-1))
+        default_position = int(default_position * (volume.shape[slice_axis] - 1))
     if isinstance(default_position, int):
         if default_position < 0:
             default_position = volume.shape[slice_axis] - default_position
-        default_position = np.clip(default_position, a_min = 0, a_max = volume.shape[slice_axis]-1)
+        default_position = np.clip(
+            default_position, a_min=0, a_max=volume.shape[slice_axis] - 1
+        )
     else:
         default_position = volume.shape[slice_axis] // 2
 
@@ -490,13 +498,13 @@ def slicer_orthogonal(
     display_positions: bool = False,
     interpolation: str | None = None,
     image_size: int = None,
-    color_bar:str = None,
-    mask:np.ndarray = None,
-    mask_alpha:float = 0.4,
-    mask_color_map:str = 'gray',
-    default_z:float|int = 0.5,
-    default_y:float|int = 0.5,
-    default_x:float|int = 0.5,
+    color_bar: str = None,
+    mask: np.ndarray = None,
+    mask_alpha: float = 0.4,
+    mask_color_map: str = 'gray',
+    default_z: float = 0.5,
+    default_y: float = 0.5,
+    default_x: float = 0.5,
 ) -> widgets.interactive:
     """
     Interactive widget for visualizing orthogonal slices of a 3D volume.
@@ -518,7 +526,7 @@ def slicer_orthogonal(
         default_x (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
         default_y (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
         default_z (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
-    
+
     Returns:
         slicer_orthogonal_obj (widgets.HBox): The interactive widget for visualizing orthogonal slices of a 3D volume.
 
@@ -548,15 +556,15 @@ def slicer_orthogonal(
         display_positions=display_positions,
         interpolation=interpolation,
         color_bar=color_bar,
-        mask = mask,
-        mask_alpha = mask_alpha,
-        mask_color_map = mask_color_map,
-        default_position=default_position
+        mask=mask,
+        mask_alpha=mask_alpha,
+        mask_color_map=mask_color_map,
+        default_position=default_position,
     )
 
     z_slicer = get_slicer_for_axis(slice_axis=0, default_position=default_z)
     y_slicer = get_slicer_for_axis(slice_axis=1, default_position=default_y)
-    x_slicer = get_slicer_for_axis(slice_axis=2, default_position=default_x) 
+    x_slicer = get_slicer_for_axis(slice_axis=2, default_position=default_x)
 
     z_slicer.children[0].description = 'Z'
     y_slicer.children[0].description = 'Y'
@@ -2613,12 +2621,26 @@ class VolumePlaneSlicer:
         self.initial_colorscale = self.matplotlib_to_plotly_cmap(color_map)
         self.showscale = showscale
         self.opacity = opacity
+        self.continuous_update = self.volume.size <= 250**3  # only for small volumes
+
+        self._last_indices = {}
 
         color_range = color_range if color_range else [None, None]
         vmin = color_range[0] or volume.min()
         vmax = color_range[1] or volume.max()
         self.color_range = [vmin, vmax]
         self.z_max, self.y_max, self.x_max = volume.shape
+
+        self.x_axis = np.arange(self.x_max)
+        self.y_axis = np.arange(self.y_max)
+        self.z_axis = np.arange(self.z_max)
+
+        # Precompute 2-D grids for Y and X planes to save time on each update
+        self._x_grid_zx = np.repeat(self.x_axis[None, :], self.z_max, axis=0)  # (Z, X)
+        self._z_grid_zx = np.repeat(self.z_axis[:, None], self.x_max, axis=1)  # (Z, X)
+        # X plane (shape: z,y): z varies by row, y varies by col
+        self._y_grid_zy = np.repeat(self.y_axis[None, :], self.z_max, axis=0)  # (Z, Y)
+        self._z_grid_zy = np.repeat(self.z_axis[:, None], self.y_max, axis=1)  # (Z, Y)
 
         self.fig = go.FigureWidget()
         self._init_controls()
@@ -2635,6 +2657,7 @@ class VolumePlaneSlicer:
             max=self.x_max - 1,
             description='X',
             layout=slider_layout,
+            continuous_update=self.continuous_update,
         )
         self.y_slider = widgets.IntSlider(
             value=self.y_max // 2,
@@ -2642,6 +2665,7 @@ class VolumePlaneSlicer:
             max=self.y_max - 1,
             description='Y',
             layout=slider_layout,
+            continuous_update=self.continuous_update,
         )
         self.z_slider = widgets.IntSlider(
             value=self.z_max // 2,
@@ -2649,6 +2673,7 @@ class VolumePlaneSlicer:
             max=self.z_max - 1,
             description='Z',
             layout=slider_layout,
+            continuous_update=self.continuous_update,
         )
 
         checkbox_layout = widgets.Layout(width='20px')
@@ -2676,6 +2701,7 @@ class VolumePlaneSlicer:
             step=0.05,
             description='Opacity',
             layout=widgets.Layout(width='350px'),
+            continuous_update=self.continuous_update,
         )
         is_int = np.issubdtype(self.volume.dtype, np.integer)
         crange_slider_type = (
@@ -2687,7 +2713,7 @@ class VolumePlaneSlicer:
             max=self.color_range[1],
             step=1 if is_int else (self.color_range[1] - self.color_range[0]) / 100,
             description='Color range',
-            continuous_update=True,
+            continuous_update=self.continuous_update,
             layout=widgets.Layout(width='400px'),
         )
 
@@ -2736,21 +2762,66 @@ class VolumePlaneSlicer:
         self.controls = widgets.HBox([slice_controls, whitespace, visual_controls])
 
     def _init_surfaces(self) -> None:
+        # --- Create three surfaces. Z uses 1-D x/y; X and Y use precomputed 2-D grids set once. ---
+        # Z plane (shape y,x): use 1-D x/y axes, z is a 2-D constant plane updated per index
+        z0 = self.z_slider.value
+        z_plane = np.full((self.y_max, self.x_max), self.z_axis[z0], dtype=np.float32)
+
+        # Y plane (shape z,x): x grid & z grid are static; y is a 2-D constant plane updated per index
+        y0 = self.y_slider.value
+        y_plane = np.full((self.z_max, self.x_max), self.y_axis[y0], dtype=np.float32)
+
+        # X plane (shape z,y): y grid & z grid are static; x is a 2-D constant plane updated per index
+        x0 = self.x_slider.value
+        x_plane = np.full((self.z_max, self.y_max), self.x_axis[x0], dtype=np.float32)
+
         surfaces = [
+            # Z plane
             go.Surface(
-                name='ZYX'[i],
+                name='Z',
+                x=self.x_axis,  # 1-D
+                y=self.y_axis,  # 1-D
+                z=z_plane,  # 2-D constant (updated when Z changes)
+                surfacecolor=np.zeros((self.y_max, self.x_max), dtype=np.float32),
                 opacity=0,
                 colorscale=self.initial_colorscale,
                 showscale=False,
                 cmin=self.color_range[0],
                 cmax=self.color_range[1],
                 showlegend=False,
-            )
-            for i in range(3)
+            ),
+            # Y plane (vertical): needs full 2-D x,y,z
+            go.Surface(
+                name='Y',
+                x=self._x_grid_zx,  # 2-D static
+                y=y_plane,  # 2-D constant (updated when Y changes)
+                z=self._z_grid_zx,  # 2-D static
+                surfacecolor=np.zeros((self.z_max, self.x_max), dtype=np.float32),
+                opacity=0,
+                colorscale=self.initial_colorscale,
+                showscale=False,
+                cmin=self.color_range[0],
+                cmax=self.color_range[1],
+                showlegend=False,
+            ),
+            # X plane (vertical): needs full 2-D x,y,z
+            go.Surface(
+                name='X',
+                x=x_plane,  # 2-D constant (updated when X changes)
+                y=self._y_grid_zy,  # 2-D static
+                z=self._z_grid_zy,  # 2-D static
+                surfacecolor=np.zeros((self.z_max, self.y_max), dtype=np.float32),
+                opacity=0,
+                colorscale=self.initial_colorscale,
+                showscale=False,
+                cmin=self.color_range[0],
+                cmax=self.color_range[1],
+                showlegend=False,
+            ),
         ]
         self.fig.add_traces(surfaces)
 
-        # dummy surface for the colorbar to avoid a lot of problems
+        # dummy surface for the colorbar (unchanged)
         colorbar_surface = go.Surface(
             z=[[0, 0], [0, 0]],
             surfacecolor=[[0, 1], [0, 1]],
@@ -2763,7 +2834,6 @@ class VolumePlaneSlicer:
             showlegend=False,
         )
         self.fig.add_trace(colorbar_surface)
-        # self.fig.data will be a list of the surfaces in the order they were added
 
         self.fig.update_layout(
             width=1000,
@@ -2781,35 +2851,99 @@ class VolumePlaneSlicer:
                     )
                 },
             },
+            uirevision=True,  # preserve camera on updates
         )
 
+        for tr in self.fig.data[:3]:
+            tr.update(
+                lighting={
+                    'ambient': 1,
+                    'diffuse': 0,
+                    'specular': 0,
+                    'roughness': 1,
+                    'fresnel': 0,
+                }
+            )
+
+        for tr in self.fig.data[:3]:
+            tr.update(cmin=0, cmax=255)
+
+    def _quantize_to_u8(self, arr: np.ndarray) -> np.ndarray:
+        vmin, vmax = self.color_range
+        # guard against degenerate range
+        scale = 255.0 / max(float(vmax) - float(vmin), 1e-12)
+        out = (arr.astype(np.float32, copy=False) - float(vmin)) * scale
+        # clip and cast
+        out = np.clip(out, 0.0, 255.0).astype(np.uint8, copy=False)
+        return np.ascontiguousarray(out)
+
     def _update_plane(self, plane: Literal['X', 'Y', 'Z']) -> None:
-        z, y, x = (np.arange(s) for s in [self.z_max, self.y_max, self.x_max])
-        opacity = self.opacity_slider.value
+        key = (
+            ('Z', self.z_slider.value)
+            if plane == 'Z'
+            else ('Y', self.y_slider.value)
+            if plane == 'Y'
+            else ('X', self.x_slider.value)
+        )
+        if getattr(self, '_last_key', None) == key:
+            return
+        self._last_key = key
 
-        if plane == 'Z':
-            y_mesh, x_mesh = np.meshgrid(y, x, indexing='ij')
-            z_mesh = np.full_like(x_mesh, self.z_slider.value)
-            data = self.volume[self.z_slider.value, :, :]
-            surface = self.fig.data[0]
+        with self.fig.batch_update():
+            opacity = self.opacity_slider.value
 
-        elif plane == 'Y':
-            z_mesh, x_mesh = np.meshgrid(z, x, indexing='ij')
-            y_mesh = np.full_like(z_mesh, self.y_slider.value)
-            data = self.volume[:, self.y_slider.value, :]
-            surface = self.fig.data[1]
+            if plane == 'Z':
+                k = self.z_slider.value
+                data = np.take(self.volume, k, axis=0)
+                if not data.flags['C_CONTIGUOUS']:  # ensure contiguous
+                    data = np.ascontiguousarray(data)
+                data = data.astype(np.float32, copy=False)
+                s = self.fig.data[0]
+                # Update constant Z-plane only if index changed
+                if self._last_indices.get('k') != k:
+                    s.z = np.full(
+                        (self.y_max, self.x_max), self.z_axis[k], dtype=np.float32
+                    )
+                    self._last_indices['k'] = k
+                q = self._quantize_to_u8(data)
+                s.surfacecolor = q
+                s.opacity = opacity
 
-        elif plane == 'X':
-            z_mesh, y_mesh = np.meshgrid(z, y, indexing='ij')
-            x_mesh = np.full_like(z_mesh, self.x_slider.value)
-            data = self.volume[:, :, self.x_slider.value]
-            surface = self.fig.data[2]
+            elif plane == 'Y':
+                j = self.y_slider.value
+                data = np.take(self.volume, j, axis=1)
+                if not data.flags['C_CONTIGUOUS']:  # ensure contiguous
+                    data = np.ascontiguousarray(data)
+                data = data.astype(np.float32, copy=False)
+                s = self.fig.data[1]
+                if self._last_indices.get('j') != j:
+                    s.y = np.full(
+                        (self.z_max, self.x_max), self.y_axis[j], dtype=np.float32
+                    )
+                    self._last_indices['j'] = j
+                q = self._quantize_to_u8(data)
+                s.surfacecolor = q
+                s.opacity = opacity
 
-        else:
-            msg = f'Invalid plane: {plane}'
-            raise ValueError(msg)
+            elif plane == 'X':
+                i = self.x_slider.value
+                data = np.take(self.volume, i, axis=2)
+                if not data.flags['C_CONTIGUOUS']:  # ensure contiguous
+                    data = np.ascontiguousarray(data)
+                data = data.astype(np.float32, copy=False)
+                s = self.fig.data[2]
+                if self._last_indices.get('i') != i:
+                    s.x = np.full(
+                        (self.z_max, self.y_max), self.x_axis[i], dtype=np.float32
+                    )
+                    self._last_indices['i'] = i
+                q = self._quantize_to_u8(data)
+                s.surfacecolor = q
+                s.opacity = opacity
 
-        self._update_surface(surface, x_mesh, y_mesh, z_mesh, data, opacity)
+            else:
+                msg = f'Invalid plane: {plane}'
+                raise ValueError(msg)
 
     def _toggle_visibility(self, plane: Literal['X', 'Y', 'Z']) -> None:
         if plane == 'X':
