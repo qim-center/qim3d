@@ -17,6 +17,7 @@ from pygel3d import jupyter_display as jd
 
 from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
+from qim3d.mesh._common_mesh_methods import SurfaceMesh, VolumeMesh
 
 
 def volumetric(
@@ -190,7 +191,7 @@ def volumetric(
 
 
 def mesh(
-    mesh: pygel3d.hmesh.Manifold,
+    mesh: pygel3d.hmesh.Manifold | SurfaceMesh | VolumeMesh,
     backend: str = 'pygel3d',
     wireframe: bool = True,
     flat_shading: bool = True,
@@ -254,6 +255,9 @@ def mesh(
 
 
     """
+    if isinstance(mesh, VolumeMesh):
+        mesh.plot()
+        return
 
     if len(mesh.vertices()) > 100000:
         msg = f'The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh.'
@@ -263,28 +267,14 @@ def mesh(
         msg = "Invalid backend. Choose 'pygel3d' or 'k3d'."
         raise ValueError(msg)
 
-    # Extract vertex positions and face indices
-    face_indices = list(mesh.faces())
-    vertices_array = np.array(mesh.positions())
-
-    # Extract face vertex indices
-    face_vertices = [
-        list(mesh.circulate_face(int(fid), mode='v'))[:3] for fid in face_indices
-    ]
-    face_vertices = np.array(face_vertices, dtype=np.uint32)
-
-    # Validate the mesh structure
-    if vertices_array.shape[1] != 3 or face_vertices.shape[1] != 3:
-        msg = 'Vertices must have shape (N, 3) and faces (M, 3)'
-        raise ValueError(msg)
-
+  
     # Separate valid kwargs for each backend
     valid_k3d_kwargs = {k: v for k, v in kwargs.items() if k not in ['smooth', 'data']}
     valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ['smooth', 'data']}
 
     if backend == 'k3d':
-        vertices_array = np.ascontiguousarray(vertices_array.astype(np.float32))
-        face_vertices = np.ascontiguousarray(face_vertices)
+        vertices_array = np.ascontiguousarray(np.array(mesh.positions()).astype(np.float32))
+        face_vertices = np.ascontiguousarray(mesh.faces())
 
         mesh_plot = k3d.mesh(
             vertices=vertices_array,

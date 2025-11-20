@@ -73,6 +73,14 @@ class VolumeMesh(UnstructuredGrid):
             writeline(0) # number of geometric entity indices
 
 class SurfaceMesh(hmesh.Manifold):
+    def __init__(self, mesh:hmesh.Manifold):
+        self._mesh = mesh
+
+    def __getattr__(self, name):
+        """
+        Delegate all unknown attributes to the underlying Manifold.
+        """
+        return getattr(self._mesh, name)
 
     def faces(self) -> np.ndarray:
         """
@@ -80,7 +88,8 @@ class SurfaceMesh(hmesh.Manifold):
         """
         vertices = np.ones((0, 3))
 
-        for face in hmesh.Manifold.faces(self):
+        # for face in hmesh.Manifold.faces(self):
+        for face in self._mesh.faces():
             new_ver = self.circulate_face(face)
             new_ver = np.expand_dims(np.array(new_ver), axis = 0)
             vertices = np.append(vertices, new_ver, axis = 0)
