@@ -6,7 +6,7 @@ import math
 import warnings
 from collections.abc import Callable, Sequence
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, Iterable
 
 import dask.array as da
 import imageio.v2 as imageio
@@ -935,7 +935,8 @@ def histogram(
     bins: int | str = 'auto',
     slice_idx: int | str | None = None,
     slice_axis: int = 0,
-    vertical_line: int = None,
+    vertical_line: int | Iterable = None,
+    vertical_line_colormap: str | Iterable = 'qim',
     kde: bool = False,
     log_scale: bool = False,
     despine: bool = True,
@@ -962,7 +963,8 @@ def histogram(
         slice_axis (int, optional): Axis along which to take a slice. Default is 0.
         slice_idx (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
                                                If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
-        vertical_line (int, optional): Intensity value for a vertical line to be drawn on the histogram. Default is None.
+        vertical_line (Union[int, Iterable], optional): Intensity value for a vertical line(s) to be drawn on the histogram. Default is None.
+        vertical_line_colormap (Union[str, Iterable], optional): Colors for vertical lines. If string, it should be a valid colormap. If iterable, it should be list of valid colors. Default is 'qim'.
         kde (bool, optional): Whether to overlay a kernel density estimate.
         log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
         despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
@@ -1066,12 +1068,30 @@ def histogram(
     )
 
     if vertical_line is not None:
-        ax.axvline(
-            x=vertical_line,
-            color='red',
-            linestyle='--',
-            linewidth=2,
-        )
+        
+        if isinstance(vertical_line_colormap, str):
+            colors = matplotlib.colormaps[vertical_line_colormap]
+        elif isinstance(vertical_line_colormap, Iterable):
+            colors = lambda x: vertical_line_colormap[x]
+
+
+        if isinstance(vertical_line, (float, int)):
+            ax.axvline(
+                x=vertical_line,
+                color=colors(0),
+                linestyle='--',
+                linewidth=2,
+            )
+        elif isinstance(vertical_line, Iterable):
+            for index, line_position in enumerate(vertical_line):
+                if isinstance(vertical_line_colormap, str):
+                    index = index/(max(len(vertical_line)-1, 1))
+                ax.axvline(
+                    x=line_position,
+                    color=colors(index),
+                    linestyle='--',
+                    linewidth=2,
+                )
 
     if despine:
         sns.despine(
