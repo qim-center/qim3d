@@ -44,7 +44,8 @@ class _Myfolder:
                 file_name = file_name.replace('%20', '_')
                 file_name = file_name.replace('-', '_')
 
-            setattr(self, f'{file_name.split('.')[0]}', self._make_fn(folder, file))
+            name = file_name.split('.')[0]
+            setattr(self, name, self._make_fn(folder, file))
 
     def _make_fn(self, folder: str, file: str) -> Callable[[bool, bool], object]:
         """
