@@ -1,12 +1,12 @@
 """UNet model and Hyperparameters class."""
 
-import torch
-import torch.nn as nn
-
 from qim3d.utils import log
+from qim3d.utils._dependecies import optional_import
+
+torch = optional_import('torch', extra='deep-learning')
 
 
-class UNet(nn.Module):
+class UNet(torch.nn.Module):
     """
     3D UNet model designed for imaging segmentation tasks.
 
@@ -56,8 +56,8 @@ class UNet(nn.Module):
 
         self.model = self._model_choice()
 
-    def _model_choice(self) -> nn.Module:
-        from monai.networks.nets import UNet as monai_UNet
+    def _model_choice(self) -> torch.nn.Module:
+        monai = optional_import('monai', extra='deep-learning')
 
         size_options = {
             'xxsmall': (4, 8),  # 2 layers
@@ -77,7 +77,7 @@ class UNet(nn.Module):
             )
             raise ValueError(message)
 
-        model = monai_UNet(
+        model = monai.networks.nets.UNet(
             spatial_dims=3,
             in_channels=1,
             out_channels=1,
@@ -145,7 +145,7 @@ class Hyperparameters:
 
     def __init__(
         self,
-        model: nn.Module,
+        model: torch.nn.Module,
         n_epochs: int = 10,
         learning_rate: float = 1e-3,
         optimizer: str = 'Adam',
@@ -190,7 +190,7 @@ class Hyperparameters:
 
     def model_params(
         self,
-        model: nn.Module,
+        model: torch.nn.Module,
         n_epochs: int,
         optimizer: str,
         learning_rate: float,
@@ -211,27 +211,27 @@ class Hyperparameters:
     # Selecting the optimizer
     def _optimizer(
         self,
-        model: nn.Module,
+        model: torch.nn.Module,
         optimizer: str,
         learning_rate: float,
         weight_decay: float,
         momentum: float,
     ) -> torch.optim.Optimizer:
-        from torch.optim import SGD, Adam, RMSprop
+        torch = optional_import('torch', extra='deep-learning')
 
         if optimizer == 'Adam':
-            optim = Adam(
+            optim = torch.optim.Adam(
                 model.parameters(), lr=learning_rate, weight_decay=weight_decay
             )
         elif optimizer == 'SGD':
-            optim = SGD(
+            optim = torch.optim.SGD(
                 model.parameters(),
                 lr=learning_rate,
                 momentum=momentum,
                 weight_decay=weight_decay,
             )
         elif optimizer == 'RMSprop':
-            optim = RMSprop(
+            optim = torch.optim.RMSprop(
                 model.parameters(),
                 lr=learning_rate,
                 weight_decay=weight_decay,
@@ -241,15 +241,15 @@ class Hyperparameters:
 
     # Selecting the loss function
     def _loss_functions(self, loss_function: str) -> torch.nn:
-        from monai.losses import DiceCELoss, DiceLoss, FocalLoss
-        from torch.nn import BCEWithLogitsLoss
+        monai = optional_import('monai', extra='deep-learning')
+        torch = optional_import('torch', extra='deep-learning')
 
         if loss_function == 'BCE':
-            criterion = BCEWithLogitsLoss(reduction='mean')
+            criterion = torch.nn.BCEWithLogitsLoss(reduction='mean')
         elif loss_function == 'Dice':
-            criterion = DiceLoss(sigmoid=True, reduction='mean')
+            criterion = monai.losses.DiceLoss(sigmoid=True, reduction='mean')
         elif loss_function == 'Focal':
-            criterion = FocalLoss(reduction='mean')
+            criterion = monai.losses.FocalLoss(reduction='mean')
         elif loss_function == 'DiceCE':
-            criterion = DiceCELoss(sigmoid=True, reduction='mean')
+            criterion = monai.losses.DiceCELoss(sigmoid=True, reduction='mean')
         return criterion

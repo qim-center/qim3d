@@ -4,11 +4,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage
 from IPython.display import display
-from noise import pnoise3, snoise3
 
 import qim3d
 from qim3d.utils import log
+from qim3d.utils._dependecies import optional_import
 from qim3d.utils._misc import scale_to_float16
+
+noise = optional_import('noise', extra='synthetic-data')
+pnoise3 = noise.pnoise3
+snoise3 = noise.snoise3
 
 __all__ = ['volume', 'background']
 

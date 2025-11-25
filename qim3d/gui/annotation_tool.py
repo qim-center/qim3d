@@ -24,12 +24,14 @@ import getpass
 import os
 import tempfile
 
-import gradio as gr
 import numpy as np
 from PIL import Image
 
 import qim3d
 from qim3d.gui.interface import BaseInterface
+from qim3d.utils._dependecies import optional_import
+
+gr = optional_import('gradio', extra='gui')
 
 # TODO: img in launch should be self.img
 
@@ -100,10 +102,9 @@ class Interface(BaseInterface):
         return img_editor['composite']
 
     def create_download_list(self, img_editor: gr.ImageEditor) -> list[str]:
-        
         if len(img_editor['layers']) == 0:
             return []
-        
+
         masks_rgb = img_editor['layers'][0]
         mask_threshold = 200  # This value is based
 

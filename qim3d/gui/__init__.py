@@ -7,7 +7,9 @@ from .qim_theme import QimTheme
 
 
 def run_gradio_app(gradio_interface, host='0.0.0.0'):
-    import gradio as gr
+    from qim3d.utils._dependecies import optional_import
+
+    gradio = optional_import('gradio', extra='gui')
     import uvicorn
 
     # Get port using the QIM API
@@ -25,7 +27,7 @@ def run_gradio_app(gradio_interface, host='0.0.0.0'):
     # Create FastAPI with mounted gradio interface
     app = FastAPI()
     path = f"/gui/{port_dict['username']}/{port}/"
-    app = gr.mount_gradio_app(app, gradio_interface, path=path)
+    app = gradio.mount_gradio_app(app, gradio_interface, path=path)
 
     # Full path
     print(f'http://{host}:{port}{path}')

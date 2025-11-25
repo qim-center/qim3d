@@ -2,15 +2,17 @@
 
 import os
 
-import torch
-from torchinfo import ModelStatistics, summary
 from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
+from qim3d.utils._dependecies import optional_import
 from qim3d.utils._logger import log
 from qim3d.viz._metrics import plot_metrics
 
 from .models._unet import Hyperparameters
+
+torch = optional_import('torch', extra='deep-learning')
+torchinfo = optional_import('torchinfo', extra='deep-learning')
 
 
 def train_model(
@@ -208,7 +210,7 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str) -> torch.nn.Mo
 
 def model_summary(
     model: torch.nn.Module, dataloader: torch.utils.data.DataLoader
-) -> ModelStatistics:
+) -> torchinfo.ModelStatistics:
     """
     Prints the summary of a PyTorch model.
 
@@ -250,7 +252,7 @@ def model_summary(
     """
     images, _ = next(iter(dataloader))
     batch_size = tuple(images.shape)
-    model_s = summary(model, batch_size, depth=torch.inf)
+    model_s = torchinfo.summary(model, batch_size, depth=torch.inf)
 
     return model_s
 

@@ -2,15 +2,16 @@ from abc import ABC, abstractmethod
 from os import listdir, path
 from pathlib import Path
 
-import gradio as gr
 import numpy as np
 
 import qim3d.gui
+from qim3d.utils._dependecies import optional_import
+
+gr = optional_import('gradio', extra='gui')
 
 
 # TODO: when offline it throws an error in cli
 class BaseInterface(ABC):
-
     """
     Annotation tool and Data explorer as those don't need any examples.
     """
@@ -100,7 +101,6 @@ class BaseInterface(ABC):
 
 
 class InterfaceWithExamples(BaseInterface):
-
     """
     For Iso3D and Local Thickness
     """
