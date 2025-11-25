@@ -437,17 +437,17 @@ def vector_field_3d(
 
     """
     if vec.ndim == 4:
-        val = val[0]  # smallest eigenvalue is in the last index
+        val = val[2]  # smallest eigenvalue is in the last index
     elif vec.ndim == 5:
-        if select_eigen == 'smallest':
+        if select_eigen == 'largest':
             val = val[0]
-            vec = vec[0, ...]
-        elif select_eigen == 'largest':
+            vec = vec[:, 0, ...]
+        elif select_eigen == 'smallest':
             val = val[2]
-            vec = vec[2, ...]
+            vec = vec[:, 2, ...]
         elif select_eigen == 'middle':
             val = val[1]
-            vec = vec[1, ...]
+            vec = vec[:, 1, ...]
         else:
             msg = f'Invalid select_eigen value: {select_eigen}. Choose from "smallest", "largest", or "middle".'
             raise ValueError(msg)
