@@ -2,12 +2,17 @@ import numpy as np
 import scipy
 import scipy.ndimage
 from pygel3d import hmesh
+import pyvista as pv
 
 from qim3d.utils import log
 
 
 def from_volume(
-    volume: np.ndarray, mesh_precision: float = 1.0, **kwargs: any
+    volume: np.ndarray, 
+    mesh_precision: float = 1.0, 
+    backend:str = 'pyvista', 
+    method:str = 'marching_cubes', 
+    **kwargs: any
 ) -> hmesh.Manifold:
     """
     Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour)
@@ -17,6 +22,10 @@ def from_volume(
         volume (np.ndarray): A 3D numpy array representing a volume.
         mesh_precision (float, optional): Scaling factor for adjusting the resolution of the mesh.
                                           Default is 1.0 (no scaling).
+        backend (str, optional): What python package is used to compute mesh from volume. 
+            It is either 'pyvista' or 'pygel'. Default is 'pyvista'
+        method (str, optional): Only applies if ˚backend = pyvista˚. What method is used to compute mesh from volume. 
+            It can be either 'marching_cubes' or 'flying_edges'. Default is 'marching_cubes
         **kwargs: Additional arguments to pass to the Pygel3D volumetric_isocontour function.
 
     Raises:
@@ -61,10 +70,19 @@ def from_volume(
     if not (0 < mesh_precision <= 1):
         msg = 'The mesh precision must be between 0 and 1.'
         raise ValueError(msg)
+    
+    if backend not in ('pyvista', 'pygel'):
+        msg = f"Backend has to be either 'pyvista' or 'pygel'. Yours is {backend}"
+        raise ValueError(msg)
 
     # Apply scaling to adjust mesh resolution
     volume = scipy.ndimage.zoom(volume, zoom=mesh_precision, order=0)
 
-    mesh = hmesh.volumetric_isocontour(volume, **kwargs)
+    if backend == 'pyvista':
+        grid = pv.ImageData(dimensions=volume.shape)
+        mesh = grid.contour([1], volume.flatten(order="F"), method=method)
+
+    elif backend == 'pygel':
+        mesh = hmesh.volumetric_isocontour(volume, **kwargs)
 
     return mesh
