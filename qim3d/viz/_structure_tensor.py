@@ -286,7 +286,7 @@ def vectors(
         return fig
 
     if vec.ndim == 5:
-        vec = vec[0, ...]
+        vec = vec[:, 0, ...]
         print(vec.shape)
         msg = 'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         log.warning(msg)
@@ -437,19 +437,19 @@ def vector_field_3d(
 
     """
     if vec.ndim == 4:
-        val = val[2]  # smallest eigenvalue is in the last index
+        val = val[0]
     elif vec.ndim == 5:
         if select_eigen == 'largest':
-            val = val[0]
-            vec = vec[:, 0, ...]
-        elif select_eigen == 'smallest':
             val = val[2]
             vec = vec[:, 2, ...]
+        elif select_eigen == 'smallest':
+            val = val[0]
+            vec = vec[:, 0, ...]
         elif select_eigen == 'middle':
             val = val[1]
             vec = vec[:, 1, ...]
         else:
-            msg = f'Invalid select_eigen value: {select_eigen}. Choose from "smallest", "largest", or "middle".'
+            msg = f'Invalid select_eigen value: {select_eigen}. Choose between "smallest", "largest", or "middle".'
             raise ValueError(msg)
     vec = np.transpose(vec, (1, 2, 3, 0))
     print(f'vec shape after transpose: {vec.shape}')
