@@ -163,7 +163,15 @@ You can install optional dependencies for specific features:
 | All optional features | All of the above | `pip install qim3d[all]` |
 
 !!! note
-    If you try to run a script that requires an optional dependency and it is not installed, `qim3d` will show a warning with instructions on how to install the missing dependency.
+    If you try to run a script that requires an optional dependency and it is not installed, `qim3d` will show a ImportError with instructions on how to install the missing dependency.
+
+!!! tip "Installing Multiple Features"
+    You can install multiple optional dependency groups simultaneously by separating the names with a comma, without spaces, inside the brackets.     
+    For example, to install both the `synthetic-data` features and the `deep-learning` features, use the following command:
+
+    ```bash
+    pip install qim3d[synthetic-data,deep-learning]
+    ```
 
 
 ### Troubleshooting
