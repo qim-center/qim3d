@@ -4,7 +4,7 @@ import numpy as np
 import scipy
 import scipy.ndimage
 from pygel3d import hmesh
-from pyvista import UnstructuredGrid, CellType
+from pyvista import UnstructuredGrid, CellType, PolyData
 from pytetwild import tetrahedralize, tetrahedralize_pv
 import pyvista as pv
 
@@ -12,8 +12,8 @@ from qim3d.utils import log
 
 class VolumeMesh(UnstructuredGrid):
 
-    def tetrahedralize(self, optimize:bool = True, edge_length_fac:float = 0.05):
-        return VolumeMesh(tetrahedralize_pv(self, edge_length_fac, optimize))
+    # def tetrahedralize(self, optimize:bool = True, edge_length_fac:float = 0.05):
+    #     return VolumeMesh(tetrahedralize_pv(self, edge_length_fac, optimize))
 
     def export_to_comsol(self, 
                filename:str = 'mesh1.mphtxt'):
@@ -72,64 +72,35 @@ class VolumeMesh(UnstructuredGrid):
             writeline(tetras_str.getvalue())
 
             writeline(0) # number of geometric entity indices
+   
+class SurfaceMesh(PolyData):
+    def __new__(cls, mesh):
+        if isinstance(mesh, hmesh.Manifold):
 
-class SurfaceMesh(hmesh.Manifold):
-    def __init__(self, mesh:hmesh.Manifold):
-        self._mesh = mesh
+            # get faces
+            faces= np.ones((0, 3))
+            for face in mesh.faces():
+                new_ver = mesh.circulate_face(face)
+                new_ver = np.expand_dims(np.array(new_ver), axis = 0)
+                faces = np.append(faces, new_ver, axis = 0)
+            return super().__new__(cls, mesh.points(), faces)
 
-    def __getattr__(self, name):
-        """
-        Delegate all unknown attributes to the underlying Manifold.
-        """
-        return getattr(self._mesh, name)
-
-    def faces(self) -> np.ndarray:
-        """
-        Returns array of vertices indices which define the faces
-        """
-        vertices = np.ones((0, 3))
-
-        # for face in hmesh.Manifold.faces(self):
-        for face in self._mesh.faces():
-            new_ver = self.circulate_face(face)
-            new_ver = np.expand_dims(np.array(new_ver), axis = 0)
-            vertices = np.append(vertices, new_ver, axis = 0)
-        return vertices
-
-    def triangulate(self, clip_ear:bool = True)->None:
-        "Makes sure all the faces are triangles"
-        hmesh.triangulate(self, clip_ear)
-
-    def tetrahedralize(self, 
-                       optimize:bool = True, 
-                       edge_length_fac:float = 0.05, 
-                       ) -> VolumeMesh:
+        elif isinstance(mesh, PolyData):
+            return super().__new__(cls, mesh.points, mesh.faces)
         
-        """
-        Turns isosurface into volume surface. It uses the same default arguments
-        as pytetwild implementation.
+    def tetrahedralize(self, optimize:bool = True, edge_length_fac:float = 0.05):
+        return VolumeMesh(tetrahedralize_pv(self, edge_length_fac, optimize))
 
-        Returns: VolumeMesh
-        """
-        vertices, tetra = tetrahedralize(self.positions(), self.faces(), optimize, edge_length_fac)
 
-        cells = np.hstack(
-        [
-            np.full((tetra.shape[0], 1), 4, dtype=np.int32),
-            tetra,
-        ]
-        )
-        cell_types = np.full(tetra.shape[0], CellType.TETRA, dtype=np.uint8)
-
-        return VolumeMesh(cells, cell_types, vertices)
 
 def from_volume(
     volume: np.ndarray, 
     mesh_precision: float = 1.0, 
     backend:str = 'pyvista', 
     method:str = 'marching_cubes', 
+    return_pygel3D:bool = False,
     **kwargs: any
-) -> hmesh.Manifold:
+) -> SurfaceMesh | hmesh.Manifold:
     """
     Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour)
     function from Pygel3D.
@@ -142,6 +113,8 @@ def from_volume(
             It is either 'pyvista' or 'pygel'. Default is 'pyvista'
         method (str, optional): Only applies if ˚backend = pyvista˚. What method is used to compute mesh from volume. 
             It can be either 'marching_cubes' or 'flying_edges'. Default is 'marching_cubes
+        return_pygel3D (bool, optional): If set to True, returns pygel3d.hmesh.Manifold. If False, returns qim3d.mesh.SurfaceMesh.
+            Default is False.
         **kwargs: Additional arguments to pass to the Pygel3D volumetric_isocontour function.
 
     Raises:
@@ -200,5 +173,7 @@ def from_volume(
 
     elif backend == 'pygel':
         mesh = hmesh.volumetric_isocontour(volume, **kwargs)
+        if return_pygel3D:
+            return mesh
 
     return SurfaceMesh(mesh)
