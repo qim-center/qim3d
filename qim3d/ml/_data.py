@@ -7,7 +7,7 @@ import numpy as np
 
 import qim3d
 from qim3d.utils import log
-from qim3d.utils._dependecies import optional_import
+from qim3d.utils._dependencies import optional_import
 
 from ._augmentations import Augmentation
 

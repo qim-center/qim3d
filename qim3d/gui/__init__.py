@@ -1,16 +1,15 @@
-from fastapi import FastAPI
-
 import qim3d.utils
+from qim3d.utils._dependencies import optional_import
 
 from . import annotation_tool, data_explorer, iso3d, layers2d, local_thickness
 from .qim_theme import QimTheme
 
 
 def run_gradio_app(gradio_interface, host='0.0.0.0'):
-    from qim3d.utils._dependecies import optional_import
-
     gradio = optional_import('gradio', extra='gui')
-    import uvicorn
+    fastapi = optional_import('fastapi', extra='gui')
+    FastAPI = fastapi.FastAPI
+    uvicorn = optional_import('uvicorn', extra='gui')
 
     # Get port using the QIM API
     port_dict = qim3d.utils.get_port_dict()

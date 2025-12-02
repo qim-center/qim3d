@@ -24,7 +24,7 @@ from scipy import ndimage
 
 import qim3d
 from qim3d.gui.interface import InterfaceWithExamples
-from qim3d.utils._dependecies import optional_import
+from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
 
 gr = optional_import('gradio', extra='gui')

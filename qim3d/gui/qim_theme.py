@@ -1,4 +1,4 @@
-from qim3d.utils._dependecies import optional_import
+from qim3d.utils._dependencies import optional_import
 
 gr = optional_import('gradio', extra='gui')
 

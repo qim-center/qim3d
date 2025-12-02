@@ -5,7 +5,7 @@ import os
 from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from qim3d.utils._dependecies import optional_import
+from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
 from qim3d.viz._metrics import plot_metrics
 

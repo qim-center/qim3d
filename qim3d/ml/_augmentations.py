@@ -1,6 +1,6 @@
 """Class for choosing the level of data augmentations with MONAI."""
 
-from qim3d.utils._dependecies import optional_import
+from qim3d.utils._dependencies import optional_import
 
 monai = optional_import('monai', extra='deep-learning')
 

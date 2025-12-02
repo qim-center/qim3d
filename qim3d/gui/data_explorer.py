@@ -30,7 +30,7 @@ import outputformat as ouf
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
 from qim3d.utils import _misc
-from qim3d.utils._dependecies import optional_import
+from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
 
 gr = optional_import('gradio', extra='gui')

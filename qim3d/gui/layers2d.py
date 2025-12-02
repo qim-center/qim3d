@@ -25,7 +25,7 @@ import numpy as np
 # from qim3d.processing import layers2d as l2d
 import qim3d
 from qim3d.gui.interface import BaseInterface
-from qim3d.utils._dependecies import optional_import
+from qim3d.utils._dependencies import optional_import
 
 gr = optional_import('gradio', extra='gui')
 
