@@ -190,10 +190,14 @@ def slices_grid(
     elif isinstance(slice_positions, int):
         slice_idxs = _get_slice_range(slice_positions, n_slices, n_total)
     # Position is a list of integers
-    elif isinstance(slice_positions, list) and all(
-        isinstance(idx, int) for idx in slice_positions
-    ):
-        slice_idxs = slice_positions
+    elif isinstance(slice_positions, list) and all(map(lambda x:isinstance(x, int), slice_positions)):
+        slice_idxs = np.array(slice_positions)
+        if any(slice_idxs < 0):
+            dim = volume.shape[slice_axis]
+            slice_idxs[np.where(slice_idxs < 0)] += dim
+        n_slices = len(slice_idxs)
+            
+
     else:
         msg = 'Position not recognized. Choose an integer, list of integers or one of the following strings: "start", "mid" or "end".'
         raise ValueError(msg)
