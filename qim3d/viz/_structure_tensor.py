@@ -286,7 +286,7 @@ def vectors(
         return fig
 
     if vec.ndim == 5:
-        vec = vec[:, 0, ...]
+        vec = vec[0, :, ...]
         print(vec.shape)
         msg = 'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         log.warning(msg)
@@ -422,10 +422,7 @@ def vector_field_3d(
         Each voxel is associated with three **eigenvalues** (λ₁, λ₂, λ₃) and corresponding
         **eigenvectors**, which describe how much intensity varies along each direction.
 
-        Typically, the eigenvalues are ordered as:
-            λ₁ ≥ λ₂ ≥ λ₃
-
-        Their relative magnitudes determine the type of local structure:
+        The relative magnitudes of the eigenvalues determine the type of local structure:
 
         | Structure type              | Eigenvalue pattern               | Dominant orientation vector                          |
         |-----------------------------|----------------------------------|-------------------------------------------------------|
@@ -433,7 +430,7 @@ def vector_field_3d(
         | **Linear structure (fiber)**   | One large, two small (λ₁ ≫ λ₂, λ₃) | Eigenvector with **largest** eigenvalue → line direction  |
         | **Isotropic region (flat)**    | All similar (λ₁ ≈ λ₂ ≈ λ₃)        | No dominant direction                                  |
 
-        So based on what you are interested in visualizing, you may want to select different eigenvectors using the `smallest` and `sort` parameters when computing the structure tensor.
+        So based on what you are interested in visualizing, you may want to select different eigenvectors using the `select_eigen` parameter.
 
     """
     if vec.ndim == 4:
@@ -441,18 +438,17 @@ def vector_field_3d(
     elif vec.ndim == 5:
         if select_eigen == 'largest':
             val = val[2]
-            vec = vec[:, 2, ...]
+            vec = vec[2, :, ...]
         elif select_eigen == 'smallest':
             val = val[0]
-            vec = vec[:, 0, ...]
+            vec = vec[0, :, ...]
         elif select_eigen == 'middle':
             val = val[1]
-            vec = vec[:, 1, ...]
+            vec = vec[1, :, ...]
         else:
             msg = f'Invalid select_eigen value: {select_eigen}. Choose between "smallest", "largest", or "middle".'
             raise ValueError(msg)
     vec = np.transpose(vec, (1, 2, 3, 0))
-    print(f'vec shape after transpose: {vec.shape}')
 
     nx, ny, nz, _ = vec.shape
     if verbose:
@@ -498,7 +494,6 @@ def vector_field_3d(
         log.info(f'Number of grid points sampled: {len(values)}')
         log.info(f'Number of cones actually plotted: {len(points_top)}')
 
-    print(f'vectors_top shape: {vectors_top.shape}')
     # Normalize vectors and scale by eigenvalue magnitude
     norms = np.linalg.norm(vectors_top, axis=1, keepdims=True)
     norms[norms == 0] = 1

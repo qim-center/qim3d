@@ -37,8 +37,13 @@ def structure_tensor(
         ValueError: If the input volume is not 3D.
 
     Returns:
-        val: An array with shape `(3, *vol.shape)` containing the eigenvalues of the structure tensor in ascendic order.
-        vec: An array with shape `(3, *vol.shape)` if `smallest` is `True`, otherwise `(3, 3, *vol.shape)` containing eigenvectors in ascendic order.
+    val: An array of shape `(3, *vol.shape)` containing the eigenvalues of the
+        structure tensor in ascending order.
+
+    vec: If `smallest` is `True`, an array of shape `(3, *vol.shape)`; otherwise
+        an array of shape `(3, 3, *vol.shape)`. The array contains the eigenvectors
+        in ascending order, where axis 0 indexes the three eigenvectors and
+        axis 1 indexes the three vector components(x,y,z).
 
     Example:
         ```python
@@ -110,7 +115,7 @@ def structure_tensor(
     print(
         f'Computing eigenvalues and eigenvectors of the structure tensor, full = {full}'
     )
-    val, vec = st.eig_special_3d(s_vol, full=full, eigenvalue_order='desc')
+    val, vec = st.eig_special_3d(s_vol, full=full, eigenvalue_order='asc')
 
     if visualize:
         from qim3d.viz import vectors
