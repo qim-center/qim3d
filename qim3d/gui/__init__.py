@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 import qim3d.utils
 
-from . import annotation_tool, data_explorer, iso3d, layers2d, local_thickness
+from . import annotation_tool, data_explorer, iso3d, layers2d, local_thickness, volume_generator
 from .qim_theme import QimTheme
 
 
