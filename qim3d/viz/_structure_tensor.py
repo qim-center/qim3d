@@ -1,5 +1,5 @@
 import logging
-from typing import Literal, Union
+from typing import Literal
 
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
@@ -21,7 +21,7 @@ def vectors(
     volume_colormap: str = 'grey',
     min_value: float | None = None,
     max_value: float | None = None,
-    slice_index: Union[int, float] | None = None,
+    slice_index: int | float | None = None,
     grid_size: int = 10,
     interactive: bool = True,
     figsize: tuple[int, int] = (10, 5),
@@ -317,7 +317,9 @@ def vectors(
         return widget_obj
 
     else:
-        return _structure_tensor(volume, vectors, axis, slice_index, grid_size, figsize, show)
+        return _structure_tensor(
+            volume, vectors, axis, slice_index, grid_size, figsize, show
+        )
 
 
 def vector_field_3d(
