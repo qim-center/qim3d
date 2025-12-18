@@ -1,5 +1,5 @@
 import logging
-from typing import Literal
+from typing import Literal, Union
 
 import ipywidgets as widgets
 import matplotlib.pyplot as plt

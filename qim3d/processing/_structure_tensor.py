@@ -87,7 +87,7 @@ def structure_tensor(
 
     logging.getLogger().setLevel(previous_logging_level)
 
-    if vol.ndim != 3:
+    if volume.ndim != 3:
         msg = 'The input volume must be 3D'
         raise ValueError(msg)
 
