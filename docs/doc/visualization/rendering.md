@@ -6,3 +6,4 @@
             - local_thickness
             - plot_cc
             - vectors
+            - vector_field_3d
