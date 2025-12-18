@@ -27,7 +27,6 @@ import qim3d
 from qim3d.gui.interface import InterfaceWithExamples
 from qim3d.utils._logger import log
 
-
 # TODO img in launch should be self.img
 class Interface(InterfaceWithExamples):
     def __init__(self, verbose: bool = False, plot_height: int = 768, img=None):
@@ -192,7 +191,7 @@ class Interface(InterfaceWithExamples):
         # as it otherwise is not deleted
         os.remove('iso3d.html')
 
-    def define_interface(self, **kwargs):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         gr.Markdown(
             """
                 This tool uses Plotly Volume (https://plotly.com/python/3d-volume-plots/) to create iso surfaces from voxels based on their intensity levels.

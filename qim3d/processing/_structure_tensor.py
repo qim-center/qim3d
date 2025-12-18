@@ -7,7 +7,7 @@ from IPython.display import display
 
 
 def structure_tensor(
-    vol: np.ndarray,
+    volume: np.ndarray,
     sigma: float = 1.0,
     rho: float = 6.0,
     base_noise: bool = True,
@@ -25,7 +25,7 @@ def structure_tensor(
     This efficiency is particularly advantageous for high-resolution imaging techniques like X-ray computed microtomography (μCT).
 
     Args:
-        vol (np.ndarray): 3D NumPy array representing the volume.
+        volume (np.ndarray): 3D NumPy array representing the volume.
         sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing. Defaults to 1.0.
         rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed. Defaults to 6.0.
         base_noise (bool, optional): A flag indicating whether to add a small noise to the volume. Default is True.
@@ -92,15 +92,15 @@ def structure_tensor(
         raise ValueError(msg)
 
     # Ensure volume is a float
-    if vol.dtype != np.float32 and vol.dtype != np.float64:
-        vol = vol.astype(np.float32)
+    if volume.dtype != np.float32 and volume.dtype != np.float64:
+        volume = volume.astype(np.float32)
 
     if base_noise:
         # Add small noise to the volume
         # FIXME: This is a temporary solution to avoid uniform regions with constant values
         # in the volume, which lead to numerical issues in the structure tensor computation
-        vol_noisy = vol + np.random.default_rng(seed=0).uniform(
-            0, 1e-10, size=vol.shape
+        vol_noisy = volume + np.random.default_rng(seed=0).uniform(
+            0, 1e-10, size=volume.shape
         )
 
         # Compute the structure tensor (of volume with noise)
@@ -108,7 +108,7 @@ def structure_tensor(
 
     else:
         # Compute the structure tensor (of volume without noise)
-        s_vol = st.structure_tensor_3d(vol, sigma, rho)
+        s_vol = st.structure_tensor_3d(volume, sigma, rho)
 
     # Compute the eigenvalues and eigenvectors of the structure tensor
     full = not smallest
@@ -120,6 +120,6 @@ def structure_tensor(
     if visualize:
         from qim3d.viz import vectors
 
-        display(vectors(vol, vec, **viz_kwargs))
+        display(vectors(volume, vec, **viz_kwargs))
 
     return val, vec
