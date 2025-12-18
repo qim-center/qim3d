@@ -408,13 +408,11 @@ def vector_field_3d(
 
     Example:
         ```python
-        import qim3d
-
         vol = qim3d.examples.fibers_150x150x150
         val, vec = qim3d.processing.structure_tensor(vol, smallest = False)
-        fig = qim3d.viz.vector_field_3d(vec, val, sampling_step=6, max_cones=50000, cone_size= 2, select_eigen="smallest")
-        fig.show()
+        qim3d.viz.vector_field_3d(vec, val, sampling_step=12, max_cones=5000, cone_size = 2, select_eigen="smallest")
         ```
+        ![vector field](../../assets/screenshots/viz-vector_field.png)
 
     Notes:
         **Understanding the Structure Tensor**
