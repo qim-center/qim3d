@@ -126,7 +126,7 @@ def specific_placement(
 
 def _volume_collection(
     collection_shape: tuple = (200, 200, 200),
-    num_volumes: int = 15,
+    n_volumes: int = 15,
     data: np.ndarray | list[np.ndarray] | None = None,
     positions: list[tuple] = None,
     min_shape: tuple = (40, 40, 40),
@@ -154,7 +154,7 @@ def _volume_collection(
 
     Args:
         collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
-        num_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
+        n_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
         data (numpy.ndarray or list[numpy.ndarray], optional): Predefined volume(s) to use for the collection. If provided, the function will use these volumes instead of generating new ones. Defaults to None.
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
         min_shape (tuple of ints, optional): Minimum shape of the volumes. Defaults to (40, 40, 40).
@@ -189,8 +189,8 @@ def _volume_collection(
 
     Note:
         - The function places volumes without overlap.
-        - The function can either place volumes at random positions in the collection (if `positions = None`) or at specific positions provided in the `positions` argument. If specific positions are provided, the number of blobs must match the number of positions (e.g. `num_volumes = 2` with `positions = [(12, 8, 10), (24, 20, 18)]`).
-        - If not all `num_volumes` can be placed, the function returns the `volume_collection` volume with as many volumes as possible in it, and logs an error.
+        - The function can either place volumes at random positions in the collection (if `positions = None`) or at specific positions provided in the `positions` argument. If specific positions are provided, the number of blobs must match the number of positions (e.g. `n_volumes = 2` with `positions = [(12, 8, 10), (24, 20, 18)]`).
+        - If not all `n_volumes` can be placed, the function returns the `volume_collection` volume with as many volumes as possible in it, and logs an error.
         - Labels for all volumes are returned, even if they are not a single connected component.
 
     Example:
@@ -198,8 +198,8 @@ def _volume_collection(
         import qim3d
 
         # Generate synthetic collection of volumes
-        num_volumes = 15
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = num_volumes)
+        n_volumes = 15
+        volume_collection, labels = qim3d.generate.volume_collection(n_volumes = n_volumes)
 
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection)
@@ -213,8 +213,8 @@ def _volume_collection(
 
         ```python
         # Visualize labels
-        cmap = qim3d.viz.colormaps.segmentation(num_labels=num_volumes)
-        qim3d.viz.slicer(labels, color_map=cmap, value_max=num_volumes)
+        cmap = qim3d.viz.colormaps.segmentation(num_labels=n_volumes)
+        qim3d.viz.slicer(labels, color_map=cmap, value_max=n_volumes)
         ```
         ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
 
@@ -245,7 +245,7 @@ def _volume_collection(
 
         # Generate synthetic collection of cylindrical structures
         volume_collection, labels = qim3d.generate.volume_collection(
-            num_volumes = 40,
+            n_volumes = 40,
             collection_shape = (300, 150, 150),
             min_shape = (280, 10, 10),
             max_shape = (290, 15, 15),
@@ -276,7 +276,7 @@ def _volume_collection(
         import qim3d
 
         # Generate synthetic collection of tubular (hollow) structures
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 10,
+        volume_collection, labels = qim3d.generate.volume_collection(n_volumes = 10,
                                                 collection_shape = (200, 200, 200),
                                                 min_shape = (180, 25, 25),
                                                 max_shape = (190, 35, 35),
@@ -351,7 +351,7 @@ def _volume_collection(
         message = 'Object shapes must be tuples of the same length'
         raise ValueError(message)
 
-    if (positions is not None) and (len(positions) != num_volumes):
+    if (positions is not None) and (len(positions) != n_volumes):
         message = 'Number of volumes must match number of positions, otherwise set positions = None'
         raise ValueError(message)
 
@@ -375,7 +375,7 @@ def _volume_collection(
     placed_positions = []
 
     # Fill the 3D array with synthetic blobs
-    for i in tqdm(range(num_volumes), desc='Objects placed'):
+    for i in tqdm(range(n_volumes), desc='Objects placed'):
         log.debug(f'\nObject #{i+1}')
 
         # Sample from blob parameter ranges
@@ -462,9 +462,9 @@ def _volume_collection(
         labels += new_labels
 
     if not placed:
-        # Log error if not all num_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
+        # Log error if not all n_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
         log.error(
-            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_volumes} volumes.'
+            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{n_volumes} volumes.'
         )
 
     if verbose:
@@ -477,7 +477,7 @@ def _volume_collection(
 
 
 def volume_collection(
-    num_volumes: int = 15,
+    n_volumes: int = 15,
     collection_shape: tuple = (200, 200, 200),
     data: np.ndarray | list[np.ndarray] | None = None,
     positions: list[tuple] = None,
@@ -505,7 +505,7 @@ def volume_collection(
     Generate a 3D volume of multiple synthetic volumes using Perlin or Simplex noise.
 
     Args:
-        num_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
+        n_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
         collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
         data (numpy.ndarray or list[numpy.ndarray], optional): Predefined volume(s) to use for the collection. If provided, the function will use these volumes instead of generating new ones. Defaults to None.
         positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
@@ -547,8 +547,8 @@ def volume_collection(
         import qim3d
 
         # Generate synthetic collection of volumes
-        num_volumes = 15
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes=num_volumes)
+        n_volumes = 15
+        volume_collection, labels = qim3d.generate.volume_collection(n_volumes=n_volumes)
 
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection, grid_visible=True)
@@ -562,8 +562,8 @@ def volume_collection(
 
         ```python
         # Visualize labels
-        cmap = qim3d.viz.colormaps.segmentation(num_labels=num_volumes)
-        qim3d.viz.slicer(labels, color_map=cmap, value_max=num_volumes)
+        cmap = qim3d.viz.colormaps.segmentation(n_labels=n_volumes)
+        qim3d.viz.slicer(labels, colormap=cmap, max_value=n_volumes)
         ```
         ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
 
@@ -573,7 +573,7 @@ def volume_collection(
 
         # Generate synthetic collection of cylindrical structures
         volume_collection, labels = qim3d.generate.volume_collection(
-            num_volumes = 40,
+            n_volumes = 40,
             collection_shape = (300, 150, 150),
             shape_range = ((280, 10, 10), (290, 15, 15)),
             noise_range = (0.06,0.09),
@@ -601,7 +601,7 @@ def volume_collection(
 
         # Generate synthetic collection of tubular (hollow) structures
         volume_collection, labels = qim3d.generate.volume_collection(
-            num_volumes = 10,
+            n_volumes = 10,
             collection_shape = (200, 200, 200),
             shape_range = ((185,35,35), (190,45,45)),
             noise_range = (0.02, 0.03),
@@ -632,7 +632,7 @@ def volume_collection(
         volume_2 = qim3d.generate.volume(base_shape = (32,32,32), noise_scale = 0.2)
 
         # Generate collection from predefined volumes
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 30,
+        volume_collection, labels = qim3d.generate.volume_collection(n_volumes = 30,
                                                                      data = [volume_1, volume_2])
         # Visualize
         qim3d.viz.volumetric(volume_collection)
@@ -688,7 +688,7 @@ def volume_collection(
         message = 'shape_range should be defined as a tuple with two elements, each containing a tuple with three elements.'
         raise ValueError(message)
 
-    if (positions is not None) and (len(positions) != num_volumes):
+    if (positions is not None) and (len(positions) != n_volumes):
         message = 'Number of volumes must match number of positions, otherwise set positions = None'
         raise ValueError(message)
 
@@ -725,7 +725,7 @@ def volume_collection(
     nt = rng.random(size=1000)
 
     # Fill the 3D array with synthetic blobs
-    for i in tqdm(range(num_volumes), desc='Objects placed'):
+    for i in tqdm(range(n_volumes), desc='Objects placed'):
         log.debug(f'\nObject #{i+1}')
 
         # Sample from blob parameter ranges
@@ -833,9 +833,9 @@ def volume_collection(
         labels += new_labels
 
     if not placed:
-        # Log error if not all num_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
+        # Log error if not all n_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
         log.error(
-            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{num_volumes} volumes.'
+            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{n_volumes} volumes.'
         )
     if verbose:
         log.setLevel(original_log_level)

@@ -1,7 +1,7 @@
 import qim3d.utils
 from qim3d.utils._dependencies import optional_import
 
-from . import annotation_tool, data_explorer, iso3d, layers2d, local_thickness
+from . import annotation_tool, data_explorer, iso3d, layers2d, local_thickness, volume_generator
 from .qim_theme import QimTheme
 
 

@@ -157,6 +157,23 @@ class OMEScaler(
 
         return list(rv)
 
+    def scaleZYXdask_coarsen(self, base:da.core.Array):
+        """
+        Export 3D image data to OME-Zarr format using dask.coarsen
+        """
+        rv = [base]
+        log.info(f'- Scale 0: {rv[-1].shape}')
+
+        for i in range(self.max_layer):
+            log.debug(f"\nScale {i+1}\n{'-'*32}")
+            
+            scaled = da.coarsen(np.mean, rv[-1], {0:2, 1:2, 2:2}, trim_excess=True)
+            rv.append(scaled)
+            log.info(f'- Scale {i+1}: {rv[-1].shape}')
+
+        return list(rv)
+
+
     def scaleZYXdask_legacy(self, base):
         """Downsample using the original OME-Zarr python library"""
 
@@ -182,7 +199,7 @@ def export_ome_zarr(
     downsample_rate: int = 2,
     order: int = 1,
     replace: bool = False,
-    method: str = 'scaleZYX',
+    method: str = 'scaleZYXdask_coarsen',
     progress_bar: bool = True,
     progress_bar_repeat_time: str = 'auto',
 ) -> None:
@@ -198,7 +215,7 @@ def export_ome_zarr(
         downsample_rate (int, optional): The factor by which to downsample the data for each scale. Must be greater than 1. Defaults to 2.
         order (int, optional): The interpolation order to use when downsampling. Defaults to 1 (linear). Use 0 for a faster nearest-neighbor interpolation.
         replace (bool, optional): Whether to replace the existing directory if it already exists. Defaults to False.
-        method (str, optional): The method used for downsampling. If set to "dask", Dask arrays are used for chunking and downsampling. Defaults to "scaleZYX".
+        method (str, optional): The method used for downsampling. If set to "dask", Dask arrays are used for chunking and downsampling. Defaults to "scaleZYXdask_coarsen".
         progress_bar (bool, optional): Whether to display a progress bar during export. Defaults to True.
         progress_bar_repeat_time (str or int, optional): The repeat interval (in seconds) for updating the progress bar. Defaults to "auto".
 

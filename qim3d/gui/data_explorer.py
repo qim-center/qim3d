@@ -88,7 +88,7 @@ class Interface(BaseInterface):
         # Error message that we want to show, for more details look inside function check error state
         self.error_message = None
 
-    def define_interface(self, **kwargs):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         # File selection and parameters
         with gr.Row():
             with gr.Column(scale=2):

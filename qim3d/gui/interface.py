@@ -89,7 +89,7 @@ class BaseInterface(ABC):
             css=self.custom_css,
         ) as gradio_interface:
             gr.Markdown(f'# {self.title}')
-            self.define_interface(**kwargs)
+            self.define_interface(gradio_interface, **kwargs)
         return gradio_interface
 
     @abstractmethod

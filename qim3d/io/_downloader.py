@@ -1,19 +1,24 @@
-"""Manages downloads and access to data"""
+# ruff: noqa: S310
+"""Manages downloads and access to data."""
 
 import os
 import urllib.request
-from urllib.parse import quote
+from collections.abc import Callable
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote, urlparse
 
 import outputformat as ouf
+from ome_zarr.utils import download
 from tqdm import tqdm
 
+import qim3d
 from qim3d.io import load
 from qim3d.utils import log
 
 __all__ = ['Downloader', 'download_file']
 
-class _Myfolder:
 
+class _Myfolder:
     """
     Class for extracting the files from each folder in the Downloader class.
 
@@ -32,16 +37,17 @@ class _Myfolder:
     def __init__(self, folder: str):
         files = _extract_names(folder)
 
-        for idx, file in enumerate(files):
+        for _, file in enumerate(files):
             # Changes names to usable function name.
             file_name = file
             if ('%20' in file) or ('-' in file):
                 file_name = file_name.replace('%20', '_')
                 file_name = file_name.replace('-', '_')
 
-            setattr(self, f'{file_name.split(".")[0]}', self._make_fn(folder, file))
+            name = file_name.split('.')[0]
+            setattr(self, name, self._make_fn(folder, file))
 
-    def _make_fn(self, folder: str, file: str):
+    def _make_fn(self, folder: str, file: str) -> Callable[[bool, bool], object]:
         """
         Private method that returns a function. The function downloads the chosen file from the folder.
 
@@ -56,12 +62,13 @@ class _Myfolder:
 
         url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
 
-        def _download(load_file: bool = False, virtual_stack: bool = True):
+        def _download(load_file: bool = False, virtual_stack: bool = True) -> object:
             """
             Downloads the file and optionally also loads it.
 
             Args:
                 load_file(bool,optional): Whether to simply download or also load the file.
+                virtual_stack(bool,optional): Whether to load the file as a virtual stack.
 
             Returns:
                 virtual_stack: The loaded image.
@@ -69,7 +76,7 @@ class _Myfolder:
             """
 
             download_file(url_dl, folder, file)
-            if load_file == True:
+            if load_file:
                 log.info(f'\nLoading {file}')
                 file_path = os.path.join(folder, file)
 
@@ -77,8 +84,8 @@ class _Myfolder:
 
         return _download
 
-class Downloader:
 
+class Downloader:
     """
     Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
 
@@ -123,7 +130,7 @@ class Downloader:
         downloader.list_files()
         data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
 
-        qim3d.viz.slicer_orthogonal(data, color_map="magma")
+        qim3d.viz.slicer_orthogonal(data, colormap="magma")
         ```
         ![cowry shell](../../assets/screenshots/cowry_shell_slicer.gif)
 
@@ -131,10 +138,133 @@ class Downloader:
 
     def __init__(self):
         folders = _extract_names()
-        for idx, folder in enumerate(folders):
-            exec(f'self.{folder} = _Myfolder(folder)')
+        for folder in folders:
+            setattr(self, folder, _Myfolder(folder))
 
-    def list_files(self):
+    def __call__(
+        self,
+        url: str,
+        output_dir: str = '.',
+        load_file: bool = False,
+        virtual_stack: bool = True,
+        scale: int = 0,
+    ) -> object:
+        """
+        Download any file given its URL.
+
+        Args:
+            url (str):
+                URL of the file to download. Supported formats are regular files
+                (TIFF, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM) and
+                Zarr/OME-Zarr stores (.zarr).
+            output_dir (str, optional):
+                Base directory to save files. Default is the current working directory.
+            load_file (bool, optional):
+                If True, load the file after download. Default is False.
+            virtual_stack (bool, optional):
+                If True and the file format supports it, load the file on demand
+                as a virtual stack (lazy loading). Default is True.
+            scale (int, optional):
+                If `load_file` is True and the file is a Zarr/OME-Zarr store, the scale parameter specifies the resolution level to load. Default is 0 (full resolution).
+
+        Returns:
+        str or numpy.ndarray or dask.array.Array:
+            - If `load_file` is False, returns the path to the downloaded file
+            or Zarr store.
+            - If `load_file` is True and the file is a **regular file**:
+                - Returns a NumPy array if `virtual_stack=False`.
+                - Returns a virtual stack (lazy-loaded NumPy-like object) if
+                `virtual_stack=True`.
+            - If `load_file` is True and the file is a **Zarr/OME-Zarr store**:
+                - Returns a NumPy array at the requested `scale` if
+                `virtual_stack=False`.
+                - Returns a Dask array at the requested `scale` if
+                `virtual_stack=True`.
+
+        Example:
+            ```python
+            import qim3d
+
+            downloader = qim3d.io.Downloader()
+
+            # Download a file without loading
+            path = downloader(
+                url="https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Cowry_Shell/Cowry_DOWNSAMPLED.tif",
+                output_dir=".",
+                load_file=False
+            )
+
+            # Download and load directly as a NumPy array
+            data = downloader(
+                url="https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Cowry_Shell/Cowry_DOWNSAMPLED.tif",
+                load_file=True,
+                virtual_stack=False
+            )
+            ```
+
+        """
+
+        parsed = urlparse(url)
+        fname = os.path.basename(parsed.path.rstrip('/'))
+        dest = os.path.join(output_dir, fname)
+
+        # --- Zarr / OME-Zarr store ---
+        if fname.endswith(('.zarr', '.ome.zarr')):
+            if os.path.exists(dest):
+                log.warning(f'Zarr store already downloaded:\n{os.path.abspath(dest)}')
+            else:
+                log.info(f'Downloading Zarr store {fname}\n{url}')
+                download(url, output_dir=output_dir)  # return always None
+            if load_file:
+                # If virtual stack == True --> dask array --> need to call False in load (we don't want call .compute())
+                # If virtual stack == False --> numpy array --> need to call True in load (we want call .compute())
+                log.info(
+                    f"\nLoading scale={scale} from {fname} as {'numpy array' if not virtual_stack else 'dask array'}"
+                )
+                return qim3d.io.import_ome_zarr(
+                    dest, scale=scale, load=not virtual_stack
+                )
+            return dest
+
+        # --- Regular single file ---
+        if os.path.exists(dest):
+            log.warning(f'File already downloaded:\n{os.path.abspath(dest)}')
+            if load_file:
+                return load(path=dest, virtual_stack=virtual_stack)
+            return dest
+        else:
+            log.info(f'Downloading file {fname}\n{url}')
+            try:
+                total = _get_file_size(url)
+            except (HTTPError, URLError):
+                total = None
+
+            os.makedirs(output_dir, exist_ok=True)
+            with tqdm(
+                total=total, unit='B', unit_scale=True, unit_divisor=1024, ncols=80
+            ) as pbar:
+                try:
+                    urllib.request.urlretrieve(
+                        url,
+                        dest,
+                        reporthook=lambda blocknum, bs, total: _update_progress(
+                            pbar, blocknum, bs
+                        ),
+                    )
+                except HTTPError as http_err:
+                    msg = f'Failed to download {url!r}: server returned HTTP {http_err.code}'
+                    raise FileNotFoundError(msg) from http_err
+                except URLError as url_err:
+                    msg = f'Failed to reach {url!r}: {url_err.reason}'
+                    raise ConnectionError(msg) from url_err
+
+        if load_file:
+            log.info(f'\nLoading {fname}')
+            return load(path=dest, virtual_stack=virtual_stack)
+
+        return dest
+
+    def list_files(self) -> None:
         """Generate and print formatted folder, file, and size information."""
 
         url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
@@ -157,23 +287,19 @@ class Downloader:
                 log.info(f'{path_string:<50}({formatted_size})')
 
 
-def _update_progress(pbar: tqdm, blocknum: int, bs: int):
-    """
-    Helper function for the ´download_file()´ function. Updates the progress bar.
-    """
+def _update_progress(pbar: tqdm, blocknum: int, bs: int) -> None:
+    """Helper function for the ´download_file()´ function. Updates the progress bar."""
 
     pbar.update(blocknum * bs - pbar.n)
 
 
-def _get_file_size(url: str):
-    """
-    Helper function for the ´download_file()´ function. Finds the size of the file.
-    """
+def _get_file_size(url: str) -> int:
+    """Helper function for the ´download_file()´ function. Finds the size of the file."""
 
     return int(urllib.request.urlopen(url).info().get('Content-Length', -1))
 
 
-def download_file(path: str, name: str, file: str):
+def download_file(path: str, name: str, file: str) -> None:
     """
     Downloads the file from path / name / file.
 
@@ -215,9 +341,9 @@ def download_file(path: str, name: str, file: str):
         )
 
 
-def _extract_html(url: str):
+def _extract_html(url: str) -> str:
     """
-    Extracts the html content of a webpage in "utf-8"
+    Extracts the html content of a webpage in "utf-8".
 
     Args:
         url(str): url to the location where all the data is stored.
@@ -226,7 +352,6 @@ def _extract_html(url: str):
         html_content(str): decoded html.
 
     """
-
     try:
         with urllib.request.urlopen(url) as response:
             html_content = response.read().decode(
@@ -238,7 +363,7 @@ def _extract_html(url: str):
     return html_content
 
 
-def _extract_names(name: str = None):
+def _extract_names(name: str = None) -> list[str]:
     """
     Extracts the names of the folders and files.
 
@@ -275,7 +400,7 @@ def _extract_names(name: str = None):
         return folders
 
 
-def _format_file_size(size_in_bytes):
+def _format_file_size(size_in_bytes: int) -> str:
     # Define size units
     units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
     size = float(size_in_bytes)

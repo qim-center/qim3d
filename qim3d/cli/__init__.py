@@ -47,6 +47,8 @@ def main():
     gui_parser.add_argument('--layers', action='store_true', help='Run Layers.')
     gui_parser.add_argument('--host', default='0.0.0.0', help='Desired host.')
     gui_parser.add_argument(
+        '--volume-generator', action = 'store_true', help = 'Run volume generator tool')
+    gui_parser.add_argument(
         '--platform', action='store_true', help='Use QIM platform address'
     )
     gui_parser.add_argument(
@@ -149,9 +151,11 @@ def main():
             interface_class = qim3d.gui.local_thickness.Interface
         elif args.layers:
             interface_class = qim3d.gui.layers2d.Interface
+        elif args.volume_generator:
+            interface_class = qim3d.gui.volume_generator.Interface
         else:
             print(
-                'Please select a tool by choosing one of the following flags:\n\t--data-explorer\n\t--iso3d\n\t--annotation-tool\n\t--local-thickness\n\t--layers'
+                'Please select a tool by choosing one of the following flags:\n\t--data-explorer\n\t--iso3d\n\t--annotation-tool\n\t--local-thickness\n\t--layers\n\t--volume-generator'
             )
             return
         interface = (

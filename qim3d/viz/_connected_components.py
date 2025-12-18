@@ -13,9 +13,9 @@ def plot_connected_components(
     overlay: np.ndarray = None,
     crop: bool = False,
     display_figure: bool = True,
-    color_map: str = 'viridis',
-    value_min: float = None,
-    value_max: float = None,
+    colormap: str = 'viridis',
+    min_value: float = None,
+    max_value: float = None,
     **kwargs,
 ) -> list[plt.Figure]:
     """
@@ -28,9 +28,9 @@ def plot_connected_components(
         overlay (np.ndarray or None, optional): Overlay image. Defaults to None.
         crop (bool, optional): Whether to crop the image to the cc. Defaults to False.
         display_figure (bool, optional): Whether to show the figure. Defaults to True.
-        color_map (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        value_min (float or None, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        value_max (float or None, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        colormap (str, optional): Specifies the color map for the image. Defaults to "viridis".
+        min_value (float or None, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float or None, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
         **kwargs (Any): Additional keyword arguments to pass to `qim3d.viz.slices_grid`.
 
     Returns:
@@ -82,15 +82,15 @@ def plot_connected_components(
             fig = qim3d.viz.slices_grid(
                 overlay_crop,
                 display_figure=display_figure,
-                color_map=color_map,
-                value_min=value_min,
-                value_max=value_max,
+                colormap=colormap,
+                min_value=min_value,
+                max_value=max_value,
                 **kwargs,
             )
         else:
             # assigns discrete color map to each connected component if not given
-            if 'color_map' not in kwargs:
-                kwargs['color_map'] = qim3d.viz.colormaps.segmentation(
+            if 'colormap' not in kwargs:
+                kwargs['colormap'] = qim3d.viz.colormaps.segmentation(
                     len(component_indexs)
                 )
 

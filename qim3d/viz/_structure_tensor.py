@@ -1,9 +1,10 @@
 import logging
-from typing import Tuple, Union
+from typing import Literal
 
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import numpy as np
+import plotly.graph_objects as go
 
 from qim3d.utils._logger import log
 
@@ -15,28 +16,28 @@ logging.getLogger().setLevel(previous_logging_level)
 
 def vectors(
     volume: np.ndarray,
-    vec: np.ndarray,
+    vectors: np.ndarray,
     axis: int = 0,
-    volume_cmap: str = 'grey',
-    vmin: float | None = None,
-    vmax: float | None = None,
-    slice_idx: Union[int, float] | None = None,
+    volume_colormap: str = 'grey',
+    min_value: float | None = None,
+    max_value: float | None = None,
+    slice_index: int | float | None = None,
     grid_size: int = 10,
     interactive: bool = True,
-    figsize: Tuple[int, int] = (10, 5),
+    figsize: tuple[int, int] = (10, 5),
     show: bool = False,
-) -> Union[plt.Figure, widgets.interactive]:
+) -> plt.Figure | widgets.interactive:
     """
     Visualizes the orientation of the structures in a 3D volume using the eigenvectors of the structure tensor.
 
     Args:
         volume (np.ndarray): The 3D volume to be sliced.
-        vec (np.ndarray): The eigenvectors of the structure tensor.
+        vectors (np.ndarray): The eigenvectors of the structure tensor.
         axis (int, optional): The axis along which to visualize the orientation. Defaults to 0.
-        volume_cmap (str, optional): Defines colormap for display of the volume
-        vmin (float, optional): Together with vmax define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        vmax (float, optional): Together with vmin define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        slice_idx (int or float or None, optional): The initial slice to be visualized. The slice index
+        volume_colormap (str, optional): Defines colormap for display of the volume
+        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
+        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        slice_index (int or float or None, optional): The initial slice to be visualized. The slice index
             can afterwards be changed. If value is an integer, it will be the index of the slice
             to be visualized. If value is a float between 0 and 1, it will be multiplied by the
             number of slices and rounded to the nearest integer. If None, the middle slice will
@@ -95,28 +96,29 @@ def vectors(
         grid_size = min(max(min_grid_size, grid_size), max_grid_size)
         log.warning(f'Adjusting grid size to {grid_size} as it is out of bounds.')
 
-    def _structure_tensor(volume, vec, axis, slice_idx, grid_size, figsize, show):
+    def _structure_tensor(volume, vectors, axis, slice_index, grid_size, figsize, show):
         # Choose the appropriate slice based on the specified dimension
         if axis == 0:
-            data_slice = volume[slice_idx, :, :]
-            vectors_slice_x = vec[0, slice_idx, :, :]
-            vectors_slice_y = vec[1, slice_idx, :, :]
-            vectors_slice_z = vec[2, slice_idx, :, :]
+            data_slice = volume[slice_index, :, :]
+            vectors_slice_x = vectors[0, slice_index, :, :]
+            vectors_slice_y = vectors[1, slice_index, :, :]
+            vectors_slice_z = vectors[2, slice_index, :, :]
 
         elif axis == 1:
-            data_slice = volume[:, slice_idx, :]
-            vectors_slice_x = vec[0, :, slice_idx, :]
-            vectors_slice_y = vec[2, :, slice_idx, :]
-            vectors_slice_z = vec[1, :, slice_idx, :]
+            data_slice = volume[:, slice_index, :]
+            vectors_slice_x = vectors[0, :, slice_index, :]
+            vectors_slice_y = vectors[2, :, slice_index, :]
+            vectors_slice_z = vectors[1, :, slice_index, :]
 
         elif axis == 2:
-            data_slice = volume[:, :, slice_idx]
-            vectors_slice_x = vec[1, :, :, slice_idx]
-            vectors_slice_y = vec[2, :, :, slice_idx]
-            vectors_slice_z = vec[0, :, :, slice_idx]
+            data_slice = volume[:, :, slice_index]
+            vectors_slice_x = vectors[1, :, :, slice_index]
+            vectors_slice_y = vectors[2, :, :, slice_index]
+            vectors_slice_z = vectors[0, :, :, slice_index]
 
         else:
-            raise ValueError('Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.')
+            msg = 'Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.'
+            raise ValueError(msg)
 
         # Create three subplots
         fig, ax = plt.subplots(1, 3, figsize=figsize, layout='constrained')
@@ -133,11 +135,15 @@ def vectors(
         xmesh, ymesh = np.mgrid[0 : data_slice.shape[0], 0 : data_slice.shape[1]]
 
         # Create a slice object for selecting the grid points
-        g = slice(grid_size // 2, None, grid_size)
+        g = slice(grid_size // 2, None, grid_size)  # noqa: A002
 
         # Angles from 0 to pi
         angles_quiver = np.mod(
-            np.arctan2(vectors_slice_y[g, g], vectors_slice_x[g, g]), np.pi
+            np.arctan2(
+                vectors_slice_y[g, g],
+                vectors_slice_x[g, g],
+            ),
+            np.pi,
         )
 
         # Calculate z-component (saturation)
@@ -173,9 +179,9 @@ def vectors(
             angles='xy',
         )
 
-        ax[0].imshow(data_slice, cmap=volume_cmap, vmin=vmin, vmax=vmax)
+        ax[0].imshow(data_slice, cmap=volume_colormap, vmin=min_value, vmax=max_value)
         ax[0].set_title(
-            f'Orientation vectors (slice {slice_idx})'
+            f'Orientation vectors (slice {slice_index})'
             if not interactive
             else 'Orientation vectors'
         )
@@ -242,7 +248,7 @@ def vectors(
 
         ax[2].imshow(data_slice_orientation_colored)
         ax[2].set_title(
-            f'Colored orientations (slice {slice_idx})'
+            f'Colored orientations (slice {slice_index})'
             if not interactive
             else 'Colored orientations'
         )
@@ -255,28 +261,28 @@ def vectors(
 
         return fig
 
-    if vec.ndim == 5:
-        vec = vec[0, ...]
+    if vectors.ndim == 5:
+        vectors = vectors[0, ...]
         log.warning(
             'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         )
 
-    if slice_idx is None:
-        slice_idx = volume.shape[axis] // 2
+    if slice_index is None:
+        slice_index = volume.shape[axis] // 2
 
-    elif isinstance(slice_idx, float):
-        if slice_idx < 0 or slice_idx > 1:
+    elif isinstance(slice_index, float):
+        if slice_index < 0 or slice_index > 1:
             raise ValueError(
-                'Values of slice_idx of float type must be between 0 and 1.'
+                'Values of slice_index of float type must be between 0 and 1.'
             )
-        slice_idx = int(slice_idx * volume.shape[0]) - 1
+        slice_index = int(slice_index * volume.shape[0]) - 1
 
     if interactive:
-        slide_idx_slider = widgets.IntSlider(
+        slice_index_slider = widgets.IntSlider(
             min=0,
             max=volume.shape[axis] - 1,
             step=1,
-            value=slice_idx,
+            value=slice_index,
             description='Slice index',
             layout=widgets.Layout(width='450px'),
         )
@@ -293,15 +299,15 @@ def vectors(
         widget_obj = widgets.interactive(
             _structure_tensor,
             volume=widgets.fixed(volume),
-            vec=widgets.fixed(vec),
+            vectors=widgets.fixed(vectors),
             axis=widgets.fixed(axis),
-            slice_idx=slide_idx_slider,
+            slice_index=slice_index_slider,
             grid_size=grid_size_slider,
             figsize=widgets.fixed(figsize),
             show=widgets.fixed(True),
         )
         # Arrange sliders horizontally
-        sliders_box = widgets.HBox([slide_idx_slider, grid_size_slider])
+        sliders_box = widgets.HBox([slice_index_slider, grid_size_slider])
         widget_obj = widgets.VBox([sliders_box, widget_obj.children[-1]])
         widget_obj.layout.align_items = 'center'
 
@@ -311,4 +317,207 @@ def vectors(
         return widget_obj
 
     else:
-        return _structure_tensor(volume, vec, axis, slice_idx, grid_size, figsize, show)
+        return _structure_tensor(
+            volume, vectors, axis, slice_index, grid_size, figsize, show
+        )
+
+
+def vector_field_3d(
+    vec: np.ndarray,
+    val: np.ndarray,
+    select_eigen: Literal['smallest', 'largest', 'middle'] = 'smallest',
+    sampling_step: int = 4,
+    max_cones: int = 50000,
+    cone_size: float = 1,
+    verbose: bool = True,
+    colormap: str = 'Portland',
+    cmin: float = None,
+    cmax: float = None,
+    **kwargs,
+) -> go.Figure:
+    """
+    Visualize 3D structure tensor eigenvectors as cones in Plotly.
+
+    Each cone represents an eigenvector whose direction and size indicate the dominant local orientation and the magnitude of the corresponding eigenvalue.
+    If `sampling_step` is greater than 1, each cone represents the average orientation and magnitude within that sampled region.
+
+    The function is designed to work directly with the outputs of `qim3d.processing.structure_tensor()` which is in ascendic order by default.
+
+    Args:
+        val (np.ndarray): Eigenvalues from the structure tensor, with shape `(3, *vol.shape)`.
+        vec (np.ndarray): Eigenvectors from the structure tensor.
+            Shape depends on the `smallest` parameter from qim3d.processing.structure_tensor():
+
+            - `(3, nx, ny, nz)` if `smallest=True`
+            - `(3, 3, nx, ny, nz)` if `smallest=False`
+
+        select_eigen (Literal["smallest","largest","middle"], optional):
+            If vec has shape `(3, 3, nx, ny, nz)`, specifies which eigenvector to visualize.
+        sampling_step (int, optional):
+            Grid spacing for sampling points.
+            Default is `4`.
+        max_cones (int, optional):
+            Maximum number of cones to display. If more points are sampled,
+            only the locations with the highest eigenvalues are kept.
+            Default is `50000`.
+        cone_size (float, optional):
+            Scaling factor for cone length, proportional to vector magnitude.
+            Default is `1`.
+        verbose (bool, optional):
+            Whether to print progress and info messages.
+            Default is `True`.
+        colormap (str, optional):
+            Name of the Plotly colorscale used for cones.
+            Default is `"Portland"`.
+        cmin (float, optional):
+            Minimum value for color scale. If `None`, uses the minimum vector magnitude.
+        cmax (float, optional):
+            Maximum value for color scale. If `None`, uses the maximum vector magnitude.
+        **kwargs:
+            Additional keyword arguments passed to `plotly.graph_objects.Cone`.
+            See the [Plotly Cone documentation](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Cone.html)
+            for full customization options.
+
+    Raises:
+        ValueError: If an invalid combination of `smallest` and `sort` is provided.
+
+    Returns:
+        fig (plotly.graph_objects.Figure):
+            Interactive 3D Plotly figure showing cone representations of local orientation vectors.
+
+    Example:
+        ```python
+        vol = qim3d.examples.fibers_150x150x150
+        val, vec = qim3d.processing.structure_tensor(vol, smallest = False)
+        qim3d.viz.vector_field_3d(vec, val, sampling_step=12, max_cones=5000, cone_size = 2, select_eigen="smallest")
+        ```
+        ![vector field](../../assets/screenshots/viz-vector_field.png)
+
+    Notes:
+        **Understanding the Structure Tensor**
+
+        Each voxel is associated with three **eigenvalues** (λ₁, λ₂, λ₃) and corresponding
+        **eigenvectors**, which describe how much intensity varies along each direction.
+
+        The relative magnitudes of the eigenvalues determine the type of local structure:
+
+        | Structure type              | Eigenvalue pattern               | Dominant orientation vector                          |
+        |-----------------------------|----------------------------------|-------------------------------------------------------|
+        | **Planar structure (surface)** | Two large, one small (λ₁, λ₂ ≫ λ₃) | Eigenvector with **smallest** eigenvalue → surface normal |
+        | **Linear structure (fiber)**   | One large, two small (λ₁ ≫ λ₂, λ₃) | Eigenvector with **largest** eigenvalue → line direction  |
+        | **Isotropic region (flat)**    | All similar (λ₁ ≈ λ₂ ≈ λ₃)        | No dominant direction                                  |
+
+        So based on what you are interested in visualizing, you may want to select different eigenvectors using the `select_eigen` parameter.
+
+    """
+    if vec.ndim == 4:
+        val = val[0]
+    elif vec.ndim == 5:
+        if select_eigen == 'largest':
+            val = val[2]
+            vec = vec[2, :, ...]
+        elif select_eigen == 'smallest':
+            val = val[0]
+            vec = vec[0, :, ...]
+        elif select_eigen == 'middle':
+            val = val[1]
+            vec = vec[1, :, ...]
+        else:
+            msg = f'Invalid select_eigen value: {select_eigen}. Choose between "smallest", "largest", or "middle".'
+            raise ValueError(msg)
+    vec = np.transpose(vec, (1, 2, 3, 0))
+
+    nx, ny, nz, _ = vec.shape
+    if verbose:
+        log.info(f'Original number of grid points: {nx * ny * nz}')
+    half = sampling_step // 2
+
+    # Sampling grid
+    grid_x = np.arange(0, nx, sampling_step)
+    grid_y = np.arange(0, ny, sampling_step)
+    grid_z = np.arange(0, nz, sampling_step)
+
+    points, vectors, values = [], [], []
+
+    # Average vectors and eigenvalues in each sampling cube
+    for px in grid_x:
+        for py in grid_y:
+            for pz in grid_z:
+                x0, x1 = max(px - half, 0), min(px + half + 1, nx)
+                y0, y1 = max(py - half, 0), min(py + half + 1, ny)
+                z0, z1 = max(pz - half, 0), min(pz + half + 1, nz)
+
+                region_vecs = vec[x0:x1, y0:y1, z0:z1, :]
+                region_vals = val[x0:x1, y0:y1, z0:z1]
+
+                avg_vec = region_vecs.mean(axis=(0, 1, 2))
+                avg_val = region_vals.mean()
+
+                points.append((px, py, pz))
+                vectors.append(avg_vec)
+                values.append(avg_val)
+
+    points = np.array(points)
+    vectors = np.array(vectors)
+    values = np.array(values)
+
+    # Select top N highest eigenvalue locations
+    idx_top = np.argsort(values)[::-1][:max_cones]
+    points_top = points[idx_top]
+    vectors_top = vectors[idx_top]
+    values_top = values[idx_top]
+
+    if verbose:
+        log.info(f'Number of grid points sampled: {len(values)}')
+        log.info(f'Number of cones actually plotted: {len(points_top)}')
+
+    # Normalize vectors and scale by eigenvalue magnitude
+    norms = np.linalg.norm(vectors_top, axis=1, keepdims=True)
+    norms[norms == 0] = 1
+    unit_vecs = vectors_top / norms
+
+    # Apply decay to downscale weak directions
+    # scaled_strength = values_top * np.exp(
+    #     -decay_rate * (1 - values_top / values_top.max())
+    # )
+    # scaled_strength = np.log(values_top - values_top.min() + 1)
+
+    scaled_strength = np.log1p(values_top)
+
+    u = unit_vecs[:, 0] * scaled_strength
+    v = unit_vecs[:, 1] * scaled_strength
+    w = unit_vecs[:, 2] * scaled_strength
+
+    # Compute magnitude for color scaling if needed
+    magnitude = np.sqrt(u**2 + v**2 + w**2)
+    min_mag = magnitude.min()
+    max_mag = magnitude.max()
+    if verbose:
+        log.info(f'Min magnitude: {min_mag:.4f}, Max magnitude: {max_mag:.4f}')
+
+    if cmin is None:
+        cmin = min_mag
+    if cmax is None:
+        cmax = max_mag
+
+    # Use 'raw' to display sizes in actual vector length.
+    fig = go.Figure(
+        data=go.Cone(
+            x=points_top[:, 0],
+            y=points_top[:, 1],
+            z=points_top[:, 2],
+            u=u,
+            v=v,
+            w=w,
+            sizemode='scaled',
+            sizeref=cone_size,
+            colorscale=colormap,
+            colorbar_title='Orientation strength',
+            cmin=cmin,
+            cmax=cmax,
+            **kwargs,
+        ),
+        layout={'width': 900, 'height': 700},
+    )
+
+    return fig

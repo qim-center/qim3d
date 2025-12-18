@@ -86,7 +86,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
 
         return vol_lt
 
-    def define_interface(self):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         gr.Markdown(
             'Interface for _Fast local thickness in 3D_ (https://github.com/vedranaa/local-thickness)'
         )

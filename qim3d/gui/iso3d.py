@@ -194,7 +194,7 @@ class Interface(InterfaceWithExamples):
         # as it otherwise is not deleted
         os.remove('iso3d.html')
 
-    def define_interface(self, **kwargs):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         gr.Markdown(
             """
                 This tool uses Plotly Volume (https://plotly.com/python/3d-volume-plots/) to create iso surfaces from voxels based on their intensity levels.

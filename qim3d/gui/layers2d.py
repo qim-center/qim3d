@@ -72,7 +72,7 @@ class Interface(BaseInterface):
 
         self.error = False
 
-    def define_interface(self):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         with gr.Row():
             with gr.Column(scale=1, min_width=320):
                 with gr.Row():
