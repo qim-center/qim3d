@@ -21,6 +21,7 @@ import tifffile
 from dask import delayed
 from PIL import Image, UnidentifiedImageError
 from pygel3d import hmesh
+import zarr
 
 import qim3d
 from qim3d.utils import Memory, log
@@ -616,17 +617,15 @@ class DataLoader:
             path (str): The path to the Zarr array on disk.
 
         Returns:
-            dask.array | numpy.ndarray: The dask array loaded from disk.
-                if 'self.virtual_stack' is True, returns a dask array object, else returns a numpy.ndarray object.
+            numpy.ndarray | zarr.core.array.Array: The numpy array loaded from disk.
+                If 'self.virtual_stack' is True, returns a Zarr array object.
 
         """
 
-        # Opens the Zarr array
-        vol = da.from_zarr(path)
-
-        # If virtual stack is disabled, return the computed array (np.ndarray)
-        if not self.virtual_stack:
-            vol = vol.compute()
+        if self.virtual_stack:
+            vol = zarr.open(path)
+        else:
+            vol = zarr.load(path)
 
         return vol
 
@@ -802,7 +801,6 @@ def load(
         progress_bar (bool, optional): Displays tqdm progress bar. Useful for large files. So far works only for linux. Default is False.
         display_memory_usage (bool, optional): If true, prints used memory and available memory after loading file. Default is False.
         **kwargs (Any): Additional keyword arguments supported by `DataLoader`:
-            - `virtual_stack` (bool)
             - `dataset_name` (str)
             - `return_metadata` (bool)
             - `contains` (str)
