@@ -27,6 +27,7 @@ import qim3d
 from qim3d.utils import Memory, log
 from qim3d.utils._misc import get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
+from qim3d.io._txrm import read_txrm, _get_ole_data_type, read_ole_metadata
 
 dask.config.set(scheduler='processes')
 
@@ -253,12 +254,6 @@ class DataLoader:
         """
         import olefile
 
-        try:
-            import dxchange
-        except ImportError:
-            msg = 'The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html'
-            raise ValueError(msg) from None
-
         if self.virtual_stack:
             if not path.endswith('.txm'):
                 log.warning(
@@ -267,7 +262,7 @@ class DataLoader:
 
             # Get metadata
             ole = olefile.OleFileIO(path)
-            metadata = dxchange.reader.read_ole_metadata(ole)
+            metadata = read_ole_metadata(ole)
 
             # Compute data offsets in bytes for each slice
             offsets = _get_ole_offsets(ole)
@@ -281,7 +276,7 @@ class DataLoader:
                 slices.append(
                     np.memmap(
                         path,
-                        dtype=dxchange.reader._get_ole_data_type(metadata).newbyteorder(
+                        dtype=_get_ole_data_type(metadata).newbyteorder(
                             '<'
                         ),
                         mode='r',
@@ -296,7 +291,7 @@ class DataLoader:
             )
 
         else:
-            vol, metadata = dxchange.read_txrm(path)
+            vol, metadata = read_txrm(path)
             vol = (
                 vol.squeeze()
             )  # In case of an XRM file, the third redundant dimension is removed
