@@ -21,7 +21,6 @@ from ome_zarr.writer import (
 from scipy.ndimage import zoom
 
 from qim3d.utils import log
-from qim3d.utils._ome_zarr import get_n_chunks
 from qim3d.utils._progress_bar import OmeZarrExportProgressBar
 
 ListOfArrayLike = Union[List[da.Array], List[np.ndarray]]
@@ -49,7 +48,7 @@ class OMEScaler(
         self.max_layer = max_layer
         self.method = method
 
-    def scaleZYX(self, base: da.core.Array):
+    def scaleZYX(self, base: da.Array):
         """Downsample using :func:`scipy.ndimage.zoom`."""
         rv = [base]
         log.info(f'- Scale 0: {rv[-1].shape}')
@@ -60,7 +59,7 @@ class OMEScaler(
 
         return list(rv)
 
-    def scaleZYXdask(self, base: da.core.Array):
+    def scaleZYXdask(self, base: da.Array):
         """
         Downsample a 3D volume using Dask and scipy.ndimage.zoom.
 
@@ -80,7 +79,7 @@ class OMEScaler(
 
         """
 
-        def resize_zoom(vol: da.core.Array, scale_factors, order, scaled_shape):
+        def resize_zoom(vol: da.Array, scale_factors, order, scaled_shape):
             # Get the chunksize needed so that all the blocks match the new shape
             # This snippet comes from the original OME-Zarr-python library
             better_chunksize = tuple(
@@ -292,10 +291,10 @@ def export_ome_zarr(
         storage_options=dict(chunks=(chunk_size, chunk_size, chunk_size)),
     )
     if progress_bar:
-        n_chunks = get_n_chunks(
-            shapes=(scaled_data.shape for scaled_data in mip),
-            dtypes=(scaled_data.dtype for scaled_data in mip),
-        )
+
+        # Get number of chunks for each shape and sum them together
+        n_chunks = sum([np.prod(np.ceil(np.array(scaled_data.shape)/chunk_size)) for scaled_data in mip])
+    
         with OmeZarrExportProgressBar(
             path=path, n_chunks=n_chunks, reapeat_time=progress_bar_repeat_time
         ):

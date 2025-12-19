@@ -6,7 +6,6 @@ import nibabel as nib
 import numpy as np
 import tifffile as tiff
 import zarr
-import zarr.core
 import qim3d
 
 from tqdm import tqdm
@@ -74,7 +73,7 @@ class Convert:
             else:
                 raise ValueError('Invalid path')
 
-    def convert_tif_to_zarr(self, tif_path: str, zarr_path: str) -> zarr.core.Array:
+    def convert_tif_to_zarr(self, tif_path: str, zarr_path: str) -> zarr.Array:
         """
         Convert a tiff file to a zarr file
 
@@ -83,7 +82,7 @@ class Convert:
             zarr_path (str): path to the zarr file
 
         Returns:
-            zarr.core.Array: zarr array containing the data from the tiff file
+            zarr.Array: zarr array containing the data from the tiff file
 
         """
         vol = tiff.memmap(tif_path)
@@ -124,7 +123,7 @@ class Convert:
         z = zarr.open(zarr_path)
         qim3d.io.save(tif_path, z)
 
-    def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str) -> zarr.core.Array:
+    def convert_nifti_to_zarr(self, nifti_path: str, zarr_path: str) -> zarr.Array:
         """
         Convert a nifti file to a zarr file
 
@@ -133,7 +132,7 @@ class Convert:
             zarr_path (str): path to the zarr file
 
         Returns:
-            zarr.core.Array: zarr array containing the data from the nifti file
+            zarr.Array: zarr array containing the data from the nifti file
 
         """
         vol = nib.load(nifti_path).dataobj

@@ -267,7 +267,7 @@ class DataSaver:
 
         ds.save_as(path)
 
-    def save_to_zarr(self, path: str | os.PathLike, data: da.core.Array):
+    def save_to_zarr(self, path: str | os.PathLike, data: da.Array):
         """
         Saves a Dask array to a Zarr array on disk.
 
@@ -276,7 +276,7 @@ class DataSaver:
             data (dask.array.core.Array): The Dask array to be saved to disk.
 
         Returns:
-            zarr.core.Array: The Zarr array saved on disk.
+            zarr.Array: The Zarr array saved on disk.
 
         """
 
@@ -289,14 +289,15 @@ class DataSaver:
             da.to_zarr(data, path, overwrite=self.replace)
 
         else:
-            zarr_array = zarr.open(
-                path,
-                mode='w',
-                shape=data.shape,
-                chunks=self.chunk_shape,
-                dtype=data.dtype,
-            )
-            zarr_array[:] = data
+            # zarr_array = zarr.open(
+            #     path,
+            #     mode='w',
+            #     shape=data.shape,
+            #     chunks=self.chunk_shape,
+            #     dtype=data.dtype,
+            # )
+            # zarr_array[:] = data
+            zarr.api.synchronous.save(path, data, zarr_version = 3)
 
     def save_PIL(self, path: str | os.PathLike, data: np.ndarray):
         """
