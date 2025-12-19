@@ -1,13 +1,15 @@
-import gradio as gr
+from qim3d.utils._dependencies import optional_import
+
+gr = optional_import('gradio', extra='gui')
 
 LIGHT_BLUE = '#60a5fa'
-DARK_BLUE = "#2472d2"
+DARK_BLUE = '#2472d2'
 RUN_COLOR = '#198754'
 BRIGHT_RUN_COLOR = '#299764'
 CANCEL_COLOR = '#dc3545'
 
-class QimTheme(gr.themes.Default):
 
+class QimTheme(gr.themes.Default):
     """
     Theme for qim3d gradio interfaces.
     The theming options are quite broad. However if there is something you can not achieve with this theme
@@ -65,7 +67,7 @@ class QimTheme(gr.themes.Default):
         self.button_transition = '0.15s'
         self.button_large_text_weight = 'normal'
         self.button_border_width = '1px'
-    
+
     def set_data_explorer(self):
         # Changes the color of the arrow
         self.color_accent = LIGHT_BLUE
@@ -127,11 +129,9 @@ class QimTheme(gr.themes.Default):
 
     def set_light_slider(self):
         self.slider_color = LIGHT_BLUE
-    
+
     def set_dark_slider(self):
         self.slider_color_dark = DARK_BLUE
-
-
 
     # def _get_theme_css(self):
     #     sup = super()._get_theme_css()

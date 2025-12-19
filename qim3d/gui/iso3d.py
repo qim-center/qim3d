@@ -18,14 +18,17 @@ app.launch()
 
 import os
 
-import gradio as gr
 import numpy as np
 import plotly.graph_objects as go
 from scipy import ndimage
 
 import qim3d
 from qim3d.gui.interface import InterfaceWithExamples
+from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
+
+gr = optional_import('gradio', extra='gui')
+
 
 # TODO img in launch should be self.img
 class Interface(InterfaceWithExamples):

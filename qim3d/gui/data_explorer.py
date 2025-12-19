@@ -18,9 +18,9 @@ app.launch()
 import datetime
 import os
 import re
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 
-import gradio as gr
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
@@ -30,7 +30,10 @@ import outputformat as ouf
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
 from qim3d.utils import _misc
+from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
+
+gr = optional_import('gradio', extra='gui')
 
 
 class Interface(BaseInterface):
@@ -407,7 +410,7 @@ class Interface(BaseInterface):
         except Exception as error_message:
             self.error_message = f'Error when loading data: {error_message}'
 
-    def run_operations(self, operations: list[str], *args) -> list[Dict[str, Any]]:
+    def run_operations(self, operations: list[str], *args) -> list[dict[str, Any]]:
         outputs = []
         self.calculated_operations = []
         for operation in self.all_operations:
@@ -455,7 +458,7 @@ class Interface(BaseInterface):
             case _:
                 raise NotImplementedError(f"Operation '{operation} is not defined")
 
-    def show_results(self, operations: list[str]) -> list[Dict[str, Any]]:
+    def show_results(self, operations: list[str]) -> list[dict[str, Any]]:
         update_list = []
         for operation in self.all_operations:
             if operation in operations and operation in self.calculated_operations:
@@ -483,8 +486,8 @@ class Interface(BaseInterface):
 
     def update_slice_wrapper(
         self, letter: str
-    ) -> Callable[[float, str], Dict[str, Any]]:
-        def update_slice(position_slider: float, cmap: str) -> Dict[str, Any]:
+    ) -> Callable[[float, str], dict[str, Any]]:
+        def update_slice(position_slider: float, cmap: str) -> dict[str, Any]:
             """
             position_slider: float from gradio slider, saying which relative slice we want to see
             cmap: string gradio drop down menu, saying what cmap we want to use for display

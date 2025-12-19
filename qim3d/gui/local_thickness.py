@@ -35,7 +35,6 @@ app.launch()
 
 import os
 
-import gradio as gr
 import localthickness as lt
 
 # matplotlib.use("Agg")
@@ -44,6 +43,9 @@ import numpy as np
 import tifffile
 
 import qim3d
+from qim3d.utils._dependencies import optional_import
+
+gr = optional_import('gradio', extra='gui')
 
 
 class Interface(qim3d.gui.interface.InterfaceWithExamples):

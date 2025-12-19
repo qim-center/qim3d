@@ -4,114 +4,74 @@ import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage
 from IPython.display import display
-from noise import pnoise3, snoise3
 
 import qim3d
 from qim3d.utils import log
-from qim3d.utils._misc import scale_to_float16
+from qim3d.utils._dependencies import optional_import
+
+# Import noise as optional dependency
+noise = optional_import('noise', extra='synthetic-data')
+
+pnoise3 = noise.pnoise3
+snoise3 = noise.snoise3
 
 __all__ = ['volume', 'background']
 
 
-def _volume(
+def volume(
     base_shape: tuple = (128, 128, 128),
-    final_shape: tuple = (128, 128, 128),
-    noise_scale: float = 0.05,
-    order: int = 1,
-    gamma: int = 1.0,
-    max_value: int = 255,
+    final_shape: tuple = None,
+    noise_scale: float = 0.02,
+    noise_type: str = 'perlin',
+    decay_rate: float = 10,
+    gamma: float = 1,
     threshold: float = 0.5,
-    smooth_borders: bool = False,
-    volume_shape: str = None,
+    max_value: float = 255,
+    shape: str = None,
+    tube_hole_ratio: float = 0.5,
+    axis: int = 0,
+    order: int = 1,
     dtype: str = 'uint8',
+    hollow: int = 0,
+    seed: int = 0,
 ) -> np.ndarray:
     """
-    Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling and gamma correction.
+    Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling.
+
+    Note: This function requires the 'noise' package. Install with:
+        pip install qim3d[synthetic-data]
 
     Args:
-        base_shape (tuple of ints, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
-        final_shape (tuple of ints, optional): Desired shape of the final volume. Defaults to (128, 128, 128).
-        noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
-        order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
-        gamma (float, optional): Gamma correction factor. Defaults to 1.0.
+        base_shape (tuple of ints, optional): Shape of the initial volume to generate.
+            Defaults to (128, 128, 128).
+        final_shape (tuple of ints, optional): Desired shape of the final volume.
+            If unspecified, will assume same shape as base_shape. Defaults to None.
+        noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.02.
+        noise_type (str, optional): Type of noise to be used for volume generation.
+            Should be `simplex` or `perlin`. Defaults to perlin.
+        decay_rate (float, optional): The decay rate of the fading of the noise.
+            Defaults to 10.0.
+        gamma (float, optional): Applies gamma correction. Defaults to 1.
+        threshold (float, optional): Threshold value for clipping low intensity values.
+            Defaults to 0.5.
         max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
-        threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
-        smooth_borders (bool, optional): Flag for automatic computation of the threshold value to ensure a blob with no straight edges. If True, the `threshold` parameter is ignored. Defaults to False.
-        volume_shape (str, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
-        dtype (data-type, optional): Desired data type of the output volume. Defaults to "uint8".
+        shape (str, optional): Shape of the volume to generate, either `cylinder`, or `tube`.
+            Defaults to None.
+        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes.
+            Defaults to 0.5.
+        axis (int, optional): Axis of the given shape. Defaults to 0.
+        order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
+        dtype (data-type, optional): Desired data type of the output volume. Defaults to `uint8`.
+        hollow (int, optional): Determines thickness of the hollowing operation. Defaults to 0.
+        seed (int, optional): Specifies a fixed offset for the generated noise. Defaults to 0.
 
     Returns:
         volume (numpy.ndarray): Generated 3D volume with specified parameters.
 
     Raises:
-        TypeError: If `final_shape` is not a tuple or does not have three elements.
-        ValueError: If `dtype` is not a valid numpy number type.
-
-    Example:
-        ```python
-        import qim3d
-
-        # Generate synthetic blob
-        vol = qim3d.generate.volume(noise_scale = 0.015)
-
-        # Visualize 3D volume
-        qim3d.viz.volumetric(vol)
-        ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_blob.html" width="100%" height="500" frameborder="0"></iframe>
-
-        ```python
-        # Visualize slices
-        qim3d.viz.slices_grid(vol, value_min = 0, value_max = 255, num_slices = 15)
-        ```
-        ![synthetic_blob](../../assets/screenshots/synthetic_blob_slices.png)
-
-    Example:
-        ```python
-        import qim3d
-
-        # Generate tubular synthetic blob
-        vol = qim3d.generate.volume(base_shape = (10, 300, 300),
-                                final_shape = (100, 100, 100),
-                                noise_scale = 0.3,
-                                gamma = 2,
-                                threshold = 0.0,
-                                volume_shape = "cylinder"
-                                )
-
-        # Visualize synthetic volume
-        qim3d.viz.volumetric(vol)
-        ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_cylinder.html" width="100%" height="500" frameborder="0"></iframe>
-
-        ```python
-        # Visualize slices
-        qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
-        ```
-        ![synthetic_blob_cylinder_slice](../../assets/screenshots/synthetic_blob_cylinder_slice.png)
-
-    Example:
-        ```python
-        import qim3d
-
-        # Generate tubular synthetic blob
-        vol = qim3d.generate.volume(base_shape = (200, 100, 100),
-                                final_shape = (400, 100, 100),
-                                noise_scale = 0.03,
-                                gamma = 0.12,
-                                threshold = 0.85,
-                                volume_shape = "tube"
-                                )
-
-        # Visualize synthetic blob
-        qim3d.viz.volumetric(vol)
-        ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_tube.html" width="100%" height="500" frameborder="0"></iframe>
-
-        ```python
-        # Visualize
-        qim3d.viz.slices_grid(vol, num_slices=15)
-        ```
-        ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)
+        ImportError: If the 'noise' package is not installed.
+        ValueError: If `shape` or `noise_type` is invalid.
+        TypeError: If `base_shape` or `final_shape` format is invalid.
 
     """
 

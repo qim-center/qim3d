@@ -19,9 +19,8 @@ classifiers = [
     "Topic :: Software Development :: User Interfaces",
 ]
 urls = { Homepage = "https://platform.qim.dk/qim3d" }
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-    "gradio>=5.1",
     "h5py>=3.9.0",
     "localthickness>=0.1.2",
     "matplotlib>=3.8.0",
@@ -32,7 +31,6 @@ dependencies = [
     "plotly>=5.14.1",
     "scipy>=1.11.2",
     "seaborn>=0.12.2",
-    "setuptools>=68.0.0",
     "tifffile>=2025.1.10",
     "imagecodecs>=2024.12.30",
     "tqdm>=4.65.0",
@@ -43,7 +41,6 @@ dependencies = [
     "olefile>=0.46",
     "psutil>=5.9.0",
     "structure-tensor>=0.2.1",
-    "noise>=1.2.2",
     "zarr>=3.0",
     "ome_zarr>=0.12.0",
     "dask-image>=2024.5.3",
@@ -69,6 +66,28 @@ deep-learning = [
     "torchinfo>=1.8.0",
     "monai>=1.2.0",
 ]
+
+synthetic-data = [
+    "noise>=1.2.2",
+]
+
+gui = [
+    "gradio>=5.1",
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+]
+
+all = [
+    "gradio>=5.1",
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.27.0",
+    "torch>=2.0.1",
+    "torchvision>=0.15.2",
+    "torchinfo>=1.8.0",
+    "monai>=1.2.0",
+    "noise>=1.2.2",
+]
+
 
 [project.scripts]
 qim3d = "qim3d.cli:main"

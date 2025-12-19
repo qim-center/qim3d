@@ -18,14 +18,16 @@ app = layers.launch()
 """
 
 import os
-from typing import Any, Dict
+from typing import Any
 
-import gradio as gr
 import numpy as np
 
 # from qim3d.processing import layers2d as l2d
-from qim3d.gui.interface import BaseInterface
 import qim3d
+from qim3d.gui.interface import BaseInterface
+from qim3d.utils._dependencies import optional_import
+
+gr = optional_import('gradio', extra='gui')
 
 # TODO figure out how not update anything and go through processing when there are no data loaded
 # So user could play with the widgets but it doesnt throw error
@@ -346,7 +348,7 @@ class Interface(BaseInterface):
     def change_plot_type(
         self,
         plot_type: str,
-    ) -> tuple[Dict[str, Any], Dict[str, Any]]:
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         self.plot_type = plot_type
         if plot_type == 'Segmentation lines':
             return gr.update(visible=False), gr.update(visible=True)
@@ -355,7 +357,7 @@ class Interface(BaseInterface):
 
     def change_plot_size(
         self, x_check: int, y_check: int, z_check: int
-    ) -> tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
         """
         Based on how many plots are we displaying (controlled by checkboxes in the bottom) we define
         also their height because gradio doesn't do it automatically. The values of heights were set just by eye.

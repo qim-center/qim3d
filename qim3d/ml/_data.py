@@ -1,15 +1,17 @@
 """Provides a custom Dataset class for building a PyTorch dataset."""
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, Optional
 
 import numpy as np
-import torch
 
 import qim3d
 from qim3d.utils import log
+from qim3d.utils._dependencies import optional_import
 
 from ._augmentations import Augmentation
+
+torch = optional_import('torch', extra='deep-learning')
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -40,7 +42,7 @@ class Dataset(torch.utils.data.Dataset):
     """
 
     def __init__(
-        self, root_path: str, split: str = 'train', transform: Optional[Callable] = None
+        self, root_path: str, split: str = 'train', transform: Callable | None = None
     ):
         super().__init__()
 
