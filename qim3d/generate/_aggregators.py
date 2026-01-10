@@ -502,45 +502,78 @@ def volume_collection(
     return_positions: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Generate a 3D volume of multiple synthetic volumes using Perlin or Simplex noise.
+    Generates a synthetic dataset of multiple non-overlapping volumes with ground truth labels.
+
+    This function creates a "collection" volume populated with multiple objects. It uses a collision 
+    detection algorithm to ensure objects do not overlap. Crucially, it returns a **label mask** where each object is identified by a unique integer ID, making this tool ideal for generating 
+    training data for **Instance Segmentation** or **Object Detection** models.
+
+    Objects can be generated synthetically (blobs, cylinders, tubes) with randomized properties, 
+    or you can inject your own pre-existing 3D arrays using the `data` parameter.
 
     Args:
-        n_volumes (int, optional): Number of synthetic volumes to include in the collection. Defaults to 15.
-        collection_shape (tuple of ints, optional): Shape of the final collection volume to generate. Defaults to (200, 200, 200).
-        data (numpy.ndarray or list[numpy.ndarray], optional): Predefined volume(s) to use for the collection. If provided, the function will use these volumes instead of generating new ones. Defaults to None.
-        positions (list[tuple], optional): List of specific positions as (z, y, x) coordinates for the volumes. If not provided, they are placed randomly into the collection. Defaults to None.
-        shape_range (tuple of tuple of ints, optional): Determines the shape of the generated volumes with first element defining the minimum size and second element defining maximum. Defaults to ((40,40,40), (60,60,60)).
-        shape_magnification_range (tuple of floats, optional): Range for scaling of volume shape in all dimensions. Defaults to (1.0, 1.0).
-        noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex`, `perlin` or `mixed`. Defaults to perlin.
-        noise_range (tuple of floats, optional): Determines range for noise. First element is minimum and second is maximum. Defaults to (0.02, 0.03).
-        rotation_degree_range (tuple of ints, optional): Determines range for rotation angle in degrees. First element is minimum and second is maximum. Defaults to (0, 360).
-        rotation_axes (list[tuple], optional): List of axis pairs that will be randomly chosen to rotate around. Defaults to [(0, 1), (0, 2), (1, 2)].
-        gamma_range (tuple of floats, optional): Determines minimum and maximum gamma correctness factor. Defaults to (0.9, 1.0)
-        value_range (tuple of ints, optional): Determines minimum and maximum value for volume intensity. Defaults to (128, 255).
-        threshold_range (tuple of ints, optional): Determines minimum and maximum value for thresholding. Defaults to (0.5, 0.55).
-        decay_rate_range (float, optional): Determines minimum and maximum value for the decay_range. Defaults to (5,10).
-        shape (str or None, optional): Shape of the volume to generate, either "cylinder", or "tube". Defaults to None.
-        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
-        axis (int, optional): Determines the axis of the volume_shape if this is defined. Defaults to 0.
-        verbose (bool, optional): Flag to enable verbose logging. Defaults to False.
-        same_seed (bool, optional): Use the same seed for each generated volume. Note that in order to generate identical volumes, the min and max for the different parameters should be identical.
-        hollow (bool, optional): Create hollow objects using qim3d.operations.make_hollow(). Defaults to False.
-        seed (int, optional): Seed for reproducibility. Defaults to 0. Each generated volume will be generated with a randomly selected sub-seed generated from the original seed.
-        dtype (str, optional): dtype for resulting volume. Defaults to uint8.
-        return_positions (bool, optional): Flag to return position of randomly placed blobs.
+        n_volumes (int, optional): 
+            Target number of volumes/objects to place in the collection.
+        collection_shape (tuple, optional): 
+            Dimensions of the final container volume (Z, Y, X).
+        data (numpy.ndarray or list[numpy.ndarray], optional): 
+            Pre-defined 3D volume(s) to place into the collection. If provided, the function picks 
+            randomly from this list instead of generating new synthetic blobs. Useful for creating 
+            scenes with specific real-world objects.
+        positions (list[tuple], optional): 
+            List of specific (z, y, x) center coordinates for placement. If `None`, positions are 
+            chosen randomly. If provided, `n_volumes` must match the length of this list.
+        shape_range (tuple[tuple], optional): 
+            Defines the size variance of generated objects. Format: `((min_z, min_y, min_x), (max_z, max_y, max_x))`.
+        shape_magnification_range (tuple[float], optional): 
+            Range for random uniform scaling factors applied to the object shape.
+        noise_type (str, optional): 
+            Algorithm for synthetic texture generation: `'perlin'`, `'simplex'`, or `'mixed'` (randomly selects per object).
+        noise_range (tuple[float], optional): 
+            Range for the noise scale parameter (roughness).
+        rotation_degree_range (tuple[int], optional): 
+            Range of rotation angles (in degrees) to apply to each object.
+        rotation_axes (list[tuple], optional): 
+            List of axis pairs to rotate around (e.g., `[(0, 1)]` for XY rotation).
+        gamma_range (tuple[float], optional): 
+            Range for gamma correction (contrast).
+        value_range (tuple[int], optional): 
+            Range for the maximum intensity value of the objects.
+        threshold_range (tuple[float], optional): 
+            Range for the threshold used to define the object surface/size.
+        decay_rate_range (tuple[float], optional): 
+            Range for the edge decay rate (fading at boundaries).
+        shape (str, optional): 
+            Force a specific geometric shape: `'cylinder'`, `'tube'`, or `None` (organic blob).
+        tube_hole_ratio (float, optional): 
+            Ratio of the inner hole if `shape='tube'`.
+        axis (int, optional): 
+            Orientation axis (0, 1, 2) if `shape` is defined.
+        verbose (bool, optional): 
+            If `True`, enables detailed logging of placement attempts.
+        same_seed (bool, optional): 
+            If `True`, reuses the same random seed for every object (they will look identical).
+        hollow (bool, optional): 
+            If `True`, applies a hollowing operation to synthetic objects.
+        seed (int, optional): 
+            Global random seed for reproducibility.
+        dtype (str, optional): 
+            Data type of the output arrays.
+        return_positions (bool, optional): 
+            If `True`, the function returns a third element containing the list of successfully placed coordinates.
 
     Returns:
-        volume_collection (numpy.ndarray): 3D volume of the generated collection of synthetic volumes with specified parameters.
-        labels (numpy.ndarray): Array with labels for each voxel, same shape as volume_collection.
+        volume_collection (numpy.ndarray): 
+            The 3D volume containing all placed objects.
+        labels (numpy.ndarray): 
+            A 3D integer mask of the same shape, where 0 is background and 1..N are the object IDs.
+        positions (list[tuple]): 
+            (Only if `return_positions=True`) A list of (z, y, x) coordinates for the centers of the placed objects.
 
     Raises:
-        TypeError: If `data` is not a numpy array or list of numpy arrays.
-        ValueError: If `data` is provided but not a 3D numpy array.
-        ValueError: If `noise_type` is invalid.
-        TypeError: If `collection_shape` is not 3D.
-        ValueError: If volume parameters are invalid.
-        ValueError: If the `shape_range` is incorrectly defined.
-        ValueError: If the `positions` are incorrectly defined.
+        TypeError: If `data` is not a numpy array or list of arrays.
+        ValueError: If `data` contains non-3D arrays or volumes larger than `collection_shape`.
+        ValueError: If ranges or shapes are incorrectly defined.
 
     Example:
         ```python
