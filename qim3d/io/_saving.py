@@ -539,23 +539,34 @@ def save(
 
 def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
     """
-    Save a mesh object to a specific file.
-    This function is based on the [PyGEL3D library's saving function implementation](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#save).
+    Exports or saves a 3D surface mesh to a file.
 
+    Writes the geometry of a PyGEL3D Manifold object to disk. The output format is 
+    determined automatically by the filename extension.
+
+    **Supported Formats:**
+
+    * **OBJ** (`.obj`)
+    * **OFF** (`.off`)
+    * **X3D** (`.x3d`)
 
     Args:
-        filename (str or os.PathLike): The path to save file to. File format is chosen based on the extension. Supported extensions are: '.x3d', '.obj', '.off'.
-        mesh (pygel3d.hmesh.Manifold): A hmesh.Manifold object representing the mesh.
+        filename (str or os.PathLike): 
+            The destination path. The extension determines the format.
+        mesh (hmesh.Manifold): 
+            The mesh object containing the geometry to be saved.
 
     Example:
         ```python
         import qim3d
 
-        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
-        mesh = qim3d.mesh.from_volume(synthetic_blob)
-        qim3d.io.save_mesh("mesh.obj", mesh)
-        ```
+        # Generate a volume and extract a mesh (isosurface)
+        vol = qim3d.generate.volume(noise_scale=0.05)
+        mesh = qim3d.mesh.from_volume(vol)
 
+        # Save the mesh to an OBJ file
+        qim3d.io.save_mesh("surface.obj", mesh)
+        ```
     """
     # Export the mesh to the specified filename
     hmesh.save(filename, mesh)

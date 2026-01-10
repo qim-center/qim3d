@@ -916,29 +916,37 @@ def load(
 
 def load_mesh(filename: str) -> hmesh.Manifold:
     """
-    Load a mesh from a specific file.
-    This function is based on the [PyGEL3D library's loading function implementation](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#load).
+    Imports or loads a 3D surface mesh from a file.
 
-    Supported formats:
+    Reads geometry data from standard mesh formats and returns a PyGEL3D Manifold object. 
+    This is useful for analyzing surface structures, isosurfaces, or exported models.
 
-    - `X3D`
-    - `OBJ`
-    - `OFF`
-    - `PLY`
+    **Supported Formats:**
+
+    * **OBJ** (`.obj`) - Wavefront Object
+    * **PLY** (`.ply`) - Polygon File Format
+    * **OFF** (`.off`) - Object File Format
+    * **X3D** (`.x3d`) - Extensible 3D
 
     Args:
-        filename (str or os.PathLike): The path to the file.
+        filename (str or os.PathLike): 
+            The path to the mesh file to load.
 
     Returns:
-        mesh (hmesh.Manifold or None): A hmesh object containing the mesh data or None if loading failed.
+        mesh (Manifold or None): 
+            A PyGEL3D object containing the mesh geometry (vertices, faces, edges). 
+            Returns `None` if loading fails.
 
     Example:
         ```python
         import qim3d
 
-        mesh = qim3d.io.load_mesh("path/to/mesh.obj")
+        # Load a mesh file
+        mesh = qim3d.io.load_mesh("path/to/model.obj")
+        
+        # Check number of vertices
+        print(len(mesh.vertices()))
         ```
-
     """
     mesh = hmesh.load(filename)
 
