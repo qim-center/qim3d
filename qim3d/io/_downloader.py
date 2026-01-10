@@ -281,7 +281,15 @@ class Downloader:
         return dest
 
     def list_files(self) -> None:
-        """Generate and print formatted folder, file, and size information."""
+        """
+        Displays a catalog of all available datasets in the QIM repository.
+        
+        This method prints a formatted list of folder names, file names, and file sizes to the console log. 
+        It is useful for exploring the inventory of biological and material science scans available for 
+        download without needing to visit the website.
+
+        The output groups files by their parent folder (e.g., 'Coal', 'Corals', 'Foam').
+        """
 
         url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
 
