@@ -819,7 +819,7 @@ def load(
             Additional arguments passed to the underlying `DataLoader` class.
 
     Returns:
-        vol (numpy.ndarray, Virtual Stack Object, or tuple):
+        vol (ndarray, Virtual Stack Object, or tuple):
             The loaded data.
             
             The specific type depends on the input parameters and file format:
