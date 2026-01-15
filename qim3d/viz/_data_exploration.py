@@ -644,19 +644,20 @@ def fade_mask(
     max_value: float = None,
 ) -> widgets.interactive:
     """
-    Interactive widget for visualizing the effect of edge fading on a 3D volume.
+    Launches an interactive tool to tune parameters for edge fading (vignetting) on a 3D volume.
 
-    This can be used to select the best parameters before applying the mask.
+    This function helps you find the optimal settings for suppressing boundary artifacts or focusing on the center of the volume. It visualizes the process by displaying three panels: the original slice, the generated weight mask (attenuation map), and the final result. You can adjust the decay rate, ratio (radius), and geometry (spherical or cylindrical) in real-time before applying them permanently using `qim3d.operations.fade_mask`.
 
     Args:
-        volume (np.ndarray): The volume to apply edge fading to.
-        axis (int, optional): The axis along which to apply the fading. Defaults to 0.
-        colormap (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        min_value (float or None, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        max_value (float or None, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        volume (np.ndarray): The 3D input volume.
+        axis (int, optional): The axis alignment for the mask geometry (relevant for cylindrical fading). Defaults to 0.
+        colormap (str, optional): The Matplotlib colormap used for displaying the volume and mask. Defaults to 'magma'.
+        min_value (float, optional): Custom minimum intensity for display contrast. If `None`, uses the data minimum.
+        max_value (float, optional): Custom maximum intensity for display contrast. If `None`, uses the data maximum.
 
     Returns:
-        slicer_obj (widgets.HBox): The interactive widget for visualizing fade mask on slices of a 3D volume.
+        slicer_obj (widgets.interactive):
+            The interactive widget containing the parameter sliders and the side-by-side visualization.
 
     Example:
         ```python
@@ -665,7 +666,6 @@ def fade_mask(
         qim3d.viz.fade_mask(vol)
         ```
         ![operations-edge_fade_before](../../assets/screenshots/viz-fade_mask.gif)
-
     """
 
     # Create the interactive widget
@@ -790,30 +790,28 @@ def fade_mask(
 
 def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     """
-    Launch an interactive chunk explorer for a 3D or 5D OME-Zarr/Zarr dataset.
+    Launches an interactive explorer for large-scale OME-Zarr and Zarr datasets.
+
+    This tool enables you to inspect massive 3D or 5D datasets (e.g., bio-imaging pyramids, large block-wise volumes) one chunk at a time without loading the entire file into RAM. It relies on lazy loading, making it ideal for checking data integrity, visualizing specific regions of interest (ROI) in big data, or navigating multi-resolution hierarchies.
+
+    **Key Features:**
+
+    * **Lazy Exploration:** Loads only the specific chunk selected via dropdown menus.
+    * **Multiscale Support:** Automatically detects and navigates resolution levels (pyramids) in OME-Zarr groups.
+    * **5D Navigation:** Supports dimensions for Time (T) and Channel (C) in addition to spatial axes (Z, Y, X).
+    * **Versatile Visualization:** Switch instantly between a `slicer`, a `slices_grid`, or a 3D `volumetric` rendering for the selected chunk.
 
     Args:
-        zarr_path (str):
-            Path to the OME-Zarr/Zarr dataset.
-
-        **kwargs (Any):
-            Additional keyword arguments that are **selectively** forwarded
-            only to the visualization method that supports them. Any key
-            not accepted by the chosen method is ignored.
-
-            The visualization methods available in this tool are:
-
-            - `slicer` → calls `qim3d.viz.slicer`
-            - `slices` → calls `qim3d.viz.slices_grid`
-            - `volume` → calls `qim3d.viz.volumetric`
-
-            Users select the desired method via the dropdown menu in the widget.
-
-    Raises:
-        ValueError: If the dataset's dimensionality is not 3 or 5.
+        zarr_path (str): The filesystem path to the OME-Zarr or Zarr dataset.
+        **kwargs (Any): Additional keyword arguments passed selectively to the underlying visualization function.
+            For example, you can pass `cmap='magma'` (for `slicer`/`slices`) or `zoom=1.5` (for `volume`). Arguments not supported by the currently selected visualization method are ignored.
 
     Returns:
-        chunk_explorer (widgets.VBox): A widget containing dropdowns for selecting the OME-Zarr scale, chunk coordinates along each axis, and visualization method.
+        chunk_explorer (widgets.VBox):
+            The interactive interface containing controls for scale selection, chunk coordinates, and the visualization display.
+
+    Raises:
+        ValueError: If the dataset dimensionality is not 3D or 5D.
 
     Example:
         ```python
@@ -823,7 +821,6 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         qim3d.viz.chunks('path/to/zarr/dataset.zarr')
         ```
         ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
-
     """
     # Opens the Zarr dataset - doesn't load to memory yet
     zarr_data = zarr.open(zarr_path, mode='r')
@@ -1038,42 +1035,42 @@ def histogram(
     **sns_kwargs: str | float | bool,
 ) -> plt.Figure | plt.Axes | None:
     """
-    Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
+    Computes and displays the intensity distribution (histogram) of a 3D volume or a specific 2D slice.
 
-    Utilizes [seaborn.histplot](https://seaborn.pydata.org/generated/seaborn.histplot.html) for visualization.
+    This function visualizes the frequency of voxel intensities (gray values), which is essential for analyzing data contrast, identifying material phases, and determining threshold values for segmentation. It utilizes `seaborn.histplot` and includes optimizations for 3D data, such as subsampling (`coarseness`) to handle large datasets efficiently. You can also overlay Kernel Density Estimates (KDE) or specific threshold markers.
 
     Args:
-        volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
-        coarseness (int or list[int], optional): A positive integer representing the coarseness of the subsampling. A value of 1 (default) uses the original volume, a value of 2 uses every second element along each axis and so on. Used to reduce the needed computation.
-        ignore_zero (bool, optional): Specifies if zero-values in the volume should be ignored.
-        bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
-        slice_axis (int, optional): Axis along which to take a slice. Default is 0.
-        slice_index (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
-                                               If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
-        vertical_line (Union[int, Iterable], optional): Intensity value for a vertical line(s) to be drawn on the histogram. Default is None.
-        vertical_line_colormap (Union[str, Iterable], optional): Colors for vertical lines. If string, it should be a valid colormap. If iterable, it should be list of valid colors. Default is 'qim'.
-        kde (bool, optional): Whether to overlay a kernel density estimate.
-        log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
-        despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
-        show_title (bool, optional): If True, displays a title with slice information. Default is True.
-        color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
-        edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
-        figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
-        bin_style (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
-        return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
-        show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
-        ax (matplotlib.axes.Axes, optional): Axes object where the histogram will be plotted. Default is None.
-        **sns_kwargs: Additional keyword arguments for `seaborn.histplot`.
+        volume (np.ndarray): The 3D input volume.
+        coarseness (int or list[int], optional): Subsampling factor to speed up computation. A value of `1` uses all data; `2` uses every second voxel, etc.
+        ignore_zero (bool, optional): If `True`, excludes zero-valued voxels (background) from the statistics.
+        bins (int or str, optional): The number of bins or a binning strategy (e.g., 'auto', 'sturges').
+        slice_index (int, str, or None, optional): The specific slice to analyze. If `None`, analyzes the entire volume. Accepts an integer index or 'middle'.
+        slice_axis (int, optional): The axis along which to extract the slice (0, 1, or 2). Used only if `slice_index` is provided.
+        vertical_line (int or Iterable, optional): One or more intensity values to mark with vertical dashed lines (e.g., to visualize a threshold cut-off).
+        vertical_line_colormap (str or Iterable, optional): The colormap or list of colors for the vertical lines.
+        kde (bool, optional): If `True`, computes and overlays a Kernel Density Estimate (smooth curve) of the distribution.
+        log_scale (bool, optional): If `True`, sets the Y-axis (frequency) to a logarithmic scale.
+        despine (bool, optional): If `True`, removes the top and right borders of the plot for a cleaner look.
+        show_title (bool, optional): If `True`, adds a descriptive title with slice/volume information.
+        color (str, optional): The main color of the histogram bars.
+        edgecolor (str, optional): The color of the bar edges.
+        figsize (tuple[float, float], optional): The width and height of the figure in inches.
+        bin_style (str, optional): The visual style of the histogram ('bars', 'step', or 'poly').
+        return_fig (bool, optional): If `True`, returns the `matplotlib.figure.Figure` object.
+        show (bool, optional): If `True`, calls `plt.show()` to display the plot.
+        ax (matplotlib.axes.Axes, optional): An existing Axes object to plot onto. If provided, the function returns this Axes object (unless `return_fig=True`).
+        **sns_kwargs: Additional keyword arguments passed to `seaborn.histplot`.
 
     Returns:
-        Optional[matplotlib.figure.Figure or matplotlib.axes.Axes]:
-            If `return_fig` is True, returns the generated figure object.
-            If `return_fig` is False and `ax` is provided, returns the `Axes` object.
-            Otherwise, returns None.
+        object (matplotlib.figure.Figure, matplotlib.axes.Axes, or None):
+            The plot object, depending on parameters:
+
+            * **matplotlib.figure.Figure**: Returned if `return_fig=True`.
+            * **matplotlib.axes.Axes**: Returned if `return_fig=False` and `ax` was provided.
+            * **None**: If `return_fig=False` and no `ax` is provided (plot is displayed immediately).
 
     Raises:
-        ValueError: If `slice_axis` is not a valid axis index (0, 1, or 2).
-        ValueError: If `slice_index` is an integer and is out of range for the specified axis.
+        ValueError: If `slice_axis` is invalid or `slice_index` is out of bounds.
 
     Example:
         ```python
@@ -1093,7 +1090,7 @@ def histogram(
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
 
-    Example: Using coarsness for faster computation
+    Example: Using coarseness for faster computation
         ```python
         import qim3d
 
@@ -1101,7 +1098,6 @@ def histogram(
         qim3d.viz.histogram(vol, coarseness=2, kde=True, log_scale=True)
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-coarse.png)
-
     """
     if not (0 <= slice_axis < volume.ndim):
         msg = f'Axis must be an integer between 0 and {volume.ndim - 1}.'
@@ -1494,21 +1490,34 @@ def line_profile(
     y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
     """
-    Returns an interactive widget for visualizing the intensity profiles of lines on slices.
+    Creates an interactive tool to visualize intensity profiles along a line segment within a 3D volume.
+
+    This function allows you to draw a line on a specific slice of your data and plot the pixel or voxel intensity values along that path. It is ideal for quantitative analysis, such as checking material homogeneity, measuring the sharpness of edges (step functions), or inspecting noise levels across a region of interest (ROI). The tool supports arbitrary angles, dynamic pivot points, and adjustable plot limits.
+
+    **Key Features:**
+
+    * **Profile Plotting:** Real-time graph of intensity values (gray levels) versus distance.
+    * **Flexible Positioning:** Define the line by a pivot point (vertical/horizontal) and an angle of rotation.
+    * **Navigation:** Select specific slices using indices or keywords like 'middle'.
+    * **Zooming:** Focus on specific segments of the line using the `fraction_range` parameter.
 
     Args:
-        volume (np.ndarray): The 3D volume of interest.
-        slice_axis (int, optional): Specifies the initial axis along which to slice.
-        slice_index (int or str, optional): Specifies the initial slice index along slice_axis.
-        vertical_position (int or str, optional): Specifies the initial vertical position of the line's pivot point.
-        horizontal_position (int or str, optional): Specifies the initial horizontal position of the line's pivot point.
-        angle (int or float, optional): Specifies the initial angle (°) of the line around the pivot point. A float will be converted to an int. A value outside the range will be wrapped modulo.
-        fraction_range (tuple or list, optional): Specifies the fraction of the line segment to use from border to border. Both the start and the end should be in the range [0.0, 1.0].
-        y_limits (str or tuple or list, optional): Specifies the behaviour of the limits on the y-axis of the intensity value plot. Option 'full' fixes to the volume's data range. Option 'auto' automatically adapts to the intensities on the current line. A manual range can be specified by passing a tuple or list of length 2. Defaults to 'auto'.
+        volume (np.ndarray): The 3D input volume (image stack).
+        slice_axis (int, optional): The axis along which to extract the 2D slice (0, 1, or 2). Defaults to 0.
+        slice_index (int or str, optional): The index of the slice to display. Can be an integer or a position string ('start', 'middle', 'end'). Defaults to 'middle'.
+        vertical_position (int or str, optional): The vertical coordinate of the line's pivot point. Can be an integer or 'start', 'middle', 'end'. Defaults to 'middle'.
+        horizontal_position (int or str, optional): The horizontal coordinate of the line's pivot point. Can be an integer or 'start', 'middle', 'end'. Defaults to 'middle'.
+        angle (int or float, optional): The angle of the line in degrees relative to the horizontal axis. Floats are rounded to the nearest integer. Defaults to 0.
+        fraction_range (tuple[float, float], optional): The start and end points of the line segment as a fraction of the image width/height (0.0 to 1.0). Defaults to (0.00, 1.00).
+        y_limits (str or tuple[float, float], optional): Controls the Y-axis range of the intensity plot. Defaults to 'auto'.
+
+            * **'auto'**: Dynamically adapts to the min/max intensity on the current line.
+            * **'full'**: Fixes the range to the global min/max of the entire volume.
+            * **tuple**: Manually sets the range (e.g., `(0, 255)`).
 
     Returns:
-        widget (widgets.widget_box.VBox): The interactive widget.
-
+        widget (widgets.interactive):
+            The interactive widget object containing the slice viewer and the intensity plot.
 
     Example:
         ```python
@@ -1518,7 +1527,6 @@ def line_profile(
         qim3d.viz.line_profile(vol)
         ```
         ![viz histogram](../../assets/screenshots/viz-line_profile.gif)
-
     """
 
     def parse_position(
@@ -1611,41 +1619,28 @@ def threshold(
     max_value: float = None,
 ) -> widgets.VBox:
     """
-    An interactive interface to explore thresholding on a
-    3D volume slice-by-slice. Users can either manually set the threshold value
-    using a slider or select an automatic thresholding method from `skimage`.
+    Launches an interactive widget to perform 3D image segmentation via thresholding (binarization).
 
-    The visualization includes the original image slice, a binary mask showing regions above the
-    threshold and an overlay combining the binary mask and the original image.
+    This tool allows you to explore the volume slice-by-slice to determine the optimal cut-off value for creating a binary mask. It is essential for separating objects of interest from the background based on intensity. The interface provides real-time feedback by displaying the intensity histogram and overlaying the resulting mask on the original data.
+
+    **Key Features:**
+
+    * **Visualization:** Simultaneously views the original slice, intensity histogram, binary mask, and a color overlay.
+    * **Manual Control:** Adjust the threshold value precisely using a slider.
+    * **Automatic Algorithms:** Applies standard `skimage` auto-thresholding methods including Otsu, Isodata, Li, Mean, Minimum, Triangle, and Yen.
+    * **Slice Navigation:** Scroll through the 3D stack to ensure the chosen threshold works across different depths.
 
     Args:
-        volume (np.ndarray): 3D volume to threshold.
-        colormap (str, optional): Colormap for the original image. Defaults to 'viridis'.
-        min_value (float, optional): Minimum value for the colormap. Defaults to None.
-        max_value (float, optional): Maximum value for the colormap. Defaults to None.
+        volume (np.ndarray): The 3D input data (image stack) to threshold.
+        colormap (str, optional): The Matplotlib colormap for the original image display.
+        min_value (float, optional): Custom minimum value for display contrast (vmin). If `None`, uses the data minimum.
+        max_value (float, optional): Custom maximum value for display contrast (vmax). If `None`, uses the data maximum.
 
     Returns:
-        slicer_obj (widgets.VBox): The interactive widget for thresholding a 3D volume.
+        slicer_obj (widgets.VBox):
+            The interactive Jupyter widget containing the visualization plots and control sliders.
 
-    Interactivity:
-        - **Manual Thresholding**:
-            Select 'Manual' from the dropdown menu to manually adjust the threshold
-            using the slider.
-        - **Automatic Thresholding**:
-            Choose a method from the dropdown menu to apply an automatic thresholding
-            algorithm. Available methods include:
-            - Otsu
-            - Isodata
-            - Li
-            - Mean
-            - Minimum
-            - Triangle
-            - Yen
-
-            The threshold slider will display the computed value and will be disabled
-            in this mode.
-
-
+    Example:
         ```python
         import qim3d
 
@@ -1656,7 +1651,6 @@ def threshold(
         qim3d.viz.threshold(vol)
         ```
         ![interactive threshold](../../assets/screenshots/interactive_thresholding.gif)
-
     """
 
     # Centralized state dictionary to track current parameters
@@ -2220,19 +2214,22 @@ def compare_volumes(
     volumetric_visualization: bool = False,
 ) -> widgets.interactive:
     """
-    Returns an interactive widget for comparing two volumes along slices.
+    Launches an interactive dashboard to visually compare two 3D volumes side-by-side.
+
+    This tool is essential for registration validation (checking alignment), change detection, or analyzing reconstruction errors (residuals). It displays synchronized slices of both volumes alongside a computed difference map. You can switch between 'difference', 'absolute difference', and 'quadratic difference' modes to highlight discrepancies effectively.
+
+    If enabled, the tool also provides 3D volumetric rendering (via `k3d`), allowing you to inspect the spatial distribution of the errors or changes in 3D space.
 
     Args:
-        volume1 (np.ndarray): The first volume.
-        volume2 (np.ndarray): The second volume.
-        slice_axis (int, optional): Specifies the initial axis along which to slice.
-        slice_index (int, optional): Specifies the initial index along slice_axis.
-        volumetric_visualization (bool, optional): Defines if k3d plots should also be shown.
+        volume1 (np.ndarray): The first 3D volume (e.g., Ground Truth or Reference).
+        volume2 (np.ndarray): The second 3D volume (e.g., Prediction or Moving Image). Must have the same shape as `volume1`.
+        slice_axis (int, optional): The initial axis along which to slice (0, 1, or 2). Defaults to 0.
+        slice_index (int, optional): The initial slice index to display. If `None`, defaults to the middle slice.
+        volumetric_visualization (bool, optional): If `True`, includes interactive 3D volumetric renderings below the slice views. Defaults to `False`.
 
     Returns:
-        widget (widgets.widget_box.VBox): The interactive widget.
-
-
+        widget (widgets.VBox):
+            The interactive widget containing the comparison controls, slice plots, and optional 3D views.
 
     Example:
         ```python
@@ -2242,10 +2239,8 @@ def compare_volumes(
         vol2 = qim3d.generate.volume(noise_scale=0.021, dtype='float32')
 
         qim3d.viz.compare_volumes(vol1, vol2, volumetric_visualization=True)
-
         ```
         ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
-
     """
 
     if volume1.ndim != 3:
@@ -3382,19 +3377,21 @@ def overlay(
     display_size: int = 512,
 ) -> widgets.interactive:
     """
-    Returns an interactive widget for comparing two volumes along slices in a fading overlay image.
+    Creates an interactive widget to compare two 3D volumes by overlaying them with adjustable transparency.
+
+    This tool is essential for tasks like image registration (checking alignment between two scans), segmentation validation (comparing a binary mask against the original raw data), or general change detection. It provides a slider to smoothly fade (blend) between the two volumes, allowing for precise visual inspection of differences and spatial correspondence slice-by-slice.
 
     Args:
-        volume1 (np.ndarray): The first volume.
-        volume2 (np.ndarray): The second volume.
-        volume1_values (tuple[float, float], optional): Set the color limits of volume1.
-        volume2_values (tuple[float, float], optional): Set the color limits of volume2.
-        colormaps (ColormapLike or tuple[ColormapLike, ColormapLike], optional): Specifies the colormaps used for each volume. A single value will be applied to both volumes.
-        display_size (int, optional): Size in pixels of the image. If image is non-square, then the largest dimension will have display_size pixels.
+        volume1 (np.ndarray): The first 3D volume (e.g., the reference image).
+        volume2 (np.ndarray): The second 3D volume (e.g., the moving image or segmentation mask). Must have the same shape as `volume1`.
+        volume1_values (tuple[float, float], optional): Intensity limits `(min, max)` for contrast stretching `volume1`. If `(None, None)`, uses the volume's min and max.
+        volume2_values (tuple[float, float], optional): Intensity limits `(min, max)` for contrast stretching `volume2`.
+        colormaps (str or matplotlib.colors.Colormap or tuple, optional): The colormap(s) to apply. Can be a single value (applied to both) or a tuple `(cmap1, cmap2)`. Defaults to 'gray'.
+        display_size (int, optional): The maximum width/height of the displayed image in pixels. Defaults to 512.
 
     Returns:
-        widget (widgets.widget_box.VBox): The interactive widget.
-
+        widget (widgets.VBox):
+            The interactive widget containing the slicer controls and the fading overlay display.
 
     Example:
         ```python
@@ -3409,7 +3406,6 @@ def overlay(
         qim3d.viz.overlay(vol, labeled_volume, colormaps=('grey', segm_cmap), volume2_values=(0, num_labels))
         ```
         ![viz overlay](../../assets/screenshots/viz-overlay.gif)
-
     """
     if volume1.ndim != 3:
         msg = 'Volume must be 3D.'
