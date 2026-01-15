@@ -124,15 +124,27 @@ class ConnectedComponents(LabeledVolume):
 
 def connected_components(volume: np.ndarray, connectivity: int = 1) -> ConnectedComponents:
     """
-    Computes connected components of a binary volume.
+    Identifies and labels discrete objects (connected components) in a binary volume.
+
+    This function groups adjacent non-zero voxels into distinct clusters, assigning a unique integer ID to each detected object. It is a fundamental tool for segmentation analysis, allowing you to count particles, filter noise (by removing small isolated spots), or extract specific regions of interest based on their size.
+
+    It returns a specialized `ConnectedComponents` object that provides convenient methods to:
+
+    * **Filter** objects by size (voxel count).
+    * **Extract** specific components or their bounding boxes.
+    * **Analyze** the distribution of object sizes via histograms.
 
     Args:
-        volume (np.ndarray): An array-like object to be labeled. Any non-zero values in `input` are
-            counted as features and zero values are considered the background.
-        connectivity (int, optional): Controls the squared distance of connectivity. Can range from 1 to 3.
+        volume (np.ndarray): The binary input volume (boolean or integer) where non-zero values represent the foreground objects.
+        connectivity (int, optional): Defines which neighbors are considered "connected".
+            
+            * **1**: Faces only (6-connectivity in 3D). Closest packing.
+            * **2**: Faces and edges (18-connectivity in 3D).
+            * **3**: Faces, edges, and corners (26-connectivity in 3D). Loose packing.
 
     Returns:
-        cc: A ConnectedComponents object containing the labeled volume and a number of useful methods and attributes.
+        cc (ConnectedComponents):
+            A wrapper object containing the labeled volume. It supports methods like `filter_by_size()`, `filter_by_largest()`, and `sizes_histogram()`.
 
     Example:
         ```python
@@ -175,7 +187,6 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
         qim3d.viz.volumetric(filtered, color_map=color_map, constant_opacity=True)
         ```
-
     """
     cc = ConnectedComponents(volume, connectivity)
     return cc
