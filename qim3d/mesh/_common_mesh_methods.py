@@ -10,20 +10,25 @@ def from_volume(
     volume: np.ndarray, mesh_precision: float = 1.0, **kwargs: any
 ) -> hmesh.Manifold:
     """
-    Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour)
-    function from Pygel3D.
+    Converts a 3D binary or grayscale volume into a polygon mesh (isosurface extraction).
+
+    This function transforms voxel-based data into a vector-based surface representation (triangular mesh). This process, often called polygonization or tessellation, is a necessary step for 3D printing (exporting to STL), finite element analysis (FEA), or surface-based geometric measurements. It utilizes the [`volumetric_isocontour`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour) function from PyGEL3D to generate a high-quality manifold.
 
     Args:
-        volume (np.ndarray): A 3D numpy array representing a volume.
-        mesh_precision (float, optional): Scaling factor for adjusting the resolution of the mesh.
-                                          Default is 1.0 (no scaling).
-        **kwargs: Additional arguments to pass to the Pygel3D volumetric_isocontour function.
+        volume (np.ndarray): The 3D input array representing the voxel grid.
+        mesh_precision (float, optional): A scaling factor between 0.0 and 1.0 to adjust the resolution of the volume before meshing.
+            
+            * **1.0**: Uses the original resolution (most detailed, highest polygon count).
+            * **< 1.0**: Downsamples the volume (e.g., 0.5 reduces size by half) to create a coarser, lighter mesh with fewer triangles.
+        
+        **kwargs: Additional keyword arguments passed to `pygel3d.hmesh.volumetric_isocontour`.
 
     Raises:
-        ValueError: If the input volume is not a 3D numpy array or if the input volume is empty.
+        ValueError: If the input is not 3D, is empty, or if `mesh_precision` is outside the (0, 1] range.
 
     Returns:
-        hmesh.Manifold: A Pygel3D mesh object representing the input volume.
+        mesh (hmesh.Manifold):
+            The generated mesh object containing vertices, edges, and faces.
 
     Example:
         Convert a 3D numpy array to a Pygel3D mesh object:
@@ -46,8 +51,6 @@ def from_volume(
         qim3d.viz.mesh(mesh)
         ```
         ![pygel3d_visualization_mesh](../../assets/screenshots/viz-pygel_mesh.png){width='300', length='200'}
-
-
     """
 
     if volume.ndim != 3:
