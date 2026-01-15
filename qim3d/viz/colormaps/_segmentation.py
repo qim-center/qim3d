@@ -43,20 +43,45 @@ def segmentation(
     seed: int = 19,
 ) -> LinearSegmentedColormap:
     """
-    Creates a random colormap to be used together with matplotlib. Useful for segmentation tasks
+    Creates a randomized matplotlib colormap optimized for visualizing segmentation masks.
+
+    Generates a set of distinct colors to differentiate between multiple labels or objects in a volume. It supports various color palettes and allows specific control over background colors to ensure clear separation between classes.
+
+    **Key Features:**
+
+    * **Distinct Palettes:** Choose from 'bright', 'soft', 'earth', or 'ocean' styles.
+    * **Contrast Control:** Ensure neighboring labels are distinguishable with the `min_dist` parameter.
+    * **Background Handling:** Explicitly set background colors (black/white) to transparency or neutral tones.
 
     Args:
-        n_labels (int): Number of labels (size of colormap).
-        style (str, optional): 'bright' for strong colors, 'soft' for pastel colors, 'earth' for yellow/green/blue colors, 'ocean' for blue/purple/pink colors. Defaults to 'bright'.
-        first_color_background (bool, optional): If True, the first color is used as background. Defaults to True.
-        last_color_background (bool, optional): If True, the last color is used as background. Defaults to False.
-        background_color (tuple or str, optional): RGB tuple or string for background color. Can be "black" or "white". Defaults to (0.0, 0.0, 0.0).
-        min_dist (int, optional): Minimum distance between neighboring colors. Defaults to 0.5.
-        seed (int, optional): Seed for random number generator. Defaults to 19.
+        n_labels (int): Total number of distinct labels or classes.
+        style (str, optional): The color theme of the map.
+
+            * `'bright'`: High saturation colors for maximum contrast.
+            * `'soft'`: Pastel tones for a gentler visualization.
+            * `'earth'`: Nature-inspired tones (greens, browns).
+            * `'ocean'`: Cool tones (blues, purples).
+
+        first_color_background (bool, optional): If `True`, sets the first color (index 0) to `background_color`.
+        last_color_background (bool, optional): If `True`, sets the last color to `background_color`.
+        background_color (tuple or str, optional): The RGB tuple or string ('black', 'white') for the background.
+        min_dist (float, optional): Minimum perceptual distance between adjacent colors in the map. Higher values reduce the chance of similar colors appearing next to each other.
+        seed (int, optional): Seed for the random number generator to ensure reproducibility.
 
     Returns:
-        color_map (matplotlib.colors.LinearSegmentedColormap): Colormap for matplotlib
+        color_map (matplotlib.colors.LinearSegmentedColormap):
+            The generated matplotlib colormap object.
 
+    Tip:
+        It can be easily used when calling visualization functions as:
+        ```python
+        qim3d.viz.slices_grid(segmented_volume, color_map = 'objects')
+        ```
+        which automatically detects the number of unique classes and creates the colormap object with default arguments.
+
+    Tip:
+        The `min_dist` parameter can be used to control the distance between neighboring colors.
+        ![colormap objects mind_dist](../../assets/screenshots/viz-colormaps-min_dist.gif)
 
     Example:
         ```python
@@ -85,19 +110,6 @@ def segmentation(
         qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=color_map)
         ```
         ![colormap objects](../../assets/screenshots/viz-colormaps-objects.gif)
-
-    Tip:
-        It can be easily used when calling visualization functions as
-        ```python
-        qim3d.viz.slices_grid(segmented_volume, color_map = 'objects')
-        ```
-        which automatically detects number of unique classes
-        and creates the colormap object with defualt arguments.
-
-    Tip:
-        The `min_dist` parameter can be used to control the distance between neighboring colors.
-        ![colormap objects mind_dist](../../assets/screenshots/viz-colormaps-min_dist.gif)
-
     """
     from skimage import color
 
