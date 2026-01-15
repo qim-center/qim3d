@@ -17,30 +17,35 @@ def local_thickness(
     figsize: Tuple[int, int] = (15, 5),
 ) -> Union[plt.Figure, widgets.interactive]:
     """
-    Visualizes the local thickness of a 2D or 3D image.
+    Visualizes a local thickness map alongside the original image and a statistics histogram.
+
+    This function provides a comprehensive view of structure width or pore size distribution. It displays a side-by-side comparison of the original data and the computed local thickness (heat map), where color intensity represents the diameter of the largest sphere that fits inside the structure at that point. It also includes a histogram to quantify the distribution of thickness values.
+
+    For 3D volumes, the output can be either an interactive slice viewer or a static Maximum Intensity Projection (MIP).
 
     Args:
-        image (np.ndarray): 2D or 3D NumPy array representing the image/volume.
-        image_lt (np.ndarray): 2D or 3D NumPy array representing the local thickness of the input
-            image/volume.
-        max_projection (bool, optional): If True, displays the maximum projection of the local
-            thickness. Only used for 3D images. Defaults to False.
-        axis (int, optional): The axis along which to visualize the local thickness.
-            Unused for 2D images.
-            Defaults to 0.
-        slice_index (int or float, optional): The initial slice to be visualized. The slice index
-            can afterwards be changed. If value is an integer, it will be the index of the slice
-            to be visualized. If value is a float between 0 and 1, it will be multiplied by the
-            number of slices and rounded to the nearest integer. If None, the middle slice will
-            be used for 3D images. Unused for 2D images. Defaults to None.
-        show (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
-        figsize (tuple, optional): The size of the figure. Defaults to (15, 5).
-
-    Raises:
-        ValueError: If the slice index is not an integer or a float between 0 and 1.
+        image (np.ndarray): The original 2D or 3D input data (binary or grayscale).
+        image_lt (np.ndarray): The computed local thickness map (must have the same shape as `image`). This is typically the output of `qim3d.processing.local_thickness`.
+        max_projection (bool, optional): If `True` (and input is 3D), collapses the volume along the specified axis using maximum projection before plotting. Results in a static 2D figure. Defaults to `False`.
+        axis (int, optional): The axis along which to slice or project the volume. Defaults to 0.
+        slice_index (int or float, optional): The initial slice to display for 3D volumes.
+            
+            * **int**: The exact index of the slice.
+            * **float**: A fraction between 0.0 and 1.0 (e.g., 0.5 for the middle).
+            * **None**: Defaults to the middle slice.
+        
+        show (bool, optional): If `True`, explicitly calls `plt.show()` to render the plot immediately. Defaults to `False`.
+        figsize (tuple[int, int], optional): The width and height of the figure in inches. Defaults to (15, 5).
 
     Returns:
-        local_thickness (widgets.interactive or plt.Figure): If the input is 3D, returns an interactive widget. Otherwise, returns a matplotlib figure.
+        object (widgets.interactive or matplotlib.figure.Figure):
+            The visualization object, depending on the input and parameters:
+
+            * **widgets.interactive**: Returned if the input is 3D and `max_projection=False`. Contains a slider for slice navigation.
+            * **matplotlib.figure.Figure**: Returned if the input is 2D or if `max_projection=True`.
+
+    Raises:
+        ValueError: If `slice_index` is a float outside the range [0, 1].
 
     Example:
         ```python
@@ -51,8 +56,6 @@ def local_thickness(
         qim3d.viz.local_thickness(fly, lt_fly, axis=0)
         ```
         ![local thickness 3d](../../assets/screenshots/local_thickness_3d.gif)
-
-
     """
 
     def _local_thickness(image, image_lt, show, figsize, axis=None, slice_index=None):
