@@ -76,18 +76,24 @@ def volume(
     threshold: float | str = 'otsu',
 ) -> float:
     """
-    Compute the volume of an object from a volume or mesh using the Pygel3D library.
+    Computes the enclosed physical volume of a 3D object.
+
+    This function quantifies the amount of space occupied by a structure. It is robust and versatile, handling both raw 3D image arrays (voxels) and pre-generated meshes. If a voxel array is provided, it is automatically converted into a mesh using the specified threshold before the volume is calculated, ensuring sub-voxel accuracy compared to simple voxel counting.
 
     Args:
-        object (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
-        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
+        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the volume within this mask is included. Must have the same shape as `object`. Defaults to `None`.
+        threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
+
+            * **float**: A specific intensity value.
+            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
 
     Returns:
-        volume (float): The volume of the object.
+        volume (float):
+            The calculated volume in cubic units (determined by the input resolution).
 
     Raises:
-        ValueError: If the mask shape does not match the volume shape.
+        ValueError: If `mask` is provided but its shape does not match the input `object`.
 
     Example:
         ```python
@@ -106,7 +112,6 @@ def volume(
         print(volume)
         ```
         48774.99
-
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -123,18 +128,24 @@ def area(
     threshold: float | str = 'otsu',
 ) -> float:
     """
-    Compute the surface area of an object from a volume or mesh using the Pygel3D library.
+    Calculates the total surface area of a 3D object.
+
+    This function quantifies the surface size of a structure, which is a fundamental metric in morphometry and material science. It accepts either a raw 3D volume (which is automatically meshed using Marching Cubes) or a pre-computed `PyGEL3D` mesh.
 
     Args:
-        object (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
-        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
+        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI) within the volume. Must have the same shape as `object`. Defaults to `None`.
+        threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
+            
+            * **float**: A specific intensity value.
+            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
 
     Returns:
-        area (float): The surface area of the object.
+        area (float):
+            The computed surface area in square units (determined by the input resolution).
 
     Raises:
-        ValueError: If the mask shape does not match the volume shape.
+        ValueError: If `mask` is provided but its shape does not match the input `object`.
 
     Example:
         Compute area from a `np.ndarray` volume:
@@ -166,7 +177,6 @@ def area(
         print(area)
         ```
         58535.06
-
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -183,18 +193,27 @@ def sphericity(
     threshold: float | str = 'otsu',
 ) -> float:
     """
-    Compute the sphericity of an object from a volume or mesh.
+    Computes the sphericity (compactness) of a 3D object.
+
+    Sphericity is a measure of how closely the shape of an object resembles a perfect sphere. It is defined as the ratio of the surface area of a sphere (with the same volume as the given object) to the actual surface area of the object. This morphological descriptor is widely used in particle analysis, geology, and biology to quantify roundness and regularity.
+
+    * **1.0**: Indicates a perfect sphere.
+    * **< 1.0**: Indicates irregular, elongated, or rough shapes (e.g., a cube has a sphericity of approx. 0.806).
 
     Args:
-        object (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
-        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
+        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the data within this mask is considered. Must have the same shape as `object`. Defaults to `None`.
+        threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
+
+            * **float**: A specific intensity value.
+            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
 
     Returns:
-        sphericity (float): The sphericity of the object. Higher values indicate a more spherical shape.
+        sphericity (float):
+            The calculated sphericity value (unitless, max 1.0). Returns `nan` if the object has zero volume or area.
 
     Raises:
-        ValueError: If the mask shape does not match the volume shape.
+        ValueError: If `mask` is provided but its shape does not match the input `object`.
 
     Example:
         ```python
@@ -233,7 +252,6 @@ def sphericity(
         ```
         Sphericity: 0.6876
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -257,21 +275,26 @@ def mean_std_intensity(
     mask: np.ndarray | None = None,
 ) -> tuple[float, float]:
     """
-    Compute the mean and standard deviation of intensities in a volume.
+    Calculates the mean (average) and standard deviation of voxel intensities within a volume.
+
+    This function computes global image statistics, which are fundamental for tasks like data normalization (z-score), contrast analysis, and quality control. By default, it ignores zero-valued voxels (background) to ensure the statistics reflect the actual object or signal rather than the empty space around it. You can further restrict the calculation to a specific Region of Interest (ROI) using a binary mask.
 
     Args:
-        volume (numpy.ndarray): Input `np.ndarray` volume.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
+        volume (np.ndarray): The input 3D image stack (voxel data).
+        mask (np.ndarray, optional): A boolean mask defining a specific region to analyze. Only voxels where `mask=True` are included. Must match the shape of `volume`. Defaults to `None`.
 
     Returns:
-        tuple: Mean and standard deviation of intensities.
+        stats (tuple[float, float]):
+            A tuple containing `(mean, std_dev)`.
+
+            * **mean**: The average intensity value of the non-zero voxels.
+            * **std_dev**: The standard deviation of the intensity values.
 
     Raises:
-        ValueError: If the mask shape does not match the volume shape.
+        ValueError: If `mask` is provided but does not match the shape of `volume`.
 
     Note:
-        - The background (intensities of 0) is excluded from the computation.
-        - If a mask is provided, it will only compute the mean and standard deviation for that region of interest.
+        This function automatically filters out background values (intensities equal to 0) before calculation.
 
     Example:
         ```python
@@ -291,7 +314,6 @@ def mean_std_intensity(
         Mean intensity: 114.6734  
         Standard deviation of intensity: 45.8481
         ![mean_std_intensity_feature](../../assets/screenshots/mean_std_intensity_feature_example.png)
-
     """
 
     # Mask the volume (if provided)
@@ -313,18 +335,24 @@ def size(
     threshold: float | str = 'otsu',
 ) -> float:
     """
-    Compute the size (maximum side length of the bounding box enclosing the object) of an object from a volume or mesh.
+    Calculates the maximum dimension (size) of the object's bounding box.
+
+    This function determines the largest spatial extent of the object along the Cartesian axes (X, Y, Z). It computes the Axis-Aligned Bounding Box (AABB) enclosing the structure and returns the length of its longest side. This metric is useful for characterizing the overall scale, fitting constraints, or the maximum caliper diameter along orthogonal axes.
 
     Args:
-        object (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
-        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
+        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the data within this mask is considered. Must have the same shape as `object`. Defaults to `None`.
+        threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
+
+            * **float**: A specific intensity value.
+            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
 
     Returns:
-        size: The size of the object, defined as the maximum side length of the bounding box enclosing the object.
+        size (float):
+            The length of the largest side of the enclosing bounding box.
 
     Raises:
-        ValueError: If the mask shape does not match the volume shape.
+        ValueError: If `mask` is provided but its shape does not match the input `object`.
 
     Example:
         ```python
@@ -346,7 +374,6 @@ def size(
         ```
         Size: 100.0
         <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -368,18 +395,24 @@ def roughness(
     threshold: float | str = 'otsu',
 ) -> float:
     """
-    Compute the roughness (ratio between surface area and volume) of an object from a volume or mesh.
+    Computes the roughness (Surface-Area-to-Volume ratio) of a 3D object.
+
+    This feature quantifies the morphological complexity of an object. Unlike a simple measure of size, this ratio indicates how "folded", "spiky", or "porous" a structure is relative to its mass. A perfect sphere has the lowest possible surface-to-volume ratio (smoothest), while highly complex shapes like fractals, trabecular bone, or dendrites will have a much higher value. This metric is often used to analyze texture and surface irregularity.
 
     Args:
-        object (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
-        mask (numpy.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Defaults to None.
-        threshold (float, str): Threshold value for binarization of the input volume. If 'otsu', Otsu's method is used. Defaults to 'otsu'.
+        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the data within this mask is considered. Must have the same shape as `object`. Defaults to `None`.
+        threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
+
+            * **float**: A specific intensity value.
+            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
 
     Returns:
-        roughness (float): The roughness of the object, defined as the ratio between surface area and volume. Higher roughness indicates a more complex surface.
+        roughness (float):
+            The calculated ratio of Surface Area / Volume. Returns `nan` if the object has zero volume or area.
 
     Raises:
-        ValueError: If the mask shape does not match the volume shape.
+        ValueError: If `mask` is provided but its shape does not match the input `object`.
 
     Example:
         ```python
@@ -422,7 +455,6 @@ def roughness(
         ```
         Roughness: 0.2534
         <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
