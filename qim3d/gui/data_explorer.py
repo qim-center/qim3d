@@ -27,6 +27,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import outputformat as ouf
 
+
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
 from qim3d.utils import _misc
@@ -34,6 +35,7 @@ from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
 
 gr = optional_import('gradio', extra='gui')
+gife = optional_import('gradio_improvedfileexplorer', extra='gui')
 
 
 class Interface(BaseInterface):
@@ -103,7 +105,8 @@ class Interface(BaseInterface):
                         )
                     with gr.Column(scale=1, min_width=36):
                         reload_base_path = gr.Button(value='⟳')
-                explorer = gr.FileExplorer(
+                # explorer = gr.FileExplorer(
+                explorer = gife.ImprovedFileExplorer(
                     ignore_glob='*/.*',  # ignores hidden files
                     root_dir=os.getcwd(),
                     label=os.getcwd(),
@@ -377,7 +380,7 @@ class Interface(BaseInterface):
         # Get the file path from the explorer or base path
         # priority is given to the explorer if file is selected
         # else the base path is used
-        if explorer and (os.path.isfile(explorer) or load_series):
+        if explorer and (os.path.isfile(explorer) or load_series or explorer.endswith('.zarr')):
             self.file_path = explorer
 
         elif base_path and (os.path.isfile(base_path) or load_series):
