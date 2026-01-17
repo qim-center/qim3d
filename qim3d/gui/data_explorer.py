@@ -27,7 +27,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import outputformat as ouf
 
-
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
 from qim3d.utils import _misc
@@ -105,7 +104,6 @@ class Interface(BaseInterface):
                         )
                     with gr.Column(scale=1, min_width=36):
                         reload_base_path = gr.Button(value='⟳')
-                # explorer = gr.FileExplorer(
                 explorer = gife.ImprovedFileExplorer(
                     ignore_glob='*/.*',  # ignores hidden files
                     root_dir=os.getcwd(),
