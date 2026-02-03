@@ -18,16 +18,16 @@ import dask
 import dask.array as da
 import numpy as np
 import tifffile
+import zarr
 from dask import delayed
 from PIL import Image, UnidentifiedImageError
 from pygel3d import hmesh
-import zarr
 
 import qim3d
+from qim3d.io._txrm import _get_ole_data_type, read_ole_metadata, read_txrm
 from qim3d.utils import Memory, log
 from qim3d.utils._misc import get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
-from qim3d.io._txrm import read_txrm, _get_ole_data_type, read_ole_metadata
 
 dask.config.set(scheduler='processes')
 
@@ -268,7 +268,7 @@ class DataLoader:
             offsets = _get_ole_offsets(ole)
 
             if len(offsets) != metadata['number_of_images']:
-                msg = f'Metadata is erroneous: number of images {metadata["number_of_images"]} is different from number of data offsets {len(offsets)}'
+                msg = f'Metadata is erroneous: number of images {metadata['number_of_images']} is different from number of data offsets {len(offsets)}'
                 raise ValueError(msg)
 
             slices = []
@@ -276,9 +276,7 @@ class DataLoader:
                 slices.append(
                     np.memmap(
                         path,
-                        dtype=_get_ole_data_type(metadata).newbyteorder(
-                            '<'
-                        ),
+                        dtype=_get_ole_data_type(metadata).newbyteorder('<'),
                         mode='r',
                         offset=offset,
                         shape=(1, metadata['image_height'], metadata['image_width']),
@@ -653,6 +651,50 @@ class DataLoader:
                     message + " Set 'force_load=True' to ignore this error."
                 )
 
+    def load_raw(self, path: str | os.PathLike) -> np.ndarray:
+        """
+        Load a headerless RAW volumetric file.
+
+        Assumptions (DESY-style):
+        - float32 (type=single)
+        - little-endian
+        - shape encoded in filename as size=XxYxZ
+        - no header offset
+        """
+        import os
+        import re
+
+        import numpy as np
+
+        fname = os.path.basename(path)
+
+        # Parse size=2048x2048x2060
+        m = re.search(r'size=(\d+)x(\d+)x(\d+)', fname)
+        if not m:
+            raise ValueError(
+                'RAW file requires size=XxYxZ in filename '
+                '(e.g. size=2048x2048x2060.raw)'
+            )
+
+        x, y, z = map(int, m.groups())
+        shape_xyz = (x, y, z)
+
+        # DESY convention: type=single → float32
+        dtype = np.dtype('<f4')  # little-endian float32
+
+        # Reorder XYZ → (z, y, x)
+        shape_zyx = (
+            shape_xyz[self.dim_order[0]],
+            shape_xyz[self.dim_order[1]],
+            shape_xyz[self.dim_order[2]],
+        )
+
+        if self.virtual_stack:
+            return np.memmap(path, dtype=dtype, mode='r', shape=shape_zyx)
+        else:
+            vol = np.fromfile(path, dtype=dtype, count=np.prod(shape_xyz))
+            return vol.reshape(shape_zyx)
+
     def load(self, path: str | os.PathLike) -> np.ndarray:
         """
         Load a file or directory based on the given path.
@@ -692,6 +734,9 @@ class DataLoader:
                 return self.load_vol(path)
             elif path.endswith(('.dcm', '.DCM')):
                 return self.load_dicom(path)
+            elif path.endswith('.raw'):
+                return self.load_raw(path)
+
             else:
                 try:
                     return self.load_pil(path)
@@ -780,6 +825,8 @@ def load(
     - `PIL` (including file stacks)
     - `VOL`/`VGI`
     - `DICOM`
+    - `RAW` (headerless volumetric data, e.g. DESY synchrotron files)
+
 
     Args:
         path (str or os.PathLike): The path to the file or directory.
