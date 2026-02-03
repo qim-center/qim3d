@@ -16,17 +16,18 @@ import re
 
 import dask
 import dask.array as da
+import h5py
 import numpy as np
+import olefile
 import tifffile
 import zarr
 from dask import delayed
 from PIL import Image, UnidentifiedImageError
 from pygel3d import hmesh
 
-import qim3d
 from qim3d.io._txrm import _get_ole_data_type, read_ole_metadata, read_txrm
 from qim3d.utils import Memory, log
-from qim3d.utils._misc import get_file_size, sizeof, stringify_path
+from qim3d.utils._misc import find_similar_paths, get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
 
 dask.config.set(scheduler='processes')
@@ -80,6 +81,11 @@ class DataLoader:
         self.force_load = kwargs.get('force_load', False)
         self.dim_order = kwargs.get('dim_order', (2, 1, 0))
         self.PIL_extensions = ('.jp2', '.jpg', 'jpeg', '.png', 'gif', '.bmp', '.webp')
+        # RAW settings (headerless files)
+        self.raw_shape = kwargs.get('raw_shape', None)  # expected in XYZ order
+        self.raw_dtype = kwargs.get('raw_dtype', None)  # e.g. "float32" or np.float32
+        self.raw_byteorder = kwargs.get('raw_byteorder', '<')  # '<' little, '>' big
+        self.raw_offset_bytes = kwargs.get('raw_offset_bytes', 0)
 
     def load_tiff(self, path: str | os.PathLike) -> np.ndarray:
         """
@@ -615,10 +621,7 @@ class DataLoader:
 
         """
 
-        if self.virtual_stack:
-            vol = zarr.open(path)
-        else:
-            vol = zarr.load(path)
+        vol = zarr.open(path) if self.virtual_stack else zarr.load(path)
 
         return vol
 
@@ -655,45 +658,48 @@ class DataLoader:
         """
         Load a headerless RAW volumetric file.
 
-        Assumptions (DESY-style):
-        - float32 (type=single)
-        - little-endian
-        - shape encoded in filename as size=XxYxZ
-        - no header offset
+        RAW contains no metadata, so qim3d requires:
+        - raw_shape: tuple[int,int,int] in XYZ order
+        - raw_dtype: numpy dtype or string (e.g. "float32", "uint16")
+        - raw_byteorder: "<" (little endian) or ">" (big endian)
+        - raw_offset_bytes: optional header offset in bytes (default 0)
+
+        Returned shape follows self.dim_order (default gives ZYX).
         """
-        import os
-        import re
+        if self.raw_shape is None or self.raw_dtype is None:
+            msg = 'RAW files require metadata. Please pass raw_shape=(X,Y,Z) and raw_dtype (e.g. "float32") to qim3d.io.load().'
+            raise ValueError(msg)
+        shape_xyz = tuple(self.raw_shape)
+        dtype = np.dtype(self.raw_dtype).newbyteorder(self.raw_byteorder)
+        offset = int(self.raw_offset_bytes)
 
-        import numpy as np
-
-        fname = os.path.basename(path)
-
-        # Parse size=2048x2048x2060
-        m = re.search(r'size=(\d+)x(\d+)x(\d+)', fname)
-        if not m:
-            raise ValueError(
-                'RAW file requires size=XxYxZ in filename '
-                '(e.g. size=2048x2048x2060.raw)'
-            )
-
-        x, y, z = map(int, m.groups())
-        shape_xyz = (x, y, z)
-
-        # DESY convention: type=single → float32
-        dtype = np.dtype('<f4')  # little-endian float32
-
-        # Reorder XYZ → (z, y, x)
-        shape_zyx = (
+        # reorder XYZ -> dim_order (default ZYX)
+        shape_out = (
             shape_xyz[self.dim_order[0]],
             shape_xyz[self.dim_order[1]],
             shape_xyz[self.dim_order[2]],
         )
 
+        # sanity check file size (helps catch wrong dtype/shape)
+        expected = int(np.prod(shape_xyz)) * dtype.itemsize + offset
+        actual = get_file_size(path)
+        if actual != expected:
+            msg = (
+                'RAW size mismatch. '
+                f'Expected {expected} bytes but file has {actual} bytes. '
+                f'(shape_xyz={shape_xyz}, dtype={dtype}, offset_bytes={offset})'
+            )
+            raise ValueError(msg)
+
         if self.virtual_stack:
-            return np.memmap(path, dtype=dtype, mode='r', shape=shape_zyx)
+            return np.memmap(
+                path, dtype=dtype, mode='r', offset=offset, shape=shape_out
+            )
         else:
-            vol = np.fromfile(path, dtype=dtype, count=np.prod(shape_xyz))
-            return vol.reshape(shape_zyx)
+            vol = np.fromfile(
+                path, dtype=dtype, offset=offset, count=int(np.prod(shape_xyz))
+            )
+            return vol.reshape(shape_out)
 
     def load(self, path: str | os.PathLike) -> np.ndarray:
         """
@@ -760,7 +766,7 @@ class DataLoader:
         # Fails
         else:
             # Find the closest matching path to warn the user
-            similar_paths = qim3d.utils._misc.find_similar_paths(path)
+            similar_paths = find_similar_paths(path)
 
             if similar_paths:
                 suggestion = similar_paths[0]  # Get the closest match
@@ -771,19 +777,17 @@ class DataLoader:
                 raise ValueError(msg)
 
 
-def _get_h5_dataset_keys(f) -> list:
-    import h5py
-
+def _get_h5_dataset_keys(f: 'h5py.File') -> list[str]:
     keys = []
     f.visit(lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None)
     return keys
 
 
-def _get_ole_offsets(ole) -> dict:
+def _get_ole_offsets(ole: olefile.OleFileIO) -> dict[str, int]:
     slice_offset = {}
     for stream in ole.listdir():
         if stream[0].startswith('ImageData'):
-            sid = ole._find(stream)
+            sid = ole._find(stream)  # noqa: SLF001
             direntry = ole.direntries[sid]
             sect_start = direntry.isectStart
             offset = ole.sectorsize * (sect_start + 1)
@@ -804,13 +808,17 @@ def _get_ole_offsets(ole) -> dict:
 def load(
     path: str | os.PathLike,
     virtual_stack: bool = False,
-    dataset_name: bool = None,
+    dataset_name: str | None = None,
     return_metadata: bool = False,
     contains: bool = None,
     force_load: bool = False,
     dim_order: tuple = (2, 1, 0),
     progress_bar: bool = False,
     display_memory_usage: bool = False,
+    raw_shape: tuple[int, int, int] | None = None,
+    raw_dtype: str | np.dtype | None = None,
+    raw_byteorder: str = '<',
+    raw_offset_bytes: int = 0,
     **kwargs,
 ) -> np.ndarray:
     """
@@ -842,12 +850,23 @@ def load(
         dim_order (tuple, optional): The order of the dimensions in the volume for .vol files. Default is (2,1,0) which corresponds to (z,y,x)
         progress_bar (bool, optional): Displays tqdm progress bar. Useful for large files. So far works only for linux. Default is False.
         display_memory_usage (bool, optional): If true, prints used memory and available memory after loading file. Default is False.
+        raw_shape (tuple[int,int,int] | None, optional): Shape of RAW volume in (X,Y,Z).
+            Required for .raw unless metadata is available elsewhere.
+        raw_dtype (str | np.dtype | None, optional): Datatype for RAW (e.g. "float32", "uint16").
+            Required for .raw unless metadata is available elsewhere.
+        raw_byteorder (str, optional): Byte order for RAW. "<" little-endian, ">" big-endian. Default "<".
+        raw_offset_bytes (int, optional): Header offset in bytes for RAW (usually 0). Default 0.
+
         **kwargs (Any): Additional keyword arguments supported by `DataLoader`:
             - `dataset_name` (str)
             - `return_metadata` (bool)
             - `contains` (str)
             - `force_load` (bool)
             - `dim_order` (tuple)
+            - `raw_shape` (tuple[int, int, int] or None)
+            - `raw_dtype` (str, np.dtype or None)
+            - `raw_byteorder` (str)
+            - `raw_offset_bytes` (int)
 
     Returns:
         vol (numpy.ndarray, numpy.memmap, h5py._hl.dataset.Dataset, nibabel.arrayproxy.ArrayProxy or tuple): The loaded volume
@@ -892,6 +911,10 @@ def load(
         contains=contains,
         force_load=force_load,
         dim_order=dim_order,
+        raw_shape=raw_shape,
+        raw_dtype=raw_dtype,
+        raw_byteorder=raw_byteorder,
+        raw_offset_bytes=raw_offset_bytes,
         **kwargs,
     )
 
