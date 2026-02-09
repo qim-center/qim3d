@@ -12,45 +12,54 @@ def segment_layers(
     wrap: bool = False,
 ) -> list:
     """
-    Works on 2D and 3D data.
-    Light one function wrapper around slgbuilder https://github.com/Skielex/slgbuilder to do layer segmentation
-    Now uses only MaxflowBuilder for solving.
+    Segments distinct layers in 2D or 3D data using graph-based optimal surface detection.
+
+    This function identifies continuous surfaces (layers) within the volume that minimize a specific cost function. It uses a **Graph Cut (Max-Flow/Min-Cut)** algorithm to find the global optimum. This is particularly useful for detecting boundaries in geological strata, biological tissues (e.g., retinal layers), or material interfaces.
+
+    It acts as a wrapper around the [slgbuilder](https://github.com/Skielex/slgbuilder) library.
 
     Args:
-        data (np.ndarray): 2D or 3D array on which it will be computed
-        inverted (bool): If True, it will invert the brightness of the image. Defaults to False
-        n_layers (int): Determines amount of layers to look for (result in a layer and background). Defaults to 1.
-        delta (float): Patameter determining smoothness. Defaults to 1.
-        min_margin (int or None): Parameter for minimum margin. If more layers are wanted, a margin is necessary to avoid layers being identical. Defaults to None.
-        max_margin (int or None): Parameter for maximum margin. If more layers are wanted, a margin is necessary to avoid layers being identical. Defaults to None.
-        wrap (bool): If True, starting and ending point of the border between layers are at the same level. Defaults to False.
+        data (np.ndarray): The 2D or 3D input array. The algorithm assumes layers are stacked along the first dimension (axis 0).
+        inverted (bool, optional): If `True`, inverts the intensity of the image before processing. Use this if the boundaries you are looking for are dark instead of bright (or vice-versa, depending on the cost function logic). Defaults to `False`.
+        n_layers (int, optional): The number of surfaces/boundaries to detect. Defaults to 1.
+        delta (float, optional): The smoothness penalty. Higher values enforce smoother (stiffer) layer boundaries, resisting sudden changes in height. Defaults to 1.
+        min_margin (int or None, optional): The minimum vertical distance (in pixels/voxels) allowed between consecutive layers. Used to prevent surfaces from crossing or collapsing onto each other. Defaults to 10.
+        max_margin (int or None, optional): The maximum vertical distance allowed between consecutive layers. Defaults to `None`.
+        wrap (bool, optional): If `True`, enforces a periodic boundary condition where the start and end of the layer (along the width) must connect. Useful for cylindrical or unwrapped data. Defaults to `False`.
 
     Returns:
-        segmentations (list[np.ndarray]): list of numpy arrays, even if n_layers == 1, each array is only 0s and 1s, 1s segmenting this specific layer
+        segmentations (list[np.ndarray]):
+            A list of binary masks (0s and 1s), where each mask represents the region defined by a detected layer. The list length equals `n_layers`.
 
     Raises:
-        TypeError: If Data is not np.array, if n_layers is not integer.
-        ValueError: If n_layers is less than 1, if delta is negative or zero
+        TypeError: If `data` is not a numpy array or `n_layers` is not an integer.
+        ValueError: If `n_layers` is less than 1 or `delta` is non-positive.
 
     Example:
-        Example is only shown on 2D image, but segment_layers can also take 3D structures.
         ```python
         import qim3d
-
-        layers_image = qim3d.io.load('layers3d.tif')[:,:,0]
-        layers = qim3d.processing.segment_layers(layers_image, n_layers = 2)
-        layer_lines = qim3d.processing.get_lines(layers)
-
         import matplotlib.pyplot as plt
 
+        # Load data (using a 2D slice for this example)
+        # In this image, we want to find 2 distinct boundaries
+        layers_image = qim3d.io.load('layers3d.tif')[:,:,0]
+        
+        # Segment the layers
+        layers = qim3d.processing.segment_layers(layers_image, n_layers=2)
+        
+        # Extract the line coordinates for plotting
+        layer_lines = qim3d.processing.get_lines(layers)
+
+        # Visualize
         plt.imshow(layers_image, cmap='gray')
         plt.axis('off')
         for layer_line in layer_lines:
-            plt.plot(layer_line, linewidth = 3)
+            plt.plot(layer_line, linewidth=3, label='Detected Layer')
+        plt.legend()
+        plt.show()
         ```
         ![layer_segmentation](../../assets/screenshots/layers.png)
         ![layer_segmentation](../../assets/screenshots/segmented_layers.png)
-
     """
     if isinstance(data, np.ndarray):
         data = data.astype(np.int32)
@@ -101,15 +110,25 @@ def segment_layers(
 
 def get_lines(segmentations: list[np.ndarray]) -> list:
     """
-    Expects list of arrays where each array is 2D segmentation with only 2 classes. This function gets the border between those two
-    so it could be plotted. Used with qim3d.processing.segment_layers
+    Extracts 1D line coordinates from 2D binary segmentation masks.
+
+    This utility function is designed to work with the output of `qim3d.processing.segment_layers`. It converts the binary masks (which split the image into "above" and "below" a layer) into a 1D array of height indices. This allows for easy plotting of the layer boundary using Matplotlib.
 
     Args:
-        segmentations (list of arrays): List of arrays where each array is 2D segmentation with only 2 classes
+        segmentations (list[np.ndarray]): A list of 2D binary arrays, typically returned by `segment_layers`. Each array should contain two classes (0 and 1) separated by a boundary.
 
     Returns:
-        segmentation_lines (list): List of 1D numpy arrays
+        segmentation_lines (list[np.ndarray]):
+            A list of 1D arrays. Each array contains the vertical index (y-coordinate) of the layer boundary for every horizontal position (x-coordinate).
 
+    Example:
+        ```python
+        # Assuming 'layers' is the output from segment_layers
+        lines = qim3d.processing.get_lines(layers)
+        
+        # Plotting the first layer
+        plt.plot(lines[0], color='red')
+        ```
     """
     segmentation_lines = [np.argmin(s, axis=0) - 0.5 for s in segmentations]
     return segmentation_lines
