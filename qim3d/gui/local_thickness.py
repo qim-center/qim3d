@@ -35,7 +35,6 @@ app.launch()
 
 import os
 
-import gradio as gr
 import localthickness as lt
 
 # matplotlib.use("Agg")
@@ -44,6 +43,9 @@ import numpy as np
 import tifffile
 
 import qim3d
+from qim3d.utils._dependencies import optional_import
+
+gr = optional_import('gradio', extra='gui')
 
 
 class Interface(qim3d.gui.interface.InterfaceWithExamples):
@@ -84,7 +86,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
 
         return vol_lt
 
-    def define_interface(self):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         gr.Markdown(
             'Interface for _Fast local thickness in 3D_ (https://github.com/vedranaa/local-thickness)'
         )

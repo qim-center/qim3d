@@ -18,19 +18,24 @@ app.launch()
 import datetime
 import os
 import re
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 
-import gradio as gr
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import outputformat as ouf
+import zarr
 
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
 from qim3d.utils import _misc
+from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
+
+gr = optional_import('gradio', extra='gui')
+gife = optional_import('gradio_improvedfileexplorer', extra='gui')
 
 
 class Interface(BaseInterface):
@@ -85,7 +90,7 @@ class Interface(BaseInterface):
         # Error message that we want to show, for more details look inside function check error state
         self.error_message = None
 
-    def define_interface(self, **kwargs):
+    def define_interface(self, gradio_interface, *args, **kwargs):
         # File selection and parameters
         with gr.Row():
             with gr.Column(scale=2):
@@ -100,7 +105,7 @@ class Interface(BaseInterface):
                         )
                     with gr.Column(scale=1, min_width=36):
                         reload_base_path = gr.Button(value='⟳')
-                explorer = gr.FileExplorer(
+                explorer = gife.ImprovedFileExplorer(
                     ignore_glob='*/.*',  # ignores hidden files
                     root_dir=os.getcwd(),
                     label=os.getcwd(),
@@ -149,6 +154,37 @@ class Interface(BaseInterface):
 
                 # Show series_contains only if load_series is checked
                 load_series.change(toggle_show, load_series, series_contains)
+
+                # Only visible if zarr.Group is selected in the file explorer
+                zarr_resolution = gr.Dropdown(
+                    visible = False,
+                    label='Zarr resolution (for multiscale zarrs)',
+                    choices=['0'],
+                    value='0',
+                    info='Select the resolution level to load for multiscale zarr datasets.',
+                    interactive = True,
+                )
+                def toggle_zarr_resolution(explorer_path):
+                    if explorer_path is None or not explorer_path.endswith('.zarr'):
+                        return gr.update(visible=False)
+                    try:
+
+                        zarr_root = zarr.open(explorer_path, mode='r')
+                        if isinstance(zarr_root, zarr.Group):
+                            choices = [f'{key} {zarr_root[key].shape}' for key in sorted(zarr_root.keys())]
+                            return gr.update(
+                                visible = True,
+                                choices = choices,
+                                value = choices[-1]
+                            )
+                        else:
+                            return gr.update(visible=False)
+                        
+                    except Exception as e:
+                        log.info(f'Error when reading zarr multiscale info: {e}')
+                        return gr.update(visible=False)
+
+                explorer.change(fn = toggle_zarr_resolution, inputs = explorer, outputs = zarr_resolution)
 
             with gr.Column(scale=1):
                 gr.Markdown('### Operations')
@@ -262,7 +298,7 @@ class Interface(BaseInterface):
 
         btn_run.click(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
             fn=self.start_session,
-            inputs=[load_series, series_contains, explorer, base_path],
+            inputs=[load_series, series_contains, explorer, base_path, zarr_resolution],
             outputs=[],
         ).then(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
             fn=self.check_error_state, inputs=[], outputs=[]
@@ -352,7 +388,12 @@ class Interface(BaseInterface):
     #######################################################
 
     def start_session(
-        self, load_series: bool, series_contains: str, explorer: str, base_path: str
+        self, 
+        load_series: bool, 
+        series_contains: str, 
+        explorer: str, 
+        base_path: str, 
+        zarr_group_member:str, 
     ):
         self.projections_calculated = (
             False  # Probably new file was loaded, we would need new projections
@@ -380,6 +421,12 @@ class Interface(BaseInterface):
         elif base_path and (os.path.isfile(base_path) or load_series):
             self.file_path = base_path
 
+        elif explorer and os.path.isdir(explorer) and explorer.endswith('.zarr') or explorer.split('/')[-2].endswith('.zarr'):
+            opened_zarr = zarr.open(explorer, mode='r')
+            if isinstance(opened_zarr, zarr.Group):
+                self.file_path = os.path.join(explorer, zarr_group_member.split(' ')[0])
+            else:
+                self.file_path = explorer
         else:
             self.error_message = 'Invalid file path'
 
@@ -407,7 +454,7 @@ class Interface(BaseInterface):
         except Exception as error_message:
             self.error_message = f'Error when loading data: {error_message}'
 
-    def run_operations(self, operations: list[str], *args) -> list[Dict[str, Any]]:
+    def run_operations(self, operations: list[str], *args) -> list[dict[str, Any]]:
         outputs = []
         self.calculated_operations = []
         for operation in self.all_operations:
@@ -455,7 +502,7 @@ class Interface(BaseInterface):
             case _:
                 raise NotImplementedError(f"Operation '{operation} is not defined")
 
-    def show_results(self, operations: list[str]) -> list[Dict[str, Any]]:
+    def show_results(self, operations: list[str]) -> list[dict[str, Any]]:
         update_list = []
         for operation in self.all_operations:
             if operation in operations and operation in self.calculated_operations:
@@ -483,8 +530,8 @@ class Interface(BaseInterface):
 
     def update_slice_wrapper(
         self, letter: str
-    ) -> Callable[[float, str], Dict[str, Any]]:
-        def update_slice(position_slider: float, cmap: str) -> Dict[str, Any]:
+    ) -> Callable[[float, str], dict[str, Any]]:
+        def update_slice(position_slider: float, cmap: str) -> dict[str, Any]:
             """
             position_slider: float from gradio slider, saying which relative slice we want to see
             cmap: string gradio drop down menu, saying what cmap we want to use for display

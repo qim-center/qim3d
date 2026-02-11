@@ -1,7 +1,6 @@
-"""Wrapper for the structure tensor function from the structure_tensor package"""
+"""Wrapper for the structure tensor function from the structure_tensor package."""
 
 import logging
-from typing import Tuple
 
 import numpy as np
 from IPython.display import display
@@ -12,13 +11,12 @@ def structure_tensor(
     sigma: float = 1.0,
     rho: float = 6.0,
     base_noise: bool = True,
-    full: bool = False,
+    smallest: bool = True,
     visualize: bool = False,
     **viz_kwargs,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Wrapper for the 3D structure tensor implementation from the [structure_tensor package](https://github.com/Skielex/structure-tensor/).
-
 
     The structure tensor algorithm is a method for analyzing the orientation of fiber-like structures in 3D images.
     The core of the algorithm involves computing a 3-by-3 matrix at each point in a volume, capturing the local orientation. This matrix, known as the structure tensor, is derived from the gradients of the image intensities and integrates neighborhood information using Gaussian kernels.
@@ -31,7 +29,7 @@ def structure_tensor(
         sigma (float, optional): A noise scale, structures smaller than sigma will be removed by smoothing. Defaults to 1.0.
         rho (float, optional): An integration scale giving the size over the neighborhood in which the orientation is to be analysed. Defaults to 6.0.
         base_noise (bool, optional): A flag indicating whether to add a small noise to the volume. Default is True.
-        full (bool, optional): A flag indicating that all three eigenvalues should be returned. Default is False.
+        smallest (bool, optional): A flag indicating that only the eigenvector corresponding to the smallest eigenvalue should be returned. Default is True.
         visualize (bool, optional): Whether to visualize the structure tensor. Default is False.
         **viz_kwargs (Any): Additional keyword arguments for passed to `qim3d.viz.vectors`. Only used if `visualize=True`.
 
@@ -39,8 +37,13 @@ def structure_tensor(
         ValueError: If the input volume is not 3D.
 
     Returns:
-        val: An array with shape `(3, *volume.shape)` containing the eigenvalues of the structure tensor.
-        vec: An array with shape `(3, *volume.shape)` if `full` is `False`, otherwise `(3, 3, *volume.shape)` containing eigenvectors.
+    val: An array of shape `(3, *vol.shape)` containing the eigenvalues of the
+        structure tensor in ascending order.
+
+    vec: If `smallest` is `True`, an array of shape `(3, *vol.shape)`; otherwise
+        an array of shape `(3, 3, *vol.shape)`. The array contains the eigenvectors
+        in ascending order, where axis 0 indexes the three eigenvectors and
+        axis 1 indexes the three vector components(x,y,z).
 
     Example:
         ```python
@@ -85,7 +88,8 @@ def structure_tensor(
     logging.getLogger().setLevel(previous_logging_level)
 
     if volume.ndim != 3:
-        raise ValueError('The input volume must be 3D')
+        msg = 'The input volume must be 3D'
+        raise ValueError(msg)
 
     # Ensure volume is a float
     if volume.dtype != np.float32 and volume.dtype != np.float64:
@@ -107,7 +111,11 @@ def structure_tensor(
         s_vol = st.structure_tensor_3d(volume, sigma, rho)
 
     # Compute the eigenvalues and eigenvectors of the structure tensor
-    val, vec = st.eig_special_3d(s_vol, full=full)
+    full = not smallest
+    print(
+        f'Computing eigenvalues and eigenvectors of the structure tensor, full = {full}'
+    )
+    val, vec = st.eig_special_3d(s_vol, full=full, eigenvalue_order='asc')
 
     if visualize:
         from qim3d.viz import vectors

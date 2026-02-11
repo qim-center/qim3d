@@ -21,11 +21,13 @@ import tifffile
 from dask import delayed
 from PIL import Image, UnidentifiedImageError
 from pygel3d import hmesh
+import zarr
 
 import qim3d
 from qim3d.utils import Memory, log
 from qim3d.utils._misc import get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
+from qim3d.io._txrm import read_txrm, _get_ole_data_type, read_ole_metadata
 
 dask.config.set(scheduler='processes')
 
@@ -252,12 +254,6 @@ class DataLoader:
         """
         import olefile
 
-        try:
-            import dxchange
-        except ImportError:
-            msg = 'The library dxchange is required to load TXRM files. Please find installation instructions at https://dxchange.readthedocs.io/en/latest/source/install.html'
-            raise ValueError(msg) from None
-
         if self.virtual_stack:
             if not path.endswith('.txm'):
                 log.warning(
@@ -266,7 +262,7 @@ class DataLoader:
 
             # Get metadata
             ole = olefile.OleFileIO(path)
-            metadata = dxchange.reader.read_ole_metadata(ole)
+            metadata = read_ole_metadata(ole)
 
             # Compute data offsets in bytes for each slice
             offsets = _get_ole_offsets(ole)
@@ -280,7 +276,7 @@ class DataLoader:
                 slices.append(
                     np.memmap(
                         path,
-                        dtype=dxchange.reader._get_ole_data_type(metadata).newbyteorder(
+                        dtype=_get_ole_data_type(metadata).newbyteorder(
                             '<'
                         ),
                         mode='r',
@@ -295,7 +291,7 @@ class DataLoader:
             )
 
         else:
-            vol, metadata = dxchange.read_txrm(path)
+            vol, metadata = read_txrm(path)
             vol = (
                 vol.squeeze()
             )  # In case of an XRM file, the third redundant dimension is removed
@@ -616,17 +612,15 @@ class DataLoader:
             path (str): The path to the Zarr array on disk.
 
         Returns:
-            dask.array | numpy.ndarray: The dask array loaded from disk.
-                if 'self.virtual_stack' is True, returns a dask array object, else returns a numpy.ndarray object.
+            numpy.ndarray | zarr.core.array.Array: The numpy array loaded from disk.
+                If 'self.virtual_stack' is True, returns a Zarr array object.
 
         """
 
-        # Opens the Zarr array
-        vol = da.from_zarr(path)
-
-        # If virtual stack is disabled, return the computed array (np.ndarray)
-        if not self.virtual_stack:
-            vol = vol.compute()
+        if self.virtual_stack:
+            vol = zarr.open(path)
+        else:
+            vol = zarr.load(path)
 
         return vol
 
@@ -713,7 +707,7 @@ class DataLoader:
 
             elif any(f.endswith(self.PIL_extensions) for f in os.listdir(path)):
                 return self.load_pil_stack(path)
-            elif path.endswith('.zarr'):
+            elif path.endswith('.zarr') or path.split('/')[-2].endswith('.zarr'): # To load just a zarr group member
                 return self.load_zarr(path)
             else:
                 return self.load_dicom_dir(path)
@@ -802,7 +796,6 @@ def load(
         progress_bar (bool, optional): Displays tqdm progress bar. Useful for large files. So far works only for linux. Default is False.
         display_memory_usage (bool, optional): If true, prints used memory and available memory after loading file. Default is False.
         **kwargs (Any): Additional keyword arguments supported by `DataLoader`:
-            - `virtual_stack` (bool)
             - `dataset_name` (str)
             - `return_metadata` (bool)
             - `contains` (str)

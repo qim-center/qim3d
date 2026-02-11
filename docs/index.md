@@ -139,9 +139,6 @@ The latest stable version can be simply installed using `pip`. Open your termina
 
     pip install qim3d
 
-!!! note
-    The base installation of `qim3d` does not include deep-learning dependencies, keeping the library lighter for scenarios where they are unnecessary. If you need to use deep-learning features, you can install the additional dependencies by running: **`pip install qim3d['deep-learning']`**
-
 After completing the installation, you can verify its success by running one or both of the following commands:
 
     qim3d
@@ -151,6 +148,31 @@ or:
     pip show qim3d
 
 If either command displays information about the qim3d library, the installation was successful.
+
+### Optional dependencies
+
+`qim3d` includes some features that require additional Python packages. These are not installed by default, keeping the base library lightweight. 
+
+You can install optional dependencies for specific features:
+
+| Feature | Optional dependency | Install command |
+|---------|-------------------|----------------|
+| Deep-learning / model training | `torch`, `torchvision`, `torchinfo`, `monai` | `pip install qim3d[deep-learning]` |
+| Synthetic data generation | `noise` | `pip install qim3d[synthetic-data]` |
+| GUI / interactive tools | `gradio` | `pip install qim3d[gui]` |
+| All optional features | All of the above | `pip install qim3d[all]` |
+
+!!! note
+    If you try to run a script that requires an optional dependency and it is not installed, `qim3d` will show a ImportError with instructions on how to install the missing dependency.
+
+!!! tip "Installing Multiple Features"
+    You can install multiple optional dependency groups simultaneously by separating the names with a comma, without spaces, inside the brackets.     
+    For example, to install both the `synthetic-data` features and the `deep-learning` features, use the following command:
+
+    ```bash
+    pip install qim3d[synthetic-data,deep-learning]
+    ```
+
 
 ### Troubleshooting
 
