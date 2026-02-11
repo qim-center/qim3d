@@ -707,7 +707,7 @@ class DataLoader:
 
             elif any(f.endswith(self.PIL_extensions) for f in os.listdir(path)):
                 return self.load_pil_stack(path)
-            elif path.endswith('.zarr'):
+            elif path.endswith('.zarr') or path.split('/')[-2].endswith('.zarr'): # To load just a zarr group member
                 return self.load_zarr(path)
             else:
                 return self.load_dicom_dir(path)

@@ -10,10 +10,7 @@ Volumetric visualization using K3D.
 import k3d
 import matplotlib.pyplot as plt
 import numpy as np
-import plotly.graph_objects as go
-import pygel3d
 from matplotlib.colors import Colormap
-from pygel3d import jupyter_display as jd
 
 from qim3d.utils._decorators import coarseness
 from qim3d.utils._logger import log
