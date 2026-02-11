@@ -73,14 +73,14 @@ synthetic-data = [
 
 gui = [
     "gradio>=5.1,<6",
-    "gradio-improvedfileexplorer>1.0.0",
+    "gradio-improvedfileexplorer>=1.0.0",
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
 ]
 
 all = [
     "gradio>=5.1,<6",
-    "gradio-improvedfileexplorer>1.0.0",
+    "gradio-improvedfileexplorer>=1.0.0",
     "fastapi>=0.109.0",
     "uvicorn[standard]>=0.27.0",
     "torch>=2.0.1",
