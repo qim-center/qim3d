@@ -8,30 +8,44 @@ torch = optional_import('torch', extra='deep-learning')
 
 class UNet(torch.nn.Module):
     """
-    3D UNet model designed for imaging segmentation tasks.
+    Constructs a 3D U-Net model for volumetric image segmentation.
+
+    The U-Net architecture consists of a contracting path (encoder) to capture context and a symmetric expanding path (decoder) that enables precise localization. This implementation wraps the [MONAI U-Net](https://docs.monai.io/en/stable/networks.html#unet) and provides simplified presets for model depth and width via the `size` argument.
+
+    **Model Presets (Channels per Layer):**
+
+    * **'xxsmall'**: (4, 8) - *Ultra-lightweight (2 layers)*
+    * **'xsmall'**: (16, 32) - *Lightweight (2 layers)*
+    * **'small'**: (32, 64, 128) - *Fast training (3 layers)*
+    * **'medium'**: (64, 128, 256) - *Balanced performance (3 layers, default)*
+    * **'large'**: (64, 128, 256, 512, 1024) - *High capacity (5 layers)*
+    * **'xlarge'**: (64, 128, 256, 512, 1024, 2048) - *Very high capacity (6 layers)*
+    * **'xxlarge'**: (64, 128, 256, 512, 1024, 2048, 4096) - *Maximum capacity (7 layers)*
 
     Args:
-        size (str, optional): Size of the UNet model. Must be one of 'xxsmall', 'xsmall', 'small', 'medium', 'large', 'xlarge', or 'xxlarge'. Default is 'medium'.
-        dropout (float, optional): Dropout rate between 0 and 1. Default is 0.
-        kernel_size (int, optional): Convolution kernel size. Default is 3.
-        up_kernel_size (int, optional): Up-convolution kernel size. Default is 3.
-        activation (str, optional): Activation function. Default is 'PReLU'.
-        bias (bool, optional): Whether to include bias in convolutions. Default is True.
-        adn_order (str, optional): ADN (Activation, Dropout, Normalization) ordering. Default is 'NDA'.
+        size (str, optional): The complexity of the model. Must be one of 'xxsmall', 'xsmall', 'small', 'medium', 'large', 'xlarge', or 'xxlarge'. Defaults to 'medium'.
+        dropout (float, optional): The dropout rate (0 to 1) applied to hidden layers to prevent overfitting. Defaults to 0.
+        kernel_size (int, optional): The size of the convolution kernel. Defaults to 3.
+        up_kernel_size (int, optional): The size of the up-convolution kernel. Defaults to 3.
+        activation (str, optional): The activation function to use (e.g., 'RELU', 'PReLU', 'Sigmoid'). Defaults to 'PReLU'.
+        bias (bool, optional): Whether to include bias terms in convolutions. Defaults to `True`.
+        adn_order (str, optional): The ordering of Activation (A), Dropout (D), and Normalization (N) blocks. Defaults to 'NDA'.
 
     Returns:
-        model (torch.nn.Module): 3D UNet model.
+        model (torch.nn.Module): The initialized 3D U-Net model.
 
     Raises:
-        ValueError: If `size` is not one of 'small', 'medium', or 'large'.
+        ValueError: If `size` is not a valid preset string.
 
     Example:
         ```python
         import qim3d
-
-        model = qim3d.ml.models.UNet(size = 'small')
+        
+        # Initialize a small U-Net for quick experiments
+        model = qim3d.ml.models.UNet(size='small', dropout=0.2)
+        
+        print(model)
         ```
-
     """
 
     def __init__(
@@ -100,47 +114,57 @@ class UNet(torch.nn.Module):
 
 class Hyperparameters:
     """
-    Hyperparameters for training the 3D UNet model.
+    Configuration wrapper for training parameters (Optimizer, Loss, Epochs).
+
+    This class centralizes the setup of the training loop. It automatically instantiates the PyTorch optimizer and loss function based on string arguments, ensuring valid combinations and settings.
 
     Args:
-        model (torch.nn.Module): PyTorch model.
-        n_epochs (int, optional): Number of training epochs. Default is 10.
-        learning_rate (float, optional): Learning rate for the optimizer. Default is 1e-3.
-        optimizer (str, optional): Optimizer algorithm. Must be one of 'Adam', 'SGD', 'RMSprop'. Default is 'Adam'.
-        momentum (float, optional): Momentum value for SGD and RMSprop optimizers. Default is 0.
-        weight_decay (float, optional): Weight decay (L2 penalty) for the optimizer. Default is 0.
-        loss_function (str, optional): Loss function criterion. Must be one of 'BCE', 'Dice', 'Focal', 'DiceCE'. Default is 'BCE'.
+        model (torch.nn.Module): The PyTorch model to be trained (required to register parameters with the optimizer).
+        n_epochs (int, optional): The number of complete passes through the training dataset. Defaults to 10.
+        learning_rate (float, optional): The step size for the optimizer. Defaults to 1e-3.
+        optimizer (str, optional): The optimization algorithm. Options: 'Adam', 'SGD', 'RMSprop'. Defaults to 'Adam'.
+        momentum (float, optional): The momentum factor (only used for 'SGD' and 'RMSprop'). Accelerates gradient vectors in the right directions, leading to faster converging. Defaults to 0.
+        weight_decay (float, optional): L2 penalty applied to the weights to prevent overfitting. Defaults to 0.
+        loss_function (str, optional): The objective function to minimize. Options:
+            * 'BCE': Binary Cross Entropy (with Logits).
+            * 'Dice': Dice Loss (good for class imbalance).
+            * 'Focal': Focal Loss (focuses on hard examples).
+            * 'DiceCE': Weighted sum of Dice and Cross Entropy.
+            Defaults to 'Focal'.
 
     Returns:
-        hyperparameters (dict): Dictionary of hyperparameters.
+        hyperparameters (dict):
+            A dictionary containing the initialized objects, accessible via the `()` operator:
+            * 'optimizer': The torch.optim object.
+            * 'criterion': The loss function module.
+            * 'n_epochs': The integer number of epochs.
 
     Raises:
-        ValueError: If `loss_function` is not one of 'BCE', 'Dice', 'Focal', 'DiceCE'.
-        ValueError: If `optimizer` is not one of 'Adam', 'SGD', 'RMSprop'.
+        ValueError: If `loss_function` or `optimizer` are not among the supported options.
 
     Example:
         ```python
         import qim3d
 
-        # Set up the model and hyperparameters
-        model = qim3d.ml.UNet(size = 'small')
+        # 1. Initialize model
+        model = qim3d.ml.models.UNet(size='small')
 
+        # 2. Define training configuration
         hyperparameters = qim3d.ml.Hyperparameters(
-            model = model,
-            n_epochs = 10,
-            learning_rate = 5e-3,
-            loss_function = 'DiceCE',
-            weight_decay  = 1e-3
-            )
+            model=model,
+            n_epochs=10,
+            learning_rate=5e-3,
+            optimizer='Adam',
+            loss_function='DiceCE'
+        )
 
-        # Retrieve the hyperparameters
-        parameters_dict = hyperparameters()
-
+        # 3. Retrieve initialized objects for the training loop
+        params_dict = hyperparameters()
+        
         optimizer = params_dict['optimizer']
         criterion = params_dict['criterion']
-        n_epochs  = params_dict['n_epochs']
+        print(f"Ready to train for {params_dict['n_epochs']} epochs with {optimizer.__class__.__name__}")
         ```
-
     """
 
     def __init__(

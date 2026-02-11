@@ -14,22 +14,20 @@ def circles(
     **kwargs,
 ) -> widgets.interactive:
     """
-    Plots the blobs found on a slice of the volume.
+    Visualizes detected blobs as circles overlaid on the volume slices.
 
-    This function takes in a 3D volume and a list of blobs (detected features)
-    and plots the blobs on a specified slice of the volume. If no slice is specified,
-    it defaults to the middle slice of the volume.
+    This function is primarily used to verify the results of blob detection algorithms. It takes a list of detected features (defined by their center coordinates and radius) and projects them onto the 2D slices of the volume. As you scroll through the stack, the circles dynamically resize to represent the cross-section of the 3D spherical blobs at that specific depth, providing an intuitive check for detection accuracy.
 
     Args:
-        blobs (np.ndarray): An array-like object of blobs, where each blob is represented
-            as a 4-tuple (p, r, c, radius). Usually the result of `qim3d.processing.blob_detection(vol)`
-        vol (np.ndarray): The 3D volume on which to plot the blobs.
-        alpha (float, optional): The transparency of the blobs. Defaults to 0.5.
-        color (str, optional): The color of the blobs. Defaults to "#ff9900".
-        **kwargs (Any): Arbitrary keyword arguments for the `slices` function.
+        blobs (np.ndarray): A list or array of detected blobs. Each blob is expected to be a 4-tuple or array `(z, y, x, radius)`. This is typically the output from `qim3d.detection.blobs`.
+        volume (np.ndarray): The 3D volume (image stack) on which the blobs were detected.
+        alpha (float, optional): The transparency level of the filled circles (0.0 to 1.0). Defaults to 0.5.
+        color (str, optional): The color of the circles, capable of accepting hex codes or standard color names. Defaults to "#ff9900" (orange).
+        **kwargs (Any): Additional keyword arguments passed to the underlying `qim3d.viz.slices_grid` function (e.g., `vmin`, `vmax`).
 
     Returns:
-        slicer_obj (ipywidgets.interactive): An interactive widget for visualizing the blobs.
+        slicer_obj (widgets.interactive):
+            An interactive widget with a slider to navigate through slices, showing the overlay of detected blobs.
 
     Example:
         ```python
@@ -53,7 +51,6 @@ def circles(
         qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
         ```
         ![blob detection](../../assets/screenshots/blob_detection.gif)
-
     """
 
     def _slicer(z_slice):
