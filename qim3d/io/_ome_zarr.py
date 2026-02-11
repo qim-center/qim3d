@@ -203,35 +203,59 @@ def export_ome_zarr(
     progress_bar_repeat_time: str = 'auto',
 ) -> None:
     """
-    Export 3D image data to OME-Zarr format with pyramidal downsampling.
+    Exports 3D data to the OME-Zarr (NGFF) format with multi-scale pyramidal levels.
 
-    This function generates a multi-scale OME-Zarr representation of the input data, which is commonly used for large imaging datasets. The downsampled scales are calculated such that the smallest scale fits within the specified `chunk_size`.
+    Generates a **Next Generation File Format (NGFF)** representation of the input volume. 
+    This format creates a multi-resolution pyramid (downsampled copies), allowing for efficient 
+    visualization and streaming of large datasets over networks or the cloud.
+
+    **Key Features:**
+    
+    * **Chunking:** Data is divided into small blocks (`chunk_size`) for efficient random access.
+    * **Pyramidal Levels:** Automatically calculates and generates lower-resolution levels 
+      until the dataset fits within a single chunk.
+    * **Dask Integration:** efficiently handles larger-than-memory datasets by processing chunks in parallel.
 
     Args:
-        path (str or os.PathLike): The directory where the OME-Zarr data will be stored.
-        data (np.ndarray or dask.array): The 3D image data to be exported. Supports both NumPy and Dask arrays.
-        chunk_size (int, optional): The size of the chunks for storing data. This affects both the original data and the downsampled scales. Defaults to 256.
-        downsample_rate (int, optional): The factor by which to downsample the data for each scale. Must be greater than 1. Defaults to 2.
-        order (int, optional): The interpolation order to use when downsampling. Defaults to 1 (linear). Use 0 for a faster nearest-neighbor interpolation.
-        replace (bool, optional): Whether to replace the existing directory if it already exists. Defaults to False.
-        method (str, optional): The method used for downsampling. If set to "dask", Dask arrays are used for chunking and downsampling. Defaults to "scaleZYXdask_coarsen".
-        progress_bar (bool, optional): Whether to display a progress bar during export. Defaults to True.
-        progress_bar_repeat_time (str or int, optional): The repeat interval (in seconds) for updating the progress bar. Defaults to "auto".
+        path (str or os.PathLike): 
+            The destination directory path. The directory will be created as a Zarr group. (E.g. `"data.zarr"`).
+        data (numpy.ndarray or dask.array.Array): 
+            The 3D image volume to export.
+        chunk_size (int, optional): 
+            The size of the chunks (cubes) for storage (e.g., `256` creates 256x256x256 blocks). 
+            Smaller chunks improve access time for specific regions but increase file count.
+        downsample_rate (int, optional): 
+            The reduction factor between pyramid levels. A rate of `2` means each level is 
+            half the size of the previous one.
+        order (int, optional): 
+            The interpolation order for downsampling. `0` = Nearest Neighbor (faster) and `1` = Linear.
+        replace (bool, optional): 
+            If `True`, deletes the existing directory at `path` before writing. 
+            If `False`, raises an error if the directory exists.
+        method (str, optional): 
+            The downsampling strategy. 
+            `"scaleZYXdask_coarsen"` uses block averaging (faster, reduces noise). 
+            `"scaleZYXdask"` uses interpolation (slower, potentially sharper).
+        progress_bar (bool, optional): 
+            If `True`, displays a progress bar tracking the chunk writing process.
+        progress_bar_repeat_time (str or int, optional): 
+            Interval in seconds for updating the progress bar.
 
     Raises:
-        ValueError: If the directory already exists and `replace` is False.
-        ValueError: If `downsample_rate` is less than or equal to 1.
+        ValueError: If `path` exists and `replace=False`.
+        ValueError: If `downsample_rate` <= 1.
 
     Example:
         ```python
         import qim3d
 
+        # Load a sample dataset
         downloader = qim3d.io.Downloader()
         data = downloader.Snail.Escargot(load_file=True)
 
-        qim3d.io.export_ome_zarr("Escargot.zarr", data, chunk_size=100, downsample_rate=2)
+        # Export to OME-Zarr with 2x downsampling per level
+        qim3d.io.export_ome_zarr("Escargot.zarr", data, chunk_size=128, downsample_rate=2)
         ```
-
     """
 
     # Check if directory exists
@@ -311,33 +335,42 @@ def import_ome_zarr(
     path: str | os.PathLike, scale: int = 0, load: bool = True
 ) -> np.ndarray:
     """
-    Import image data from an OME-Zarr file.
+    Imports or reads image data from an OME-Zarr (NGFF) container.
 
-    This function reads OME-Zarr formatted volumetric image data and returns the specified scale.
-    The image data can be lazily loaded (as Dask arrays) or fully computed into memory.
+    Allows reading specific resolution levels from a multi-scale dataset. This is particularly 
+    useful for previewing large datasets by loading a coarse scale before fetching the full-resolution data.
 
     Args:
-        path (str or os.PathLike): The file path to the OME-Zarr data.
-        scale (int or str, optional): The scale level to load.
-            If 'highest', loads the finest scale (scale 0).
-            If 'lowest', loads the coarsest scale (last available scale). Defaults to 0.
-        load (bool, optional): Whether to compute the selected scale into memory.
-            If False, returns a lazy Dask array. Defaults to True.
+        path (str or os.PathLike): 
+            The path to the OME-Zarr file (directory).
+        scale (int or str, optional): 
+            The resolution level to load.
+            `0` is the full resolution (finest). Higher integers are progressively lower resolutions.
+            Can also accept `'highest'` (alias for 0) or `'lowest'` (coarsest available scale).
+        load (bool, optional): 
+            If `True`, reads the data into memory as a `numpy.ndarray`. 
+            If `False`, returns a `dask.array.Array` for lazy loading/processing.
 
     Returns:
-        vol (np.ndarray or dask.array.Array): The requested image data, either as a NumPy array if `load=True`, or a Dask array if `load=False`.
-
+        vol (numpy.ndarray or dask.array.Array):
+            The requested image data.
+            
+            * **numpy.ndarray**: The full image data loaded into memory (if `load=True`).
+            * **dask.array.Array**: A lazy-loaded Dask array connected to the Zarr store (if `load=False`).
     Raises:
-        ValueError: If the requested `scale` does not exist in the data.
+        ValueError: If the requested `scale` index exceeds the available levels in the dataset.
 
     Example:
         ```python
         import qim3d
 
+        # 1. Load the full resolution data into memory
         data = qim3d.io.import_ome_zarr("Escargot.zarr", scale=0, load=True)
 
+        # 2. Lazy load the lowest resolution (thumbnail/preview)
+        preview_lazy = qim3d.io.import_ome_zarr("Escargot.zarr", scale='lowest', load=False)
+        print(preview_lazy.shape)
         ```
-
     """
 
     # read the image data

@@ -6,20 +6,24 @@ def pad(
     volume: np.ndarray, x_axis: float = 0, y_axis: float = 0, z_axis: float = 0
 ) -> np.ndarray:
     """
-    Pads the input 3D volume.
+    Symmetrically pads a 3D volume with zeros (zero-padding).
+
+    This function increases the dimensions of the volume by adding empty space (zeros) around the original data. It is commonly used to prepare data for neural network inputs (to match required input sizes), prevent boundary artifacts during convolution, or center an object within a larger field of view.
+
+    The padding amount is applied to *each side* of the axis. For example, `x_axis=10` adds 10 pixels to the left and 10 pixels to the right, increasing the total width by 20.
 
     Args:
-        volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
-        x_axis (float): Amount of pixels to pad the x-dimension. Must be an integer or a half-integer (e.g., 5, 5.5). The padding is symmetric and applied to both sides of the volume. Defaults to 0.
-        y_axis (float): Amount of pixels to pad the y-dimension. Must be an integer or a half-integer. Defaults to 0.
-        z_axis (float): Amount of pixels to pad the z-dimension. Must be an integer or a half-integer. Defaults to 0.
+        volume (np.ndarray): The input 3D volume (Z, Y, X).
+        x_axis (float, optional): Pixels to add to each side of the X dimension (width). Can be an integer or half-integer (e.g., 2.5 adds 2 pixels to one side and 3 to the other). Defaults to 0.
+        y_axis (float, optional): Pixels to add to each side of the Y dimension (height). Defaults to 0.
+        z_axis (float, optional): Pixels to add to each side of the Z dimension (depth). Defaults to 0.
 
     Returns:
-        numpy.ndarray: The padded volume.
+        padded_volume (np.ndarray):
+            The resized volume containing the centered original data.
 
     Raises:
-        AssertionError: If the input volume is not 3D.
-        AssertionError: If any padding value is negative.
+        AssertionError: If the input volume is not 3D or if padding values are negative.
 
     Example:
         ```python
@@ -36,7 +40,6 @@ def pad(
         print(padded_volume.shape)
         ```
         (100, 120, 120)
-
     """
     assert len(volume.shape) == 3, 'Volume must be 3D'
     assert z_axis >= 0, 'Padded shape must be positive in z-axis.'
@@ -68,27 +71,29 @@ def pad(
 
 def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
     """
-    Pads the input 3D volume to a certain shape.
+    Pads the input volume with zeros to match a specific target shape.
+
+    This function centers the original volume within a larger array of size `shape`. It is useful for standardizing image sizes in a dataset (e.g., for machine learning models that require fixed input dimensions) without resizing or interpolating the data.
+
+    If a target dimension is smaller than the original volume dimension, padding is skipped for that axis (the volume is not cropped).
 
     Args:
-        volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
-        shape (tuple[int, int, int]): The shape to pad the volume to.
+        volume (np.ndarray): The input 3D volume.
+        shape (tuple[int, int, int]): The desired output shape `(Z, Y, X)`.
 
     Returns:
-        padded_volume (numpy.ndarray): The padded volume.
+        padded_volume (np.ndarray):
+            The volume padded to the specified dimensions.
 
     Raises:
-        AssertionError: If the input shape is not 3D.
-        AssertionError: If the input volume is not 3D.
-        AssertionError: If the shape tuple is not integers.
-        AssertionError: If the padded shape is not larger than the original shape.
+        AssertionError: If the input volume or target shape is not 3D, or if `shape` contains non-integers.
 
     Example:
         ```python
         import qim3d
         import numpy as np
 
-        # Create volume of shape (100,100,100) and add values in a box inside
+        # Create volume of shape (100,100,100)
         vol = np.zeros((100,100,100))
         print(vol.shape)
         ```
@@ -99,7 +104,6 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
         print(padded_volume.shape)
         ```
         (110, 110, 110)
-
     """
     assert len(shape) == 3, 'Shape must be 3D'
     assert len(volume.shape) == 3, 'Volume must be 3D'
@@ -122,16 +126,19 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
 
 def trim(volume: np.ndarray) -> np.ndarray:
     """
-    Removes all empty slices (i.e., slices that contain all zeros) along the x, y, and z axes.
+    Crops the volume to the bounding box of the non-zero content.
+
+    This function removes all "empty" (all-zero) planes from the borders of the 3D volume. It effectively shrinks the array to the smallest cuboid that still contains all the data, discarding the surrounding background. This is useful for reducing memory usage and file size after applying a mask or ROI.
 
     Args:
-        volume (numpy.ndarray): The 3D input volume (shape: n, h, w).
+        volume (np.ndarray): The 3D input volume.
 
     Returns:
-        trimmed_volume (numpy.ndarray): The transformed volume with empty slices removed along all axes.
+        trimmed_volume (np.ndarray):
+            The cropped volume containing only the region with non-zero values.
 
     Raises:
-        AssertionError: If the input shape is not 3D.
+        AssertionError: If the input `volume` is not 3D.
 
     Example:
         ```python
@@ -150,7 +157,6 @@ def trim(volume: np.ndarray) -> np.ndarray:
         print(trimmed_volume.shape)
         ```
         (80, 80, 80)
-
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
@@ -182,25 +188,32 @@ def shear3d(
     order: int = 1,
 ) -> np.ndarray:
     """
-    Applies a shear transformation to a 3D volume using pixel-based shifts.
+    Applies a geometric shear transformation to distort the 3D volume.
+
+    This function displaces voxels along one axis based on their position along another axis. It essentially "slides" the slices of the volume relative to each other. This is useful for data augmentation (creating variations for training) or correcting geometric distortions (e.g., deskewing data acquired from a misaligned stage).
+
+    The `shift` parameters define the maximum displacement in pixels. The shift is applied linearly from `-shift` at one end of the axis to `+shift` at the other, resulting in a total range of `2 * shift`.
 
     Args:
-        volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
-        x_shift_y (int): Maximum pixel shift in the x-direction, applied progressively along the y-axis.
-        x_shift_z (int): Maximum pixel shift in the x-direction, applied progressively along the z-axis.
-        y_shift_x (int): Maximum pixel shift in the y-direction, applied progressively along the x-axis.
-        y_shift_z (int): Maximum pixel shift in the y-direction, applied progressively along the z-axis.
-        z_shift_x (int): Maximum pixel shift in the z-direction, applied progressively along the x-axis.
-        z_shift_y (int): Maximum pixel shift in the z-direction, applied progressively along the y-axis.
-        order (int): Order of interpolation. Order=0 (nearest-neighbor) keeps voxel values unchanged. Defaults to 1.
+        volume (np.ndarray): The input 3D volume (Z, Y, X).
+        x_shift_y (int, optional): Max shift in X, varying along the Y-axis. Defaults to 0.
+        x_shift_z (int, optional): Max shift in X, varying along the Z-axis. Defaults to 0.
+        y_shift_x (int, optional): Max shift in Y, varying along the X-axis. Defaults to 0.
+        y_shift_z (int, optional): Max shift in Y, varying along the Z-axis. Defaults to 0.
+        z_shift_x (int, optional): Max shift in Z, varying along the X-axis. Defaults to 0.
+        z_shift_y (int, optional): Max shift in Z, varying along the Y-axis. Defaults to 0.
+        order (int, optional): The order of the spline interpolation used during resampling.
+            
+            * **0**: Nearest-neighbor (preserves original values, good for labels).
+            * **1**: Linear interpolation (default, good for intensity data).
+            * **2-5**: Higher-order splines (smoother but slower).
 
     Returns:
-        sheared_volume (numpy.ndarray): The transformed volume.
+        sheared_volume (np.ndarray):
+            The deformed volume.
 
     Raises:
-        AssertionError: If the input shape is not 3D.
-        AssertionError: If the order is not integer and in the range of 0-5.
-        AssertionError: If the shift values are not integer.
+        AssertionError: If the input is not 3D, `order` is invalid, or shift values are not integers.
 
     Example:
         ```python
@@ -223,7 +236,6 @@ def shear3d(
         qim3d.viz.slicer(sheared_vol, slice_axis=1)
         ```
         ![warp_box_shear](../../assets/screenshots/warp_box_shear.png)
-
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'
@@ -275,24 +287,33 @@ def curve_warp(
     order: int = 1,
 ) -> np.ndarray:
     """
-    Applies an curve transformation along the z-axis using sine functions.
+    Applies a sinusoidal geometric distortion (warping) to the 3D volume along the Z-axis.
+
+    This function displaces voxels in the X and/or Y directions based on their position along the Z-axis, following a sine wave pattern. This creates a "wavy" or "snake-like" deformation through the depth of the volume. It is primarily used for data augmentation to simulate non-rigid deformations or acquisition artifacts in training data.
+
+    The displacement is calculated as:
+    `delta_x(z) = x_amp * sin(2 * pi * x_periods * (z / depth) + x_offset)`
 
     Args:
-        volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
-        x_amp (float): Determines the amplitude (height) of the curve in the x-direction. Defaults to 0.
-        y_amp (float): Determines the amplitude (height) of the curve in the y-direction. Defautls to 0.
-        x_periods (float): Determines the amount of periods (amount of wave crests) along the x-direction. Defaults to 1.0.
-        y_periods (float): Determines the amount of periods (amount of wave crests) along the y-direction. Defaults to 1.0.
-        x_offset (float): Determines pixelwise curve offset in x-direction. Defaults to 0.0.
-        y_offset (float): Determines pixelwise curve offset in y-direction. Defaults to 0.0.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
+        volume (np.ndarray): The input 3D volume (Z, Y, X).
+        x_amp (float, optional): The amplitude of the sine wave in the X-direction. Defines the maximum shift in pixels. Defaults to 0.
+        y_amp (float, optional): The amplitude of the sine wave in the Y-direction. Defaults to 0.
+        x_periods (float, optional): The frequency of the wave. Represents the number of full sine wave cycles that occur along the full length of the Z-axis. Defaults to 1.0.
+        y_periods (float, optional): The frequency of the wave in the Y-direction. Defaults to 1.0.
+        x_offset (float, optional): The phase shift or starting position of the wave in the X-direction (in radians). Defaults to 0.0.
+        y_offset (float, optional): The phase shift in the Y-direction. Defaults to 0.0.
+        order (int, optional): The order of the spline interpolation used during resampling.
+            
+            * **0**: Nearest-neighbor.
+            * **1**: Linear interpolation (default).
+            * **2-5**: Higher-order splines.
 
     Returns:
-        warped_volume (numpy.ndarray): The transformed volume.
+        warped_volume (np.ndarray):
+            The distorted volume.
 
     Raises:
-        AssertionError: If the input shape is not 3D.
-        AssertionError: If the order is not integer and in the range of 0-5.
+        AssertionError: If the input volume is not 3D or if `order` is invalid.
 
     Example:
         ```python
@@ -311,7 +332,6 @@ def curve_warp(
         qim3d.viz.slicer(warped_volume, slice_axis=1)
         ```
         ![warp_box_curved](../../assets/screenshots/warp_box_curve.png)
-
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'
@@ -349,22 +369,32 @@ def stretch(
     order: int = 1,
 ) -> np.ndarray:
     """
-    Stretches a volume by increasing the size of the volume in the input dimension with interpolation. The volume will therefore increase (or decrease if the stretch is negative) at the same rate as the volume, keeping its relative size.
+    Resizes (stretches or compresses) the volume along one or more axes using interpolation.
+
+    This function changes the aspect ratio and spatial resolution of the volume by resampling it onto a new grid.
+    
+    * **Positive stretch:** Increases the size of the volume (upsampling). The content appears elongated.
+    * **Negative stretch:** Decreases the size of the volume (downsampling). The content appears compressed.
+
+    The operation is "symmetric" in terms of the input parameter: a stretch of `N` adds (or removes) `N` pixels to *both* ends of the axis, changing the total dimension by `2 * N`.
 
     Args:
-        volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
-        x_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
-        y_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
-        z_stretch (int): Amount of pixels to stretch the x-dimension. The operation is symmetric, and will be effective on both sides of the volume. Defaults to 0.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
+        volume (np.ndarray): The input 3D volume (Z, Y, X).
+        x_stretch (int, optional): Pixels added/removed per side along the X-axis. Total width changes by `2 * x_stretch`. Defaults to 0.
+        y_stretch (int, optional): Pixels added/removed per side along the Y-axis. Defaults to 0.
+        z_stretch (int, optional): Pixels added/removed per side along the Z-axis. Defaults to 0.
+        order (int, optional): The order of spline interpolation.
+            
+            * **0**: Nearest-neighbor (preserves integer labels).
+            * **1**: Linear interpolation (default, good for intensity data).
+            * **2-5**: Higher-order splines.
 
     Returns:
-        stretched_volume (numpy.ndarray): The stretched volume.
+        stretched_volume (np.ndarray):
+            The resized volume.
 
     Raises:
-        AssertionError: If the input shape is not 3D.
-        AssertionError: If the order is not integer and in the range of 0-5.
-        AssertionError: If the stretching inputs are not integer.
+        AssertionError: If the input volume is not 3D, `order` is invalid, or stretch values are not integers.
 
     Example:
         ```python
@@ -397,7 +427,6 @@ def stretch(
         (100, 100, 60)
 
         ![warp_box_squeeze](../../assets/screenshots/warp_box_squeeze.png)
-
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'
@@ -437,21 +466,31 @@ def center_twist(
     volume: np.ndarray, rotation_angle: float = 90, axis: str = 'z', order: int = 1
 ) -> np.ndarray:
     """
-    Applies a warping transformation that twists the volume around the center along the given axis.
+    Applies a geometric twist transformation to the volume around a central axis.
+
+    This function progressively rotates the slices of the volume along the specified axis, creating a spiral or screw-like distortion. The rotation angle increases linearly from 0 degrees at the start of the axis to `rotation_angle` at the end. This is often used for data augmentation to simulate torsional deformation in biological samples or materials.
 
     Args:
-        volume (numpy.ndarray): The input 3D volume (shape: n, h, w).
-        rotation_angle (float): Amount of rotation from bottom of rotation axis to top. Defaults to 90.
-        axis (str): Axis for rotation. Should either take value 'x', 'y' or 'z'. Defaults to 'z'.
-        order (int): Order of spline interpolation. Order=0 (nearest-neighbor) will keep voxel values unchanged. Defaults to 1.
+        volume (np.ndarray): The input 3D volume (Z, Y, X).
+        rotation_angle (float, optional): The total rotation in degrees applied from the bottom to the top of the axis. Defaults to 90.
+        axis (str, optional): The axis of rotation.
+            
+            * **'z'**: Rotates the XY planes around the Z-axis (default).
+            * **'y'**: Rotates the XZ planes around the Y-axis.
+            * **'x'**: Rotates the YZ planes around the X-axis.
+        
+        order (int, optional): The order of spline interpolation used during resampling.
+            
+            * **0**: Nearest-neighbor.
+            * **1**: Linear interpolation (default).
+            * **2-5**: Higher-order splines.
 
     Returns:
-        twisted_volume (numpy.ndarray): The center rotated volume.
+        twisted_volume (np.ndarray):
+            The distorted volume.
 
     Raises:
-        AssertionError: If the input shape is not 3D.
-        AssertionError: If the order is not integer and in the range of 0-5.
-        AssertionError: If the axis are not x, y or z
+        AssertionError: If the input volume is not 3D, `order` is invalid, or `axis` is not 'x', 'y', or 'z'.
 
     Example:
         ```python
@@ -470,7 +509,6 @@ def center_twist(
         qim3d.viz.volumetric(twisted_volume)
         ```
         <iframe src="https://platform.qim.dk/k3d/warp_box_twist.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'

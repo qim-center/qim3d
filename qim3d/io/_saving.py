@@ -430,49 +430,71 @@ def save(
     **kwargs,
 ) -> None:
     """
-    Save data to a specified file path.
+    General-purpose function to save, export, or write 3D data to disk.
+
+    Automatically detects the desired file format based on the filename extension. 
+    Supports saving entire volumes as single files or exporting them as a sequence 
+    of 2D slices (stack).
+
+    **Supported Formats:**
+
+    * **Images:** TIFF (`.tif`), standard image formats (`.png`, `.jpg`, `.bmp`, etc.)
+    * **Volumes:** TIFF (`.tif`), NIfTI (`.nii`, `.nii.gz`), HDF5 (`.h5`)
+    * **Cloud/Chunked:** Zarr (`.zarr`)
+    * **Medical:** DICOM (`.dcm`) - *Saves as a series if a directory is provided.*
 
     Args:
-        path (str or os.PathLike): The path to save file to. File format is chosen based on the extension.
-            Supported extensions are: <em>'.tif', '.tiff', '.nii', '.nii.gz', '.h5', '.vol', '.vgi', '.dcm', '.DCM', '.zarr', '.jpeg', '.jpg', '.png'</em>
-        data (numpy.ndarray): The data to be saved
-        replace (bool, optional): Specifies if an existing file with identical path should be replaced.
-            Default is False.
-        compression (bool, optional): Specifies if the file should be saved with Deflate compression (lossless).
-            Default is False.
-        basename (str, optional): Specifies the basename for a TIFF stack saved as several files
-            (only relevant for TIFF stacks). Default is None
-        sliced_dim (int, optional): Specifies the dimension that is sliced in case a TIFF stack is saved
-            as several files (only relevant for TIFF stacks). Default is 0, i.e., the first dimension.
-        **kwargs (Any): Additional keyword arguments to be passed to the DataSaver constructor
+        path (str or os.PathLike): 
+            The destination path. Can be a filename (e.g., `volume.tif`) or a directory 
+            (e.g., `slices/`) if saving a stack.
+        data (numpy.ndarray or dask.array.Array): 
+            The 2D or 3D image data to be saved.
+        replace (bool, optional): 
+            If `True`, overwrites the file if it already exists. If `False`, raises a 
+            `FileExistsError` to prevent accidental data loss.
+        compression (bool, optional): 
+            If `True`, applies lossless compression (e.g., Deflate for HDF5/TIFF) to reduce file size.
+        basename (str, optional): 
+            Used when saving a 3D volume as a stack of 2D files. Defines the common prefix 
+            for the filenames (e.g., `basename="slice"` results in `slice_000.tif`, `slice_001.tif`).
+        sliced_dim (int, optional): 
+            The dimension along which to slice the volume when saving as a stack. 
+            Usually `0` (Z-axis).
+        **kwargs (Any): 
+            Additional arguments passed to the specific backend saver.
+
 
     Raises:
-        ValueError: If the provided path is an existing directory and self.basename is not provided <strong>OR</strong>
-            If the file format is not supported <strong>OR</strong>
-            If the provided path does not exist and self.basename is not provided <strong>OR</strong>
-            If a file extension is not provided <strong>OR</strong>
-            if a file with the specified path already exists and replace=False.
+        FileExistsError: If `replace=False` and the destination already exists.
+        ValueError: If the file extension is not supported.
 
     Example:
         ```python
         import qim3d
+        import numpy as np
 
-        # Generate synthetic blob
-        vol = qim3d.generate.volume(noise_scale = 0.015)
+        # Generate sample data
+        vol = qim3d.generate.volume(noise_scale=0.015)
 
-        qim3d.io.save("blob.tif", vol, replace=True)
+        # 1. Save as a single 3D TIFF file
+        qim3d.io.save("output_volume.tif", vol)
+
+        # 2. Save as an HDF5 file with compression
+        qim3d.io.save("output_volume.h5", vol, compression=True)
         ```
 
-        Volumes can also be saved with one file per slice:
+    Example: Saving as a Stack of Slices
+        To save a 3D volume as individual 2D images (e.g., for inspection in standard image viewers), 
+        provide a directory `path` and a `basename`.
+
         ```python
         import qim3d
 
-        # Generate synthetic blob
-        vol = qim3d.generate.volume(noise_scale = 0.015)
+        vol = qim3d.generate.volume()
 
-        qim3d.io.save("slices", vol, basename="blob-slices", sliced_dim=0)
+        # Save as slice_000.tif, slice_001.tif, etc. inside the 'slices' folder
+        qim3d.io.save("slices_folder", vol, basename="slice", sliced_dim=0)
         ```
-
     """
 
     DataSaver(
@@ -517,23 +539,34 @@ def save(
 
 def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
     """
-    Save a mesh object to a specific file.
-    This function is based on the [PyGEL3D library's saving function implementation](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#save).
+    Exports or saves a 3D surface mesh to a file.
 
+    Writes the geometry of a PyGEL3D Manifold object to disk. The output format is 
+    determined automatically by the filename extension.
+
+    **Supported Formats:**
+
+    * **OBJ** (`.obj`)
+    * **OFF** (`.off`)
+    * **X3D** (`.x3d`)
 
     Args:
-        filename (str or os.PathLike): The path to save file to. File format is chosen based on the extension. Supported extensions are: '.x3d', '.obj', '.off'.
-        mesh (pygel3d.hmesh.Manifold): A hmesh.Manifold object representing the mesh.
+        filename (str or os.PathLike): 
+            The destination path. The extension determines the format.
+        mesh (hmesh.Manifold): 
+            The mesh object containing the geometry to be saved.
 
     Example:
         ```python
         import qim3d
 
-        synthetic_blob = qim3d.generate.volume(noise_scale = 0.015)
-        mesh = qim3d.mesh.from_volume(synthetic_blob)
-        qim3d.io.save_mesh("mesh.obj", mesh)
-        ```
+        # Generate a volume and extract a mesh (isosurface)
+        vol = qim3d.generate.volume(noise_scale=0.05)
+        mesh = qim3d.mesh.from_volume(vol)
 
+        # Save the mesh to an OBJ file
+        qim3d.io.save_mesh("surface.obj", mesh)
+        ```
     """
     # Export the mesh to the specified filename
     hmesh.save(filename, mesh)

@@ -251,11 +251,18 @@ class Normalize(FilterBase):
 
 class Pipeline:
     """
-    Creates an easy way to apply a lot of filters in order. Allows any callable
-    that takes in one argument and returns one variable. Works with ```lambda``` or you can use ```Filter```
-    class for better readability.
-    Use keywaord ```save_output``` with any filter to save results in the middle of pipeline and use them later.
-    
+    Orchestrates a sequential chain of image processing operations.
+
+    This class allows you to build a reproducible workflow (or pipeline) by stacking multiple filters or functions together. 
+
+    The output of one step becomes the input to the next. It supports standard Python callables (functions, lambdas) and `qim3d.filters.Filter` objects. It is particularly useful for automating preprocessing routines, such as applying denoising, followed by thresholding, and finally morphological operations.
+
+    **Key Features:**
+
+    * **Flexibility:** Accepts any callable that takes a single argument (the image) and returns a modified result.
+    * **Intermediate Results:** Access data from specific steps in the middle of the chain using the `save_output=True` flag on supported filters.
+    * **Extensibility:** Add steps dynamically using the `.append()` method.
+
     Example:
         ```python
         import qim3d
@@ -286,11 +293,9 @@ class Pipeline:
         # Show filtered result
         qim3d.viz.slices_grid(filtered_vol, num_slices=5)
         ```
-
         ![original volume](../../assets/screenshots/pipeline_original.png)
         ![original volume](../../assets/screenshots/pipeline_middlestep.png)
         ![filtered volume](../../assets/screenshots/pipeline_processed.png)
-
     """
 
     def __init__(self, *args: Type[FilterBase]):
@@ -329,10 +334,10 @@ class Pipeline:
 
     def append(self, fn: FilterBase|Callable):
         """
-        Appends a filter to the end of the sequence.
+        Adds a new processing step to the end of the pipeline.
 
         Args:
-            fn (FilterBase): An instance of a FilterBase subclass to be appended.
+            fn (FilterBase or Callable): The filter or function to append.
 
         Example:
             ```python
@@ -347,7 +352,6 @@ class Pipeline:
             # Append a second filter to the pipeline
             pipeline.append(Median(size=5))
             ```
-
         """
         self._add_filter(fn)
 
@@ -376,18 +380,21 @@ def gaussian(
     volume: np.ndarray, sigma: float, dask: bool = False, chunks: str = 'auto', **kwargs
 ) -> np.ndarray:
     """
-    Applies a Gaussian filter to the input volume using `scipy.ndimage.gaussian_filter` or `dask_image.ndfilters.gaussian_filter`.
+    Applies a Gaussian blur to smooth the 3D volume and reduce noise.
+
+    This function acts as a low-pass filter, effectively attenuating high-frequency noise (denoising) while blurring edges. The function wraps `scipy.ndimage.gaussian_filter` for standard processing and `dask_image.ndfilters.gaussian_filter` for parallelized, memory-efficient computation on large datasets.
 
     Args:
-        volume (np.ndarray): The input image or volume.
-        sigma (float or sequence of floats): The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.
-        dask (bool, optional): Whether to use Dask for the Gaussian filter.
-        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs (Any): Additional keyword arguments for the Gaussian filter.
+        volume (np.ndarray): The input 3D image stack.
+        sigma (float or sequence of floats): The standard deviation for the Gaussian kernel. This controls the amount of blurring; higher values result in a smoother image. Can be a single float (isotropic) or a sequence (anisotropic) for each axis.
+        dask (bool, optional): If `True`, utilizes Dask for parallel processing. Useful for large volumes that might not fit entirely in memory during processing. Defaults to `False`.
+        chunks (int, tuple, or str, optional): The chunk size for Dask processing (e.g., 'auto'). Only used if `dask=True`.
+        **kwargs (Any): Additional keyword arguments passed to the underlying Gaussian filter function (e.g., `mode`, `cval`).
 
     Returns:
-        filtered_vol (np.ndarray): The filtered image or volume.
-    
+        filtered_vol (np.ndarray):
+            The smoothed volume.
+
     Example:
         ```python
         import qim3d
@@ -402,7 +409,6 @@ def gaussian(
         ```
         ![gaussian-filter-before](../../assets/screenshots/gaussian_filter_original.png)
         ![gaussian-filter-after](../../assets/screenshots/gaussian_filter_processed.png)
-
     """
 
     if dask:
@@ -417,22 +423,28 @@ def gaussian(
     
 def sobel(vol:np.ndarray, dask:bool = False):
     """
-    Applies scipy.ndimage.sobel filter along all three axes to find egdes.
-    If the output looks like noise, the integers have overflown. Try changing 
-    the dtype of your volume.
-    
+    Computes the magnitude of the intensity gradient using the Sobel operator to detect edges.
+
+    This function approximates the gradient of the image intensity function. It applies the Sobel filter along each axis independently (Gx, Gy, Gz) and computes the Euclidean magnitude (sqrt(Gx^2 + Gy^2 + Gz^2)). High values in the output correspond to regions with sharp intensity changes, effectively highlighting boundaries and edges within the volume.
+
     Args:
-        vol (np.ndarray): The input image or volume
-        dask (bool, optional): Whether to use Dask for the median filter.
+        vol (np.ndarray): The input image or volume.
+        dask (bool, optional): If `True`, utilizes Dask for parallel processing. Defaults to `False`.
 
     Returns:
-        filtered_vol (np.ndarray): The filtered image or volume
+        filtered_vol (np.ndarray):
+            The gradient magnitude map.
+
+    Note:
+        **Data Type Warning:** The Sobel operator can produce negative values and large magnitudes. If the input `vol` is of an unsigned integer type (e.g., `uint8`, `uint16`), arithmetic overflow or wrapping may occur during calculation. It is strongly recommended to cast the input to a float or signed integer type (e.g., `int64` or `float32`) before applying this filter.
 
     Example:
         ```python
         import qim3d
+        # Cast to int64 to prevent overflow during gradient calculation
         vol = qim3d.examples.bone_128x128x128.astype('int64')
         filtered_vol = qim3d.filters.sobel(vol)
+        
         qim3d.viz.slices_grid(vol, num_slices=5)
         qim3d.viz.slices_grid(filtered_vol, num_slices=5)
         ```
@@ -461,21 +473,24 @@ def median(
     **kwargs,
 ) -> np.ndarray:
     """
-    Applies a median filter to the input volume using `scipy.ndimage.median_filter` or `dask_image.ndfilters.median_filter`.
+    Applies a median filter to remove impulse noise (salt-and-pepper) while preserving edges.
+
+    This non-linear filter replaces each voxel with the median value of its neighbors. Unlike Gaussian blurring, which can fuzzy boundaries, the median filter is particularly effective at despeckling images (removing isolated bright or dark outliers) without blurring sharp transitions or structural details. It supports both standard in-memory processing and parallelized execution via Dask for large datasets.
 
     Args:
-        volume (np.ndarray): The input image or volume.
-        size (scalar or tuple, optional): Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position, to define the input to the filter function.
-        footprint (np.ndarray, optional): Boolean array that specifies (implicitly) a shape, but also which of the elements within this shape will get passed to the filter function.
-        dask (bool, optional): Whether to use Dask for the median filter.
-        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs (Any): Additional keyword arguments for the median filter.
+        volume (np.ndarray): The input 3D image stack or 2D image.
+        size (int or tuple, optional): The shape of the neighborhood (kernel) used for the median calculation. Can be a single integer (e.g., `3` for a 3x3x3 box) or a tuple defining dimensions per axis. Must be provided if `footprint` is None.
+        footprint (np.ndarray, optional): A boolean array defining a custom neighborhood shape. Only elements where `footprint` is `True` are considered for the median.
+        dask (bool, optional): If `True`, utilizes Dask for parallel processing. Useful for large volumes that exceed memory limits. Defaults to `False`.
+        chunks (int, tuple, or str, optional): The chunk size for Dask processing. Defaults to 'auto'.
+        **kwargs (Any): Additional keyword arguments passed to the underlying filter function (e.g., `mode` for boundary handling).
 
     Returns:
-        filtered_vol (np.ndarray): The filtered image or volume.
+        filtered_vol (np.ndarray):
+            The denoised volume.
 
     Raises:
-        RuntimeError: If neither size nor footprint is defined
+        RuntimeError: If neither `size` nor `footprint` is provided.
 
     Example:
         ```python
@@ -519,21 +534,24 @@ def maximum(
     **kwargs,
 ) -> np.ndarray:
     """
-    Applies a maximum filter to the input volume using `scipy.ndimage.maximum_filter` or `dask_image.ndfilters.maximum_filter`.
+    Applies a maximum filter (grayscale dilation) to the input volume.
+
+    This operation replaces the value of each voxel with the maximum value found within its defined neighborhood. It results in the expansion (dilation) of bright regions and the erosion of dark regions. It is commonly used for finding local peaks, reducing salt noise (dark spots in bright regions), or as the first step in morphological gradients.
 
     Args:
         volume (np.ndarray): The input image or volume.
-        size (scalar or tuple, optional): Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position, to define the input to the filter function.
-        footprint (np.ndarray, optional): Boolean array that specifies (implicitly) a shape, but also which of the elements within this shape will get passed to the filter function.
-        dask (bool, optional): Whether to use Dask for the maximum filter.
-        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs (Any): Additional keyword arguments for the maximum filter.
+        size (int or tuple, optional): The size of the neighborhood window (kernel). Must be provided if `footprint` is None.
+        footprint (np.ndarray, optional): A boolean array defining the specific shape of the neighborhood. Elements where `footprint` is `True` are included in the maximum calculation.
+        dask (bool, optional): If `True`, uses Dask for parallelized, chunked execution. Defaults to `False`.
+        chunks (int, tuple, or str, optional): The chunk size for Dask arrays. Defaults to 'auto'.
+        **kwargs (Any): Additional keyword arguments passed to the underlying filter function (e.g., `mode`, `cval`).
 
     Returns:
-        filtered_vol (np.ndarray): The filtered image or volume.
+        filtered_vol (np.ndarray):
+            The filtered volume with the same shape as the input.
 
     Raises:
-        RuntimeError: If neither size nor footprint is defined
+        RuntimeError: If neither `size` nor `footprint` is defined.
 
     Example:
         ```python
@@ -548,7 +566,6 @@ def maximum(
         ```
         ![maximum-filter-before](../../assets/screenshots/maximum_filter_original.png)
         ![maximum-filter-after](../../assets/screenshots/maximum_filter_processed.png)
-
     """
     if size is None:
         if footprint is None:
@@ -574,21 +591,24 @@ def minimum(
     **kwargs,
 ) -> np.ndarray:
     """
-    Applies a minimum filter to the input volume using `scipy.ndimage.minimum_filter` or `dask_image.ndfilters.minimum_filter`.
+    Applies a minimum filter (grayscale erosion) to the input volume.
+
+    This operation replaces the value of each voxel with the minimum value found within its defined neighborhood. It results in the erosion of bright regions and the expansion (dilation) of dark regions. It is commonly used to remove salt noise (isolated bright pixels), darken the overall image, or separate touching objects in bright foregrounds.
 
     Args:
         volume (np.ndarray): The input image or volume.
-        size (scalar or tuple, optional): Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position, to define the input to the filter function.
-        footprint (np.ndarray, optional): Boolean array that specifies (implicitly) a shape, but also which of the elements within this shape will get passed to the filter function.
-        dask (bool, optional): Whether to use Dask for the minimum filter.
-        chunks (int or tuple or "'auto'", optional): Defines how to divide the array into blocks when using Dask. Can be an integer, tuple, size in bytes, or "auto" for automatic sizing.
-        **kwargs (Any): Additional keyword arguments for the minimum filter.
+        size (int or tuple, optional): The size of the neighborhood window (kernel). Must be provided if `footprint` is None.
+        footprint (np.ndarray, optional): A boolean array defining the specific shape of the neighborhood. Elements where `footprint` is `True` are included in the minimum calculation.
+        dask (bool, optional): If `True`, uses Dask for parallelized, chunked execution. Defaults to `False`.
+        chunks (int, tuple, or str, optional): The chunk size for Dask arrays. Defaults to 'auto'.
+        **kwargs (Any): Additional keyword arguments passed to the underlying filter function.
 
     Returns:
-        filtered_vol (np.ndarray): The filtered image or volume.
+        filtered_vol (np.ndarray):
+            The filtered volume with the same shape as the input.
 
     Raises:
-        RuntimeError: If neither size nor footprint is defined
+        RuntimeError: If neither `size` nor `footprint` is defined.
 
     Example:
         ```python
@@ -602,7 +622,6 @@ def minimum(
         ```
         ![minimum-filter-before](../../assets/screenshots/minimum_filter_original.png)
         ![minimum-filter-after](../../assets/screenshots/minimum_filter_processed.png)
-
     """
     if size is None:
         if footprint is None:
@@ -621,17 +640,25 @@ def minimum(
 
 def tophat(volume: np.ndarray, dask: bool = False, **kwargs):
     """
-    Remove background from the volume.
+    Applies a morphological opening (or closing) to estimate the background or smooth features.
+
+    Despite the name, this function uses the Top-Hat transform intermediate to perform a Morphological Opening (for dark backgrounds) or Closing (for bright backgrounds).
+
+    * **Dark Background** (Bright Objects): Performs an Opening. This removes bright features smaller than the `radius` (e.g., noise, small particles), effectively estimating the underlying background intensity.
+    * **Bright Background** (Dark Objects): Performs a Closing. This fills in dark features smaller than the `radius`, estimating the background in inverted contrast.
 
     Args:
-        volume (np.ndarray): The volume to remove background from.
-        dask (bool, optional): Whether to use Dask for the tophat filter (not supported, will default to SciPy).
-        **kwargs (Any): Additional keyword arguments.
-            `radius` (float): The radius of the structuring element (default: 3).
-            `background` (str): Color of the background, 'dark' or 'bright' (default: 'dark'). If 'bright', volume will be inverted.
+        volume (np.ndarray): The input image or volume.
+        dask (bool, optional): Not currently supported for this filter; defaults to SciPy implementation.
+        **kwargs (Any):
+            * **radius** (float): The radius of the ball-shaped structuring element. Features smaller than this size will be removed/smoothed. Defaults to 3.
+            * **background** (str): The brightness of the background relative to the objects.
+                * `'dark'`: Use for bright objects on a dark background.
+                * `'bright'`: Use for dark objects on a bright background. Defaults to `'dark'`.
 
     Returns:
-        filtered_vol (np.ndarray): The volume with background removed.
+        filtered_vol (np.ndarray):
+            The processed volume (the background estimation).
 
     Example:
         ```python
@@ -644,8 +671,7 @@ def tophat(volume: np.ndarray, dask: bool = False, **kwargs):
         qim3d.viz.slices_grid(vol_filtered, n_slices=5, slice_positions = [10, 31, 63, 95, 120], display_figure=True)
         ```
         ![tophat-filter-before](../../assets/screenshots/tophat_filter_original.png)
-        ![tophat-filter-after](../../assets/screenshots/tophat_filter_processed.png)	
-
+        ![tophat-filter-after](../../assets/screenshots/tophat_filter_processed.png)
     """
 
     radius = kwargs['radius'] if 'radius' in kwargs else 3

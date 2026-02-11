@@ -77,50 +77,70 @@ def slices_grid(
     **matplotlib_imshow_kwargs,
 ) -> matplotlib.figure.Figure:
     """
-    Displays one or several slices from a 3d volume.
+    Creates a static grid visualization (montage) of multiple 2D slices from a 3D volume.
 
-    By default if `slice_positions` is None, slices_grid plots `n_slices` linearly spaced slices.
-    If `slice_positions` is given as a string or integer, slices_grid will plot an overview with `n_slices` figures around that position.
-    If `slice_positions` is given as a list, `n_slices` will be ignored and the slices from `slice_positions` will be plotted.
+    Generates a mosaic or gallery view of the dataset, ideal for reports, publications, or quick overviews. 
+    Unlike interactive tools, this function produces a static `matplotlib` figure that can be saved easily. 
+    It supports batch visualization of specific indices, relative positions (e.g., 'mid'), or automatically spaced intervals.
+
+    **Key Features:**
+
+    * **Flexible Selection:** Choose slices by specific index, relative strings ('start', 'mid', 'end'), or automatic linear spacing.
+    * **Publication Ready:** Control layout (`max_columns`), sizing, and colorbars for export-ready figures.
+    * **Mask Overlays:** Superimpose segmentation masks directly onto the slice grid.
 
     Args:
-        volume (np.ndarray): The 3D volume to be sliced.
-        slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
-        slice_positions (int or list[int] or str or None, optional): One or several slicing levels. If None, linearly spaced slices will be displayed. Defaults to None.
-        n_slices (int, optional): Defines how many slices the user wants to be displayed. Defaults to 15.
-        max_columns (int, optional): The maximum number of columns to be plotted. Defaults to 5.
-        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
-        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored.
-        image_height (int, optional): Height of the figure.
-        image_width (int, optional): Width of the figure.
-        display_figure (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
-        display_positions (bool, optional): If True, displays the position of the slices. Defaults to True.
-        interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
-        colorbar (bool, optional): Adds a colorbar positioned in the top-right for the corresponding colormap and data range. Defaults to False.
-        colorbar_style (str, optional): Determines the style of the colorbar. Option 'small' is height of one image row. Option 'large' spans full height of image grid. Defaults to 'small'.
-        **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
+        volume (numpy.ndarray): The 3D input volume to be sliced.
+        slice_axis (int, optional): The axis to slice along (e.g., 0 for Z, 1 for Y, 2 for X).
+        slice_positions (int, list[int], str, or None, optional): Determines which slices to display.
+            
+            * **None**: Displays `n_slices` linearly spaced across the volume.
+            * **list[int]**: Displays exactly the slices at these indices (`n_slices` is ignored).
+            * **int**: Displays `n_slices` centered around this specific index.
+            * **str**: Displays `n_slices` around a relative position ('start', 'mid', 'end').
+
+        n_slices (int, optional): The number of slices to display. Ignored if `slice_positions` is a list.
+        max_columns (int, optional): The maximum number of columns in the grid layout.
+        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Matplotlib colormap name.
+        min_value (float, optional): Minimum value for color scaling. If `None`, inferred from data.
+        max_value (float, optional): Maximum value for color scaling. If `None`, inferred from data.
+        image_size (int, optional): Overrides both `image_height` and `image_width` to create square subplots.
+        image_height (int, optional): Height of each subplot in inches.
+        image_width (int, optional): Width of each subplot in inches.
+        display_figure (bool, optional): If `True`, calls `plt.show()` immediately.
+        display_positions (bool, optional): If `True`, adds text labels indicating slice index and axis.
+        interpolation (str, optional): Matplotlib interpolation method (e.g., 'nearest', 'bilinear').
+        colorbar (bool, optional): If `True`, adds a global colorbar to the figure.
+        colorbar_style (str, optional): Visual style of the colorbar.
+
+            * `'small'`: Matches the height of a single image row.
+            * `'large'`: Spans the full height of the grid.
+
+        mask (numpy.ndarray, optional): A 3D segmentation mask to overlay on the slices.
+        mask_alpha (float, optional): Opacity of the mask overlay (0.0 to 1.0).
+        mask_colormap (str, optional): Matplotlib colormap name for the mask.
+        **matplotlib_imshow_kwargs: Additional keyword arguments passed to `matplotlib.pyplot.imshow`.
 
     Returns:
-        fig (matplotlib.figure.Figure): The figure with the slices from the 3d array.
+        fig (matplotlib.figure.Figure):
+            The generated matplotlib figure object containing the grid of slices.
 
     Raises:
-        ValueError: If the input is not a numpy.ndarray or da.Array.
-        ValueError: If the slice_axis to slice along is not a valid choice, i.e. not an integer between 0 and the number of dimensions of the volume minus 1.
-        ValueError: If the file or array is not a volume with at least 3 dimensions.
-        ValueError: If the `position` keyword argument is not a integer, list of integers or one of the following strings: "start", "mid" or "end".
-        ValueError: If the colorbar_style keyword argument is not one of the following strings: 'small' or 'large'.
+        ValueError: If `volume` is not 3D or if `slice_axis` is invalid.
+        ValueError: If `slice_positions` is an invalid string.
+        ValueError: If `colorbar_style` is not 'small' or 'large'.
 
     Example:
         ```python
         import qim3d
 
+        # Load sample data
         vol = qim3d.examples.shell_225x128x128
+
+        # Create a grid of 15 linearly spaced slices
         qim3d.viz.slices_grid(vol, n_slices=15)
         ```
         ![Grid of slices](../../assets/screenshots/viz-slices.png)
-
     """
     if image_size:
         image_height = image_size
@@ -383,38 +403,60 @@ def slicer(
     **matplotlib_imshow_kwargs,
 ) -> widgets.interactive:
     """
-    Interactive widget for visualizing slices of a 3D volume.
+    Interactive tool to visualize, inspect, and scroll through 2D slices of a 3D volume.
+
+    Generates a GUI with a slider to navigate through the dataset along a specified axis. 
+    This function is essential for quality control, verifying segmentation masks, 
+    or exploring orthogonal views (axial, coronal, sagittal) of a stack.
+
+    **Key Features:**
+
+    * **Scrollable Interface:** Automatically generates a slider for the chosen axis.
+    * **Overlay Support:** Visualize segmentation results on top of raw data using the `mask` parameter.
+    * **Dynamic Contrast:** Use `colorbar='slices'` to adapt intensity ranges per slice, or `'volume'` for a global fixed range.
 
     Args:
-        volume (np.ndarray): The 3D volume to be sliced.
-        slice_axis (int, optional): Specifies the axis, or dimension, along which to slice. Defaults to 0.
-        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to 'magma'.
-        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        image_height (int, optional): Height of the figure. Defaults to 3.
-        image_width (int, optional): Width of the figure. Defaults to 3.
-        display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
-        interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
-        image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
-        colorbar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
-        mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
-        mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
-        mask_colormap (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
-        default_position (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
-        **matplotlib_imshow_kwargs (Any): Additional keyword arguments to pass to the `matplotlib.pyplot.imshow` function.
+        volume (numpy.ndarray): The 3D input data to be sliced.
+        slice_axis (int, optional): The axis to slice along (e.g., 0 for Z, 1 for Y, 2 for X).
+        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Matplotlib colormap name for the volume.
+        min_value (float, optional): Minimum value for color scaling. If `None`, inferred from data.
+        max_value (float, optional): Maximum value for color scaling. If `None`, inferred from data.
+        image_height (int, optional): Height of the displayed figure.
+        image_width (int, optional): Width of the displayed figure.
+        display_positions (bool, optional): If `True`, displays the slice index/position on the image.
+        interpolation (str, optional): Matplotlib interpolation method (e.g., 'nearest', 'bilinear').
+        image_size (int, optional): Overrides both `image_height` and `image_width` to create a square figure.
+        colorbar (str, optional): Strategy for the color bar range.
+
+            * `'volume'`: Constant range based on the global min/max of the volume.
+            * `'slices'`: Dynamic range calculated per individual slice.
+            * `None`: No color bar is displayed.
+
+        mask (numpy.ndarray, optional): A 3D segmentation mask to overlay on the volume.
+        mask_alpha (float, optional): Opacity of the mask overlay (0.0 to 1.0).
+        mask_colormap (str, optional): Matplotlib colormap name for the mask.
+        default_position (float or int, optional): Initial slice position of the slider.
+
+            * **float**: Relative position between 0.0 and 1.0 (e.g., `0.5` starts at the center).
+            * **int**: Exact slice index.
+
+        **matplotlib_imshow_kwargs: Additional keyword arguments passed to `matplotlib.pyplot.imshow`.
 
     Returns:
-        slicer_obj (widgets.interactive): The interactive widget for visualizing slices of a 3D volume.
+        slicer_obj (ipywidgets.interactive):
+            The interactive widget object containing the figure and slider.
 
     Example:
         ```python
         import qim3d
-
+        
+        # Load sample data
         vol = qim3d.examples.bone_128x128x128
-        qim3d.viz.slicer(vol)
+        
+        # Visualize with a slider
+        qim3d.viz.slicer(vol, colormap='bone')
         ```
         ![viz slicer](../../assets/screenshots/viz-slicer.gif)
-
     """
 
     if image_size:
@@ -509,38 +551,56 @@ def slicer_orthogonal(
     default_x:float|int = 0.5,
 ) -> widgets.interactive:
     """
-    Interactive widget for visualizing orthogonal slices of a 3D volume.
+    Interactive tool to visualize three orthogonal views (Z, Y, X) side-by-side.
+
+    Creates a composite widget displaying Axial, Coronal, and Sagittal slices simultaneously. 
+    This is often called a Multi-Planar Reconstruction (MPR) view. It allows users to verify isotropy, 
+    check feature continuity across dimensions, or inspect segmentation masks in all three orientations at once.
+
+    **Key Features:**
+
+    * **Simultaneous Views:** Generates three independent sliders for Z, Y, and X axes.
+    * **Linked Settings:** Applies colormaps, contrast settings, and masks uniformly across all three views.
+    * **Holistic Inspection:** Essential for understanding the 3D structure without rendering a full 3D scene.
 
     Args:
-        volume (np.ndarray): The 3D volume to be sliced.
-        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Specifies the color map for the image. Defaults to "magma".
-        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        image_height (int, optional): Height of the figure.
-        image_width (int, optional): Width of the figure.
-        display_positions (bool, optional): If True, displays the position of the slices. Defaults to False.
-        interpolation (str, optional): Specifies the interpolation method for the image. Defaults to None.
-        image_size (int, optional): Size of the figure. If set, image_height and image_width are ignored. Defaults to None.
-        colorbar (str, optional): Controls the options for color bar. If None, no color bar is included. If 'volume', the color map range is constant for each slice. If 'slices', the color map range changes dynamically according to the slice. Defaults to None.
-        mask (np.ndarray, optional): Overlays the image with this segmentation mask. Defaults to None.
-        mask_alpha (float, optional): Sets the alpha of the overlaying mask. Defaults to 0.4.
-        mask_colormap (str, optional): Sets the color map of the overlaying mask. Defaults to 'gray'.
-        default_x (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
-        default_y (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
-        default_z (float|int, optional): Set the x slicer to this slice after reload. If float, it should be between 0 and 1 to set position relative to shape. If int, it sets the exact slice. Defaults to 0.5.
+        volume (numpy.ndarray): The 3D input volume.
+        colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Matplotlib colormap name.
+        min_value (float, optional): Minimum value for color scaling. If `None`, inferred from data.
+        max_value (float, optional): Maximum value for color scaling. If `None`, inferred from data.
+        image_height (int, optional): Height of each individual figure in inches.
+        image_width (int, optional): Width of each individual figure in inches.
+        display_positions (bool, optional): If `True`, displays the slice index on each image.
+        interpolation (str, optional): Matplotlib interpolation method (e.g., 'nearest', 'bilinear').
+        image_size (int, optional): Overrides `image_height` and `image_width` to make figures square.
+        colorbar (str, optional): Strategy for the color bar range.
+
+            * `'volume'`: Constant range based on the global min/max of the volume.
+            * `'slices'`: Dynamic range calculated per individual slice.
+            * `None`: No color bar is displayed.
+
+        mask (numpy.ndarray, optional): A 3D segmentation mask to overlay on all views.
+        mask_alpha (float, optional): Opacity of the mask overlay (0.0 to 1.0).
+        mask_colormap (str, optional): Matplotlib colormap name for the mask.
+        default_z (float or int, optional): Initial position for the Z-axis slider (0.0-1.0 relative or exact index).
+        default_y (float or int, optional): Initial position for the Y-axis slider (0.0-1.0 relative or exact index).
+        default_x (float or int, optional): Initial position for the X-axis slider (0.0-1.0 relative or exact index).
 
     Returns:
-        slicer_orthogonal_obj (widgets.HBox): The interactive widget for visualizing orthogonal slices of a 3D volume.
+        slicer_orthogonal_obj (ipywidgets.HBox):
+            A container widget holding the three interactive slicers arranged horizontally.
 
     Example:
         ```python
         import qim3d
 
+        # Load sample data
         vol = qim3d.examples.fly_150x256x256
+        
+        # View all three axes side-by-side
         qim3d.viz.slicer_orthogonal(vol, colormap="magma")
         ```
         ![viz slicer_orthogonal](../../assets/screenshots/viz-orthogonal.gif)
-
     """
 
     if image_size:
@@ -584,19 +644,20 @@ def fade_mask(
     max_value: float = None,
 ) -> widgets.interactive:
     """
-    Interactive widget for visualizing the effect of edge fading on a 3D volume.
+    Launches an interactive tool to tune parameters for edge fading (vignetting) on a 3D volume.
 
-    This can be used to select the best parameters before applying the mask.
+    This function helps you find the optimal settings for suppressing boundary artifacts or focusing on the center of the volume. It visualizes the process by displaying three panels: the original slice, the generated weight mask (attenuation map), and the final result. You can adjust the decay rate, ratio (radius), and geometry (spherical or cylindrical) in real-time before applying them permanently using `qim3d.operations.fade_mask`.
 
     Args:
-        volume (np.ndarray): The volume to apply edge fading to.
-        axis (int, optional): The axis along which to apply the fading. Defaults to 0.
-        colormap (str, optional): Specifies the color map for the image. Defaults to "viridis".
-        min_value (float or None, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        max_value (float or None, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
+        volume (np.ndarray): The 3D input volume.
+        axis (int, optional): The axis alignment for the mask geometry (relevant for cylindrical fading). Defaults to 0.
+        colormap (str, optional): The Matplotlib colormap used for displaying the volume and mask. Defaults to 'magma'.
+        min_value (float, optional): Custom minimum intensity for display contrast. If `None`, uses the data minimum.
+        max_value (float, optional): Custom maximum intensity for display contrast. If `None`, uses the data maximum.
 
     Returns:
-        slicer_obj (widgets.HBox): The interactive widget for visualizing fade mask on slices of a 3D volume.
+        slicer_obj (widgets.interactive):
+            The interactive widget containing the parameter sliders and the side-by-side visualization.
 
     Example:
         ```python
@@ -605,7 +666,6 @@ def fade_mask(
         qim3d.viz.fade_mask(vol)
         ```
         ![operations-edge_fade_before](../../assets/screenshots/viz-fade_mask.gif)
-
     """
 
     # Create the interactive widget
@@ -730,30 +790,28 @@ def fade_mask(
 
 def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     """
-    Launch an interactive chunk explorer for a 3D or 5D OME-Zarr/Zarr dataset.
+    Launches an interactive explorer for large-scale OME-Zarr and Zarr datasets.
+
+    This tool enables you to inspect massive 3D or 5D datasets (e.g., bio-imaging pyramids, large block-wise volumes) one chunk at a time without loading the entire file into RAM. It relies on lazy loading, making it ideal for checking data integrity, visualizing specific regions of interest (ROI) in big data, or navigating multi-resolution hierarchies.
+
+    **Key Features:**
+
+    * **Lazy Exploration:** Loads only the specific chunk selected via dropdown menus.
+    * **Multiscale Support:** Automatically detects and navigates resolution levels (pyramids) in OME-Zarr groups.
+    * **5D Navigation:** Supports dimensions for Time (T) and Channel (C) in addition to spatial axes (Z, Y, X).
+    * **Versatile Visualization:** Switch instantly between a `slicer`, a `slices_grid`, or a 3D `volumetric` rendering for the selected chunk.
 
     Args:
-        zarr_path (str):
-            Path to the OME-Zarr/Zarr dataset.
-
-        **kwargs (Any):
-            Additional keyword arguments that are **selectively** forwarded
-            only to the visualization method that supports them. Any key
-            not accepted by the chosen method is ignored.
-
-            The visualization methods available in this tool are:
-
-            - `slicer` → calls `qim3d.viz.slicer`
-            - `slices` → calls `qim3d.viz.slices_grid`
-            - `volume` → calls `qim3d.viz.volumetric`
-
-            Users select the desired method via the dropdown menu in the widget.
-
-    Raises:
-        ValueError: If the dataset's dimensionality is not 3 or 5.
+        zarr_path (str): The filesystem path to the OME-Zarr or Zarr dataset.
+        **kwargs (Any): Additional keyword arguments passed selectively to the underlying visualization function.
+            For example, you can pass `cmap='magma'` (for `slicer`/`slices`) or `zoom=1.5` (for `volume`). Arguments not supported by the currently selected visualization method are ignored.
 
     Returns:
-        chunk_explorer (widgets.VBox): A widget containing dropdowns for selecting the OME-Zarr scale, chunk coordinates along each axis, and visualization method.
+        chunk_explorer (widgets.VBox):
+            The interactive interface containing controls for scale selection, chunk coordinates, and the visualization display.
+
+    Raises:
+        ValueError: If the dataset dimensionality is not 3D or 5D.
 
     Example:
         ```python
@@ -763,7 +821,6 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         qim3d.viz.chunks('path/to/zarr/dataset.zarr')
         ```
         ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
-
     """
     # Opens the Zarr dataset - doesn't load to memory yet
     zarr_data = zarr.open(zarr_path, mode='r')
@@ -978,42 +1035,42 @@ def histogram(
     **sns_kwargs: str | float | bool,
 ) -> plt.Figure | plt.Axes | None:
     """
-    Plots a histogram of voxel intensities from a 3D volume, with options to show a specific slice or the entire volume.
+    Computes and displays the intensity distribution (histogram) of a 3D volume or a specific 2D slice.
 
-    Utilizes [seaborn.histplot](https://seaborn.pydata.org/generated/seaborn.histplot.html) for visualization.
+    This function visualizes the frequency of voxel intensities (gray values), which is essential for analyzing data contrast, identifying material phases, and determining threshold values for segmentation. It utilizes `seaborn.histplot` and includes optimizations for 3D data, such as subsampling (`coarseness`) to handle large datasets efficiently. You can also overlay Kernel Density Estimates (KDE) or specific threshold markers.
 
     Args:
-        volume (np.ndarray): A 3D NumPy array representing the volume to be visualized.
-        coarseness (int or list[int], optional): A positive integer representing the coarseness of the subsampling. A value of 1 (default) uses the original volume, a value of 2 uses every second element along each axis and so on. Used to reduce the needed computation.
-        ignore_zero (bool, optional): Specifies if zero-values in the volume should be ignored.
-        bins (Union[int, str], optional): Number of histogram bins or a binning strategy (e.g., "auto"). Default is "auto".
-        slice_axis (int, optional): Axis along which to take a slice. Default is 0.
-        slice_index (Union[int, str], optional): Specifies the slice to visualize. If an integer, it represents the slice index along the selected axis.
-                                               If "middle", the function uses the middle slice. If None, the entire volume is visualized. Default is None.
-        vertical_line (Union[int, Iterable], optional): Intensity value for a vertical line(s) to be drawn on the histogram. Default is None.
-        vertical_line_colormap (Union[str, Iterable], optional): Colors for vertical lines. If string, it should be a valid colormap. If iterable, it should be list of valid colors. Default is 'qim'.
-        kde (bool, optional): Whether to overlay a kernel density estimate.
-        log_scale (bool, optional): Whether to use a logarithmic scale on the y-axis. Default is False.
-        despine (bool, optional): If True, removes the top and right spines from the plot for cleaner appearance. Default is True.
-        show_title (bool, optional): If True, displays a title with slice information. Default is True.
-        color (str, optional): Color for the histogram bars. If "qim3d", defaults to the qim3d color. Default is "qim3d".
-        edgecolor (str, optional): Color for the edges of the histogram bars. Default is None.
-        figsize (tuple, optional): Size of the figure (width, height). Default is (8, 4.5).
-        bin_style (str, optional): Type of histogram to draw ('bars', 'step', or 'poly'). Default is "step".
-        return_fig (bool, optional): If True, returns the figure object instead of showing it directly. Default is False.
-        show (bool, optional): If True, displays the plot. If False, suppresses display. Default is True.
-        ax (matplotlib.axes.Axes, optional): Axes object where the histogram will be plotted. Default is None.
-        **sns_kwargs: Additional keyword arguments for `seaborn.histplot`.
+        volume (np.ndarray): The 3D input volume.
+        coarseness (int or list[int], optional): Subsampling factor to speed up computation. A value of `1` uses all data; `2` uses every second voxel, etc.
+        ignore_zero (bool, optional): If `True`, excludes zero-valued voxels (background) from the statistics.
+        bins (int or str, optional): The number of bins or a binning strategy (e.g., 'auto', 'sturges').
+        slice_index (int, str, or None, optional): The specific slice to analyze. If `None`, analyzes the entire volume. Accepts an integer index or 'middle'.
+        slice_axis (int, optional): The axis along which to extract the slice (0, 1, or 2). Used only if `slice_index` is provided.
+        vertical_line (int or Iterable, optional): One or more intensity values to mark with vertical dashed lines (e.g., to visualize a threshold cut-off).
+        vertical_line_colormap (str or Iterable, optional): The colormap or list of colors for the vertical lines.
+        kde (bool, optional): If `True`, computes and overlays a Kernel Density Estimate (smooth curve) of the distribution.
+        log_scale (bool, optional): If `True`, sets the Y-axis (frequency) to a logarithmic scale.
+        despine (bool, optional): If `True`, removes the top and right borders of the plot for a cleaner look.
+        show_title (bool, optional): If `True`, adds a descriptive title with slice/volume information.
+        color (str, optional): The main color of the histogram bars.
+        edgecolor (str, optional): The color of the bar edges.
+        figsize (tuple[float, float], optional): The width and height of the figure in inches.
+        bin_style (str, optional): The visual style of the histogram ('bars', 'step', or 'poly').
+        return_fig (bool, optional): If `True`, returns the `matplotlib.figure.Figure` object.
+        show (bool, optional): If `True`, calls `plt.show()` to display the plot.
+        ax (matplotlib.axes.Axes, optional): An existing Axes object to plot onto. If provided, the function returns this Axes object (unless `return_fig=True`).
+        **sns_kwargs: Additional keyword arguments passed to `seaborn.histplot`.
 
     Returns:
-        Optional[matplotlib.figure.Figure or matplotlib.axes.Axes]:
-            If `return_fig` is True, returns the generated figure object.
-            If `return_fig` is False and `ax` is provided, returns the `Axes` object.
-            Otherwise, returns None.
+        object (matplotlib.figure.Figure, matplotlib.axes.Axes, or None):
+            The plot object, depending on parameters:
+
+            * **matplotlib.figure.Figure**: Returned if `return_fig=True`.
+            * **matplotlib.axes.Axes**: Returned if `return_fig=False` and `ax` was provided.
+            * **None**: If `return_fig=False` and no `ax` is provided (plot is displayed immediately).
 
     Raises:
-        ValueError: If `slice_axis` is not a valid axis index (0, 1, or 2).
-        ValueError: If `slice_index` is an integer and is out of range for the specified axis.
+        ValueError: If `slice_axis` is invalid or `slice_index` is out of bounds.
 
     Example:
         ```python
@@ -1033,7 +1090,7 @@ def histogram(
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
 
-    Example: Using coarsness for faster computation
+    Example: Using coarseness for faster computation
         ```python
         import qim3d
 
@@ -1041,7 +1098,6 @@ def histogram(
         qim3d.viz.histogram(vol, coarseness=2, kde=True, log_scale=True)
         ```
         ![viz histogram](../../assets/screenshots/viz-histogram-coarse.png)
-
     """
     if not (0 <= slice_axis < volume.ndim):
         msg = f'Axis must be an integer between 0 and {volume.ndim - 1}.'
@@ -1434,21 +1490,34 @@ def line_profile(
     y_limits: str | tuple[float, float] = 'auto',
 ) -> widgets.interactive:
     """
-    Returns an interactive widget for visualizing the intensity profiles of lines on slices.
+    Creates an interactive tool to visualize intensity profiles along a line segment within a 3D volume.
+
+    This function allows you to draw a line on a specific slice of your data and plot the pixel or voxel intensity values along that path. It is ideal for quantitative analysis, such as checking material homogeneity, measuring the sharpness of edges (step functions), or inspecting noise levels across a region of interest (ROI). The tool supports arbitrary angles, dynamic pivot points, and adjustable plot limits.
+
+    **Key Features:**
+
+    * **Profile Plotting:** Real-time graph of intensity values (gray levels) versus distance.
+    * **Flexible Positioning:** Define the line by a pivot point (vertical/horizontal) and an angle of rotation.
+    * **Navigation:** Select specific slices using indices or keywords like 'middle'.
+    * **Zooming:** Focus on specific segments of the line using the `fraction_range` parameter.
 
     Args:
-        volume (np.ndarray): The 3D volume of interest.
-        slice_axis (int, optional): Specifies the initial axis along which to slice.
-        slice_index (int or str, optional): Specifies the initial slice index along slice_axis.
-        vertical_position (int or str, optional): Specifies the initial vertical position of the line's pivot point.
-        horizontal_position (int or str, optional): Specifies the initial horizontal position of the line's pivot point.
-        angle (int or float, optional): Specifies the initial angle (°) of the line around the pivot point. A float will be converted to an int. A value outside the range will be wrapped modulo.
-        fraction_range (tuple or list, optional): Specifies the fraction of the line segment to use from border to border. Both the start and the end should be in the range [0.0, 1.0].
-        y_limits (str or tuple or list, optional): Specifies the behaviour of the limits on the y-axis of the intensity value plot. Option 'full' fixes to the volume's data range. Option 'auto' automatically adapts to the intensities on the current line. A manual range can be specified by passing a tuple or list of length 2. Defaults to 'auto'.
+        volume (np.ndarray): The 3D input volume (image stack).
+        slice_axis (int, optional): The axis along which to extract the 2D slice (0, 1, or 2). Defaults to 0.
+        slice_index (int or str, optional): The index of the slice to display. Can be an integer or a position string ('start', 'middle', 'end'). Defaults to 'middle'.
+        vertical_position (int or str, optional): The vertical coordinate of the line's pivot point. Can be an integer or 'start', 'middle', 'end'. Defaults to 'middle'.
+        horizontal_position (int or str, optional): The horizontal coordinate of the line's pivot point. Can be an integer or 'start', 'middle', 'end'. Defaults to 'middle'.
+        angle (int or float, optional): The angle of the line in degrees relative to the horizontal axis. Floats are rounded to the nearest integer. Defaults to 0.
+        fraction_range (tuple[float, float], optional): The start and end points of the line segment as a fraction of the image width/height (0.0 to 1.0). Defaults to (0.00, 1.00).
+        y_limits (str or tuple[float, float], optional): Controls the Y-axis range of the intensity plot. Defaults to 'auto'.
+
+            * **'auto'**: Dynamically adapts to the min/max intensity on the current line.
+            * **'full'**: Fixes the range to the global min/max of the entire volume.
+            * **tuple**: Manually sets the range (e.g., `(0, 255)`).
 
     Returns:
-        widget (widgets.widget_box.VBox): The interactive widget.
-
+        widget (widgets.interactive):
+            The interactive widget object containing the slice viewer and the intensity plot.
 
     Example:
         ```python
@@ -1458,7 +1527,6 @@ def line_profile(
         qim3d.viz.line_profile(vol)
         ```
         ![viz histogram](../../assets/screenshots/viz-line_profile.gif)
-
     """
 
     def parse_position(
@@ -1551,41 +1619,28 @@ def threshold(
     max_value: float = None,
 ) -> widgets.VBox:
     """
-    An interactive interface to explore thresholding on a
-    3D volume slice-by-slice. Users can either manually set the threshold value
-    using a slider or select an automatic thresholding method from `skimage`.
+    Launches an interactive widget to perform 3D image segmentation via thresholding (binarization).
 
-    The visualization includes the original image slice, a binary mask showing regions above the
-    threshold and an overlay combining the binary mask and the original image.
+    This tool allows you to explore the volume slice-by-slice to determine the optimal cut-off value for creating a binary mask. It is essential for separating objects of interest from the background based on intensity. The interface provides real-time feedback by displaying the intensity histogram and overlaying the resulting mask on the original data.
+
+    **Key Features:**
+
+    * **Visualization:** Simultaneously views the original slice, intensity histogram, binary mask, and a color overlay.
+    * **Manual Control:** Adjust the threshold value precisely using a slider.
+    * **Automatic Algorithms:** Applies standard `skimage` auto-thresholding methods including Otsu, Isodata, Li, Mean, Minimum, Triangle, and Yen.
+    * **Slice Navigation:** Scroll through the 3D stack to ensure the chosen threshold works across different depths.
 
     Args:
-        volume (np.ndarray): 3D volume to threshold.
-        colormap (str, optional): Colormap for the original image. Defaults to 'viridis'.
-        min_value (float, optional): Minimum value for the colormap. Defaults to None.
-        max_value (float, optional): Maximum value for the colormap. Defaults to None.
+        volume (np.ndarray): The 3D input data (image stack) to threshold.
+        colormap (str, optional): The Matplotlib colormap for the original image display.
+        min_value (float, optional): Custom minimum value for display contrast (vmin). If `None`, uses the data minimum.
+        max_value (float, optional): Custom maximum value for display contrast (vmax). If `None`, uses the data maximum.
 
     Returns:
-        slicer_obj (widgets.VBox): The interactive widget for thresholding a 3D volume.
+        slicer_obj (widgets.VBox):
+            The interactive Jupyter widget containing the visualization plots and control sliders.
 
-    Interactivity:
-        - **Manual Thresholding**:
-            Select 'Manual' from the dropdown menu to manually adjust the threshold
-            using the slider.
-        - **Automatic Thresholding**:
-            Choose a method from the dropdown menu to apply an automatic thresholding
-            algorithm. Available methods include:
-            - Otsu
-            - Isodata
-            - Li
-            - Mean
-            - Minimum
-            - Triangle
-            - Yen
-
-            The threshold slider will display the computed value and will be disabled
-            in this mode.
-
-
+    Example:
         ```python
         import qim3d
 
@@ -1596,7 +1651,6 @@ def threshold(
         qim3d.viz.threshold(vol)
         ```
         ![interactive threshold](../../assets/screenshots/interactive_thresholding.gif)
-
     """
 
     # Centralized state dictionary to track current parameters
@@ -2160,19 +2214,22 @@ def compare_volumes(
     volumetric_visualization: bool = False,
 ) -> widgets.interactive:
     """
-    Returns an interactive widget for comparing two volumes along slices.
+    Launches an interactive dashboard to visually compare two 3D volumes side-by-side.
+
+    This tool is essential for registration validation (checking alignment), change detection, or analyzing reconstruction errors (residuals). It displays synchronized slices of both volumes alongside a computed difference map. You can switch between 'difference', 'absolute difference', and 'quadratic difference' modes to highlight discrepancies effectively.
+
+    If enabled, the tool also provides 3D volumetric rendering (via `k3d`), allowing you to inspect the spatial distribution of the errors or changes in 3D space.
 
     Args:
-        volume1 (np.ndarray): The first volume.
-        volume2 (np.ndarray): The second volume.
-        slice_axis (int, optional): Specifies the initial axis along which to slice.
-        slice_index (int, optional): Specifies the initial index along slice_axis.
-        volumetric_visualization (bool, optional): Defines if k3d plots should also be shown.
+        volume1 (np.ndarray): The first 3D volume (e.g., Ground Truth or Reference).
+        volume2 (np.ndarray): The second 3D volume (e.g., Prediction or Moving Image). Must have the same shape as `volume1`.
+        slice_axis (int, optional): The initial axis along which to slice (0, 1, or 2). Defaults to 0.
+        slice_index (int, optional): The initial slice index to display. If `None`, defaults to the middle slice.
+        volumetric_visualization (bool, optional): If `True`, includes interactive 3D volumetric renderings below the slice views. Defaults to `False`.
 
     Returns:
-        widget (widgets.widget_box.VBox): The interactive widget.
-
-
+        widget (widgets.VBox):
+            The interactive widget containing the comparison controls, slice plots, and optional 3D views.
 
     Example:
         ```python
@@ -2182,10 +2239,8 @@ def compare_volumes(
         vol2 = qim3d.generate.volume(noise_scale=0.021, dtype='float32')
 
         qim3d.viz.compare_volumes(vol1, vol2, volumetric_visualization=True)
-
         ```
         ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
-
     """
 
     if volume1.ndim != 3:
@@ -2429,11 +2484,19 @@ class IsoSurface:
 @coarseness('volume')
 def iso_surface(volume: np.ndarray, colormap: str = 'Magma') -> None:
     """
-    Creates an interactive iso-surface visualizer for a single surface level.
+    Creates an interactive tool to visualize 3D iso-surfaces (surfaces of constant value).
+
+    Generates a GUI to extract and render 3D contours from the volume in real-time. This is useful for finding specific intensity boundaries, visualizing segmentation masks, or exploring the shape of objects defined by a specific threshold. It uses `Plotly` for interaction and includes controls for resolution and transparency.
+
+    **Key Features:**
+
+    * **Interactive Thresholding:** Adjust the iso-value dynamically to see how the surface changes.
+    * **Performance Control:** Adjustable resolution slider to balance between mesh quality and rendering speed.
+    * **Visual Styles:** Supports wireframe mode, transparency, and various colormaps.
 
     Args:
-        vol (np.ndarray): Volume to visualize an iso-surface of.
-        colormap: (str, optional): Initial colormap for the iso-surface. This can be changed in the interface
+        volume (numpy.ndarray): The 3D input volume to be visualized.
+        colormap (str, optional): The initial color map name (e.g., 'Magma', 'Viridis'). Can be changed in the GUI.
 
     Example:
         ```python
@@ -2443,7 +2506,6 @@ def iso_surface(volume: np.ndarray, colormap: str = 'Magma') -> None:
         qim3d.viz.iso_surface(vol)
         ```
         ![volume_comparison](../../assets/screenshots/iso_surface.gif)
-
     """
     IsoSurface(volume, colormap)
 
@@ -2471,29 +2533,40 @@ def export_rotation(
     show: bool = False,
 ) -> None:
     """
-    Export a rotation animation of volume.
+    Exports a 360-degree turntable animation of the volume to a video or GIF.
+
+    Generates a spinning orbit visualization of the 3D data, perfect for presentations, reports, or sharing results on the web. It renders the volume from a rotating camera perspective and saves the output as a movie file (.mp4, .webm, .avi) or an animated .gif.
+
+    **Key Features:**
+
+    * **Presentation Ready:** Creates smooth, professional animations of your data.
+    * **Flexible Output:** Supports common video formats and high-quality GIFs.
+    * **Customizable Camera:** Control the height, distance, and focus point of the rotation.
 
     Args:
-        path (str): The path to save the output. The path should end with .gif, .avi, .mp4 or .webm. If no file extension is specified, .gif is automatically added.
-        volume (np.ndarray): Volume to create .gif of.
-        degrees (int, optional): The amount of degrees for the volume to rotate. Defaults to 360.
-        n_frames (int, optional): The amount of frames to generate. Defaults to 180.
-        fps (int, optional): The amount of frames per second in the resulting animation. This determines the speed of the rotation of the volume. Defaults to 30.
-        image_size (tuple of ints or None, optional): Pixel size (width, height) of each frame. If None, the plotter's default size is used. Defaults to (256, 256).
-        colormap (str, optional): Determines color map of volume. Defaults to 'magma'.
-        camera_height (float, optional): Determines the height of the camera rotating around the volume. The float value represents a multiple of the height of the z-axis. Defaults to 2.0.
-        camera_distance (int or string, optional): Determines the distance of the camera from the center point. If 'auto' is used, it will be auto calculated. Otherwise a float value representing voxel distance is expected. Defaults to 'auto'.
-        camera_focus (list or str, optional): Determines the voxel that the camera rotates around. Using 'center' will default to the center of the volume. Otherwise a list of three integers is expected. Defaults to 'center'.
-        show (bool, optional): If True, the resulting animation will be shown in the Jupyter notebook. Defaults to False.
+        path (str): The destination file path. Must end with .gif, .avi, .mp4, or .webm. If no extension is provided, defaults to .gif.
+        volume (numpy.ndarray): The 3D input volume to be animated.
+        degrees (int, optional): Total rotation angle in degrees (e.g., 360 for a full spin).
+        n_frames (int, optional): Total number of frames to generate. Higher values create smoother/slower animations at fixed FPS.
+        fps (int, optional): Frames per second. Controls the playback speed.
+        image_size (tuple[int, int] or None, optional): Resolution (width, height) of the output frames.
+        colormap (str, optional): Matplotlib colormap name for the volume rendering.
+        camera_height (float, optional): Vertical position of the camera relative to the volume's Z-axis height.
+        camera_distance (float or str, optional): Distance from the camera to the focus point.
 
-    Returns:
-        None
+            * **str**: Use `'auto'` to automatically calculate a fitting distance.
+            * **float**: Specific distance in voxel units.
 
+        camera_focus (list or str, optional): The point the camera rotates around.
+
+            * **str**: Use `'center'` to rotate around the volume center.
+            * **list**: A list of 3 integers `[z, y, x]` specifying the voxel coordinate.
+
+        show (bool, optional): If `True`, displays the generated animation inline in the notebook.
 
     Raises:
-        TypeError: If the camera focus argument is incorrectly used.
-        TypeError: If the camera_distance argument is incorrectly used.
-        ValueError: If the path contains an unrecognized file extension.
+        TypeError: If `camera_focus` or `camera_distance` is invalid.
+        ValueError: If `path` contains an unsupported file extension.
 
     Example:
         Creation of .gif file with default parameters of a generated volume.
@@ -2523,7 +2596,6 @@ def export_rotation(
                                   show = True)
         ```
         ![export_rotation_video](../../assets/screenshots/export_rotation_video.gif)
-
     """
     if not (
         camera_focus == 'center'
@@ -3073,26 +3145,35 @@ def planes(
     max_value: float = None,
 ) -> None:
     """
-    Displays an interactive 3D widget for viewing orthogonal cross-sections through a volume.
+    Displays an interactive 3D scene with movable orthogonal cross-sections (X, Y, Z planes).
+
+    Creates a composite 3D viewer where three orthogonal slices intersect within the volume. 
+    Users can interactively drag sliders to explore the internal structure of the stack from different angles simultaneously. 
+    This visualization is often referred to as Multi-Planar Reconstruction (MPR) or an Orthogonal Slicer.
+
+    **Key Features:**
+
+    * **3D Context:** Visualizes how the three planes (Axial, Coronal, Sagittal) intersect in 3D space.
+    * **Interactive Controls:** Includes sliders for position, opacity, and dynamic color range adjustment.
+    * **High Performance:** Uses `Plotly` and `ipywidgets` for responsive slicing of local data.
 
     Args:
-        volume (np.ndarray): The 3D volume of interest.
-        colormap (str or matplotlib.colors.Colormap, optional): Specifies the matplotlib color map.
-        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range.
-        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range.
-
-    Returns:
-        None
+        volume (numpy.ndarray): The 3D input volume.
+        colormap (str or matplotlib.colors.Colormap, optional): Matplotlib colormap name (e.g., 'magma', 'viridis').
+        min_value (float, optional): Minimum value for color scaling (lower bound of contrast).
+        max_value (float, optional): Maximum value for color scaling (upper bound of contrast).
 
     Example:
         ```python
         import qim3d
 
+        # Load sample data
         vol = qim3d.examples.shell_225x128x128
-        qim3d.viz.planes(vol)
+
+        # Launch the interactive 3D plane viewer
+        qim3d.viz.planes(vol, colormap='plasma')
         ```
         ![viz planes](../../assets/screenshots/viz-planes.gif)
-
     """
     VolumePlaneSlicer(
         volume=volume, colormap=colormap, color_range=[min_value, max_value]
@@ -3296,19 +3377,21 @@ def overlay(
     display_size: int = 512,
 ) -> widgets.interactive:
     """
-    Returns an interactive widget for comparing two volumes along slices in a fading overlay image.
+    Creates an interactive widget to compare two 3D volumes by overlaying them with adjustable transparency.
+
+    This tool is essential for tasks like image registration (checking alignment between two scans), segmentation validation (comparing a binary mask against the original raw data), or general change detection. It provides a slider to smoothly fade (blend) between the two volumes, allowing for precise visual inspection of differences and spatial correspondence slice-by-slice.
 
     Args:
-        volume1 (np.ndarray): The first volume.
-        volume2 (np.ndarray): The second volume.
-        volume1_values (tuple[float, float], optional): Set the color limits of volume1.
-        volume2_values (tuple[float, float], optional): Set the color limits of volume2.
-        colormaps (ColormapLike or tuple[ColormapLike, ColormapLike], optional): Specifies the colormaps used for each volume. A single value will be applied to both volumes.
-        display_size (int, optional): Size in pixels of the image. If image is non-square, then the largest dimension will have display_size pixels.
+        volume1 (np.ndarray): The first 3D volume (e.g., the reference image).
+        volume2 (np.ndarray): The second 3D volume (e.g., the moving image or segmentation mask). Must have the same shape as `volume1`.
+        volume1_values (tuple[float, float], optional): Intensity limits `(min, max)` for contrast stretching `volume1`. If `(None, None)`, uses the volume's min and max.
+        volume2_values (tuple[float, float], optional): Intensity limits `(min, max)` for contrast stretching `volume2`.
+        colormaps (str or matplotlib.colors.Colormap or tuple, optional): The colormap(s) to apply. Can be a single value (applied to both) or a tuple `(cmap1, cmap2)`. Defaults to 'gray'.
+        display_size (int, optional): The maximum width/height of the displayed image in pixels. Defaults to 512.
 
     Returns:
-        widget (widgets.widget_box.VBox): The interactive widget.
-
+        widget (widgets.VBox):
+            The interactive widget containing the slicer controls and the fading overlay display.
 
     Example:
         ```python
@@ -3323,7 +3406,6 @@ def overlay(
         qim3d.viz.overlay(vol, labeled_volume, colormaps=('grey', segm_cmap), volume2_values=(0, num_labels))
         ```
         ![viz overlay](../../assets/screenshots/viz-overlay.gif)
-
     """
     if volume1.ndim != 3:
         msg = 'Volume must be 3D.'

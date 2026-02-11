@@ -27,60 +27,67 @@ def train_model(
     return_loss: bool = False,
 ) -> tuple[tuple[float], tuple[float]]:
     """
-    Trains the specified model.
+    Executes the training loop for a PyTorch model.
 
-    The function trains the model using the data from the training and validation data loaders, according to the specified hyperparameters.
-    Optionally, the final checkpoint of the trained model is saved as a .pth file, the loss curves are plotted, and the loss values are returned.
+    This function manages the iterative process of training. It handles:
+    
+    1.  **Training Steps**: Iterating through the training data, computing gradients (backpropagation), and updating model weights.
+    2.  **Validation**: Periodically evaluating the model on unseen data to monitor for overfitting.
+    3.  **Logging**: Printing loss values to track convergence.
+    4.  **Checkpointing**: Saving the final model weights to disk.
+    5.  **Visualization**: Plotting training and validation loss curves.
+
+    The function automatically detects if a GPU (CUDA) is available and moves the model and data to the appropriate device.
 
     Args:
-        model (torch.nn.Module): PyTorch model.
-        hyperparameters (class): Dictionary with n_epochs, optimizer and criterion.
-        train_loader (torch.utils.data.DataLoader): DataLoader for the training data.
-        val_loader (torch.utils.data.DataLoader): DataLoader for the validation data.
-        checkpoint_directory (str, optional): Directory to save model checkpoint. Default is None.
-        eval_every (int, optional): Frequency of model evaluation. Default is every epoch.
-        print_every (int, optional): Frequency of log for model performance. Default is every 5 epochs.
-        plot (bool, optional): If True, plots the training and validation loss after the model is done training. Default is True.
-        return_loss (bool, optional): If True, returns a dictionary with the history of the train and validation losses. Default is False.
+        model (torch.nn.Module): The PyTorch model to train.
+        hyperparameters (Hyperparameters): A `qim3d.ml.Hyperparameters` object containing the optimizer, loss function, and epoch count.
+        train_loader (torch.utils.data.DataLoader): The DataLoader for the training set.
+        val_loader (torch.utils.data.DataLoader): The DataLoader for the validation set.
+        checkpoint_directory (str, optional): The directory where the final model weights (`.pth` file) will be saved. If `None`, the model is not saved to disk. Defaults to `None`.
+        eval_every (int, optional): The number of epochs between validation runs. Defaults to 1 (validate every epoch).
+        print_every (int, optional): The number of epochs between log updates. Defaults to 1 (log every epoch).
+        plot (bool, optional): If `True`, displays a plot of the loss history after training finishes. Defaults to `True`.
+        return_loss (bool, optional): If `True`, returns the history of loss values. Defaults to `False`.
 
     Returns:
-        train_loss (dict): Dictionary with average losses and batch losses for training loop. Only returned when `return_loss = True`.
-        val_loss (dict): Dictionary with average losses and batch losses for validation loop. Only returned when `return_loss = True`.
+        (train_loss, val_loss) (tuple[dict, dict] | None):
+            Only returned if `return_loss` is `True`.
+            * **train_loss**: A dictionary containing 'loss' (per epoch) and 'batch_loss' (per iteration).
+            * **val_loss**: A dictionary containing 'loss' and 'batch_loss' for the validation set.
 
     Example:
         ```python
         import qim3d
 
+        # 1. Setup components
         base_path = "dataset"
-        model = qim3d.ml.models.UNet(size = 'xxsmall')
-        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
-        hyperparameters = qim3d.ml.Hyperparameters(model, n_epochs = 5)
+        model = qim3d.ml.models.UNet(size='xxsmall')
+        hyperparameters = qim3d.ml.Hyperparameters(model, n_epochs=5)
+        augmentation = qim3d.ml.Augmentation(resize='crop', transform_train='light')
 
-        # Set up datasets and dataloaders
+        # 2. Prepare Data
         train_set, val_set, test_set = qim3d.ml.prepare_datasets(
-            path = base_path,
-            val_fraction = 0.5,
-            model = model,
-            augmentation = augmentation
-            )
-
+            path=base_path,
+            val_fraction=0.5,
+            model=model,
+            augmentation=augmentation
+        )
+        
         train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
-            train_set = train_set,
-            val_set = val_set,
-            test_set = test_set,
-            batch_size = 1,
-            )
+            train_set, val_set, test_set, batch_size=1
+        )
 
-        # Train model
+        # 3. Train
         qim3d.ml.train_model(
-            model = model,
-            hyperparameters = hyperparameters,
-            train_loader = train_loader,
-            val_loader = val_loader,
-            checkpoint_directory = base_path,
-            plot = True)
+            model=model,
+            hyperparameters=hyperparameters,
+            train_loader=train_loader,
+            val_loader=val_loader,
+            checkpoint_directory=base_path,
+            plot=True
+        )
         ```
-
     """
     # Get hyperparameters
     params_dict = hyperparameters()
@@ -180,27 +187,40 @@ def train_model(
 
 def load_checkpoint(model: torch.nn.Module, checkpoint_path: str) -> torch.nn.Module:
     """
-    Loads a trained model checkpoint from a .pth file.
+    Restores a model's state (weights and biases) from a saved checkpoint file.
+    
+    This function loads a dictionary of learned parameters from a `.pth` file and applies them to the provided model architecture. This is essential for:
+    
+    * **Inference**: Using a pre-trained model to make predictions on new data.
+    * **Resuming Training**: Continuing the training process from a specific point.
+    * **Transfer Learning**: Fine-tuning a pre-trained model on a new task.
+
+    **Important:** The architecture of the `model` object must match the architecture used when the checkpoint was saved. If the shapes of the layers do not align, a runtime error will occur.
 
     Args:
-        model (torch.nn.Module): The PyTorch model to load the checkpoint into.
-        checkpoint_path (str): The path to the model checkpoint .pth file.
+        model (torch.nn.Module): The initialized PyTorch model architecture (e.g., a `UNet` instance).
+        checkpoint_path (str): The file path to the `.pth` checkpoint.
 
     Returns:
-        model (torch.nn.Module): The model with the loaded checkpoint.
+        model (torch.nn.Module):
+            The model with its weights updated from the file.
 
     Example:
         ```python
         import qim3d
-
-        # Instantiate model architecture
-        model = qim3d.ml.models.UNet(size = 'small')
+        
+        # 1. Define the architecture (must match the saved model)
+        model = qim3d.ml.models.UNet(size='small')
+        
+        # 2. Path to the saved weights
         checkpoint_path = "dataset/model_5epochs.pth"
 
-        # Load checkpoint into model
+        # 3. Load the weights
         model = qim3d.ml.load_checkpoint(model, checkpoint_path)
+        
+        # The model is now ready for inference
+        print("Checkpoint loaded successfully.")
         ```
-
     """
     model.load_state_dict(torch.load(checkpoint_path))
     log.info(f'Model checkpoint loaded from: {checkpoint_path}')
@@ -212,43 +232,31 @@ def model_summary(
     model: torch.nn.Module, dataloader: torch.utils.data.DataLoader
 ) -> torchinfo.ModelStatistics:
     """
-    Prints the summary of a PyTorch model.
+    Generates a detailed summary of the model's architecture and parameter count.
+
+    This function provides a comprehensive overview of the model, including the output shape of each layer, the number of trainable parameters, and the estimated memory usage. It automatically infers the input dimensions by sampling a single batch from the provided DataLoader.
 
     Args:
-        model (torch.nn.Module): The PyTorch model to summarize.
-        dataloader (torch.utils.data.DataLoader): The data loader used to determine the input shape.
+        model (torch.nn.Module): The PyTorch model to analyze.
+        dataloader (torch.utils.data.DataLoader): A DataLoader used to retrieve a sample batch for input shape inference.
 
     Returns:
-        summary (str): Summary of the model architecture.
+        model_s (torchinfo.ModelStatistics):
+            An object containing the model statistics. When printed, it displays a formatted table of layers and parameters.
 
     Example:
         ```python
         import qim3d
 
-        base_path = "dataset"
-        model = qim3d.ml.models.UNet(size = 'small')
-        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
+        # Define model and data components
+        model = qim3d.ml.models.UNet(size='small')
+        
+        # ... (assume train_loader is already prepared) ...
 
-        # Set up datasets and dataloaders
-        train_set, val_set, test_set = qim3d.ml.prepare_datasets(
-            path = base_path,
-            val_fraction = 0.5,
-            model = model,
-            augmentation = augmentation
-            )
-
-        train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
-            train_set = train_set,
-            val_set = val_set,
-            test_set = test_set,
-            batch_size = 1,
-            )
-
-        # Get model summary
+        # Print model summary
         summary = qim3d.ml.model_summary(model, train_loader)
         print(summary)
         ```
-
     """
     images, _ = next(iter(dataloader))
     batch_size = tuple(images.shape)
@@ -263,69 +271,50 @@ def test_model(
     threshold: float = 0.5,
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     """
-    Performs inference on input data using the specified model.
+    Runs inference on a test dataset to generate segmentation predictions.
 
-    The input data should be in the form of a list, where each item is a tuple containing the input image tensor and the corresponding target label tensor.
-    The function checks the format and validity of the input data, ensures the model is in evaluation mode,
-    and generates predictions using the model. The input images, target labels, and predicted labels are returned as a tuple.
+    This function iterates through the provided `test_set`, applies the trained `model`, and post-processes the output. It automatically handles:
+    
+    1.  **Device Management**: Moves data to GPU if available.
+    2.  **Batching**: Adds necessary batch dimensions for the model input.
+    3.  **Activation**: Applies a Sigmoid function to convert raw model outputs (logits) into probabilities.
+    4.  **Thresholding**: Converts probabilities into binary masks using the specified `threshold`.
+    5.  **Format Conversion**: Returns inputs, targets, and predictions as NumPy arrays for easy analysis or visualization.
 
     Args:
-        model (torch.nn.Module): The trained model used for predicting segmentations.
-        test_set (torch.utils.data.Dataset): A test dataset containing input images and ground truth label data.
-        threshold (float): The threshold value used to binarize the model predictions.
+        model (torch.nn.Module): The trained PyTorch model.
+        test_set (torch.utils.data.Dataset): The dataset containing (image, label) pairs to evaluate.
+        threshold (float, optional): The probability threshold for binary classification. Pixels with a probability higher than this value are classified as foreground (1). Defaults to 0.5.
 
     Returns:
-        results (list): List of tuples (volume, target, pred) containing the input images, target labels, and predicted labels.
+        results (list[tuple[np.ndarray, np.ndarray, np.ndarray]]):
+            A list of tuples, where each tuple corresponds to one sample in the test set and contains:
+            * **volume**: The original input image.
+            * **target**: The ground truth label.
+            * **pred**: The predicted binary segmentation mask.
 
     Raises:
-        ValueError: If the data items do not consist of tensors.
-
-    Notes:
-        - The function assumes that the model is not already in evaluation mode (`model.eval()`).
+        ValueError: If the items yielded by `test_set` are not PyTorch tensors.
 
     Example:
         ```python
         import qim3d
+        import matplotlib.pyplot as plt
 
-        base_path = "dataset"
-        model = qim3d.ml.models.UNet(size = 'small')
-        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
-        hyperparameters = qim3d.ml.Hyperparameters(model, n_epochs = 10)
+        # ... (Assume model and test_set are already prepared) ...
 
-        # Set up datasets and dataloaders
-        train_set, val_set, test_set = qim3d.ml.prepare_datasets(
-            path = base_path,
-            val_fraction = 0.5,
-            model = model,
-            augmentation = augmentation
-            )
+        # Run inference
+        results = qim3d.ml.test_model(model=model, test_set=test_set)
 
-        train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
-            train_set = train_set,
-            val_set = val_set,
-            test_set = test_set,
-            batch_size = 1,
-            )
-
-        # Train model
-        qim3d.ml.train_model(
-            model = model,
-            hyperparameters = hyperparameters,
-            train_loader = train_loader,
-            val_loader = val_loader,
-            plot = True)
-
-        # Test model
-        results = qim3d.ml.test_model(
-            model = model,
-            test_set = test_set
-            )
-
-        # Get the result of the first test image
-        volume, target, pred = results[0]
-        qim3d.viz.slices_grid(pred, num_slices = 5)
+        # Visualize the first result
+        vol, target, pred = results[0]
+        
+        # Display the middle slice of the prediction
+        mid_slice = pred.shape[0] // 2
+        plt.imshow(pred[mid_slice], cmap='gray')
+        plt.title("Predicted Segmentation")
+        plt.show()
         ```
-
     """
     # Set model to evaluation mode
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
