@@ -56,18 +56,30 @@ def dilate(
     volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
-    Dilate an image. If method is either pygorpho.linear or pygorpho.flat, the dilation methods from [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used. These methods require a GPU, and we therefore recommend using the
-    [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
+    Performs morphological dilation on a 3D volume using CPU or GPU-accelerated methods.
+
+    Dilation enlarges bright regions (foreground) and shrinks dark regions (background). It is commonly used to close small holes, connect disjoint features, or thicken object boundaries.
+
+    This function supports efficient GPU acceleration using the `pygorpho` library, based on zonohedral approximations. If a GPU is not available, it is recommended to use the 'scipy.ndimage' method.
 
     Args:
-        volume (np.ndarray): The volume to dilate.
-        kernel (int or np.ndarray): The structuring element/kernel to use while performing dilation. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
-        method (str, optional): Determines the method for dilation. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
-        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+        volume (np.ndarray): The input 3D volume.
+        kernel (int or np.ndarray): The structuring element.
+            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
+            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
+        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
+            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
+            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
+            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
-        dilated_vol (np.ndarray): The dilated volume.
+        dilated_vol (np.ndarray):
+            The dilated volume.
 
+    !!! quote "Reference"
+        The GPU methods implement the algorithms described in:
+        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -90,7 +102,6 @@ def dilate(
         qim3d.viz.volumetric(vol_dilated)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_dilated.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
 
     try:
@@ -139,39 +150,51 @@ def erode(
     volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
-    Erode an image. If method is either pygorpho.linear or pygorpho.flat, the erosion methods from [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used. These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
+    Performs morphological erosion on a 3D volume using CPU or GPU-accelerated methods.
+
+    Erosion shrinks bright regions (foreground) and enlarges dark regions (background). It is commonly used to remove small noise (salt noise), detach touching objects, or thin out features.
+
+    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the 'scipy.ndimage' method.
 
     Args:
-            volume (np.ndarray): The volume to erode.
-            kernel (int or np.ndarray): The structuring element/kernel to use while performing erosion. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
-            method (str, optional): Determines the method for erosion. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
-            **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+        volume (np.ndarray): The input 3D volume.
+        kernel (int or np.ndarray): The structuring element.
+            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
+            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
+        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
+            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
+            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
+            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
-            eroded_vol (np.ndarray): The eroded volume.
+        eroded_vol (np.ndarray):
+            The eroded volume.
 
+    !!! quote "Reference"
+        The GPU methods implement the algorithms described in:
+        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
-            import qim3d
-            import numpy as np
+        import qim3d
+        import numpy as np
 
-            # Generate tubular synthetic blob
-            vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
-            # Visualize synthetic volume
-            qim3d.viz.volumetric(vol)
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
         ```python
-            # Apply erosion
-            vol_eroded = qim3d.morphology.erode(vol, kernel=(10,10,10), method='scipy.ndimage')
+        # Apply erosion
+        vol_eroded = qim3d.morphology.erode(vol, kernel=(10,10,10), method='scipy.ndimage')
 
-            # Visualize
-            qim3d.viz.volumetric(vol_eroded)
+        # Visualize
+        qim3d.viz.volumetric(vol_eroded)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_eroded.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
 
     try:
@@ -219,20 +242,30 @@ def opening(
     volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
-    Morphologically open a volume.
-    If method is either pygorpho.linear or pygorpho.flat, the open methods from [Zonohedral Approximation of Spherical Structuring Element for
-    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
-    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
+    Performs morphological opening on a 3D volume using CPU or GPU-accelerated methods.
+
+    Opening is defined as an **erosion** followed by a **dilation**. It is primarily used to remove small bright objects (salt noise) from the background while preserving the shape and size of larger objects. It smooths object contours by breaking narrow isthmuses and eliminating thin protrusions.
+
+    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) method.
 
     Args:
-        volume (np.ndarray): The volume to open.
-        kernel (int or np.ndarray): The structuring element/kernel to use while performing erosion. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
-        method (str, optional): Determines the method for opening. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
-        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+        volume (np.ndarray): The input 3D volume.
+        kernel (int or np.ndarray): The structuring element.
+            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
+            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
+        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
+            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
+            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
+            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
-        eroded_vol (np.ndarray): The eroded volume.
+        opened_vol (np.ndarray):
+            The opened volume.
 
+    !!! quote "Reference"
+        The GPU methods implement the algorithms described in:
+        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -256,7 +289,6 @@ def opening(
         <iframe src="https://platform.qim.dk/k3d/zonohedra_noised_volume.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-
         # Apply opening
         vol_opened = qim3d.morphology.opening(vol_noised, kernel=(6,6,6), method='scipy.ndimage')
 
@@ -265,9 +297,7 @@ def opening(
         ```
 
         <iframe src="https://platform.qim.dk/k3d/zonohedra_opening.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
-
     try:
         volume = np.asarray(volume)
     except TypeError as e:
@@ -313,20 +343,30 @@ def closing(
     volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
-    Morphologically close a volume.
-    If method is either pygorpho.linear or pygorpho.flat, the close methods from [Zonohedral Approximation of Spherical Structuring Element for
-    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
-    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
+    Performs morphological closing on a 3D volume using CPU or GPU-accelerated methods.
+
+    Closing is defined as a **dilation** followed by an **erosion**. It is primarily used to fill small dark holes, cracks, or gaps within bright objects while preserving their overall shape and size. It smooths object contours by fusing narrow breaks and filling small depressions.
+
+    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) method.
 
     Args:
-        volume (np.ndarray): The volume to be closed.
-        kernel (int or np.ndarray): The structuring element/kernel to use while performing opening. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
-        method (str, optional): Determines the method for closing. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
-        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+        volume (np.ndarray): The input 3D volume.
+        kernel (int or np.ndarray): The structuring element.
+            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
+            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
+        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
+            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
+            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
+            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
-        closed_vol (np.ndarray): The closed volume.
+        closed_vol (np.ndarray):
+            The closed volume.
 
+    !!! quote "Reference"
+        The GPU methods implement the algorithms described in:
+        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -350,7 +390,6 @@ def closing(
         qim3d.viz.volumetric(cube_closed)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_cube_closed.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
 
     try:
@@ -398,42 +437,51 @@ def black_tophat(
     volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
-    Perform black tophat operation on a volume.
-    This operation is defined as bothat(x)=close(x)-x.
-    If method is either pygorpho.linear or pygorpho.flat, the close methods from [Zonohedral Approximation of Spherical Structuring Element for
-    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
-    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
+    Performs the black top-hat transform on a 3D volume.
+
+    The black top-hat transform is defined as the difference between the morphological closing of the volume and the original volume (Closing - Input). It is used to extract dark features and valleys that are smaller than the structuring element (kernel) from a brighter background. This is particularly effective for background correction or isolating small dark structures in a non-uniformly lit image.
+
+    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.black_tophat.html) method.
 
     Args:
-        volume (np.ndarray): The volume to perform the black tophat on.
-        kernel (int or np.ndarray): The structuring element/kernel to use while performing opening. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
-        method (str, optional): Determines the method for black tophat. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
-        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+        volume (np.ndarray): The input 3D volume.
+        kernel (int or np.ndarray): The structuring element.
+            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
+            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
+        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
+            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
+            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
+            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
-        bothat_vol (np.ndarray): The morphed volume.
+        bothat_vol (np.ndarray):
+            The processed volume containing the extracted dark features.
 
+    !!! quote "Reference"
+        The GPU methods implement the algorithms described in:
+        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
-            ```python
-            import qim3d
-            import numpy as np
+        ```python
+        import qim3d
+        import numpy as np
 
-            # Generate tubular synthetic blob
-            vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
-            # Visualize synthetic volume
-            qim3d.viz.volumetric(vol)
-            ```
-            <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
-            ```python
-            # Apply the tophat
-            vol_black = qim3d.morphology.black_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+        
+        ```python
+        # Apply the black top-hat to extract dark details
+        vol_black = qim3d.morphology.black_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')
 
-            qim3d.viz.volumetric(vol_black)
-            ```
-            <iframe src="https://platform.qim.dk/k3d/zonohedra_black_tophat.html" width="100%" height="500" frameborder="0"></iframe>
-
+        qim3d.viz.volumetric(vol_black)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_black_tophat.html" width="100%" height="500" frameborder="0"></iframe>
     """
 
     try:
@@ -481,43 +529,51 @@ def white_tophat(
     volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
 ) -> np.ndarray:
     """
-    Perform white tophat operation on a volume.
-    This operation is defined as tophat(x)=x-open(x).
-    If method is either pygorpho.linear or pygorpho.flat, the open methods from [Zonohedral Approximation of Spherical Structuring Element for
-    Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf) are used.
-    These methods require a GPU, and we therefore recommend using the [scipy implementation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) (scipy.ndimage) if no GPU is available on your current device.
+    Performs the white top-hat transform on a 3D volume.
+
+    The white top-hat transform is defined as the difference between the original volume and its morphological opening (Input - Opening). It is used to extract bright features and peaks that are smaller than the structuring element (kernel) from a darker background. This is a powerful tool for background subtraction, enhancing small bright spots, or correcting uneven illumination in a volume.
+
+    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.white_tophat.html) method.
 
     Args:
-        volume (np.ndarray): The volume to perform the white tophat on.
-        kernel (int or np.ndarray): The structuring element/kernel to use while performing opening. Note that the kernel should be 3D unless if the linear method is used. If this method is used, a kernel resembling a ball will be created with an integer radius.
-        method (str, optional): Determines the method for white tophat. Use either 'pygorpho.linear', 'pygorpho.flat' or 'scipy.ndimage'. Defaults to 'pygorpho.linear'.
-        **kwargs (Any): Additional keyword arguments for the used method. See the documentation for more information.
+        volume (np.ndarray): The input 3D volume.
+        kernel (int or np.ndarray): The structuring element.
+            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
+            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
+        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
+            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
+            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
+            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
-        tophat_vol (np.ndarray): The morphed volume.
+        tophat_vol (np.ndarray):
+            The processed volume containing the extracted bright features.
 
+    !!! quote "Reference"
+        The GPU methods implement the algorithms described in:
+        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
-            ```python
-            import qim3d
-            import numpy as np
+        ```python
+        import qim3d
+        import numpy as np
 
-            # Generate tubular synthetic blob
-            vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
+        # Generate tubular synthetic blob
+        vol = qim3d.generate.volume(noise_scale=0.025, seed=50)
 
-            # Visualize synthetic volume
-            qim3d.viz.volumetric(vol)
-            ```
-            <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+        # Visualize synthetic volume
+        qim3d.viz.volumetric(vol)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
 
-            ```python
-            # Apply tophat
-            vol_white = qim3d.morphology.white_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')
+        ```python
+        # Apply the white top-hat to extract bright details
+        vol_white = qim3d.morphology.white_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')
 
-            qim3d.viz.volumetric(vol_white)
-            ```
-            <iframe src="https://platform.qim.dk/k3d/zonohedra_white_tophat.html" width="100%" height="500" frameborder="0"></iframe>
-
+        qim3d.viz.volumetric(vol_white)
+        ```
+        <iframe src="https://platform.qim.dk/k3d/zonohedra_white_tophat.html" width="100%" height="500" frameborder="0"></iframe>
     """
 
     try:

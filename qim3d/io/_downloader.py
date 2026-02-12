@@ -87,15 +87,25 @@ class _Myfolder:
 
 class Downloader:
     """
-    Class for downloading large data files available on the [QIM data repository](https://data.qim.dk/).
+    Provides access to the QIM online data repository and manages file downloads.
+    
+    This utility allows users to easily fetch, download, and load sample datasets for testing, 
+    benchmarking, or educational purposes. It automatically handles local caching to avoid 
+    repeated downloads of the same file.
+    
+    The `Downloader` acts as an interface to the [QIM data repository](https://data.qim.dk/), 
+    organizing files into accessible attributes (e.g., `downloader.Cowry_Shell.Cowry_DOWNSAMPLED`). It also 
+    serves as a general-purpose tool to retrieve files from any given URL via the `__call__` method.
 
     Attributes:
-        folder_name (str or os.PathLike): Folder class with the name of the folder in <https://data.qim.dk/>
+        folder_name (str or os.PathLike): Dynamic attributes corresponding to folders in the repository (e.g., `Coal`, `Foam`, `Shell`).
 
     Methods:
-        list_files(): Prints the downloadable files from the QIM data repository.
+        list_files(): Displays a catalog of downloadable files available in the repository.
+        __call__(url, ...): Downloads a file from a specific URL.
 
-    Syntax for downloading and loading a file is `qim3d.io.Downloader().{folder_name}.{file_name}(load_file=True)`
+    Syntax for downloading and loading a pre-defined file:
+    `qim3d.io.Downloader().{folder_name}.{file_name}(load_file=True)`
 
     ??? info "Overview of available data"
         Below is a table of the available folders and files on the [QIM data repository](https://data.qim.dk/).
@@ -127,13 +137,16 @@ class Downloader:
         import qim3d
 
         downloader = qim3d.io.Downloader()
+        
+        # Browse available files
         downloader.list_files()
+        
+        # Download and load a specific sample
         data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
 
         qim3d.viz.slicer_orthogonal(data, colormap="magma")
         ```
         ![cowry shell](../../assets/screenshots/cowry_shell_slicer.gif)
-
     """
 
     def __init__(self):
@@ -150,36 +163,40 @@ class Downloader:
         scale: int = 0,
     ) -> object:
         """
-        Download any file given its URL.
+        Downloads a file or dataset from a direct URL.
+
+        This function serves as a general-purpose file retriever, capable of fetching data from 
+        external resources or cloud storage. It supports standard image formats (TIFF, HDF5, NIfTI, DICOM) 
+        as well as modern chunked formats (Zarr, OME-Zarr).
+
+        For large 3D volumes that may exceed available RAM, this function supports lazy loading 
+        via the `virtual_stack` parameter. This allows users to work with metadata and open the 
+        file without immediately reading the full pixel data into memory.
 
         Args:
             url (str):
-                URL of the file to download. Supported formats are regular files
-                (TIFF, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM) and
-                Zarr/OME-Zarr stores (.zarr).
+                The direct URL of the file to download. Supported formats include:
+                regular files (TIFF, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM) 
+                and Zarr/OME-Zarr stores.
             output_dir (str, optional):
-                Base directory to save files. Default is the current working directory.
+                The local directory where the file will be saved. Defaults to the current working directory.
             load_file (bool, optional):
-                If True, load the file after download. Default is False.
+                If `True`, the function will import/read the file into a Python object after downloading. 
+                If `False`, it only downloads the file to the disk. Default is `False`.
             virtual_stack (bool, optional):
-                If True and the file format supports it, load the file on demand
-                as a virtual stack (lazy loading). Default is True.
+                If `True`, the file is loaded as a virtual stack (lazy loading) if the format supports it. 
+                This is recommended for large datasets to save memory. Default is `True`.
             scale (int, optional):
-                If `load_file` is True and the file is a Zarr/OME-Zarr store, the scale parameter specifies the resolution level to load. Default is 0 (full resolution).
+                Used only for Zarr/OME-Zarr stores when `load_file` is True. Specifies the resolution 
+                level (pyramid scale) to load. 0 is full resolution. Default is 0.
 
         Returns:
-        str or numpy.ndarray or dask.array.Array:
-            - If `load_file` is False, returns the path to the downloaded file
-            or Zarr store.
-            - If `load_file` is True and the file is a **regular file**:
-                - Returns a NumPy array if `virtual_stack=False`.
-                - Returns a virtual stack (lazy-loaded NumPy-like object) if
-                `virtual_stack=True`.
-            - If `load_file` is True and the file is a **Zarr/OME-Zarr store**:
-                - Returns a NumPy array at the requested `scale` if
-                `virtual_stack=False`.
-                - Returns a Dask array at the requested `scale` if
-                `virtual_stack=True`.
+            object:
+                The downloaded data or file path. The specific return type depends on the parameters:
+
+                * **str**: The local path to the file (if `load_file=False`).
+                * **numpy.ndarray**: The full image data loaded into memory (if `load_file=True` and `virtual_stack=False`).
+                * **dask.array.Array**: A lazy-loaded virtual stack (if `load_file=True` and `virtual_stack=True`).
 
         Example:
             ```python
@@ -187,21 +204,20 @@ class Downloader:
 
             downloader = qim3d.io.Downloader()
 
-            # Download a file without loading
+            # 1. Download a file from a URL without loading it
             path = downloader(
-                url="https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Cowry_Shell/Cowry_DOWNSAMPLED.tif",
+                url="[https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif](https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif)",
                 output_dir=".",
                 load_file=False
             )
 
-            # Download and load directly as a NumPy array
+            # 2. Download and load directly into memory (Numpy array)
             data = downloader(
-                url="https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Cowry_Shell/Cowry_DOWNSAMPLED.tif",
+                url="[https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif](https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif)",
                 load_file=True,
                 virtual_stack=False
             )
             ```
-
         """
 
         parsed = urlparse(url)
@@ -265,7 +281,15 @@ class Downloader:
         return dest
 
     def list_files(self) -> None:
-        """Generate and print formatted folder, file, and size information."""
+        """
+        Displays a catalog of all available datasets in the QIM repository.
+        
+        This method prints a formatted list of folder names, file names, and file sizes to the console log. 
+        It is useful for exploring the inventory of biological and material science scans available for 
+        download without needing to visit the website.
+
+        The output groups files by their parent folder (e.g., 'Coal', 'Corals', 'Foam').
+        """
 
         url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
 

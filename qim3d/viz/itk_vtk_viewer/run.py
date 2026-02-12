@@ -213,10 +213,21 @@ def itk_vtk(
     viewer_port: int = 3000,
 ):
     """
-    Command to run in cli/__init__.py. Tries to run the vizualization,
-    if that fails, asks the user to install it. This function is needed
-    here so we don't have to import NotInstalledError and Installer,
-    which exposes these to user.
+    Launches the ITK-VTK Viewer in a web browser to visualize 3D data.
+
+    Starts a local file server and opens a dedicated visualization window in your default web browser. This function is particularly effective for viewing OME-Zarr stores and other large datasets that benefit from on-demand loading. If the viewer is not found, it prompts to handle the installation automatically.
+
+    **Key Features:**
+
+    * **Web-Based:** Runs the visualization in a browser tab.
+    * **Large Data Support:** Efficiently streams data, making it ideal for large segmentation masks or multi-scale pyramids.
+    * **Auto-Configuration:** Manages local ports and installation dependencies automatically.
+
+    Args:
+        filename (str or PathLike, optional): Path to the file or OME-Zarr store to be visualized.
+        open_browser (bool, optional): If `True`, automatically opens the visualization in a new tab.
+        file_server_port (int, optional): The port number for the local file server hosting the data.
+        viewer_port (int, optional): The port number for the ITK-VTK viewer application.
     """
 
     try:

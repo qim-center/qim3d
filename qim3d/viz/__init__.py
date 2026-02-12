@@ -18,7 +18,8 @@ from ._data_exploration import (
     threshold,
 )
 from ._detection import circles
-from ._k3d import mesh, volumetric
+from ._k3d import volumetric
+from ._mesh import mesh
 from ._local_thickness import local_thickness
 from ._metrics import grid_overview, grid_pred, plot_metrics, vol_masked
 from ._preview import image_preview

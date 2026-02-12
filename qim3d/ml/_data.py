@@ -174,39 +174,48 @@ def prepare_datasets(
     augmentation: Augmentation,
 ) -> tuple[torch.utils.data.Subset, torch.utils.data.Subset, torch.utils.data.Subset]:
     """
-    Splits and augments the train/validation/test datasets.
+    Loads, splits, and applies augmentations to the dataset.
+
+    This function automates the creation of PyTorch datasets for training, validation, and testing. It handles:
+    
+    1.  **Loading**: Reads data from the specified directory structure (expects `train/images`, `train/labels`, `test/images`, `test/labels`).
+    2.  **Splitting**: Divides the training data into a training set and a validation set based on `val_fraction`.
+    3.  **Augmentation**: Applies the transformation pipelines defined in the `augmentation` object to each split.
 
     Args:
-        path (str): Path to the dataset.
-        val_fraction (float): Fraction of the data for the validation set.
-        model (torch.nn.Module): PyTorch Model.
-        augmentation (monai.transforms.Compose): Augmentation class for the dataset with predefined augmentation levels.
+        path (str): The root directory of the dataset.
+        val_fraction (float): The proportion of the training data to reserve for validation (0.0 to 1.0).
+        model (torch.nn.Module): The PyTorch model. (Used to determine the expected input dimensions/channels for resizing checks).
+        augmentation (Augmentation): An instance of `qim3d.ml.Augmentation` containing the transformation rules for each split.
 
     Returns:
-        train_set (torch.utils.data.Subset): Training dataset.
-        val_set (torch.utils.data.Subset): Validation dataset.
-        test_set (torch.utils.data.Subset): Testing dataset.
+        (train_set, val_set, test_set): A tuple of `torch.utils.data.Subset` objects ready for use with a DataLoader.
 
     Raises:
-        ValueError: If the validation fraction is not a float, and is not between 0 and 1.
+        ValueError: If `val_fraction` is not a float between 0 and 1.
 
     Example:
         ```python
         import qim3d
-
+        
+        # Define parameters
         base_path = "dataset"
-        model = qim3d.ml.models.UNet(size = 'small')
-        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
+        model = qim3d.ml.models.UNet(size='small')
+        
+        # Configure augmentation
+        aug_pipeline = qim3d.ml.Augmentation(resize='crop', transform_train='light')
 
-        # Set up datasets
-        train_set, val_set, test_set = qim3d.ml.prepare_datasets(
-            path = base_path,
-            val_fraction = 0.5,
-            model = model,
-            augmentation = augmentation
-            )
+        # Generate datasets
+        train_ds, val_ds, test_ds = qim3d.ml.prepare_datasets(
+            path=base_path, 
+            val_fraction=0.2, 
+            model=model, 
+            augmentation=aug_pipeline
+        )
+        
+        print(f"Training samples: {len(train_ds)}")
+        print(f"Validation samples: {len(val_ds)}")
         ```
-
     """
 
     if not isinstance(val_fraction, float) or not (0 <= val_fraction < 1):
@@ -265,47 +274,44 @@ def prepare_dataloaders(
     torch.utils.data.DataLoader,
 ]:
     """
-    Prepares the dataloaders for model training.
+    Wraps the datasets into PyTorch DataLoaders for efficient batch processing.
+
+    DataLoaders handle the complexity of batching, shuffling, and parallel data loading. This function ensures that your model receives data in the correct format and speed during training.
+
+    **Note:** It is recommended to keep `shuffle_train=True` to improve model generalization.
 
     Args:
-        train_set (torch.utils.data): Training dataset.
-        val_set (torch.utils.data): Validation dataset.
-        test_set (torch.utils.data): Testing dataset.
-        batch_size (int): Size of the batches that should be trained upon.
-        shuffle_train (bool, optional): Optional input to shuffle the training data (training robustness).
-        num_workers (int, optional): Defines how many processes should be run in parallel. Default is 8.
-        pin_memory (bool, optional): Loads the datasets as CUDA tensors. Default is False.
+        train_set (torch.utils.data.Dataset): The training dataset.
+        val_set (torch.utils.data.Dataset): The validation dataset.
+        test_set (torch.utils.data.Dataset): The testing dataset.
+        batch_size (int): The number of samples to process in a single step (batch).
+        shuffle_train (bool, optional): If `True`, the training data is reshuffled at every epoch. This prevents the model from learning the order of the data. Defaults to `True`.
+        num_workers (int, optional): The number of subprocesses to use for data loading. `0` means that the data will be loaded in the main process. Increasing this speeds up data loading but consumes more RAM. Defaults to 8.
+        pin_memory (bool, optional): If `True`, the data loader will copy Tensors into CUDA pinned memory before returning them. This can speed up data transfer to the GPU. Defaults to `False`.
 
     Returns:
-        train_loader (torch.utils.data.DataLoader): Training dataloader.
-        val_loader (torch.utils.data.DataLoader): Validation dataloader.
-        test_loader (torch.utils.data.DataLoader): Testing dataloader.
+        (train_loader, val_loader, test_loader): A tuple containing the three `torch.utils.data.DataLoader` objects.
 
     Example:
         ```python
         import qim3d
 
-        base_path = "dataset"
-        model = qim3d.ml.models.UNet(size = 'small')
-        augmentation =  qim3d.ml.Augmentation(resize = 'crop', transform_train = 'light')
+        # ... (assume datasets are already created as train_set, val_set, test_set) ...
 
-        # Set up datasets
-        train_set, val_set, test_set = qim3d.ml.prepare_datasets(
-            path = base_path,
-            val_fraction = 0.5,
-            model = model,
-            augmentation = augmentation
-            )
-
-        # Set up dataloaders
+        # Create DataLoaders
         train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
-            train_set = train_set,
-            val_set = val_set,
-            test_set = test_set,
-            batch_size = 1,
-            )
+            train_set=train_set,
+            val_set=val_set,
+            test_set=test_set,
+            batch_size=4,
+            num_workers=4
+        )
+        
+        # Iterate through the training loader
+        for batch in train_loader:
+            inputs, labels = batch['image'], batch['label']
+            # training step...
         ```
-
     """
     from torch.utils.data import DataLoader
 
