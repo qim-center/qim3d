@@ -6,10 +6,13 @@ from ._generators import (
     background,
     volume,
 )
+from ._shapes import berry, rope
 
 __all__ = [
     'volume',
     'volume_collection',
     'background',
     'ParameterVisualizer',
+    'berry',
+    'rope',
 ]
