@@ -73,3 +73,66 @@ body > header{
   margin-top: 0.05em;
   vertical-align: middle;
 }
+
+/* Style API Reference sidebar links to look like inline code */
+.md-nav__link[href*="api_reference/"] {
+    font-family: var(--md-code-font-family);
+    background-color: var(--md-code-bg-color);
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.1rem;
+    width: fit-content;
+}
+
+/* Add an orange bar to the left of the active API reference link */
+.md-nav__item--active > .md-nav__link[href*="api_reference/"] {
+    position: relative;
+}
+
+.md-nav__item--active > .md-nav__link[href*="api_reference/"]::before {
+    content: "";
+    position: absolute;
+    left: -12px; /* Controls how far left the bar sits from the text box */
+    top: 10%;    /* Slightly offsets the top to match the text height */
+    bottom: 10%; /* Slightly offsets the bottom */
+    width: 4px;  /* Thickness of the bar */
+    background-color: var(--md-accent-fg-color); /* Uses your orange accent color */
+    border-radius: 2px;
+}
+
+/* Make main headers larger, bold, and add a bottom border */
+.md-typeset h1 {
+    font-size: 2.5em; 
+    font-weight: bold;
+    border-bottom: 2px solid var(--md-default-fg-color--lightest); 
+    padding-bottom: 0.2em; 
+}
+
+/* Ensure inline code inside headers is also bold and scales properly */
+.md-typeset h1 code {
+    font-size: 1em; 
+    font-weight: bold;
+}
+
+/* Push the last tab (Release Notes) to the right edge and align with repo */
+.md-tabs__list .md-tabs__item:last-child {
+    margin-left: auto;
+    padding-right: 4.5rem; /* Adjusted to align with repo block above it */
+}
+
+
+
+/* Add an orange bar to the left of the active User Guide link */
+.md-nav__item--active > .md-nav__link[href*="user_guide/"] {
+    position: relative;
+}
+
+.md-nav__item--active > .md-nav__link[href*="user_guide/"]::before {
+    content: "";
+    position: absolute;
+    left: -12px; /* Controls how far left the bar sits from the text box */
+    top: 10%;    /* Slightly offsets the top to match the text height */
+    bottom: 10%; /* Slightly offsets the bottom */
+    width: 4px;  /* Thickness of the bar */
+    background-color: var(--md-accent-fg-color); /* Uses your orange accent color */
+    border-radius: 2px;
+}
