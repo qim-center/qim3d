@@ -31,7 +31,7 @@ def vectors(
     Visualizes the local orientation of structures using structure tensor eigenvectors.
 
     This function is designed to analyze anisotropy and fiber direction in 3D volumes. It generates a three-panel visualization to interpret the structure tensor output:
-    
+
     1.  **Quiver Plot:** Overlays vector arrows on the image slice to show the dominant direction in the 2D plane.
     2.  **Orientation Histogram:** displays the distribution of angles, helping to identify if structures are aligned or random.
     3.  **Color Map:** Renders the slice using an HSV scheme where Hue represents the in-plane angle and Saturation represents the out-of-plane alignment (vectors pointing out of the screen appear desaturated/gray).
@@ -44,11 +44,11 @@ def vectors(
         min_value (float, optional): Minimum value for the volume display contrast.
         max_value (float, optional): Maximum value for the volume display contrast.
         slice_index (int or float, optional): The initial slice to display.
-            
+
             * **int**: The exact index of the slice.
             * **float**: A fraction between 0.0 and 1.0.
             * **None**: Defaults to the middle slice.
-            
+
         grid_size (int, optional): The spacing between arrows in the quiver plot. Lower values result in denser vector fields. Defaults to 10.
         interactive (bool, optional): If `True`, returns a widget with sliders for slicing and grid density. If `False`, returns a static figure. Defaults to `True`.
         figsize (tuple[int, int], optional): The width and height of the figure in inches. Defaults to (10, 5).
@@ -75,6 +75,7 @@ def vectors(
         qim3d.viz.vectors(vol, vec, axis = 2, interactive = True)
         ```
         ![structure tensor](../../assets/screenshots/structure_tensor_visualization.gif)
+
     """
 
     # Ensure volume is a float
@@ -349,17 +350,17 @@ def vector_field_3d(
     Args:
         vec (np.ndarray): The eigenvectors from the structure tensor.
             Expected shapes:
-            
+
             * `(3, Z, Y, X)`: Contains a single eigenvector per voxel (e.g., result of `structure_tensor(..., smallest=True)`).
             * `(3, 3, Z, Y, X)`: Contains all three eigenvectors per voxel.
-        
+
         val (np.ndarray): The eigenvalues from the structure tensor, with shape `(3, Z, Y, X)`.
         select_eigen (str, optional): Determines which eigenvector to visualize (only used if `vec` contains all three).
-            
+
             * `'smallest'`: Visualizes the vector associated with the smallest eigenvalue (typically the **surface normal** in planar structures).
             * `'largest'`: Visualizes the vector associated with the largest eigenvalue (typically the **fiber direction** in linear structures).
             * `'middle'`: Visualizes the intermediate vector.
-            
+
         sampling_step (int, optional): The stride for the sampling grid. A value of `4` means every 4th voxel in each dimension is sampled (averaging the region). Higher values improve performance but reduce resolution. Defaults to 4.
         max_cones (int, optional): The maximum number of cones to render. If the sampled grid exceeds this, only the points with the highest eigenvalues (strongest features) are kept. Defaults to 50000.
         cone_size (float, optional): A scaling factor for the size of the cones. Defaults to 1.
@@ -380,21 +381,27 @@ def vector_field_3d(
     Example:
         ```python
         vol = qim3d.examples.fibers_150x150x150
-        val, vec = qim3d.processing.structure_tensor(vol, smallest = False)
-        qim3d.viz.vector_field_3d(vec, val, sampling_step=12, max_cones=5000, cone_size = 2, select_eigen="largest")
+        val, vec = qim3d.processing.structure_tensor(vol, smallest = True)
+        qim3d.viz.vector_field_3d(vec, val, sampling_step=12, max_cones=5000, cone_size = 2)
         ```
         ![vector field](../../assets/screenshots/viz-vector_field.png)
+
 
     Notes:
         **Interpreting Eigenvalues and Eigenvectors**
 
-        The structure tensor yields three eigenvalues ($\lambda_1 \le \lambda_2 \le \lambda_3$) and corresponding eigenvectors for every voxel. The relationship between these values indicates the local geometry:
+        The structure tensor yields three eigenvalues (λ₁ ≤ λ₂ ≤ λ₃) and corresponding eigenvectors.
+        The smallest eigenvector (v₁) indicates the predominant orientation, the direction of minimum
+        intensity variation.
 
-        | Structure Type | Eigenvalue Pattern | Dominant Vector |
+        | Structure Type | Eigenvalue Pattern | Interpretation |
         | :--- | :--- | :--- |
-        | **Planar** (e.g., sheets, boundaries) | $\lambda_1 \approx \lambda_2 \gg \lambda_3$ | Smallest eigenvector ($\approx$ Surface Normal) |
-        | **Linear** (e.g., fibers, tubes) | $\lambda_1 \gg \lambda_2 \approx \lambda_3$ | Largest eigenvector ($\approx$ Line Direction) |
-        | **Isotropic** (e.g., noise, flat regions) | $\lambda_1 \approx \lambda_2 \approx \lambda_3$ | No dominant direction |
+        | **Linear** (fibers, tubes) | λ₁ ≪ λ₂ ≈ λ₃ | Follow v₁ to trace fiber |
+        | **Planar** (sheets, boundaries) | λ₁ ≈ λ₂ ≪ λ₃ | v₁ tangent to surface  |
+        | **Isotropic** (noise, blobs) | λ₁ ≈ λ₂ ≈ λ₃ | No predominant direction |
+
+        [Structure Tensor Notes](https://people.compute.dtu.dk/vand/notes/ST_intro.pdf)
+
     """
     if vec.ndim == 4:
         val = val[0]
