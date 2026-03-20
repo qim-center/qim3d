@@ -24,7 +24,7 @@ from ._local_thickness import local_thickness
 from ._metrics import grid_overview, grid_pred, plot_metrics, vol_masked
 from ._preview import image_preview
 from ._structure_tensor import vectors, vector_field_3d
-from .itk_vtk_viewer import itk_vtk
+from .volume_explorer import volume_explorer, itk_vtk  # itk_vtk kept as legacy alias
 
 __all__ = [
     '_layers2d',
@@ -53,7 +53,6 @@ __all__ = [
     'image_preview',
     'vectors',
     'vector_field_3d',
-    'itk_vtk',
     'volume_explorer',
     'iso_surface',
     'overlay',
