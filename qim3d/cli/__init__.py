@@ -63,7 +63,7 @@ def main():
         '--method',
         type=str,
         metavar='METHOD',
-        default='volume-explorer',
+        default='itk-vtk',
         help='Which method is used to display file.',
     )
     viz_parser.add_argument(
@@ -168,13 +168,8 @@ def main():
             interface.launch(inbrowser=inbrowser, force_light_mode=False)
 
     elif args.subcommand == 'viz':
-        if args.method == 'volume-explorer':
-            # We need the full path to the file for the viewer
-            current_dir = os.getcwd()
-            full_path = os.path.normpath(os.path.join(current_dir, args.source))
-            qim3d.viz.volume_explorer(full_path, open_browser=not args.no_browser)
 
-        elif args.method == 'itk-vtk':
+        if args.method == 'itk-vtk':
             # We need the full path to the file for the viewer
             current_dir = os.getcwd()
             full_path = os.path.normpath(os.path.join(current_dir, args.source))
