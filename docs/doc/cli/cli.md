@@ -96,17 +96,17 @@ The command line interface also allows you to easily visualize data.
 
 ### `qim3d viz`
 !!! quote "Reference"
-    Volumetric visualization uses [itk-vtk-viewer](https://kitware.github.io/itk-vtk-viewer/docs/index.html) and [K3D](https://github.com/K3D-tools/K3D-jupyter).
+    Volumetric visualization uses [volume-explorer](https://www.npmjs.com/package/@qim3d/volume-explorer) and [K3D](https://github.com/K3D-tools/K3D-jupyter).
 
-You can launch volumetric visualizations directly from the command line. By default, it will launch the `itk-vtk-viewer`, but `k3d` can be selected by passing the argument `--method k3d`.
+You can launch volumetric visualizations directly from the command line. By default, it will launch the `volume-explorer`, but `k3d` can be selected by passing the argument `--method k3d`.
 
 !!! info
-    If `itk-vtk-viewer` is not installed, you will be prompted for automatic installation via the `qim3d` library.
+    If `volume-explorer` is not installed, you will be prompted for automatic installation via the `qim3d` library.
 
 | Argument         | Description     |
 | ---------------- | --------------- |
 | `source`         | Path to the volume file or OME-Zarr store (any image format supported by `qim3d.io.load()`). |
-| `--method`       | Visualization method: `itk-vtk-viewer` (default) or `k3d`. |
+| `--method`       | Visualization method: `volume-explorer` (default) or `k3d`. |
 | `--destination`  | Custom `.html` file to be saved when using `k3d`. By default, `k3d.html` is saved. An file is aways saved when calling `k3d`. |
 | `--no-browser`   | Prevent the file from opening automatically when finished.|
 
@@ -117,22 +117,20 @@ You can launch volumetric visualizations directly from the command line. By defa
     ```
 
     ``` title="Output"
-    itk-vtk-viewer
-    => Serving /home/fima/Notebooks/Qim3d on port 3000
-
-        enp0s31f6 => http://10.52.0.158:3000/
-        wlp0s20f3 => http://10.197.104.229:3000/
+    volume-explorer
+    QIM Volume Explorer is running at http://127.0.0.1:4173/?src=http://localhost:8042/Okinawa_Foram_1.zarr
+    Serving static assets from /home/fima/Notebooks/Qim3d
 
     Serving directory '/home/fima/Notebooks/Qim3d'
     http://localhost:8042/
 
     Visualization url:
-    http://localhost:3000/?rotate=false&fileToLoad=http://localhost:8042/Okinawa_Foram_1.zarr
+    http://localhost:4173/?src=http://localhost:8042/Okinawa_Foram_1.zarr
     ```
 
     A new tab in the default browser will be open with the visualization:
 
-    ![itk-vtk-viewer](../../assets/screenshots/itk-vtk-viewer.gif)
+    ![volume-explorer](../../assets/screenshots/itk-vtk-viewer.gif)
 
 !!! Example "Example using k3d"
     ``` title="Command"

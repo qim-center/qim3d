@@ -64,7 +64,7 @@ def main():
         type=str,
         metavar='METHOD',
         default='volume-explorer',
-        help='Which method is used to display file.',
+        help='Which method is used to display the file (volume-explorer or k3d).',
     )
     viz_parser.add_argument(
         '--destination', default='k3d.html', help='Path to save html file.'
@@ -168,20 +168,16 @@ def main():
             interface.launch(inbrowser=inbrowser, force_light_mode=False)
 
     elif args.subcommand == 'viz':
-        if args.method == 'volume-explorer':
+
+        method = args.method.lower()
+
+        if method in ['volume-explorer', 'volume_explorer', 'itk-vtk', 'itk-vtk-viewer']:
             # We need the full path to the file for the viewer
             current_dir = os.getcwd()
             full_path = os.path.normpath(os.path.join(current_dir, args.source))
             qim3d.viz.volume_explorer(full_path, open_browser=not args.no_browser)
 
-        elif args.method == 'itk-vtk':
-            # We need the full path to the file for the viewer
-            current_dir = os.getcwd()
-            full_path = os.path.normpath(os.path.join(current_dir, args.source))
-            qim3d.viz.itk_vtk(full_path, open_browser=not args.no_browser)
-        
-
-        elif args.method == 'k3d':
+        elif method == 'k3d':
             volume = qim3d.io.load(str(args.source))
             print('\nGenerating k3d plot...')
             qim3d.viz.volumetric(volume, show=False, save=str(args.destination))
@@ -191,7 +187,7 @@ def main():
                 webbrowser.open_new_tab(args.destination)
         else:
             raise NotImplementedError(
-                f"Method '{args.method}' is not valid. Try 'k3d' or default 'itk-vtk-viewer'"
+                f"Method '{args.method}' is not valid. Try 'k3d' or default 'volume-explorer'"
             )
 
     elif args.subcommand == 'preview':

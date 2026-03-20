@@ -64,7 +64,7 @@ Remember to keep your pip installation [up to date](../../index.md/#get-the-late
 
 ### v0.4.4 (11/10/2024)
 
-- Introduction of `itk-vtk-viewer` for OME-Zarr data visualization 🎉 ![itk-vtk-viewer](../../assets/screenshots/itk-vtk-viewer.gif)
+- Introduction of `volume-explorer` (formerly `itk-vtk-viewer`) for OME-Zarr data visualization 🎉 ![volume-explorer](../../assets/screenshots/itk-vtk-viewer.gif)
 
 
 ### v0.4.3 (02/10/2024)
