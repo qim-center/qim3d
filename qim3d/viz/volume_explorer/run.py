@@ -4,6 +4,7 @@ import threading
 import time
 import webbrowser
 from pathlib import Path
+import qim3d
 
 from qim3d.utils._logger import log
 

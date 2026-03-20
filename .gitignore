@@ -27,5 +27,7 @@ build/
 # MacOS finder files
 *.DS_Store
 
-# Installed itk-vtk-viewer files
-itk_vtk_viewer/
+# Installed Volume Explorer files
+
+qim3d/viz/volume_explorer/.nvm
+qim3d/viz/volume_explorer/viewer_app
