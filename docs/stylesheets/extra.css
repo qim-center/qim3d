@@ -160,3 +160,33 @@ body > header{
 .notebook-output pre {
   padding-left: 1.2rem;
 }
+
+/* Mixed output: text + figure  */
+.notebook-output-figure {
+  display: block;
+  margin-top: -0.9rem;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.15rem;
+  padding: 0.5rem;
+}
+
+/* Text inside mixed output */
+.notebook-output-figure pre {
+  margin: 0 0 0.5rem 0;
+  white-space: pre-wrap;
+  font-style: normal;
+  font-size: 0.7rem;
+  font-family: var(--md-code-font-family), monospace;
+  line-height: 1.4;
+  padding-left: 0.4rem;
+}
+
+/* Image inside mixed output */
+.notebook-output-figure img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
