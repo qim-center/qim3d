@@ -136,3 +136,27 @@ body > header{
     background-color: var(--md-accent-fg-color); /* Uses your orange accent color */
     border-radius: 2px;
 }
+
+/* Notebook-output look-a-like */
+.notebook-output {
+  display: block;
+  white-space: pre;
+  font-style: normal;
+  font-size: 0.7rem;
+  font-family: var(--md-code-font-family), monospace;
+  line-height: 1.4;
+  margin-top: -0.9rem;
+  max-height: 300px;
+  max-width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.15rem;
+}
+
+.notebook-output:hover {
+  overflow: auto;
+}
+
+.notebook-output pre {
+  padding-left: 1.2rem;
+}

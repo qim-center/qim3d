@@ -18,7 +18,6 @@ nav:
     - 1. Data handling: examples/data_handling.md
     - 2. Visualization: examples/visualization.md
     - 3. Image analysis: examples/image_analysis.md
-    - 4. Machine Learning: examples/machine_learning.md
   - API Reference:
     - qim3d: api_reference/qim3d.md
     - qim3d.detection: api_reference/detection.md
