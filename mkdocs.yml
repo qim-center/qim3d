@@ -129,5 +129,3 @@ plugins:
               show_symbol_type_toc: false
               separate_signature: true
               show_root_toc_entry: false
-              show_root_docstring: false
-
