@@ -13,23 +13,23 @@ document.addEventListener("DOMContentLoaded", function() {
       playButton.innerHTML = "⏸"; // Swaps to pause symbol
     } else {
       audio.pause();
-      playButton.innerHTML = "▶️"; // Swaps back to play symbol
+      playButton.innerHTML = "🕪"; // Swaps back to play symbol
     }
   });
 
   audio.addEventListener("ended", function() {
-    playButton.innerHTML = "▶️";
+    playButton.innerHTML = "🕪";
   });
 });
 </script>
 
 
-# ![qim3d logo](assets/Qim-logo_standard-full-title-transparent-background.png){ width="65%" }
+# ![qim3d logo](assets/qim3d-logo.png){ width="256px" }
 
 [![PyPI version](https://badge.fury.io/py/qim3d.svg)](https://badge.fury.io/py/qim3d)
 [![Downloads](https://static.pepy.tech/badge/qim3d)](https://pepy.tech/project/qim3d)
 
-The **`qim3d`** (kɪm θriː di: <button id="playButton" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 2px; font-size: 0.75em;" title="Play pronunciation">▶️</button> )  library is designed for **Quantitative Imaging in 3D** using Python. It offers a range of features, including data loading and manipulation, image processing and filtering, data visualization, and analysis of imaging results.
+The **`qim3d`** (kɪm θriː di: <button id="playButton" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 2px; font-size: 0.75em;" title="Play pronunciation">🕪</button> )  library is designed for **Quantitative Imaging in 3D** using Python. It offers a range of features, including data loading and manipulation, image processing and filtering, data visualization, and analysis of imaging results.
 
 You can easily load and process 3D image data from various file formats, apply filters and transformations to the data, visualize the results using interactive plots and 3D volumetric rendering.
 

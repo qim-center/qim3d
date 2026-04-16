@@ -89,8 +89,8 @@ extra_css:
 
 extra:
   social:
-    - icon: fontawesome/brands/x-twitter 
-      link: https://twitter.com/QIMCenter
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/qim-center/
 
 markdown_extensions:
   - pymdownx.highlight:

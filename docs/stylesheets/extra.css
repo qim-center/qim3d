@@ -5,6 +5,12 @@ qim3d colors:
 #990000
 */
 
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
 
 code {
   border-radius: 6px !important;
@@ -101,10 +107,9 @@ body > header{
 
 /* Make main headers larger, bold, and add a bottom border */
 .md-typeset h1 {
-    font-size: 2.5em; 
-    font-weight: bold;
-    border-bottom: 2px solid var(--md-default-fg-color--lightest); 
-    padding-bottom: 0.2em; 
+  font-weight: 300;
+  font-size: 2.5em;
+  padding-bottom: 0.2em; 
 }
 
 /* Ensure inline code inside headers is also bold and scales properly */
