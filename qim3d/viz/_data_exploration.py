@@ -1711,7 +1711,7 @@ def threshold(
 
     # Visualization function
     def update_visualization() -> None:
-        slice_img = np.take(volume, state['position'], axis = slice_axis)
+        slice_img = volume[state['position'], :, :]
         with output:
             output.clear_output(wait=True)  # Clear previous plot
             fig, axes = plt.subplots(1, 4, figsize=(25, 5))

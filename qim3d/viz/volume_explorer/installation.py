@@ -6,7 +6,7 @@ from pathlib import Path
 from .helpers import (
     SOURCE_FNM,
     NotInstalledError,
-    get_itk_dir,
+    get_volume_explorer_dir,
     get_node_binaries_dir,
     get_nvm_dir,
     get_viewer_dir,
@@ -17,7 +17,7 @@ from .helpers import (
 class Installer:
 
     """
-    Implements installation procedure of itk-vtk-viewer for each OS.
+    Implements installation procedure of volume-explorer for each OS.
     Also goes for minimal installation: checking if the necessary binaries aren't already installed
     """
 
@@ -29,7 +29,7 @@ class Installer:
             self.install_viewer,
         )
 
-        self.dir = get_itk_dir()  # itk_vtk_viewer folder within qim3d.viz
+        self.dir = get_volume_explorer_dir()  # volume_explorer folder within qim3d.viz
 
         # If nvm was already installed, there should be this environment variable
         # However it could have also been installed via our process, or user deleted the folder but didn't adjusted the bashrc, that's why we check again
@@ -179,7 +179,7 @@ class Installer:
         def _linux():
             # Adds local binaries to the path in case we had to install node first (locally into qim folder), but shouldnt interfere even if
             # npm is installed globally
-            command = f'export PATH="$PATH:{get_node_binaries_dir(self.nvm_dir)}" && npm install --prefix {self.viewer_dir} @qim3d/itk-vtk-viewer'
+            command = f'export PATH="$PATH:{get_node_binaries_dir(self.nvm_dir)}" && npm install --prefix {self.viewer_dir} @qim3d/volume-explorer'
             output = subprocess.run([command], shell=True, capture_output=True)
 
         def _windows():
@@ -190,13 +190,13 @@ class Installer:
                     [
                         'powershell.exe',
                         f"$env:PATH=$env:PATH + ';{node_bin}';",
-                        f'npm install --prefix {self.viewer_dir} @qim3d/itk-vtk-viewer',
+                        f'npm install --prefix {self.viewer_dir} @qim3d/volume-explorer',
                     ],
                     capture_output=True,
                 )
             except NotInstalledError:  # Not installed in qim
                 subprocess.run(
-                    ['powershell.exe', SOURCE_FNM, 'npm install @qim3d/itk-vtk-viewer'],
+                    ['powershell.exe', SOURCE_FNM, 'npm install @qim3d/volume-explorer'],
                     capture_output=True,
                 )
 
@@ -204,6 +204,6 @@ class Installer:
         if not os.path.isdir(self.viewer_dir):
             os.mkdir(self.viewer_dir)
 
-        print('Installing itk-vtk-viewer...')
+        print('Installing volume-explorer...')
         run_for_platform(linux_func=_linux, windows_func=_windows, macos_func=_linux)
-        print('Itk-vtk-viewer installed')
+        print('Volume Explorer installed')

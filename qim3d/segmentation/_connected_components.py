@@ -154,7 +154,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         binary = qim3d.filters.gaussian(vol, sigma=2) < 60
         cc = qim3d.segmentation.connected_components(binary)
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
-        qim3d.viz.slicer(cc.labels, slice_axis=1, color_map=color_map)
+        qim3d.viz.slicer(cc.labels, slice_axis=1, colormap=color_map)
         ```
     
     Example: Show the largest connected components
@@ -167,7 +167,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         filtered = cc.filter_by_largest(5)
 
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
-        qim3d.viz.volumetric(filtered, color_map=color_map, constant_opacity=True)
+        qim3d.viz.volumetric(filtered, colormap=color_map, constant_opacity=True)
         ```
     
     Example: Filter the connected components by size
@@ -185,7 +185,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         filtered = cc.filter_by_size(min_size=1e2, max_size=2e2)
 
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
-        qim3d.viz.volumetric(filtered, color_map=color_map, constant_opacity=True)
+        qim3d.viz.volumetric(filtered, colormap=color_map, constant_opacity=True)
         ```
     """
     cc = ConnectedComponents(volume, connectivity)
