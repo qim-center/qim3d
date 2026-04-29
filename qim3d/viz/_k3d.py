@@ -216,7 +216,7 @@ def volumetric(
 
 
 def mesh(
-    mesh: pygel3d.hmesh.Manifold,
+    mesh,
     backend: str = 'pygel3d',
     wireframe: bool = True,
     flat_shading: bool = True,

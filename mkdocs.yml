@@ -7,27 +7,56 @@ repo_name: qim-center/qim3d
 
 
 nav:
-  - Data handling:
-    - Input and Output: doc/data_handling/io.md
-    - Synthetic data: doc/data_handling/generate.md
-  - Visualization:
-    - Display volumes: doc/visualization/viz.md
-    - Colormaps: doc/visualization/colormaps.md
-    - Explore data: doc/visualization/exploration.md
-    - Plot and render: doc/visualization/rendering.md
-  - Image analysis:
-    - Features: doc/image_analysis/features.md
-    - Filters: doc/image_analysis/filters.md
-    - Detection: doc/image_analysis/detection.md
-    - Segmentation: doc/image_analysis/segmentation.md
-    - Operations: doc/image_analysis/operations.md
-    - Morphology: doc/image_analysis/morphology.md
-    - Processing: doc/image_analysis/processing.md
-    - Meshes: doc/image_analysis/mesh.md
-  - Machine Learning: doc/ml/models.md
-  - Graphical User Interfaces: doc/gui/gui.md
-  - Command Line Interface: doc/cli/cli.md
-  - Release history: doc/releases/releases.md
+  - User Guide:
+    - Overview: index.md
+    - 1. Installation: user_guide/installation.md
+    - 2. Graphical User Interface: user_guide/gui.md
+    - 3. Command Line Interface: user_guide/cli.md
+    - 4. Collaboration: user_guide/collaboration.md
+    - 5. Support: user_guide/support.md
+  - Examples:
+    - 1. Data handling: examples/data_handling.md
+    - 2. Visualization: examples/visualization.md
+    - 3. Image analysis: examples/image_analysis.md
+  - API Reference:
+    - qim3d: api_reference/qim3d.md
+    - qim3d.detection: api_reference/detection.md
+    - qim3d.features: api_reference/features.md
+    - qim3d.filters: api_reference/filters.md
+    - qim3d.generate: api_reference/generate.md
+    - qim3d.io: api_reference/io.md
+    - qim3d.mesh: api_reference/mesh.md
+    - qim3d.ml: api_reference/ml.md
+    - qim3d.morphology: api_reference/morphology.md
+    - qim3d.operations: api_reference/operations.md
+    - qim3d.processing: api_reference/processing.md
+    - qim3d.segmentation: api_reference/segmentation.md
+    - qim3d.viz: api_reference/viz.md
+  - Release Notes: https://github.com/qim-center/qim3d/releases
+
+##### OLD NAVIGATION STRUCTURE (TO DO: REMOVE)
+# nav:
+#   - Data handling:
+#     - Input and Output: doc/data_handling/io.md
+#     - Synthetic data: doc/data_handling/generate.md
+#   - Visualization:
+#     - Display volumes: doc/visualization/viz.md
+#     - Colormaps: doc/visualization/colormaps.md
+#     - Explore data: doc/visualization/exploration.md
+#     - Plot and render: doc/visualization/rendering.md
+#   - Image analysis:
+#     - Features: doc/image_analysis/features.md
+#     - Filters: doc/image_analysis/filters.md
+#     - Detection: doc/image_analysis/detection.md
+#     - Segmentation: doc/image_analysis/segmentation.md
+#     - Operations: doc/image_analysis/operations.md
+#     - Morphology: doc/image_analysis/morphology.md
+#     - Processing: doc/image_analysis/processing.md
+#     - Meshes: doc/image_analysis/mesh.md
+#   - Machine Learning: doc/ml/models.md
+#   - Graphical User Interfaces: doc/gui/gui.md
+#   - Command Line Interface: doc/cli/cli.md
+#   - Release history: doc/releases/releases.md
 
 theme:
   language: en 
@@ -60,8 +89,8 @@ extra_css:
 
 extra:
   social:
-    - icon: fontawesome/brands/x-twitter 
-      link: https://twitter.com/QIMCenter
+    - icon: fontawesome/brands/linkedin
+      link: https://www.linkedin.com/company/qim-center/
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -85,6 +114,9 @@ markdown_extensions:
 plugins: 
     - tags
     - search 
+    - privacy:
+        links_attr_map:
+          target: _blank
     - mkdocstrings:
         handlers:
           python:
@@ -97,4 +129,3 @@ plugins:
               show_symbol_type_toc: false
               separate_signature: true
               show_root_toc_entry: false
-              show_root_docstring: false
