@@ -458,6 +458,13 @@ def slicer(
         ```
         ![viz slicer](../../assets/screenshots/viz-slicer.gif)
     """
+    is_dask = isinstance(volume, da.Array)
+    continuous_update = not is_dask
+
+    if is_dask and mask is not None:
+        raise NotImplementedError(
+            "The mask parameter is not currently supported for Dask-backed volumes."
+        )
 
     if image_size:
         image_height = image_size
@@ -471,23 +478,47 @@ def slicer(
         )
         raise ValueError(msg)
     show_colorbar = colorbar is not None
-    if colorbar == 'slices':
+    if colorbar == 'slices' and not is_dask:
         # Precompute the minimum and maximum along each slice for faster widget sliding.
         non_slice_axes = tuple(i for i in range(volume.ndim) if i != slice_axis)
         slice_mins = np.min(volume, axis=non_slice_axes)
         slice_maxs = np.max(volume, axis=non_slice_axes)
+    elif colorbar == 'volume':
+        get_min = lambda: volume.min().compute() if is_dask else np.min(volume)
+        get_max = lambda: volume.max().compute() if is_dask else np.max(volume)
+
+        if min_value is None and max_value is None and is_dask:
+            vol_min, vol_max = da.compute(volume.min(), volume.max())
+        else:
+            vol_min = get_min() if min_value is None else min_value
+            vol_max = get_max() if max_value is None else max_value
 
     # Create the interactive widget
     def _slicer(slice_positions: int) -> Figure:
-        if colorbar == 'slices':
+        if colorbar == 'slices' and not is_dask:
             dynamic_min = slice_mins[slice_positions]
             dynamic_max = slice_maxs[slice_positions]
+        elif colorbar == 'volume':
+            dynamic_min = vol_min
+            dynamic_max = vol_max
         else:
             dynamic_min = min_value
             dynamic_max = max_value
 
+        if is_dask:
+            slicer_index = [slice(None)] * volume.ndim
+            slicer_index[slice_axis] = slice_positions
+
+            volume_input = volume[tuple(slicer_index)].compute()
+            volume_input = np.expand_dims(volume_input, axis=slice_axis)
+
+            slice_positions_input = 0
+        else:
+            volume_input = volume
+            slice_positions_input = slice_positions
+        
         fig = slices_grid(
-            volume,
+            volume_input,
             slice_axis=slice_axis,
             colormap=colormap,
             min_value=dynamic_min,
@@ -496,7 +527,7 @@ def slicer(
             image_width=image_width,
             display_positions=display_positions,
             interpolation=interpolation,
-            slice_positions=slice_positions,
+            slice_positions=slice_positions_input,
             n_slices=1,
             display_figure=True,
             colorbar=show_colorbar,
@@ -511,7 +542,7 @@ def slicer(
         default_position = int(default_position * (volume.shape[slice_axis] - 1))
     if isinstance(default_position, int):
         if default_position < 0:
-            default_position = volume.shape[slice_axis] - default_position
+            default_position = volume.shape[slice_axis] + default_position
         default_position = np.clip(
             default_position, a_min=0, a_max=volume.shape[slice_axis] - 1
         )
@@ -523,7 +554,7 @@ def slicer(
         min=0,
         max=volume.shape[slice_axis] - 1,
         description='Slice',
-        continuous_update=True,
+        continuous_update=continuous_update,
     )
     slicer_obj = widgets.interactive(_slicer, slice_positions=position_slider)
     slicer_obj.layout = widgets.Layout(align_items='flex-start')
