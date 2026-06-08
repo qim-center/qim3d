@@ -413,14 +413,18 @@ def slicer(
 
     * **Scrollable Interface:** Automatically generates a slider for the chosen axis.
     * **Overlay Support:** Visualize segmentation results on top of raw data using the `mask` parameter.
+        Masks are currently not supported for Dask-backed volumes.
     * **Dynamic Contrast:** Use `colorbar='slices'` to adapt intensity ranges per slice, or `'volume'` for a global fixed range.
+    * **Dask Support:** For Dask arrays, only the selected slice is computed during interaction.
 
     Args:
-        volume (numpy.ndarray): The 3D input data to be sliced.
+        volume (numpy.ndarray or dask.array.Array): The 3D input data to be sliced.
         slice_axis (int, optional): The axis to slice along (e.g., 0 for Z, 1 for Y, 2 for X).
         colormap (str or matplotlib.colors.LinearSegmentedColormap, optional): Matplotlib colormap name for the volume.
         min_value (float, optional): Minimum value for color scaling. If `None`, inferred from data.
+            When `colorbar='volume'`, this overrides the global volume minimum.
         max_value (float, optional): Maximum value for color scaling. If `None`, inferred from data.
+            When `colorbar='volume'`, this overrides the global volume maximum.
         image_height (int, optional): Height of the displayed figure.
         image_width (int, optional): Width of the displayed figure.
         display_positions (bool, optional): If `True`, displays the slice index/position on the image.
@@ -433,12 +437,13 @@ def slicer(
             * `None`: No color bar is displayed.
 
         mask (numpy.ndarray, optional): A 3D segmentation mask to overlay on the volume.
+            Masks are currently not supported when `volume` is a Dask array.
         mask_alpha (float, optional): Opacity of the mask overlay (0.0 to 1.0).
         mask_colormap (str, optional): Matplotlib colormap name for the mask.
         default_position (float or int, optional): Initial slice position of the slider.
 
             * **float**: Relative position between 0.0 and 1.0 (e.g., `0.5` starts at the center).
-            * **int**: Exact slice index.
+            * **int**: Exact slice index. Negative values follow standard Python indexing.
 
         **matplotlib_imshow_kwargs: Additional keyword arguments passed to `matplotlib.pyplot.imshow`.
 
