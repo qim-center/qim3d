@@ -614,6 +614,7 @@ def slicer(
         max=n_cols,
         step=1,
         description='Column range',
+        style={'description_width': 'initial'},
         continuous_update=continuous_update,
     )
 
