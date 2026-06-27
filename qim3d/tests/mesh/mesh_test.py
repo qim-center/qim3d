@@ -7,12 +7,10 @@ import qim3d
 
 
 def test_from_volume_valid_input():
-    """Test that from_volume returns a hmesh.Manifold object for a valid 3D input."""
-    volume = np.random.rand(50, 50, 50).astype(
-        np.float32
-    )  # Generate a random 3D volume
+    """Test that from_volume returns a SurfaceMesh object for a valid 3D input."""
+    volume = np.random.rand(50, 50, 50).astype(np.float32)
     mesh = qim3d.mesh.from_volume(volume)
-    assert isinstance(mesh, hmesh.Manifold)  # Check if output is a Manifold object
+    assert isinstance(mesh, qim3d.mesh.SurfaceMesh)
 
 
 def test_from_volume_invalid_input():
@@ -66,3 +64,14 @@ def test_from_volume_with_kwargs():
         qim3d.mesh.from_volume(volume, isovalue=0.5)
     finally:
         hmesh.volumetric_isocontour = original_function  # Restore original function
+
+def test_from_volume_pyvista_return_pygel3D():
+    volume = np.random.rand(50, 50, 50).astype(np.float32)
+    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3D=True)
+    assert isinstance(mesh, hmesh.Manifold)
+
+def test_from_volume_pyvista_return_pyvista():
+    volume = np.random.rand(50, 50, 50).astype(np.float32)
+    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3D=False)
+    assert isinstance(mesh, qim3d.mesh.SurfaceMesh)
+
