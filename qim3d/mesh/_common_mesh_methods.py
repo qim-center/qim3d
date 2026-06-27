@@ -76,17 +76,17 @@ class VolumeMesh(UnstructuredGrid):
 
 class SurfaceMesh(PolyData):
     def __new__(cls, mesh: hmesh.Manifold | PolyData):
-        if isinstance(mesh, hmesh.Manifold):
-            # get faces
-            faces = np.ones((0, 3))
-            for face in mesh.faces():
-                new_ver = mesh.circulate_face(face)
-                new_ver = np.expand_dims(np.array(new_ver), axis=0)
-                faces = np.append(faces, new_ver, axis=0)
-            return super().__new__(cls, mesh.points(), faces)
-
-        elif isinstance(mesh, PolyData):
+        if isinstance(mesh, PolyData):
             return super().__new__(cls, mesh.points, mesh.faces)
+
+    @classmethod
+    def from_pygel(cls: 'SurfaceMesh', mesh: hmesh.Manifold) -> 'SurfaceMesh':
+        points = np.array(mesh.positions())
+        faces_list = []
+        for face in mesh.faces():
+            verts = list(mesh.circulate_face(face, mode='v'))
+            faces_list.extend([len(verts)] + verts)
+        return cls(pv.PolyData(points, np.array(faces_list)))
 
     def tetrahedralize(
         self, optimize: bool = True, edge_length_fac: float = 0.05
@@ -180,5 +180,6 @@ def from_volume(
         mesh = hmesh.volumetric_isocontour(volume, **kwargs)
         if return_pygel3d:
             return mesh
+        return SurfaceMesh.from_pygel(mesh)
 
     return SurfaceMesh(mesh)

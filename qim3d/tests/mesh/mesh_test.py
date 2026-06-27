@@ -67,11 +67,22 @@ def test_from_volume_with_kwargs():
 
 def test_from_volume_pyvista_return_pygel3D():
     volume = np.random.rand(50, 50, 50).astype(np.float32)
-    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3D=True)
+    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3d=True)
     assert isinstance(mesh, hmesh.Manifold)
 
 def test_from_volume_pyvista_return_pyvista():
     volume = np.random.rand(50, 50, 50).astype(np.float32)
-    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3D=False)
+    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3d=False)
     assert isinstance(mesh, qim3d.mesh.SurfaceMesh)
 
+def test_from_volume_pygel_return_pygel3d():
+    volume = np.zeros((20, 20, 20), dtype=np.float32)
+    volume[5:15, 5:15, 5:15] = 1
+    mesh = qim3d.mesh.from_volume(volume, backend='pygel', return_pygel3d=True)
+    assert isinstance(mesh, hmesh.Manifold)
+
+def test_from_volume_pygel_return_surfacemesh():
+    volume = np.zeros((20, 20, 20), dtype=np.float32)
+    volume[5:15, 5:15, 5:15] = 1
+    mesh = qim3d.mesh.from_volume(volume, backend='pygel', return_pygel3d=False)
+    assert isinstance(mesh, qim3d.mesh.SurfaceMesh)
