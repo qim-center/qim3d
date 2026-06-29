@@ -1,8 +1,6 @@
-﻿# See https://pre-commit.com for more information
-# See https://pre-commit.com/hooks.html for more hooks
-repos:
+﻿repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v3.2.0
+    rev: v6.0.0
     hooks:
     -   id: detect-private-key
     -   id: check-docstring-first
@@ -11,7 +9,7 @@ repos:
     -   id: name-tests-test
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.7
+    rev: v0.15.20
     hooks:
       # Run the formatter and fix code styling
     - id: ruff-format
