@@ -1,19 +1,40 @@
 ﻿repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-    -   id: detect-private-key
-    -   id: check-docstring-first
-    -   id: debug-statements
-    -   id: double-quote-string-fixer
-    -   id: name-tests-test
+      # Security
+      - id: detect-private-key
 
--   repo: https://github.com/astral-sh/ruff-pre-commit
+      # Nit
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+      # Windows
+      - id: check-illegal-windows-names
+      - id: check-case-conflict
+
+      # Data formats
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+
+      # Python
+      - id: debug-statements
+      - id: name-tests-test
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+      - id: pyupgrade
+        args: ["--py311-plus"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.20
     hooks:
-      # Run the formatter and fix code styling
-    - id: ruff-format
+      # Run the linter and fix what is possible
+      - id: ruff-check
+        args: ["--fix"]
 
-    # Run the linter and fix what is possible
-    - id: ruff
-      args: ['--fix']
+      # Run the formatter and fix code styling
+      - id: ruff-format
