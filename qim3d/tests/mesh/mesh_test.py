@@ -5,14 +5,6 @@ from pygel3d import hmesh
 
 import qim3d
 
-
-def test_from_volume_valid_input():
-    """Test that from_volume returns a SurfaceMesh object for a valid 3D input."""
-    volume = np.random.rand(50, 50, 50).astype(np.float32)
-    mesh = qim3d.mesh.from_volume(volume)
-    assert isinstance(mesh, qim3d.mesh.SurfaceMesh)
-
-
 def test_from_volume_invalid_input():
     """Test that from_volume raises ValueError for non-3D input."""
     volume = np.random.rand(50, 50)  # A 2D array
@@ -45,44 +37,111 @@ def test_from_volume_empty_array():
     ):  # It should fail because it doesn't make sense to generate a mesh from empty data
         qim3d.mesh.from_volume(volume)
 
+def test_from_volume_pyvista_return_surfacemesh():
+    volume = np.zeros((20, 20, 20), dtype=np.float32)
+    volume[6:14, 6:14, 6:14] = 1.0
 
-def test_from_volume_with_kwargs():
-    """Test that from_volume correctly passes kwargs."""
-    volume = np.random.rand(50, 50, 50).astype(np.float32)
+    mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pyvista',
+        method='marching_cubes',
+        isovalue=0.5,
+        return_pygel3d=False,
+    )
 
-    # Mock volumetric_isocontour to check if kwargs are passed
-    def mock_volumetric_isocontour(vol, **kwargs):
-        assert 'isovalue' in kwargs
-        assert kwargs['isovalue'] == 0.5
-        return hmesh.Manifold()
-
-    # Replace the function temporarily
-    original_function = hmesh.volumetric_isocontour
-    hmesh.volumetric_isocontour = mock_volumetric_isocontour
-
-    try:
-        qim3d.mesh.from_volume(volume, isovalue=0.5)
-    finally:
-        hmesh.volumetric_isocontour = original_function  # Restore original function
-
-def test_from_volume_pyvista_return_pygel3D():
-    volume = np.random.rand(50, 50, 50).astype(np.float32)
-    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3d=True)
-    assert isinstance(mesh, hmesh.Manifold)
-
-def test_from_volume_pyvista_return_pyvista():
-    volume = np.random.rand(50, 50, 50).astype(np.float32)
-    mesh = qim3d.mesh.from_volume(volume, backend='pyvista', return_pygel3d=False)
     assert isinstance(mesh, qim3d.mesh.SurfaceMesh)
+    assert mesh.n_points > 0
+    assert mesh.n_faces_strict > 0
+
+
+def test_from_volume_pyvista_return_pygel3d():
+    volume = np.zeros((20, 20, 20), dtype=np.float32)
+    volume[6:14, 6:14, 6:14] = 1.0
+
+    mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pyvista',
+        method='marching_cubes',
+        isovalue=0.5,
+        return_pygel3d=True,
+    )
+
+    assert isinstance(mesh, hmesh.Manifold)
+    assert len(list(mesh.vertices())) > 0
+    assert len(list(mesh.faces())) > 0
+
 
 def test_from_volume_pygel_return_pygel3d():
     volume = np.zeros((20, 20, 20), dtype=np.float32)
-    volume[5:15, 5:15, 5:15] = 1
-    mesh = qim3d.mesh.from_volume(volume, backend='pygel', return_pygel3d=True)
+    volume[6:14, 6:14, 6:14] = 1.0
+
+    mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pygel',
+        isovalue=0.5,
+        return_pygel3d=True,
+    )
+
     assert isinstance(mesh, hmesh.Manifold)
+    assert len(list(mesh.vertices())) > 0
+    assert len(list(mesh.faces())) > 0
+
 
 def test_from_volume_pygel_return_surfacemesh():
     volume = np.zeros((20, 20, 20), dtype=np.float32)
-    volume[5:15, 5:15, 5:15] = 1
-    mesh = qim3d.mesh.from_volume(volume, backend='pygel', return_pygel3d=False)
+    volume[6:14, 6:14, 6:14] = 1.0
+
+    mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pygel',
+        isovalue=0.5,
+        return_pygel3d=False,
+    )
+
     assert isinstance(mesh, qim3d.mesh.SurfaceMesh)
+    assert mesh.n_points > 0
+    assert mesh.n_faces_strict > 0
+
+def test_from_volume_pyvista_to_pygel3d_conversion_counts_match():
+    volume = np.zeros((20, 20, 20), dtype=np.float32)
+    volume[6:14, 6:14, 6:14] = 1.0
+
+    pv_mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pyvista',
+        method='marching_cubes',
+        isovalue=0.5,
+        return_pygel3d=False,
+    ).triangulate()
+
+    pygel_mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pyvista',
+        method='marching_cubes',
+        isovalue=0.5,
+        return_pygel3d=True,
+    )
+
+    assert len(list(pygel_mesh.vertices())) == pv_mesh.n_points
+    assert len(list(pygel_mesh.faces())) == pv_mesh.n_faces_strict
+
+def test_from_volume_pygel_to_surfacemesh_conversion_counts_match():
+    volume = np.zeros((20, 20, 20), dtype=np.float32)
+    volume[6:14, 6:14, 6:14] = 1.0
+
+    pygel_mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pygel',
+        isovalue=0.5,
+        return_pygel3d=True,
+    )
+
+    surface_mesh = qim3d.mesh.from_volume(
+        volume,
+        backend='pygel',
+        isovalue=0.5,
+        return_pygel3d=False,
+    )
+
+    assert surface_mesh.n_points == len(list(pygel_mesh.vertices()))
+    assert surface_mesh.n_faces_strict == len(list(pygel_mesh.faces()))
