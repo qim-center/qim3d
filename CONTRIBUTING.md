@@ -56,6 +56,7 @@ In summary, they are:
 4. PRs must get:
    1. Technical review by a QIM Developer
    2. Final review by a Senior QIM Team Member (Jakob: @jakobsj or Felipe: @delestro)
+5. PRs should be merged with the `rebase` strategy to improve readability of git history
 
 ### Crash Course
 
@@ -64,6 +65,8 @@ If you have the required permissions to create branches on the `qim3d` repositor
 Please note that feature branches on `qim3d` used for PRs are generally _"owned"_ by the developer using them and that they may be force pushed to. For this reason, please refrain from pushing changes to other developer's feature branches.
 
 In order to have a relatively clean git history, it is appreciated if PRs have relatively few, clean commits. You can rewrite them with `git rebase`, see for example [this guide on clean git histories](https://mainmatter.com/blog/2021/05/26/keeping-a-clean-git-history/).
+
+The merge strategy onto `main` should also ideally use the `rebase` strategy. See [this blog post](https://graphite.com/blog/why-ban-merge-commits) for justification.
 
 ## Review Policy
 
