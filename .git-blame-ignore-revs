@@ -1,0 +1,11 @@
+# Oldest commits are towards top of file.
+# ==> add new revs at bottom with comment
+
+# 2025-02-24: pre-commit introduced
+52b613b5d389e12e45ff170af22a46e71939f749
+
+# 2025-05-12 -- 2025-09-30: separate pre-commit fixing commits
+a25f2af86e82364794290237f1442a3b95508675
+677e7411a5662555a51347f77b238facad17345c
+e25a9c21c391f2fb23773f900821849a09b6b4b5
+21f517c56d5c7dc275022d1e74a15142606a6e98
