@@ -1,0 +1,15 @@
+name: Pre-Commit Checks
+on: [pull_request]
+
+# Note: we use prek (https://github.com/j178/prek) instead of pre-commit
+# prek is fully compatible, faster, and generally a better experience than pre-commit.
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Pre-Commit
+        uses: j178/prek-action@v2
