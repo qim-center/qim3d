@@ -30,6 +30,18 @@ You may wish to install pre-commit as a tool to be able to run it outside the gi
 uv tool install pre-commit
 ```
 
+### Task runner: `just`
+
+For ease of development, this project uses the popular [`just`](https://just.systems/) task runner, which is configured via the [`justfile`](/justfile) in the root of the repository.
+
+You can install it with:
+
+```sh
+uv tool install rust-just
+```
+
+When installed, you can easily perform common tasks with just. To see an overview of available commands, simply run `just` in the terminal.
+
 ## Git
 
 The sections below describe some of the best practices of `git` that we strive to abide by.
@@ -42,6 +54,7 @@ In summary, they are:
 4. PRs must get:
    1. Technical review by a QIM Developer
    2. Final review by a Senior QIM Team Member (Jakob: @jakobsj or Felipe: @delestro)
+
 ### Crash Course
 
 If you have the required permissions to create branches on the `qim3d` repository, you can put the branches for PR's there. If you don't, you can use the GitHub _fork_ feature to create a fork of the `qim3d` repository under your own user account and make pull requests and associated branches there.
