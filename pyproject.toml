@@ -54,7 +54,6 @@ dependencies = [
     "h5py>=3.9.0",
     "imagecodecs>=2024.12.30",
     "nibabel>=5.2.0",
-    "numcodecs<0.16",
     "olefile>=0.46",
     "ome_zarr>=0.12.0",
     "pydicom==2.4.4",
