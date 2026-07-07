@@ -18,17 +18,19 @@ You may find it helpful to read their [getting started guide](https://docs.astra
 
 ### Pre-Commit
 
-To ensure consistent styling and reduce git diffs, please install the pre-commit git hook by running the following:
+To ensure consistent styling and reduce git diffs, please install a pre-commit git hook by running the following:
 
 ```sh
-uvx pre-commit install
+uvx prek install
 ```
 
-You may wish to install pre-commit as a tool to be able to run it outside the git hook:
+You may wish to install `prek` as a tool to be able to run it outside the git hook:
 
 ```sh
-uv tool install pre-commit
+uv tool install prek
 ```
+
+_Note: We use [`prek`](https://github.com/j178/prek) instead of `pre-commit`. It is fully compatible with `pre-commit`, but is generally more pleasant to work with and is a lot faster. You can choose to use the original `pre-commit` instead, if you prefer._
 
 ## Git
 
@@ -42,6 +44,7 @@ In summary, they are:
 4. PRs must get:
    1. Technical review by a QIM Developer
    2. Final review by a Senior QIM Team Member (Jakob: @jakobsj or Felipe: @delestro)
+
 ### Crash Course
 
 If you have the required permissions to create branches on the `qim3d` repository, you can put the branches for PR's there. If you don't, you can use the GitHub _fork_ feature to create a fork of the `qim3d` repository under your own user account and make pull requests and associated branches there.
