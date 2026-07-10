@@ -135,9 +135,9 @@ class Color:
         self.blue = blue
 
     def check_value(sel, value: int):
-        assert isinstance(
-            value, int
-        ), f'Color value has to be integer, this is {type(value)}'
+        assert isinstance(value, int), (
+            f'Color value has to be integer, this is {type(value)}'
+        )
         assert value < 256, f'Color value has to be between 0 and 255, this is {value}'
         assert value >= 0, f'Color value has to be between 0 and 255, this is {value}'
 
@@ -209,7 +209,7 @@ def int_bitmap_from_ndarray(array_bitmap: np.ndarray) -> int:
     Creates a string representing binary number
     Casts it to integer
     """
-    return int(f"0b{''.join([str(i) for i in array_bitmap.flatten()])}", base=2)
+    return int(f'0b{"".join([str(i) for i in array_bitmap.flatten()])}', base=2)
 
 
 def ndarray_from_int_bitmap(bitmap: int, shape: tuple = (8, 4)) -> np.ndarray:
@@ -441,7 +441,7 @@ def image_preview(
     slice: int = None,
     relative_intensity: bool = True,
 ):
-    """ 
+    """
     Image preview function
     """
     if image.ndim == 3 and image.shape[2] > 4:

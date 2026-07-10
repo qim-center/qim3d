@@ -35,23 +35,3 @@ qim3d.viz.histogram(volume, bins=100, coarseness=2)
     <pre>Subsampled volume has size 12.5% of the original volume.</pre>
     <img src="../../assets/screenshots/mussel_histogram.png" alt="mussel_histogram">
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -37,7 +37,7 @@ def mock_io_functions():
     patches = []
     for func_path in functions_to_mock:
 
-        # Mock the function to return a fake dataset 
+        # Mock the function to return a fake dataset
         patcher = patch(func_path, return_value=MagicMock(name=f"Mocked_{func_path.split('.')[-1]}"))
         patches.append(patcher)
         patcher.start()
@@ -52,7 +52,7 @@ def mock_io_functions():
 # Mock the qim3d.io OME-Zarr functions
 @pytest.fixture
 def mock_ome_zarr_functions(tmp_path):
-    
+
     # Temporary directory for mock files
     mock_file_path = tmp_path / "Escargot.zarr"
 
@@ -122,7 +122,7 @@ def test_docstrings_operations(func):
 
 @pytest.mark.parametrize('func', functions_by_module["processing"], ids=lambda d: d.__name__)
 def test_docstrings_processing(func):
-    
+
     # Exclude qim3d.processing.segment_layers function, since it uses unavailable example data
     if func.__name__ == "segment_layers":
         return

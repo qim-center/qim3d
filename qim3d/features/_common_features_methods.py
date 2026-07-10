@@ -112,6 +112,7 @@ def volume(
         print(volume)
         ```
         48774.99
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -136,7 +137,7 @@ def area(
         object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
         mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI) within the volume. Must have the same shape as `object`. Defaults to `None`.
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
-            
+
             * **float**: A specific intensity value.
             * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
 
@@ -177,6 +178,7 @@ def area(
         print(area)
         ```
         58535.06
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -252,6 +254,7 @@ def sphericity(
         ```
         Sphericity: 0.6876
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -311,9 +314,10 @@ def mean_std_intensity(
         # Visualize slices of the object
         qim3d.viz.slices_grid(shell_object, color_bar=True, color_bar_style="large")
         ```
-        Mean intensity: 114.6734  
+        Mean intensity: 114.6734
         Standard deviation of intensity: 45.8481
         ![mean_std_intensity_feature](../../assets/screenshots/mean_std_intensity_feature_example.png)
+
     """
 
     # Mask the volume (if provided)
@@ -374,6 +378,7 @@ def size(
         ```
         Size: 100.0
         <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -455,6 +460,7 @@ def roughness(
         ```
         Roughness: 0.2534
         <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)

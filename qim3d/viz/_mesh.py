@@ -1,11 +1,9 @@
-
-from pygel3d import jupyter_display as jd
 import pygel3d
 import pyvista as pv
+from pygel3d import jupyter_display as jd
 
 from qim3d.mesh._common_mesh_methods import SurfaceMesh, VolumeMesh
 from qim3d.utils._logger import log
-
 
 
 def mesh(
@@ -14,13 +12,13 @@ def mesh(
     show_edges: bool = True,
     show: bool = True,
     save_screenshot: str = '',
-    export_html:str = '',
+    export_html: str = '',
     explode: int = 0,
     smooth_shading: bool = False,
-    face_color = '#cccccc',
-    edge_color = '#993333',
+    face_color='#cccccc',
+    edge_color='#993333',
     **kwargs,
-) ->  None:
+) -> None:
     """
     Visualize a 3D mesh using `pygel3d` or `pyvista`. If you need more advanced tools, use pyvista directly.
 
@@ -31,10 +29,10 @@ def mesh(
         show (bool, optional): If True, displays the visualization inline, useful for multiple plots.
             Works only with backend `pyvista`. Defaults to True.
         save_screenshot (str, optional): If True, saves the visualization as an `png` file.
-            The string is interpreted as the file path where the screenshot will 
+            The string is interpreted as the file path where the screenshot will
             be saved. Works only with the backend `pyvista`. Defaults to ''.
         export_html (str, optional): If True, saves the visualization as an `html` file.
-            The string is interpreted as the file path where the scene will 
+            The string is interpreted as the file path where the scene will
             be saved. Works only with the backend `pyvista`. Defaults to ''.
         explode (int, optional): Only works when mesh is qim3d.mesh.VolumeMesh.
             Defines how spread are the tetrahedrons. If 0, the volume us intact.
@@ -86,14 +84,16 @@ def mesh(
             mesh = mesh.explode(explode)
 
         if wireframe:
-            kwargs['style'] =  'wireframe'
-        plotter.add_mesh(mesh, 
-                         show_edges = show_edges, 
-                         smooth_shading = smooth_shading,
-                         show_scalar_bar=False,
-                         color = face_color,
-                         edge_color=edge_color, 
-                         **kwargs)
+            kwargs['style'] = 'wireframe'
+        plotter.add_mesh(
+            mesh,
+            show_edges=show_edges,
+            smooth_shading=smooth_shading,
+            show_scalar_bar=False,
+            color=face_color,
+            edge_color=edge_color,
+            **kwargs,
+        )
 
         if show:
             plotter.show()
@@ -116,5 +116,7 @@ def mesh(
             log.info(msg)
 
         jd.set_export_mode(True)
-        valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ['smooth', 'data']}
+        valid_pygel_kwargs = {
+            k: v for k, v in kwargs.items() if k in ['smooth', 'data']
+        }
         return jd.display(mesh, wireframe=show_edges, **valid_pygel_kwargs)

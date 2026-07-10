@@ -161,8 +161,10 @@ def check_resize(
             raise ValueError(msg)
 
         if final_d != orig_d or final_h != orig_h or final_w != orig_w:
-            log.warning(f"The image size doesn't match the Unet model's depth. \
-                          The image is changed with '{resize}', from {orig_h, orig_w} to {final_h, final_w}.")
+            log.warning(
+                f"The image size doesn't match the Unet model's depth. \
+                          The image is changed with '{resize}', from {orig_h, orig_w} to {final_h, final_w}."
+            )
 
     return final_d, final_h, final_w
 
@@ -177,7 +179,7 @@ def prepare_datasets(
     Loads, splits, and applies augmentations to the dataset.
 
     This function automates the creation of PyTorch datasets for training, validation, and testing. It handles:
-    
+
     1.  **Loading**: Reads data from the specified directory structure (expects `train/images`, `train/labels`, `test/images`, `test/labels`).
     2.  **Splitting**: Divides the training data into a training set and a validation set based on `val_fraction`.
     3.  **Augmentation**: Applies the transformation pipelines defined in the `augmentation` object to each split.
@@ -197,25 +199,26 @@ def prepare_datasets(
     Example:
         ```python
         import qim3d
-        
+
         # Define parameters
         base_path = "dataset"
         model = qim3d.ml.models.UNet(size='small')
-        
+
         # Configure augmentation
         aug_pipeline = qim3d.ml.Augmentation(resize='crop', transform_train='light')
 
         # Generate datasets
         train_ds, val_ds, test_ds = qim3d.ml.prepare_datasets(
-            path=base_path, 
-            val_fraction=0.2, 
-            model=model, 
+            path=base_path,
+            val_fraction=0.2,
+            model=model,
             augmentation=aug_pipeline
         )
-        
+
         print(f"Training samples: {len(train_ds)}")
         print(f"Validation samples: {len(val_ds)}")
         ```
+
     """
 
     if not isinstance(val_fraction, float) or not (0 <= val_fraction < 1):
@@ -306,12 +309,13 @@ def prepare_dataloaders(
             batch_size=4,
             num_workers=4
         )
-        
+
         # Iterate through the training loader
         for batch in train_loader:
             inputs, labels = batch['image'], batch['label']
             # training step...
         ```
+
     """
     from torch.utils.data import DataLoader
 

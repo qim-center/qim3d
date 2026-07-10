@@ -1,7 +1,5 @@
 """Wrapper for the local thickness function from the localthickness package including visualization functions."""
 
-from typing import Optional
-
 import numpy as np
 from IPython.display import display
 
@@ -12,7 +10,7 @@ from qim3d.utils import log
 def local_thickness(
     image: np.ndarray,
     scale: float = 1,
-    mask: Optional[np.ndarray] = None,
+    mask: np.ndarray | None = None,
     visualize: bool = False,
     **viz_kwargs,
 ) -> np.ndarray:
@@ -78,6 +76,7 @@ def local_thickness(
         year={2023},
         month=jun }
         ```
+
     """
     import localthickness as lt
     from skimage.filters import threshold_otsu

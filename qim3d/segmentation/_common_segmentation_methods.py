@@ -2,7 +2,10 @@ import numpy as np
 
 from qim3d.utils._logger import log
 
-def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, int]:
+
+def watershed(
+    binary_volume: np.ndarray, min_distance: int = 5
+) -> tuple[np.ndarray, int]:
     """
     Performs watershed segmentation to separate touching objects in a binary volume.
 
@@ -39,6 +42,7 @@ def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndar
         fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, color_map=cmap, display_figure=True)
         ```
         ![operations-watershed_after](../../assets/screenshots/operations-watershed_after.png)
+
     """
     import scipy
     import skimage

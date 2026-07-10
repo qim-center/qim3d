@@ -159,7 +159,7 @@ class Interface(BaseInterface):
             20em if all of them are visible
 
             When one slicing axis is made unvisible we want the other two images to be bigger
-            For some reason, gradio changes their width but not their height. So we have to 
+            For some reason, gradio changes their width but not their height. So we have to
             change their height manually
             """
 
@@ -220,38 +220,37 @@ class Interface(BaseInterface):
                         value=True, interactive=True, label='Show Z slice'
                     )
 
-                with gr.Row():
-                    with gr.Group():
-                        plot_type = gr.Radio(
-                            choices=(
-                                DEFAULT_PLOT_TYPE,
-                                'Segmentation lines',
-                            ),
-                            value=DEFAULT_PLOT_TYPE,
-                            interactive=True,
-                            show_label=False,
-                        )
+                with gr.Row(), gr.Group():
+                    plot_type = gr.Radio(
+                        choices=(
+                            DEFAULT_PLOT_TYPE,
+                            'Segmentation lines',
+                        ),
+                        value=DEFAULT_PLOT_TYPE,
+                        interactive=True,
+                        show_label=False,
+                    )
 
-                        alpha = gr.Slider(
-                            minimum=0,
-                            maximum=1,
-                            step=0.01,
-                            label='Alpha value',
-                            show_label=True,
-                            value=0.5,
-                            visible=True,
-                            interactive=True,
-                        )
+                    alpha = gr.Slider(
+                        minimum=0,
+                        maximum=1,
+                        step=0.01,
+                        label='Alpha value',
+                        show_label=True,
+                        value=0.5,
+                        visible=True,
+                        interactive=True,
+                    )
 
-                        line_thickness = gr.Slider(
-                            minimum=0.1,
-                            maximum=5,
-                            value=2,
-                            label='Line thickness',
-                            show_label=True,
-                            visible=False,
-                            interactive=True,
-                        )
+                    line_thickness = gr.Slider(
+                        minimum=0.1,
+                        maximum=5,
+                        value=2,
+                        label='Line thickness',
+                        show_label=True,
+                        visible=False,
+                        interactive=True,
+                    )
 
                 with gr.Row():
                     btn_run = gr.Button('Run Layers2D', variant='primary')

@@ -10,7 +10,6 @@ Volumetric visualization using K3D.
 import k3d
 import matplotlib.pyplot as plt
 import numpy as np
-import pygel3d
 import plotly.graph_objects as go
 from matplotlib.colors import Colormap
 
@@ -102,11 +101,12 @@ def volumetric(
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/fima-bone_128x128x128-20240221113459.html" width="100%" height="500" frameborder="0"></iframe>
-        
+
         Save the rendering to an HTML file without displaying it:
         ```python
         plot = qim3d.viz.volumetric(vol, show=False, save="my_render.html")
         ```
+
     """
 
     pixel_count = volume.shape[0] * volume.shape[1] * volume.shape[2]
@@ -126,11 +126,11 @@ def volumetric(
     if aspectmode.lower() not in ['data', 'cube']:
         msg = "aspectmode should be either 'data' or 'cube'"
         raise ValueError(msg)
-    
+
     if camera_mode not in ['orbit', 'trackball', 'fly']:
         msg = "camera_mode should be either 'orbit', 'trackbal' or 'fly'"
         raise ValueError(msg)
-    
+
     # check if image should be downsampled for visualization
     original_shape = volume.shape
     volume = downscale_img(volume, max_voxels=max_voxels)
@@ -261,7 +261,7 @@ def mesh(
     Returns:
         plot (k3d.Plot or go.FigureWidget or None):
             The visualization object.
-            
+
             * **k3d.Plot**: Returned if `backend='k3d'` and `show=False`.
             * **go.FigureWidget**: Returned if `backend='pygel3d'`.
             * **None**: Returned if `backend='k3d'` and `show=True`.
@@ -289,6 +289,7 @@ def mesh(
         qim3d.viz.mesh(mesh, backend='k3d', wireframe=False, flat_shading=False)
         ```
         ![k3d_visualization](../../assets/screenshots/viz-k3d_mesh.png)
+
     """
 
     if len(mesh.vertices()) > 100000:

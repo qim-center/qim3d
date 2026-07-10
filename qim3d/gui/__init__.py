@@ -1,7 +1,14 @@
 import qim3d.utils
 from qim3d.utils._dependencies import optional_import
 
-from . import annotation_tool, data_explorer, iso3d, layers2d, local_thickness, volume_generator
+from . import (
+    annotation_tool,
+    data_explorer,
+    iso3d,
+    layers2d,
+    local_thickness,
+    volume_generator,
+)
 from .qim_theme import QimTheme
 
 
@@ -25,7 +32,7 @@ def run_gradio_app(gradio_interface, host='0.0.0.0'):
 
     # Create FastAPI with mounted gradio interface
     app = FastAPI()
-    path = f"/gui/{port_dict['username']}/{port}/"
+    path = f'/gui/{port_dict["username"]}/{port}/'
     app = gradio.mount_gradio_app(app, gradio_interface, path=path)
 
     # Full path

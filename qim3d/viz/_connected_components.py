@@ -64,9 +64,9 @@ def plot_connected_components(
     figs = []
     for component in component_indexs:
         if overlay is not None:
-            assert (
-                overlay.shape == connected_components.shape
-            ), f'Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}.'
+            assert overlay.shape == connected_components.shape, (
+                f'Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}.'
+            )
 
             # plots overlay masked to connected component
             if crop:

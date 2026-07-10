@@ -71,6 +71,7 @@ def structure_tensor(
         author = {N. Jeppesen and L.P. Mikkelsen and A.B. Dahl and A.N. Christensen and V.A. Dahl}
         }
         ```
+
     """
     previous_logging_level = logging.getLogger().getEffectiveLevel()
     logging.getLogger().setLevel(logging.CRITICAL)

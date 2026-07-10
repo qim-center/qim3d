@@ -157,34 +157,37 @@ class Interface(BaseInterface):
 
                 # Only visible if zarr.Group is selected in the file explorer
                 zarr_resolution = gr.Dropdown(
-                    visible = False,
+                    visible=False,
                     label='Zarr resolution (for multiscale zarrs)',
                     choices=['0'],
                     value='0',
                     info='Select the resolution level to load for multiscale zarr datasets.',
-                    interactive = True,
+                    interactive=True,
                 )
+
                 def toggle_zarr_resolution(explorer_path):
                     if explorer_path is None or not explorer_path.endswith('.zarr'):
                         return gr.update(visible=False)
                     try:
-
                         zarr_root = zarr.open(explorer_path, mode='r')
                         if isinstance(zarr_root, zarr.Group):
-                            choices = [f'{key} {zarr_root[key].shape}' for key in sorted(zarr_root.keys())]
+                            choices = [
+                                f'{key} {zarr_root[key].shape}'
+                                for key in sorted(zarr_root.keys())
+                            ]
                             return gr.update(
-                                visible = True,
-                                choices = choices,
-                                value = choices[-1]
+                                visible=True, choices=choices, value=choices[-1]
                             )
                         else:
                             return gr.update(visible=False)
-                        
+
                     except Exception as e:
                         log.info(f'Error when reading zarr multiscale info: {e}')
                         return gr.update(visible=False)
 
-                explorer.change(fn = toggle_zarr_resolution, inputs = explorer, outputs = zarr_resolution)
+                explorer.change(
+                    fn=toggle_zarr_resolution, inputs=explorer, outputs=zarr_resolution
+                )
 
             with gr.Column(scale=1):
                 gr.Markdown('### Operations')
@@ -388,12 +391,12 @@ class Interface(BaseInterface):
     #######################################################
 
     def start_session(
-        self, 
-        load_series: bool, 
-        series_contains: str, 
-        explorer: str, 
-        base_path: str, 
-        zarr_group_member:str, 
+        self,
+        load_series: bool,
+        series_contains: str,
+        explorer: str,
+        base_path: str,
+        zarr_group_member: str,
     ):
         self.projections_calculated = (
             False  # Probably new file was loaded, we would need new projections
@@ -421,7 +424,12 @@ class Interface(BaseInterface):
         elif base_path and (os.path.isfile(base_path) or load_series):
             self.file_path = base_path
 
-        elif explorer and os.path.isdir(explorer) and explorer.endswith('.zarr') or explorer.split('/')[-2].endswith('.zarr'):
+        elif (
+            explorer
+            and os.path.isdir(explorer)
+            and explorer.endswith('.zarr')
+            or explorer.split('/')[-2].endswith('.zarr')
+        ):
             opened_zarr = zarr.open(explorer, mode='r')
             if isinstance(opened_zarr, zarr.Group):
                 self.file_path = os.path.join(explorer, zarr_group_member.split(' ')[0])

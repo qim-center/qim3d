@@ -9,11 +9,11 @@ import qim3d
 
 QIM_TITLE = ouf.rainbow(
     rf"""
-             _          _____     __ 
-      ____ _(_)___ ___ |__  /____/ / 
-     / __ `/ / __ `__ \ /_ </ __  /  
-    / /_/ / / / / / / /__/ / /_/ /   
-    \__, /_/_/ /_/ /_/____/\__,_/    
+             _          _____     __
+      ____ _(_)___ ___ |__  /____/ /
+     / __ `/ / __ `__ \ /_ </ __  /
+    / /_/ / / / / / / /__/ / /_/ /
+    \__, /_/_/ /_/ /_/____/\__,_/
       /_/                 v{qim3d.__version__}
 
     """,
@@ -47,7 +47,8 @@ def main():
     gui_parser.add_argument('--layers', action='store_true', help='Run Layers.')
     gui_parser.add_argument('--host', default='0.0.0.0', help='Desired host.')
     gui_parser.add_argument(
-        '--volume-generator', action = 'store_true', help = 'Run volume generator tool')
+        '--volume-generator', action='store_true', help='Run volume generator tool'
+    )
     gui_parser.add_argument(
         '--platform', action='store_true', help='Use QIM platform address'
     )
@@ -168,10 +169,14 @@ def main():
             interface.launch(inbrowser=inbrowser, force_light_mode=False)
 
     elif args.subcommand == 'viz':
-
         method = args.method.lower()
 
-        if method in ['volume-explorer', 'volume_explorer', 'itk-vtk', 'itk-vtk-viewer']:
+        if method in [
+            'volume-explorer',
+            'volume_explorer',
+            'itk-vtk',
+            'itk-vtk-viewer',
+        ]:
             # We need the full path to the file for the viewer
             current_dir = os.getcwd()
             full_path = os.path.normpath(os.path.join(current_dir, args.source))
@@ -208,7 +213,7 @@ def main():
         print(QIM_TITLE)
         welcome_text = (
             '\nqim3d is a Python package for 3D image processing and visualization.\n'
-            f"For more information, please visit {ouf.c('https://platform.qim.dk/qim3d/', color='orange', return_str=True)}\n"
+            f'For more information, please visit {ouf.c("https://platform.qim.dk/qim3d/", color="orange", return_str=True)}\n'
             ' \n'
             "For more information on each subcommand, type 'qim3d <subcommand> --help'.\n"
         )

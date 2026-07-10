@@ -1,8 +1,7 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import find_objects, label, generate_binary_structure
+import numpy as np
+from scipy.ndimage import find_objects, generate_binary_structure, label
 
-from qim3d.utils._logger import log
 
 class LabeledVolume:
     def __init__(self, labels: np.ndarray):
@@ -10,18 +9,18 @@ class LabeledVolume:
         self.shape = labels.shape
         self._sizes = None
         self._count = self.labels.max()
-    
+
     @property
     def sizes(self) -> np.ndarray:
         """Returns the sizes of the labels."""
         if self._sizes is None:
             self._sizes = np.bincount(self.labels.ravel())
         return self._sizes
-    
+
     def __len__(self) -> int:
         """Number of non-background labels"""
         return self._count
-    
+
     def filter_by_size(self, min_size: int = None, max_size: int = None) -> np.ndarray:
         """
         Extract a labels volume where only the labels with size within the chosen range are kept.
@@ -29,10 +28,13 @@ class LabeledVolume:
         Args:
             min_size: Lower bound of the range. Default value of None does not set a lower bound.
             max_size: Upper bound of the range. Default value of None does not set an upper bound.
+
         """
         keep = np.zeros(len(self) + 1, dtype=bool)
         for i, size in enumerate(self.sizes[1:], start=1):
-            if (min_size is None or size >= min_size) and (max_size is None or size <= max_size):
+            if (min_size is None or size >= min_size) and (
+                max_size is None or size <= max_size
+            ):
                 keep[i] = True
         mapping = np.arange(len(keep))
         mapping[~keep] = 0
@@ -69,7 +71,9 @@ class ConnectedComponents(LabeledVolume):
             connectivity (int, optional): Controls the squared distance of connectivity. Can range from 1 to 3.
 
         """
-        labels, count = label(vol, structure=generate_binary_structure(rank=3, connectivity=connectivity))
+        labels, count = label(
+            vol, structure=generate_binary_structure(rank=3, connectivity=connectivity)
+        )
         super().__init__(labels)
 
     def get_cc(self, index: int | None = None, crop: bool = False) -> np.ndarray:
@@ -92,9 +96,9 @@ class ConnectedComponents(LabeledVolume):
             index = np.random.randint(1, len(self) + 1)
             volume = self.labels == index
         else:
-            assert (
-                1 <= index <= len(self)
-            ), 'Index out of range. Needs to be in range [1, cc_count].'
+            assert 1 <= index <= len(self), (
+                'Index out of range. Needs to be in range [1, cc_count].'
+            )
             volume = self.labels == index
 
         if crop:
@@ -122,7 +126,10 @@ class ConnectedComponents(LabeledVolume):
         else:
             return find_objects(self.labels)
 
-def connected_components(volume: np.ndarray, connectivity: int = 1) -> ConnectedComponents:
+
+def connected_components(
+    volume: np.ndarray, connectivity: int = 1
+) -> ConnectedComponents:
     """
     Identifies and labels discrete objects (connected components) in a binary volume.
 
@@ -137,7 +144,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
     Args:
         volume (np.ndarray): The binary input volume (boolean or integer) where non-zero values represent the foreground objects.
         connectivity (int, optional): Defines which neighbors are considered "connected".
-            
+
             * **1**: Faces only (6-connectivity in 3D). Closest packing.
             * **2**: Faces and edges (18-connectivity in 3D).
             * **3**: Faces, edges, and corners (26-connectivity in 3D). Loose packing.
@@ -156,7 +163,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
         qim3d.viz.slicer(cc.labels, slice_axis=1, colormap=color_map)
         ```
-    
+
     Example: Show the largest connected components
         ```python
         import qim3d
@@ -169,7 +176,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
         qim3d.viz.volumetric(filtered, colormap=color_map, constant_opacity=True)
         ```
-    
+
     Example: Filter the connected components by size
         ```python
         import qim3d
@@ -177,7 +184,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         vol = qim3d.examples.cement_128x128x128
         binary = qim3d.filters.gaussian(vol, sigma=2) < 60
         cc = qim3d.segmentation.connected_components(binary)
-        
+
         # Show a histogram of the distribution of label sizes
         cc.sizes_histogram()
 
@@ -187,6 +194,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
         qim3d.viz.volumetric(filtered, colormap=color_map, constant_opacity=True)
         ```
+
     """
     cc = ConnectedComponents(volume, connectivity)
     return cc

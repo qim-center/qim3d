@@ -11,7 +11,6 @@ from qim3d.utils._misc import sizeof
 
 
 class Memory:
-
     """
     Class for obtaining current memory information
 

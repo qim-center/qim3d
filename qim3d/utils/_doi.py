@@ -96,7 +96,7 @@ def get_reference(doi: str) -> str:
 def build_reference_string(metadata: dict) -> str:
     """Generates a reference string from metadata"""
     authors = ', '.join(
-        [f"{author['family']} {author['given']}" for author in metadata['author']]
+        [f'{author["family"]} {author["given"]}' for author in metadata['author']]
     )
     year = metadata['issued']['date-parts'][0][0]
     title = metadata['title']

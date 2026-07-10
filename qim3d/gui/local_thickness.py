@@ -274,7 +274,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
             self.vol = data
         except AssertionError:
             raise gr.Error(
-                f"File has to be 3D structure. Your structure has {self.vol.ndim} dimension{'' if self.vol.ndim == 1 else 's'}"
+                f'File has to be 3D structure. Your structure has {self.vol.ndim} dimension{"" if self.vol.ndim == 1 else "s"}'
             )
 
         if dark_objects:

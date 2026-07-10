@@ -71,7 +71,7 @@ def test_mean_std_intensity():
     mask = np.zeros_like(volume, dtype=bool)
     mask[volume.shape[0]//2:, volume.shape[1]//2:, volume.shape[2]//2:] = True
 
-    # Compute mean and standard deviation of intensity 
+    # Compute mean and standard deviation of intensity
     mean_volume1, std_volume1 = qim3d.features.mean_std_intensity(volume)  # Without mask
     mean_volume2, std_volume2 = qim3d.features.mean_std_intensity(volume, mask=mask)  # With mask
 

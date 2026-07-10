@@ -40,12 +40,13 @@ class UNet(torch.nn.Module):
     Example:
         ```python
         import qim3d
-        
+
         # Initialize a small U-Net for quick experiments
         model = qim3d.ml.models.UNet(size='small', dropout=0.2)
-        
+
         print(model)
         ```
+
     """
 
     def __init__(
@@ -160,11 +161,12 @@ class Hyperparameters:
 
         # 3. Retrieve initialized objects for the training loop
         params_dict = hyperparameters()
-        
+
         optimizer = params_dict['optimizer']
         criterion = params_dict['criterion']
         print(f"Ready to train for {params_dict['n_epochs']} epochs with {optimizer.__class__.__name__}")
         ```
+
     """
 
     def __init__(

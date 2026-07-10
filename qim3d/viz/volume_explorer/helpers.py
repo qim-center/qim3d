@@ -1,7 +1,7 @@
 import os
 import platform
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 import qim3d
 

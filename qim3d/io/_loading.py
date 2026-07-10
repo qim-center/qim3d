@@ -18,16 +18,16 @@ import dask
 import dask.array as da
 import numpy as np
 import tifffile
+import zarr
 from dask import delayed
 from PIL import Image, UnidentifiedImageError
 from pygel3d import hmesh
-import zarr
 
 import qim3d
+from qim3d.io._txrm import _get_ole_data_type, read_ole_metadata, read_txrm
 from qim3d.utils import Memory, log
 from qim3d.utils._misc import get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
-from qim3d.io._txrm import read_txrm, _get_ole_data_type, read_ole_metadata
 
 dask.config.set(scheduler='processes')
 
@@ -74,9 +74,9 @@ class DataLoader:
 
         """
         self.virtual_stack = kwargs.get('virtual_stack', False)
-        self.dataset_name = kwargs.get('dataset_name', None)
+        self.dataset_name = kwargs.get('dataset_name')
         self.return_metadata = kwargs.get('return_metadata', False)
-        self.contains = kwargs.get('contains', None)
+        self.contains = kwargs.get('contains')
         self.force_load = kwargs.get('force_load', False)
         self.dim_order = kwargs.get('dim_order', (2, 1, 0))
         self.PIL_extensions = ('.jp2', '.jpg', 'jpeg', '.png', 'gif', '.bmp', '.webp')
@@ -276,9 +276,7 @@ class DataLoader:
                 slices.append(
                     np.memmap(
                         path,
-                        dtype=_get_ole_data_type(metadata).newbyteorder(
-                            '<'
-                        ),
+                        dtype=_get_ole_data_type(metadata).newbyteorder('<'),
                         mode='r',
                         offset=offset,
                         shape=(1, metadata['image_height'], metadata['image_width']),
@@ -431,7 +429,7 @@ class DataLoader:
         Args:
             path (str): The path to the VGI file.
 
-        returns:
+        Returns:
             dict: The loaded metadata.
 
         """
@@ -484,7 +482,7 @@ class DataLoader:
         Raises:
             ValueError: If path points to a .vol file and not a .vgi file
 
-        returns:
+        Returns:
             numpy.ndarray, numpy.memmap or tuple: The loaded volume.
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
 
@@ -566,7 +564,7 @@ class DataLoader:
         Args:
             path (str): Directory path
 
-        returns:
+        Returns:
             numpy.ndarray, numpy.memmap or tuple: The loaded volume.
                 If 'self.return_metadata' is True, returns a tuple (volume, metadata).
 
@@ -707,7 +705,9 @@ class DataLoader:
 
             elif any(f.endswith(self.PIL_extensions) for f in os.listdir(path)):
                 return self.load_pil_stack(path)
-            elif path.endswith('.zarr') or path.split('/')[-2].endswith('.zarr'): # To load just a zarr group member
+            elif path.endswith('.zarr') or path.split('/')[-2].endswith(
+                '.zarr'
+            ):  # To load just a zarr group member
                 return self.load_zarr(path)
             else:
                 return self.load_dicom_dir(path)
@@ -771,11 +771,11 @@ def load(
     """
     General-purpose function to load, import, or read 3D data from various file formats.
 
-    Automatically identifies the file format based on the extension and uses the appropriate backend to open the file. 
+    Automatically identifies the file format based on the extension and uses the appropriate backend to open the file.
     It supports a wide range of standard bio-imaging and material science formats.
 
     **Supported Formats:**
-    
+
     * **Images:** TIFF (`.tif`, `.tiff`), PIL supported formats (`.png`, `.jpg`, etc.)
     * **Volumes:** DICOM (`.dcm`), NIfTI (`.nii`, `.nii.gz`)
     * **HDF5-based:** HDF5 (`.h5`), TXRM/TXM/XRM (`.txrm`, `.txm`)
@@ -784,44 +784,44 @@ def load(
     * **Stacks:** Directories containing sequences of 2D images (TIFF or DICOM series).
 
     **Memory Management (Virtual Stack):**
-    
-    For datasets that are too large to fit into RAM, use `virtual_stack=True`. This enables 
-    **lazy loading** (or memory mapping), allowing you to inspect metadata (shape, data type) 
+
+    For datasets that are too large to fit into RAM, use `virtual_stack=True`. This enables
+    **lazy loading** (or memory mapping), allowing you to inspect metadata (shape, data type)
     and slice specific sub-regions of the volume without reading the entire file into memory immediately.
 
     Args:
-        path (str or os.PathLike): 
-            The path to the file or directory to load. If a directory is provided, the function 
+        path (str or os.PathLike):
+            The path to the file or directory to load. If a directory is provided, the function
             attempts to load it as a stack of images (e.g., a DICOM series or TIFF sequence).
-        virtual_stack (bool, optional): 
-            If `True`, enables lazy loading. The data is not read into memory until explicitly accessed. 
+        virtual_stack (bool, optional):
+            If `True`, enables lazy loading. The data is not read into memory until explicitly accessed.
             Useful for inspecting large files.
-        dataset_name (str, optional): 
-            Used only for HDF5 files containing multiple datasets. Specifies which internal dataset 
+        dataset_name (str, optional):
+            Used only for HDF5 files containing multiple datasets. Specifies which internal dataset
             to load.
-        return_metadata (bool, optional): 
-            If `True`, returns a tuple `(data, metadata)`. Currently supported for HDF5, NIfTI, 
+        return_metadata (bool, optional):
+            If `True`, returns a tuple `(data, metadata)`. Currently supported for HDF5, NIfTI,
             and TXRM/TXM/XRM files.
-        contains (str, optional): 
-            Used when loading a directory of files (Stack). Specifies a unique substring that must 
-            be present in the filenames (e.g., "slice_"). Identifying files by this string helps 
+        contains (str, optional):
+            Used when loading a directory of files (Stack). Specifies a unique substring that must
+            be present in the filenames (e.g., "slice_"). Identifying files by this string helps
             avoid loading unrelated files in the same folder.
-        force_load (bool, optional): 
-            Safety override. If the file size exceeds available system memory, a `MemoryError` 
+        force_load (bool, optional):
+            Safety override. If the file size exceeds available system memory, a `MemoryError`
             is raised. Set this to `True` to convert the error into a warning and attempt loading anyway.
-        dim_order (tuple, optional): 
+        dim_order (tuple, optional):
             Used for `.vol` files. Defines the dimension order (Z, Y, X).
-        progress_bar (bool, optional): 
+        progress_bar (bool, optional):
             If `True`, displays a progress bar during loading (Linux/POSIX only).
-        display_memory_usage (bool, optional): 
+        display_memory_usage (bool, optional):
             If `True`, prints a report of memory usage after loading.
-        **kwargs (Any): 
+        **kwargs (Any):
             Additional arguments passed to the underlying `DataLoader` class.
 
     Returns:
         vol (ndarray, Virtual Stack Object, or tuple):
             The loaded data.
-            
+
             The specific type depends on the input parameters and file format:
 
             * **numpy.ndarray**: Standard in-memory array (if `virtual_stack=False`).
@@ -845,7 +845,7 @@ def load(
 
         # 2. Load a large file lazily (virtual stack) to check shape
         vol_lazy = qim3d.io.load("path/to/huge_scan.h5", virtual_stack=True)
-        print(vol_lazy.shape) 
+        print(vol_lazy.shape)
 
         # 3. Load a specific dataset from an HDF5 file
         vol = qim3d.io.load("data.h5", dataset_name="reconstruction")
@@ -868,6 +868,7 @@ def load(
         # Here we use `contains` to check the files that have that string in their names
         loaded_vol = qim3d.io.load("data_directory" , contains="blob-slices", progress_bar=True)
         ```
+
     """
 
     loader = DataLoader(
@@ -918,7 +919,7 @@ def load_mesh(filename: str) -> hmesh.Manifold:
     """
     Imports or loads a 3D surface mesh from a file.
 
-    Reads geometry data from standard mesh formats and returns a PyGEL3D Manifold object. 
+    Reads geometry data from standard mesh formats and returns a PyGEL3D Manifold object.
     This is useful for analyzing surface structures, isosurfaces, or exported models.
 
     **Supported Formats:**
@@ -929,12 +930,12 @@ def load_mesh(filename: str) -> hmesh.Manifold:
     * **X3D** (`.x3d`) - Extensible 3D
 
     Args:
-        filename (str or os.PathLike): 
+        filename (str or os.PathLike):
             The path to the mesh file to load.
 
     Returns:
-        mesh (Manifold or None): 
-            A PyGEL3D object containing the mesh geometry (vertices, faces, edges). 
+        mesh (Manifold or None):
+            A PyGEL3D object containing the mesh geometry (vertices, faces, edges).
             Returns `None` if loading fails.
 
     Example:
@@ -943,10 +944,11 @@ def load_mesh(filename: str) -> hmesh.Manifold:
 
         # Load a mesh file
         mesh = qim3d.io.load_mesh("path/to/model.obj")
-        
+
         # Check number of vertices
         print(len(mesh.vertices()))
         ```
+
     """
     mesh = hmesh.load(filename)
 

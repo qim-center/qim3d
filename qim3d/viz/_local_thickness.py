@@ -1,5 +1,3 @@
-from typing import Optional, Tuple, Union
-
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,10 +10,10 @@ def local_thickness(
     image_lt: np.ndarray,
     max_projection: bool = False,
     axis: int = 0,
-    slice_index: Optional[Union[int, float]] = None,
+    slice_index: float | None = None,
     show: bool = False,
-    figsize: Tuple[int, int] = (15, 5),
-) -> Union[plt.Figure, widgets.interactive]:
+    figsize: tuple[int, int] = (15, 5),
+) -> plt.Figure | widgets.interactive:
     """
     Visualizes a local thickness map alongside the original image and a statistics histogram.
 
@@ -29,11 +27,11 @@ def local_thickness(
         max_projection (bool, optional): If `True` (and input is 3D), collapses the volume along the specified axis using maximum projection before plotting. Results in a static 2D figure. Defaults to `False`.
         axis (int, optional): The axis along which to slice or project the volume. Defaults to 0.
         slice_index (int or float, optional): The initial slice to display for 3D volumes.
-            
+
             * **int**: The exact index of the slice.
             * **float**: A fraction between 0.0 and 1.0 (e.g., 0.5 for the middle).
             * **None**: Defaults to the middle slice.
-        
+
         show (bool, optional): If `True`, explicitly calls `plt.show()` to render the plot immediately. Defaults to `False`.
         figsize (tuple[int, int], optional): The width and height of the figure in inches. Defaults to (15, 5).
 
@@ -56,6 +54,7 @@ def local_thickness(
         qim3d.viz.local_thickness(fly, lt_fly, axis=0)
         ```
         ![local thickness 3d](../../assets/screenshots/local_thickness_3d.gif)
+
     """
 
     def _local_thickness(image, image_lt, show, figsize, axis=None, slice_index=None):

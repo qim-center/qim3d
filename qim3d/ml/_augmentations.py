@@ -27,10 +27,11 @@ class Augmentation:
         ```python
         import qim3d
 
-        # Create an augmentation strategy that crops images and applies moderate 
+        # Create an augmentation strategy that crops images and applies moderate
         # transformations during training.
         augmentation = qim3d.ml.Augmentation(resize='crop', transform_train='moderate')
         ```
+
     """
 
     def __init__(
@@ -73,6 +74,7 @@ class Augmentation:
 
         Raises:
             ValueError: If `img_shape` is not 3D or if `level` is invalid.
+
         """
         from monai.transforms import (
             CenterSpatialCropd,

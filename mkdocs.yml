@@ -59,12 +59,12 @@ nav:
 #   - Release history: doc/releases/releases.md
 
 theme:
-  language: en 
+  language: en
   name: material
   nav_position: top
   logo: assets/qim3d-icon.svg
   favicon: assets/qim3d-icon.svg
-  features: 
+  features:
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.sections
@@ -111,16 +111,16 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-plugins: 
+plugins:
     - tags
-    - search 
+    - search
     - privacy:
         links_attr_map:
           target: _blank
     - mkdocstrings:
         handlers:
           python:
-            options:    
+            options:
               show_root_heading: false
               show_source: true
               show_root_full_path: true

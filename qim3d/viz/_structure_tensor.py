@@ -21,7 +21,7 @@ def vectors(
     volume_colormap: str = 'grey',
     min_value: float | None = None,
     max_value: float | None = None,
-    slice_index: int | float | None = None,
+    slice_index: float | None = None,
     grid_size: int = 10,
     interactive: bool = True,
     figsize: tuple[int, int] = (10, 5),
@@ -128,11 +128,11 @@ def vectors(
         # Create three subplots
         fig, ax = plt.subplots(1, 3, figsize=figsize, layout='constrained')
 
-        blend_hue_saturation = (
-            lambda hue, sat: hue * (1 - sat) + 0.5 * sat
+        blend_hue_saturation = lambda hue, sat: (
+            hue * (1 - sat) + 0.5 * sat
         )  # Function for blending hue and saturation
-        blend_slice_colors = lambda slice, colors: 0.5 * (
-            slice + colors
+        blend_slice_colors = lambda slice, colors: (
+            0.5 * (slice + colors)
         )  # Function for blending image slice with orientation colors
 
         # ----- Subplot 1: Image slice with orientation vectors ----- #

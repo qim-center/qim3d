@@ -10,7 +10,6 @@ from qim3d.utils import log
 
 
 class Sync:
-
     """Class for dataset synchronization tasks"""
 
     def __init__(self):

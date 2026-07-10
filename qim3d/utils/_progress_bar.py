@@ -10,7 +10,6 @@ from qim3d.utils._misc import get_file_size
 
 
 class RepeatTimer(Timer):
-
     """
     If the memory check is set as a normal thread, there is no garuantee it will switch
         resulting in not enough memory checks to create smooth progress bar or to make it

@@ -53,7 +53,10 @@ def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
 
 
 def dilate(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = 'pygorpho.linear',
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological dilation on a 3D volume using CPU or GPU-accelerated methods.
@@ -102,6 +105,7 @@ def dilate(
         qim3d.viz.volumetric(vol_dilated)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_dilated.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
 
     try:
@@ -123,9 +127,9 @@ def dilate(
         return pg.flat.dilate(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+        assert isinstance(kernel, int), (
+            'Kernel is generated within function and must therefore be an integer.'
+        )
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
 
@@ -147,7 +151,10 @@ def dilate(
 
 
 def erode(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = 'pygorpho.linear',
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological erosion on a 3D volume using CPU or GPU-accelerated methods.
@@ -195,6 +202,7 @@ def erode(
         qim3d.viz.volumetric(vol_eroded)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_eroded.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
 
     try:
@@ -216,9 +224,9 @@ def erode(
         return pg.flat.erode(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+        assert isinstance(kernel, int), (
+            'Kernel is generated within function and must therefore be an integer.'
+        )
 
         if not pg.cuda.get_device_count():
             err = 'no CUDA device available. Use method=scipy.ndimage.'
@@ -239,7 +247,10 @@ def erode(
 
 
 def opening(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = 'pygorpho.linear',
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological opening on a 3D volume using CPU or GPU-accelerated methods.
@@ -297,6 +308,7 @@ def opening(
         ```
 
         <iframe src="https://platform.qim.dk/k3d/zonohedra_opening.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     try:
         volume = np.asarray(volume)
@@ -317,9 +329,9 @@ def opening(
         return pg.flat.open(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+        assert isinstance(kernel, int), (
+            'Kernel is generated within function and must therefore be an integer.'
+        )
 
         if not pg.cuda.get_device_count():
             err = 'no CUDA device available. Use method=scipy.ndimage.'
@@ -340,7 +352,10 @@ def opening(
 
 
 def closing(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = 'pygorpho.linear',
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological closing on a 3D volume using CPU or GPU-accelerated methods.
@@ -390,6 +405,7 @@ def closing(
         qim3d.viz.volumetric(cube_closed)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_cube_closed.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
 
     try:
@@ -411,9 +427,9 @@ def closing(
         return pg.flat.close(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+        assert isinstance(kernel, int), (
+            'Kernel is generated within function and must therefore be an integer.'
+        )
 
         if not pg.cuda.get_device_count():
             err = 'no CUDA device available. Use method=scipy.ndimage.'
@@ -434,7 +450,10 @@ def closing(
 
 
 def black_tophat(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = 'pygorpho.linear',
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs the black top-hat transform on a 3D volume.
@@ -474,7 +493,7 @@ def black_tophat(
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
-        
+
         ```python
         # Apply the black top-hat to extract dark details
         vol_black = qim3d.morphology.black_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')
@@ -482,6 +501,7 @@ def black_tophat(
         qim3d.viz.volumetric(vol_black)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_black_tophat.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
 
     try:
@@ -503,9 +523,9 @@ def black_tophat(
         return pg.flat.bothat(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+        assert isinstance(kernel, int), (
+            'Kernel is generated within function and must therefore be an integer.'
+        )
 
         if not pg.cuda.get_device_count():
             err = 'no CUDA device available. Use method=scipy.ndimage.'
@@ -526,7 +546,10 @@ def black_tophat(
 
 
 def white_tophat(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = 'pygorpho.linear',
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs the white top-hat transform on a 3D volume.
@@ -574,6 +597,7 @@ def white_tophat(
         qim3d.viz.volumetric(vol_white)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_white_tophat.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
 
     try:
@@ -595,9 +619,9 @@ def white_tophat(
         return pg.flat.tophat(volume, kernel, **kwargs)
 
     elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+        assert isinstance(kernel, int), (
+            'Kernel is generated within function and must therefore be an integer.'
+        )
 
         if not pg.cuda.get_device_count():
             err = 'no CUDA device available. Use method=scipy.ndimage.'

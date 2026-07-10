@@ -14,7 +14,7 @@ def remove_background(
     Applies a background correction pipeline using median filtering and morphological operations.
 
     This function acts as a convenience wrapper for a sequential processing pipeline designed to smooth the image and suppress clutter. It performs two distinct operations:
-    
+
     1.  **Median Filter:** Reduces high-frequency impulse noise (salt-and-pepper) using a kernel of size `median_filter_size`.
     2.  **Morphological Opening:** Removes bright features (or dark, if `background='bright'`) that are smaller than the `min_object_radius`. This effectively separates large structural components from small background artifacts or texture.
 
@@ -23,10 +23,10 @@ def remove_background(
         median_filter_size (int, optional): The size of the kernel for the initial median denoising step. Defaults to 2.
         min_object_radius (int, optional): The radius of the structuring element (ball) used for the morphological operation. Details smaller than this size are removed. Defaults to 3.
         background (str, optional): The intensity of the background relative to the objects.
-            
+
             * **'dark'**: Use for bright objects on a dark background.
             * **'bright'**: Use for dark objects on a bright background (the volume is inverted during processing).
-            
+
         **median_kwargs (Any): Additional keyword arguments passed to the underlying `Median` filter.
 
     Returns:
@@ -49,6 +49,7 @@ def remove_background(
         fig2 = qim3d.viz.slices_grid(vol_filtered, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
         ![operations-remove_background_after](../../assets/screenshots/operations-remove_background_after.png)
+
     """
 
     # Create a pipeline with a median filter and a tophat filter
@@ -80,10 +81,10 @@ def fade_mask(
         decay_rate (float, optional): The exponent for the power-law decay. Higher values create a "flatter" central region with a sharper drop-off near the mask edge, while lower values cause a more gradual fade from the center. Defaults to 10.
         ratio (float, optional): The effective radius of the non-zero mask region relative to the volume size. Defaults to 0.5.
         geometry (str, optional): The geometric shape of the mask.
-            
+
             * **'spherical'**: Fades in all directions from the volume center.
             * **'cylindrical'**: Fades radially from a central axis (defined by `axis`), maintaining constant intensity along that axis. Defaults to 'spherical'.
-            
+
         invert (bool, optional): If `True`, inverts the mask (fades the center and keeps the edges). Defaults to `False`.
         axis (int, optional): The axis of alignment for the cylinder if `geometry='cylindrical'`. Defaults to 0.
         **kwargs (Any): Additional keyword arguments.
@@ -110,6 +111,7 @@ def fade_mask(
         ```
         Afterwards the artifacts are faded out, making the object of interest more visible for visualization purposes.
         <iframe src="https://platform.qim.dk/k3d/fly_faded.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     if axis < 0 or axis >= volume.ndim:
         error = 'Axis must be between 0 and the number of dimensions of the volume'
@@ -191,6 +193,7 @@ def overlay_rgb_images(
 
     Raises:
         ValueError: If the spatial dimensions (height/width) of the input images do not match.
+
     """
 
     def to_uint8(image: np.ndarray) -> np.ndarray:
@@ -284,6 +287,7 @@ def make_hollow(
         qim3d.viz.slicer(vol_hollowed)
         ```
         ![synthetic_collection](../../assets/screenshots/hollow_slicer_2.gif)
+
     """
     # Create base mask
     vol_mask_base = volume > 0

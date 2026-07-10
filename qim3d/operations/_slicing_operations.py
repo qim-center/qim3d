@@ -332,6 +332,7 @@ def get_random_slice(
 
         ```
         ![Random slices](../../assets/screenshots/random_slice-after.png)
+
     """
 
     if seed is not None:
@@ -361,7 +362,7 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
     Args:
         volume (np.ndarray): The input 3D volume.
         coarseness (int or list[int]): The step size (stride) for sampling.
-            
+
             * **int**: Applies the same step size to all axes (isotropic downsampling). A value of `1` returns the original volume. A value of `2` takes every second voxel.
             * **list[int]**: A list of 3 integers specifying the step size for each axis `[z, y, x]`.
 
@@ -376,23 +377,24 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
 
         # Create a sample volume
         vol = np.zeros((100, 100, 100))
-        
+
         # Subsample by taking every 4th voxel
         vol_small = qim3d.operations.subsample(vol, coarseness=4)
-        
+
         print(f"Original shape: {vol.shape}")
         print(f"Subsampled shape: {vol_small.shape}")
         ```
         Original shape: (100, 100, 100)
 
         Subsampled shape: (25, 25, 25)
+
     """
     if isinstance(coarseness, int):
         coarseness = tuple(coarseness for _ in range(3))
 
     vol_subsample = volume[tuple(slice(None, None, step) for step in coarseness)]
     ratio = vol_subsample.size / volume.size
-    log.info(f'Subsampled volume has size {100*ratio:.3g}% of the original volume.')
+    log.info(f'Subsampled volume has size {100 * ratio:.3g}% of the original volume.')
 
     # User warnings
     min_elements = 1000
@@ -407,6 +409,7 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
         )
 
     return vol_subsample
+
 
 def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
     """
@@ -431,11 +434,11 @@ def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
 
         # Create a volume with 1 million voxels
         vol = np.zeros((100, 100, 100))
-        
+
         # Subsample to keep ~1.5% of the data
         # Ideally, stride = cbrt(1/0.015) ≈ 4.05 -> stride 4
         vol_small = qim3d.operations.ratio_subsample(vol, ratio=0.015)
-        
+
         print(f"Original size: {vol.size}")
         print(f"Subsampled size: {vol_small.size}")
         print(f"Actual ratio: {vol_small.size / vol.size:.4f}")
@@ -447,7 +450,9 @@ def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
         Subsampled size: 15625
 
         Actual ratio: 0.0156
+
     """
+
     def calc_ratio(vol: np.ndarray, stride: int) -> float:
         """Compute the achieved ratio given a stride value."""
         shape = np.array(vol.shape)
@@ -466,10 +471,16 @@ def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
         ratio_below = calc_ratio(volume, stride_below)
         ratio_above = calc_ratio(volume, stride_above)
         # Pick the stride yielding ratio closer to the target
-        stride = stride_above if abs(ratio_above - ratio) < abs(ratio_below - ratio) else stride_below
+        stride = (
+            stride_above
+            if abs(ratio_above - ratio) < abs(ratio_below - ratio)
+            else stride_below
+        )
 
     vol_subsample = volume[::stride, ::stride, ::stride]
     actual_ratio = vol_subsample.size / volume.size
-    log.info(f'Subsampled volume has size {100*actual_ratio:.3g}% of the original volume. Used a spacing of {stride} in each axis.')
+    log.info(
+        f'Subsampled volume has size {100 * actual_ratio:.3g}% of the original volume. Used a spacing of {stride} in each axis.'
+    )
 
     return vol_subsample

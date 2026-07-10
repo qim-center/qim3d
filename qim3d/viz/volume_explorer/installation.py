@@ -6,16 +6,15 @@ from pathlib import Path
 from .helpers import (
     SOURCE_FNM,
     NotInstalledError,
-    get_volume_explorer_dir,
     get_node_binaries_dir,
     get_nvm_dir,
     get_viewer_dir,
+    get_volume_explorer_dir,
     run_for_platform,
 )
 
 
 class Installer:
-
     """
     Implements installation procedure of volume-explorer for each OS.
     Also goes for minimal installation: checking if the necessary binaries aren't already installed
@@ -196,7 +195,11 @@ class Installer:
                 )
             except NotInstalledError:  # Not installed in qim
                 subprocess.run(
-                    ['powershell.exe', SOURCE_FNM, 'npm install @qim3d/volume-explorer'],
+                    [
+                        'powershell.exe',
+                        SOURCE_FNM,
+                        'npm install @qim3d/volume-explorer',
+                    ],
                     capture_output=True,
                 )
 

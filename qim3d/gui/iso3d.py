@@ -54,7 +54,7 @@ class Interface(InterfaceWithExamples):
             raise gr.Error('Unsupported file format')
         except AssertionError:
             raise gr.Error(
-                f"File has to be 3D structure. Your structure has {self.vol.ndim} dimension{'' if self.vol.ndim == 1 else 's'}"
+                f'File has to be 3D structure. Your structure has {self.vol.ndim} dimension{"" if self.vol.ndim == 1 else "s"}'
             )
 
     def resize_vol(self, display_size: int):
@@ -198,7 +198,7 @@ class Interface(InterfaceWithExamples):
         gr.Markdown(
             """
                 This tool uses Plotly Volume (https://plotly.com/python/3d-volume-plots/) to create iso surfaces from voxels based on their intensity levels.
-                To optimize performance when generating visualizations, set the number of voxels (_display resolution_) and isosurfaces (_total surfaces_) to lower levels. 
+                To optimize performance when generating visualizations, set the number of voxels (_display resolution_) and isosurfaces (_total surfaces_) to lower levels.
                 """
         )
 

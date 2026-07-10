@@ -40,6 +40,7 @@ def pad(
         print(padded_volume.shape)
         ```
         (100, 120, 120)
+
     """
     assert len(volume.shape) == 3, 'Volume must be 3D'
     assert z_axis >= 0, 'Padded shape must be positive in z-axis.'
@@ -104,6 +105,7 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
         print(padded_volume.shape)
         ```
         (110, 110, 110)
+
     """
     assert len(shape) == 3, 'Shape must be 3D'
     assert len(volume.shape) == 3, 'Volume must be 3D'
@@ -157,6 +159,7 @@ def trim(volume: np.ndarray) -> np.ndarray:
         print(trimmed_volume.shape)
         ```
         (80, 80, 80)
+
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
 
@@ -203,7 +206,7 @@ def shear3d(
         z_shift_x (int, optional): Max shift in Z, varying along the X-axis. Defaults to 0.
         z_shift_y (int, optional): Max shift in Z, varying along the Y-axis. Defaults to 0.
         order (int, optional): The order of the spline interpolation used during resampling.
-            
+
             * **0**: Nearest-neighbor (preserves original values, good for labels).
             * **1**: Linear interpolation (default, good for intensity data).
             * **2-5**: Higher-order splines (smoother but slower).
@@ -236,6 +239,7 @@ def shear3d(
         qim3d.viz.slicer(sheared_vol, slice_axis=1)
         ```
         ![warp_box_shear](../../assets/screenshots/warp_box_shear.png)
+
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'
@@ -303,7 +307,7 @@ def curve_warp(
         x_offset (float, optional): The phase shift or starting position of the wave in the X-direction (in radians). Defaults to 0.0.
         y_offset (float, optional): The phase shift in the Y-direction. Defaults to 0.0.
         order (int, optional): The order of the spline interpolation used during resampling.
-            
+
             * **0**: Nearest-neighbor.
             * **1**: Linear interpolation (default).
             * **2-5**: Higher-order splines.
@@ -332,6 +336,7 @@ def curve_warp(
         qim3d.viz.slicer(warped_volume, slice_axis=1)
         ```
         ![warp_box_curved](../../assets/screenshots/warp_box_curve.png)
+
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'
@@ -372,7 +377,7 @@ def stretch(
     Resizes (stretches or compresses) the volume along one or more axes using interpolation.
 
     This function changes the aspect ratio and spatial resolution of the volume by resampling it onto a new grid.
-    
+
     * **Positive stretch:** Increases the size of the volume (upsampling). The content appears elongated.
     * **Negative stretch:** Decreases the size of the volume (downsampling). The content appears compressed.
 
@@ -384,7 +389,7 @@ def stretch(
         y_stretch (int, optional): Pixels added/removed per side along the Y-axis. Defaults to 0.
         z_stretch (int, optional): Pixels added/removed per side along the Z-axis. Defaults to 0.
         order (int, optional): The order of spline interpolation.
-            
+
             * **0**: Nearest-neighbor (preserves integer labels).
             * **1**: Linear interpolation (default, good for intensity data).
             * **2-5**: Higher-order splines.
@@ -427,13 +432,14 @@ def stretch(
         (100, 100, 60)
 
         ![warp_box_squeeze](../../assets/screenshots/warp_box_squeeze.png)
+
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'
     assert 0 <= order <= 5, 'Order must be in the range 0-5.'
-    assert all(
-        isinstance(var, int) for var in (x_stretch, y_stretch, z_stretch)
-    ), 'Amount of pixel stretching must be integer'
+    assert all(isinstance(var, int) for var in (x_stretch, y_stretch, z_stretch)), (
+        'Amount of pixel stretching must be integer'
+    )
 
     n, h, w = volume.shape
 
@@ -474,13 +480,13 @@ def center_twist(
         volume (np.ndarray): The input 3D volume (Z, Y, X).
         rotation_angle (float, optional): The total rotation in degrees applied from the bottom to the top of the axis. Defaults to 90.
         axis (str, optional): The axis of rotation.
-            
+
             * **'z'**: Rotates the XY planes around the Z-axis (default).
             * **'y'**: Rotates the XZ planes around the Y-axis.
             * **'x'**: Rotates the YZ planes around the X-axis.
-        
+
         order (int, optional): The order of spline interpolation used during resampling.
-            
+
             * **0**: Nearest-neighbor.
             * **1**: Linear interpolation (default).
             * **2-5**: Higher-order splines.
@@ -509,6 +515,7 @@ def center_twist(
         qim3d.viz.volumetric(twisted_volume)
         ```
         <iframe src="https://platform.qim.dk/k3d/warp_box_twist.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
     assert isinstance(order, int), 'Order must be an integer.'

@@ -4,7 +4,6 @@ This module provides a collection of colormaps useful for 3D visualization.
 
 import colorsys
 import math
-from typing import Tuple, Union
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -38,7 +37,7 @@ def segmentation(
     style: str = 'bright',
     first_color_background: bool = True,
     last_color_background: bool = False,
-    background_color: Union[Tuple[float, float, float], str] = (0.0, 0.0, 0.0),
+    background_color: tuple[float, float, float] | str = (0.0, 0.0, 0.0),
     min_dist: int = 0.5,
     seed: int = 19,
 ) -> LinearSegmentedColormap:
@@ -110,6 +109,7 @@ def segmentation(
         qim3d.viz.slicer(labeled_volume, slice_axis = 1, color_map=color_map)
         ```
         ![colormap objects](../../assets/screenshots/viz-colormaps-objects.gif)
+
     """
     from skimage import color
 

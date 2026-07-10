@@ -4,18 +4,18 @@ import threading
 import time
 import webbrowser
 from pathlib import Path
-import qim3d
 
+import qim3d
 from qim3d.utils._logger import log
 
 from .helpers import (
     SOURCE_FNM,
     NotInstalledError,
-    get_volume_explorer_dir,
     get_node_binaries_dir,
     get_nvm_dir,
     get_viewer_binaries,
     get_viewer_dir,
+    get_volume_explorer_dir,
     run_for_platform,
 )
 from .installation import Installer
@@ -32,12 +32,12 @@ is_installed = True
 
 def run_global(port: int = DEFAULT_VIEWER_PORT):
     linux_func = lambda: subprocess.run(
-        f"{START_COMMAND} -p {port}", shell=True, stderr=subprocess.DEVNULL
+        f'{START_COMMAND} -p {port}', shell=True, stderr=subprocess.DEVNULL
     )
 
     # First sourcing the node.js, if sourcing via fnm doesnt help and user would have to do it any other way, it would throw an error and suggest to install viewer to qim library
     windows_func = lambda: subprocess.run(
-        ['powershell.exe', SOURCE_FNM, f"{START_COMMAND} -p {port}"],
+        ['powershell.exe', SOURCE_FNM, f'{START_COMMAND} -p {port}'],
         shell=True,
         stderr=subprocess.DEVNULL,
     )
@@ -73,7 +73,7 @@ def run_within_qim_dir(port: int = DEFAULT_VIEWER_PORT):
                 [
                     'powershell.exe',
                     f"$env:PATH = $env:PATH + ';{viewer_bin};{node_bin}';",
-                    f"{START_COMMAND} -p {port}",
+                    f'{START_COMMAND} -p {port}',
                 ],
                 stderr=subprocess.DEVNULL,
             )
@@ -165,11 +165,11 @@ def volume_explorer(
 
     except NotInstalledError:
         message = (
-            "Volume Explorer is not installed or qim3d cannot find it.\n"
+            'Volume Explorer is not installed or qim3d cannot find it.\n'
             "You can either:\n\to  Use 'qim3d viz SOURCE -m k3d' to display data using a different method\n"
             "\to  Install volume-explorer yourself (e.g. 'npm install -g @qim3d/volume-explorer' or 'npx volume-explorer')\n"
-            "\to  Let qim3d install volume-explorer now (it will also install node.js in qim3d library)\n"
-            "Do you want qim3d to install volume-explorer now?"
+            '\to  Let qim3d install volume-explorer now (it will also install node.js in qim3d library)\n'
+            'Do you want qim3d to install volume-explorer now?'
         )
         print(message)
         answer = input('[Y/n]:')

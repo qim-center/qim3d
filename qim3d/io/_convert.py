@@ -6,10 +6,9 @@ import nibabel as nib
 import numpy as np
 import tifffile as tiff
 import zarr
-import qim3d
-
 from tqdm import tqdm
 
+import qim3d
 from qim3d.utils._misc import stringify_path
 
 
@@ -116,7 +115,7 @@ class Convert:
             zarr_path (str): path to the zarr file
             tif_path (str): path to the tiff file
 
-        returns:
+        Returns:
             None
 
         """

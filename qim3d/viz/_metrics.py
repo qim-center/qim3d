@@ -83,7 +83,7 @@ def plot_metrics(
 
 
 def grid_overview(
-    data: list ,
+    data: list,
     n_images: int = 7,
     colormap_im: str = 'gray',
     colormap_segm: str = 'viridis',

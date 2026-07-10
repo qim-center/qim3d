@@ -1,8 +1,9 @@
-import numpy as np
 import math
 import struct
 
+import numpy as np
 import olefile
+
 
 def read_txrm(file_name, slice_range=None):
     """
@@ -24,10 +25,11 @@ def read_txrm(file_name, slice_range=None):
 
     dictionary
         Dictionary of metadata.
+
     """
     try:
         ole = olefile.OleFileIO(file_name)
-    except IOError:
+    except OSError:
         print('No such file or directory: %s', file_name)
         return False
 
@@ -36,13 +38,13 @@ def read_txrm(file_name, slice_range=None):
     array_of_images = np.empty(
         _shape_after_slice(
             (
-                metadata["number_of_images"],
-                metadata["image_height"],
-                metadata["image_width"],
+                metadata['number_of_images'],
+                metadata['image_height'],
+                metadata['image_width'],
             ),
-            slice_range
+            slice_range,
         ),
-        dtype=_get_ole_data_type(metadata)
+        dtype=_get_ole_data_type(metadata),
     )
 
     if slice_range is None:
@@ -50,9 +52,10 @@ def read_txrm(file_name, slice_range=None):
     else:
         slice_range = _make_slice_object_a_tuple(slice_range)
 
-    for i, idx in enumerate(range(*slice_range[0].indices(metadata["number_of_images"]))):
-        img_string = "ImageData{}/Image{}".format(
-            int(np.ceil((idx + 1) / 100.0)), int(idx + 1))
+    for i, idx in enumerate(
+        range(*slice_range[0].indices(metadata['number_of_images']))
+    ):
+        img_string = f'ImageData{int(np.ceil((idx + 1) / 100.0))}/Image{int(idx + 1)}'
         array_of_images[i] = _read_ole_image(ole, img_string, metadata)[slice_range[1:]]
 
     reference = metadata['reference']
@@ -61,6 +64,7 @@ def read_txrm(file_name, slice_range=None):
 
     ole.close()
     return array_of_images, metadata
+
 
 def read_ole_metadata(ole):
     """
@@ -75,9 +79,10 @@ def read_ole_metadata(ole):
     -------
     tuple
         A tuple of image metadata.
+
     """
 
-    number_of_images = _read_ole_value(ole, "ImageInfo/NoOfImages", "<I")
+    number_of_images = _read_ole_value(ole, 'ImageInfo/NoOfImages', '<I')
 
     metadata = {
         'facility': _read_ole_value(ole, 'SampleInfo/Facility', '<50s'),
@@ -89,18 +94,20 @@ def read_ole_metadata(ole):
         'reference_filename': _read_ole_value(ole, 'ImageInfo/referencefile', '<260s'),
         'reference_data_type': _read_ole_value(ole, 'referencedata/DataType', '<1I'),
         # NOTE: converting theta to radians from degrees
-        'thetas': _read_ole_arr(
-            ole, 'ImageInfo/Angles', "<{0}f".format(number_of_images)) * np.pi / 180.,
+        'thetas': _read_ole_arr(ole, 'ImageInfo/Angles', f'<{number_of_images}f')
+        * np.pi
+        / 180.0,
         'x_positions': _read_ole_arr(
-            ole, 'ImageInfo/XPosition', "<{0}f".format(number_of_images)),
+            ole, 'ImageInfo/XPosition', f'<{number_of_images}f'
+        ),
         'y_positions': _read_ole_arr(
-            ole, 'ImageInfo/YPosition', "<{0}f".format(number_of_images)),
+            ole, 'ImageInfo/YPosition', f'<{number_of_images}f'
+        ),
         'z_positions': _read_ole_arr(
-            ole, 'ImageInfo/ZPosition', "<{0}f".format(number_of_images)),
-        'x-shifts': _read_ole_arr(
-            ole, 'alignment/x-shifts', "<{0}f".format(number_of_images)),
-        'y-shifts': _read_ole_arr(
-            ole, 'alignment/y-shifts', "<{0}f".format(number_of_images))
+            ole, 'ImageInfo/ZPosition', f'<{number_of_images}f'
+        ),
+        'x-shifts': _read_ole_arr(ole, 'alignment/x-shifts', f'<{number_of_images}f'),
+        'y-shifts': _read_ole_arr(ole, 'alignment/y-shifts', f'<{number_of_images}f'),
     }
     # special case to remove trailing null characters
     reference_filename = _read_ole_value(ole, 'ImageInfo/referencefile', '<260s')
@@ -112,22 +119,26 @@ def read_ole_metadata(ole):
                 break
     metadata['reference_filename'] = reference_filename
     if ole.exists('referencedata/image'):
-        reference = _read_ole_image(ole, 'referencedata/image', metadata, metadata['reference_data_type'])
+        reference = _read_ole_image(
+            ole, 'referencedata/image', metadata, metadata['reference_data_type']
+        )
     else:
         reference = None
     metadata['reference'] = reference
     return metadata
 
+
 def _get_ole_data_type(metadata, datatype=None):
     # 10 float; 5 uint16 (unsigned 16-bit (2-byte) integers)
     if datatype is None:
-        datatype = metadata["data_type"]
+        datatype = metadata['data_type']
     if datatype == 10:
         return np.dtype(np.float32)
     elif datatype == 5:
         return np.dtype(np.uint16)
     else:
-        raise Exception("Unsupport XRM datatype: %s" % str(datatype))
+        raise Exception('Unsupport XRM datatype: %s' % str(datatype))
+
 
 def _make_slice_object_a_tuple(slc):
     """
@@ -141,6 +152,7 @@ def _make_slice_object_a_tuple(slc):
         Range of values for slicing data in each axis.
         ((start_1, end_1, step_1), ... , (start_N, end_N, step_N))
         defines slicing parameters for each axis of the data matrix.
+
     """
     if slc is None:
         return None  # need arr shape to create slice
@@ -157,6 +169,7 @@ def _make_slice_object_a_tuple(slc):
                 s = slice(*s)
         fixed_slc.append(s)
     return tuple(fixed_slc)
+
 
 def _shape_after_slice(shape, slc):
     """
@@ -184,6 +197,7 @@ def _shape_after_slice(shape, slc):
             new_shape[m] = 0
     return tuple(new_shape)
 
+
 def _read_ole_struct(ole, label, struct_fmt):
     """
     Reads the struct associated with label in an ole file
@@ -195,6 +209,7 @@ def _read_ole_struct(ole, label, struct_fmt):
         value = struct.unpack(struct_fmt, data)
     return value
 
+
 def _read_ole_value(ole, label, struct_fmt):
     """
     Reads the value associated with label in an ole file
@@ -203,6 +218,7 @@ def _read_ole_value(ole, label, struct_fmt):
     if value is not None:
         value = value[0]
     return value
+
 
 def _read_ole_arr(ole, label, struct_fmt):
     """
@@ -213,6 +229,7 @@ def _read_ole_arr(ole, label, struct_fmt):
         arr = np.array(arr)
     return arr
 
+
 def _read_ole_image(ole, label, metadata, datatype=None):
     stream = ole.openstream(label)
     data = stream.read()
@@ -220,8 +237,6 @@ def _read_ole_image(ole, label, metadata, datatype=None):
     data_type = data_type.newbyteorder('<')
     image = np.reshape(
         np.frombuffer(data, data_type),
-        (metadata["image_height"], metadata["image_width"], )
+        (metadata['image_height'], metadata['image_width']),
     )
     return image
-
-         
