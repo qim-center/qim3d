@@ -179,10 +179,10 @@ def slices_grid(
 
     # Here we deal with the case that the user wants to use the objects colormap directly
     if (
-        type(colormap) == matplotlib.colors.LinearSegmentedColormap
+        isinstance(colormap, matplotlib.colors.LinearSegmentedColormap)
         or colormap == 'segmentation'
     ):
-        num_labels = volume.max()
+        num_labels = int(volume.max())
 
         if colormap == 'segmentation':
             colormap = qim3d.viz.colormaps.segmentation(num_labels)
@@ -1838,7 +1838,7 @@ def threshold(
                 threshold_slider.disabled = True
                 threshold_slider.observe(update_state, names='value')
             else:
-                msg = f"Unsupported thresholding method: {state['method']}"
+                msg = f'Unsupported thresholding method: {state["method"]}'
                 raise ValueError(msg)
 
         # Trigger visualization
