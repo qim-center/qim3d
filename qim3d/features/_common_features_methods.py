@@ -7,30 +7,30 @@ from qim3d.utils._logger import log
 
 
 def prepare_obj(
-    obj: np.ndarray | hmesh.Manifold,
+    obj: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
     threshold: float | str = 'otsu',
     mesh_precision: float = 1.0,
     return_mesh: bool = True,
-) -> np.ndarray | hmesh.Manifold:
+) -> np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh:
     """
     Prepares a volume or mesh for feature extraction by applying thresholding and masking (if specified).
     Optionally returns a mesh or a binarized volume.
 
     Args:
-        obj (np.ndarray or hmesh.Manifold): Input `np.ndarray` volume or a mesh object of type `pygel3d.hmesh.Manifold`.
+        obj (np.ndarray, hmesh.Manifold, or SurfaceMesh): Input `np.ndarray` volume or a mesh object.
         threshold (float, str, or None): Threshold value, ignored if input is a mesh or volume is already binary. Defaults to 'otsu' for Otsu's method.
         mask (np.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Ignored if input is a mesh.
         mesh_precision (float): Precision parameter for mesh generation.
         return_mesh (bool): If True, returns a mesh. Otherwise, returns the binarized and/or masked volume.
 
     Returns:
-        hmesh.Manifold or np.ndarray: Mesh or binarized/masked volume, depending on `return_mesh`.
+        hmesh.Manifold, SurfaceMesh, or np.ndarray: Mesh or binarized/masked volume, depending on `return_mesh`.
 
     """
 
     # If already a mesh, return as is
-    if isinstance(obj, hmesh.Manifold):
+    if isinstance(obj, (hmesh.Manifold, qim3d.mesh.SurfaceMesh)):
         return obj
 
     volume = np.asarray(obj)
@@ -71,7 +71,7 @@ def prepare_obj(
 
 
 def volume(
-    object: np.ndarray | hmesh.Manifold,
+    object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
     threshold: float | str = 'otsu',
 ) -> float:
@@ -81,7 +81,7 @@ def volume(
     This function quantifies the amount of space occupied by a structure. It is robust and versatile, handling both raw 3D image arrays (voxels) and pre-generated meshes. If a voxel array is provided, it is automatically converted into a mesh using the specified threshold before the volume is calculated, ensuring sub-voxel accuracy compared to simple voxel counting.
 
     Args:
-        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        object (np.ndarray, hmesh.Manifold, or SurfaceMesh): The input data. Can be a 3D NumPy array (volume), a `pygel3d.hmesh.Manifold` object, or a `qim3d.mesh.SurfaceMesh` object.
         mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the volume within this mask is included. Must have the same shape as `object`. Defaults to `None`.
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
@@ -112,31 +112,35 @@ def volume(
         print(volume)
         ```
         48774.99
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
 
     # Compute volume
-    volume = hmesh.volume(mesh)
+    if isinstance(mesh, hmesh.Manifold):
+        volume = hmesh.volume(mesh)
+    else:
+        volume = mesh.volume
 
     return volume
 
 
 def area(
-    object: np.ndarray | hmesh.Manifold,
+    object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
     threshold: float | str = 'otsu',
 ) -> float:
     """
     Calculates the total surface area of a 3D object.
 
-    This function quantifies the surface size of a structure, which is a fundamental metric in morphometry and material science. It accepts either a raw 3D volume (which is automatically meshed using Marching Cubes) or a pre-computed `PyGEL3D` mesh.
+    This function quantifies the surface size of a structure, which is a fundamental metric in morphometry and material science. It accepts either a raw 3D volume (which is automatically meshed using Marching Cubes) or a pre-computed mesh (`pygel3d.hmesh.Manifold` or `qim3d.mesh.SurfaceMesh`).
 
     Args:
-        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        object (np.ndarray, hmesh.Manifold, or SurfaceMesh): The input data. Can be a 3D NumPy array (volume), a `pygel3d.hmesh.Manifold` object, or a `qim3d.mesh.SurfaceMesh` object.
         mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI) within the volume. Must have the same shape as `object`. Defaults to `None`.
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
-            
+
             * **float**: A specific intensity value.
             * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
 
@@ -162,7 +166,7 @@ def area(
         58535.06
 
     Example:
-        Compute area from a `pygel3d.hmesh.Manifold` mesh:
+        Compute area from a mesh:
         ```python
         import qim3d
 
@@ -177,18 +181,22 @@ def area(
         print(area)
         ```
         58535.06
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
 
     # Compute area
-    area = hmesh.area(mesh)
+    if isinstance(mesh, hmesh.Manifold):
+        area = hmesh.area(mesh)
+    else:
+        area = mesh.area
 
     return area
 
 
 def sphericity(
-    object: np.ndarray | hmesh.Manifold,
+    object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
     threshold: float | str = 'otsu',
 ) -> float:
@@ -201,7 +209,7 @@ def sphericity(
     * **< 1.0**: Indicates irregular, elongated, or rough shapes (e.g., a cube has a sphericity of approx. 0.806).
 
     Args:
-        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        object (np.ndarray, hmesh.Manifold, or SurfaceMesh): The input data. Can be a 3D NumPy array (volume), a `pygel3d.hmesh.Manifold` object, or a `qim3d.mesh.SurfaceMesh` object.
         mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the data within this mask is considered. Must have the same shape as `object`. Defaults to `None`.
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
@@ -252,6 +260,7 @@ def sphericity(
         ```
         Sphericity: 0.6876
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
@@ -311,9 +320,10 @@ def mean_std_intensity(
         # Visualize slices of the object
         qim3d.viz.slices_grid(shell_object, color_bar=True, color_bar_style="large")
         ```
-        Mean intensity: 114.6734  
+        Mean intensity: 114.6734
         Standard deviation of intensity: 45.8481
         ![mean_std_intensity_feature](../../assets/screenshots/mean_std_intensity_feature_example.png)
+
     """
 
     # Mask the volume (if provided)
@@ -330,7 +340,7 @@ def mean_std_intensity(
 
 
 def size(
-    object: np.ndarray | hmesh.Manifold,
+    object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
     threshold: float | str = 'otsu',
 ) -> float:
@@ -340,7 +350,7 @@ def size(
     This function determines the largest spatial extent of the object along the Cartesian axes (X, Y, Z). It computes the Axis-Aligned Bounding Box (AABB) enclosing the structure and returns the length of its longest side. This metric is useful for characterizing the overall scale, fitting constraints, or the maximum caliper diameter along orthogonal axes.
 
     Args:
-        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        object (np.ndarray, hmesh.Manifold, or SurfaceMesh): The input data. Can be a 3D NumPy array (volume), a `pygel3d.hmesh.Manifold` object, or a `qim3d.mesh.SurfaceMesh` object.
         mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the data within this mask is considered. Must have the same shape as `object`. Defaults to `None`.
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
@@ -374,23 +384,34 @@ def size(
         ```
         Size: 100.0
         <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)
 
     # Min and max corners of the bounding box
-    bbox = hmesh.bbox(mesh)
-    mins, maxs = bbox
+    if isinstance(mesh, hmesh.Manifold):
+        bbox = hmesh.bbox(mesh)
+        mins, maxs = bbox
+        side_lengths = maxs - mins
+    else:
+        bounds = mesh.bounds  # (xmin, xmax, ymin, ymax, zmin, zmax)
+        side_lengths = np.array(
+            [
+                bounds[1] - bounds[0],
+                bounds[3] - bounds[2],
+                bounds[5] - bounds[4],
+            ]
+        )
 
     # Maximum side length of the bounding box
-    side_lengths = maxs - mins
     size = np.max(side_lengths)
 
     return size
 
 
 def roughness(
-    object: np.ndarray | hmesh.Manifold,
+    object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
     threshold: float | str = 'otsu',
 ) -> float:
@@ -400,7 +421,8 @@ def roughness(
     This feature quantifies the morphological complexity of an object. Unlike a simple measure of size, this ratio indicates how "folded", "spiky", or "porous" a structure is relative to its mass. A perfect sphere has the lowest possible surface-to-volume ratio (smoothest), while highly complex shapes like fractals, trabecular bone, or dendrites will have a much higher value. This metric is often used to analyze texture and surface irregularity.
 
     Args:
-        object (np.ndarray or hmesh.Manifold): The input data. Can be a 3D NumPy array (volume) or a `pygel3d.hmesh.Manifold` object (mesh).
+        object (np.ndarray, hmesh.Manifold, or SurfaceMesh): The input data. Can be a 3D NumPy array (volume), a `pygel3d.hmesh.Manifold` object, or a `qim3d.mesh.SurfaceMesh` object.
+
         mask (np.ndarray, optional): A boolean mask defining a Region of Interest (ROI). Only the data within this mask is considered. Must have the same shape as `object`. Defaults to `None`.
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
@@ -455,6 +477,7 @@ def roughness(
         ```
         Roughness: 0.2534
         <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe>
+
     """
     # Prepare object
     mesh = prepare_obj(object, threshold=threshold, mask=mask, return_mesh=True)

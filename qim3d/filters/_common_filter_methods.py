@@ -1,8 +1,8 @@
 """Provides filter functions and classes for image processing"""
 
-from typing import Type, Callable
 import abc
 import inspect
+from collections.abc import Callable
 
 import dask.array as da
 import dask_image.ndfilters as dask_ndfilters
@@ -12,8 +12,16 @@ from skimage import morphology
 
 from qim3d.utils import log
 
+
 class FilterBase:
-    def __init__(self, *args, dask: bool = False, chunks: str = 'auto',save_output:bool = False, **kwargs):
+    def __init__(
+        self,
+        *args,
+        dask: bool = False,
+        chunks: str = 'auto',
+        save_output: bool = False,
+        **kwargs,
+    ):
         """
         Base class for image filters.
 
@@ -29,24 +37,27 @@ class FilterBase:
         self.save_output = save_output
 
     @abc.abstractmethod
-    def __call__(self, input:np.ndarray) -> np.ndarray:
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         pass
 
+
 class Filter(FilterBase):
-    def __init__(self, func:Callable, *args, **kwargs):
+    def __init__(self, func: Callable, *args, **kwargs):
         self.func = func
         super().__init__(*args, **kwargs)
 
     def __call__(self, input):
         return self.func(input, *self.args, **self.kwargs)
 
+
 class Threshold(FilterBase):
-    def __init__(self, threshold:int|float, *args, **kwargs):
+    def __init__(self, threshold: float, *args, **kwargs):
         self.threshold = threshold
         super().__init__(*args, **kwargs)
 
-    def __call__(self, input:np.ndarray):
+    def __call__(self, input: np.ndarray):
         return input > self.threshold
+
 
 class Gaussian(FilterBase):
     def __init__(self, sigma: float, *args, **kwargs):
@@ -82,6 +93,7 @@ class Gaussian(FilterBase):
             **self.kwargs,
         )
 
+
 class Sobel(FilterBase):
     def __init__(self, *args, **kwargs):
         """
@@ -94,7 +106,7 @@ class Sobel(FilterBase):
         """
         super().__init__(*args, **kwargs)
 
-    def __call__(self, input:np.ndarray) -> np.ndarray:
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         """
         Applies a Sobel filter to the input.
 
@@ -106,6 +118,7 @@ class Sobel(FilterBase):
 
         """
         return sobel(input, self.dask)
+
 
 class Median(FilterBase):
     def __init__(
@@ -139,7 +152,7 @@ class Median(FilterBase):
 
         """
         return median(
-            vol=input,
+            volume=input,
             size=self.size,
             footprint=self.footprint,
             dask=self.dask,
@@ -180,7 +193,7 @@ class Maximum(FilterBase):
 
         """
         return maximum(
-            vol=input,
+            volume=input,
             size=self.size,
             footprint=self.footprint,
             dask=self.dask,
@@ -221,7 +234,7 @@ class Minimum(FilterBase):
 
         """
         return minimum(
-            vol=input,
+            volume=input,
             size=self.size,
             footprint=self.footprint,
             dask=self.dask,
@@ -243,9 +256,10 @@ class Tophat(FilterBase):
 
         """
         return tophat(input, dask=self.dask, **self.kwargs)
-    
+
+
 class Normalize(FilterBase):
-    def __call__(self, input:np.ndarray) -> np.ndarray:
+    def __call__(self, input: np.ndarray) -> np.ndarray:
         return normalize(input)
 
 
@@ -253,7 +267,7 @@ class Pipeline:
     """
     Orchestrates a sequential chain of image processing operations.
 
-    This class allows you to build a reproducible workflow (or pipeline) by stacking multiple filters or functions together. 
+    This class allows you to build a reproducible workflow (or pipeline) by stacking multiple filters or functions together.
 
     The output of one step becomes the input to the next. It supports standard Python callables (functions, lambdas) and `qim3d.filters.Filter` objects. It is particularly useful for automating preprocessing routines, such as applying denoising, followed by thresholding, and finally morphological operations.
 
@@ -266,9 +280,9 @@ class Pipeline:
     Example:
         ```python
         import qim3d
-        from qim3d.filters import Pipeline, Filter, Sobel, Threshold 
+        from qim3d.filters import Pipeline, Filter, Sobel, Threshold
         from scipy import ndimage
-        
+
         # Get data
         vol = qim3d.examples.bone_128x128x128.astype('int64')
 
@@ -296,9 +310,10 @@ class Pipeline:
         ![original volume](../../assets/screenshots/pipeline_original.png)
         ![original volume](../../assets/screenshots/pipeline_middlestep.png)
         ![filtered volume](../../assets/screenshots/pipeline_processed.png)
+
     """
 
-    def __init__(self, *args: Type[FilterBase]):
+    def __init__(self, *args: type[FilterBase]):
         """
         Represents a sequence of image filters.
 
@@ -312,9 +327,9 @@ class Pipeline:
         for fn in args:
             self._add_filter(fn)
 
-    def _add_filter(self, fn: Type[FilterBase]|Callable):
+    def _add_filter(self, fn: type[FilterBase] | Callable):
         """
-        Adds a filter to the sequence. 
+        Adds a filter to the sequence.
 
         Args:
             name: A string representing the name or identifier of the filter.
@@ -326,13 +341,17 @@ class Pipeline:
         """
         if not isinstance(fn, FilterBase):
             if not callable(fn):
-                raise TypeError(f'Pipeline only accepts callable objects. Your object is of type "{type(fn)}".')
+                raise TypeError(
+                    f'Pipeline only accepts callable objects. Your object is of type "{type(fn)}".'
+                )
             signature = inspect.signature(fn)
             if signature.parameters != 1:
-                raise TypeError(f'Pipeline only accepts callables that take one argument. Yours takes {signature.parameters}.')
+                raise TypeError(
+                    f'Pipeline only accepts callables that take one argument. Yours takes {signature.parameters}.'
+                )
         self.filters.append(fn)
 
-    def append(self, fn: FilterBase|Callable):
+    def append(self, fn: FilterBase | Callable):
         """
         Adds a new processing step to the end of the pipeline.
 
@@ -352,10 +371,11 @@ class Pipeline:
             # Append a second filter to the pipeline
             pipeline.append(Median(size=5))
             ```
+
         """
         self._add_filter(fn)
 
-    def __call__(self, input:np.ndarray):
+    def __call__(self, input: np.ndarray):
         """
         Applies the sequential filters to the input in order.
 
@@ -373,8 +393,10 @@ class Pipeline:
                 self.saved_outputs.append(input)
         return input
 
-def normalize(vol:np.ndarray) -> np.ndarray:
-    return 255 * int((vol - vol.min())/vol.max())
+
+def normalize(vol: np.ndarray) -> np.ndarray:
+    return 255 * int((vol - vol.min()) / vol.max())
+
 
 def gaussian(
     volume: np.ndarray, sigma: float, dask: bool = False, chunks: str = 'auto', **kwargs
@@ -409,6 +431,7 @@ def gaussian(
         ```
         ![gaussian-filter-before](../../assets/screenshots/gaussian_filter_original.png)
         ![gaussian-filter-after](../../assets/screenshots/gaussian_filter_processed.png)
+
     """
 
     if dask:
@@ -420,8 +443,9 @@ def gaussian(
     else:
         res = ndimage.gaussian_filter(volume, sigma, **kwargs)
         return res
-    
-def sobel(vol:np.ndarray, dask:bool = False):
+
+
+def sobel(vol: np.ndarray, dask: bool = False):
     """
     Computes the magnitude of the intensity gradient using the Sobel operator to detect edges.
 
@@ -444,24 +468,24 @@ def sobel(vol:np.ndarray, dask:bool = False):
         # Cast to int64 to prevent overflow during gradient calculation
         vol = qim3d.examples.bone_128x128x128.astype('int64')
         filtered_vol = qim3d.filters.sobel(vol)
-        
+
         qim3d.viz.slices_grid(vol, num_slices=5)
         qim3d.viz.slices_grid(filtered_vol, num_slices=5)
         ```
         ![sobel-filter-before](../../assets/screenshots/sobel_filter_original.png)
         ![sobel-filter-after](../../assets/screenshots/pipeline_middlestep.png)
+
     """
     if dask:
         if not isinstance(vol, da.Array):
             vol = da.from_array()
-    sob0 = ndimage.sobel(vol,0)
-    sob1 = ndimage.sobel(vol,1)
+    sob0 = ndimage.sobel(vol, 0)
+    sob1 = ndimage.sobel(vol, 1)
     if vol.ndim == 3:
-        sob2 = ndimage.sobel(vol,2)
+        sob2 = ndimage.sobel(vol, 2)
         return np.sqrt(sob0**2 + sob1**2 + sob2**2)
     else:
         return np.sqrt(sob0**2 + sob1**2)
-
 
 
 def median(
@@ -509,6 +533,7 @@ def median(
         ```
         ![median-filter-before](../../assets/screenshots/median_filter_original.png)
         ![median-filter-after](../../assets/screenshots/median_filter_processed.png)
+
     """
     if size is None:
         if footprint is None:
@@ -566,6 +591,7 @@ def maximum(
         ```
         ![maximum-filter-before](../../assets/screenshots/maximum_filter_original.png)
         ![maximum-filter-after](../../assets/screenshots/maximum_filter_processed.png)
+
     """
     if size is None:
         if footprint is None:
@@ -622,6 +648,7 @@ def minimum(
         ```
         ![minimum-filter-before](../../assets/screenshots/minimum_filter_original.png)
         ![minimum-filter-after](../../assets/screenshots/minimum_filter_processed.png)
+
     """
     if size is None:
         if footprint is None:
@@ -672,6 +699,7 @@ def tophat(volume: np.ndarray, dask: bool = False, **kwargs):
         ```
         ![tophat-filter-before](../../assets/screenshots/tophat_filter_original.png)
         ![tophat-filter-after](../../assets/screenshots/tophat_filter_processed.png)
+
     """
 
     radius = kwargs['radius'] if 'radius' in kwargs else 3

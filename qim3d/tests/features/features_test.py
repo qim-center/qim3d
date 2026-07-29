@@ -1,20 +1,22 @@
 import math
 import numpy as np
+from skimage.filters import threshold_otsu
 
 import qim3d
 
 def test_area():
-    # Generate synthetic object
+    # Generate synthetic object and binarize (matching what prepare_obj does internally)
     volume = qim3d.generate.volume()
-    mesh = qim3d.mesh.from_volume(volume)
+    binary_volume = (volume > threshold_otsu(volume)).astype(np.uint8)
+    mesh = qim3d.mesh.from_volume(binary_volume)
 
     # Generate a mask for the bottom right quarter of the volume
-    mask = np.zeros_like(volume, dtype=bool)
-    mask[volume.shape[0]//2:, volume.shape[1]//2:, volume.shape[2]//2:] = True
+    mask = np.zeros_like(binary_volume, dtype=bool)
+    mask[binary_volume.shape[0]//2:, binary_volume.shape[1]//2:, binary_volume.shape[2]//2:] = True
 
     # Compute area from both volume and mesh
-    area_volume = qim3d.features.area(volume)
-    area_volume_masked = qim3d.features.area(volume, mask=mask)
+    area_volume = qim3d.features.area(binary_volume)
+    area_volume_masked = qim3d.features.area(binary_volume, mask=mask)
     area_mesh = qim3d.features.area(mesh)
 
     # Assertions
@@ -24,17 +26,18 @@ def test_area():
     assert area_volume_masked < area_volume, "Area with mask applied should be less than area without mask applied"
 
 def test_volume():
-    # Generate synthetic object
+    # Generate synthetic object and binarize
     volume = qim3d.generate.volume()
-    mesh = qim3d.mesh.from_volume(volume)
+    binary_volume = (volume > threshold_otsu(volume)).astype(np.uint8)
+    mesh = qim3d.mesh.from_volume(binary_volume)
 
     # Generate a mask for the bottom right quarter of the volume
-    mask = np.zeros_like(volume, dtype=bool)
-    mask[volume.shape[0]//2:, volume.shape[1]//2:, volume.shape[2]//2:] = True
+    mask = np.zeros_like(binary_volume, dtype=bool)
+    mask[binary_volume.shape[0]//2:, binary_volume.shape[1]//2:, binary_volume.shape[2]//2:] = True
 
     # Compute volume from both volume and mesh
-    volume_value = qim3d.features.volume(volume)
-    volume_value_masked = qim3d.features.volume(volume, mask=mask)
+    volume_value = qim3d.features.volume(binary_volume)
+    volume_value_masked = qim3d.features.volume(binary_volume, mask=mask)
     mesh_volume = qim3d.features.volume(mesh)
 
     # Assertions
@@ -71,7 +74,7 @@ def test_mean_std_intensity():
     mask = np.zeros_like(volume, dtype=bool)
     mask[volume.shape[0]//2:, volume.shape[1]//2:, volume.shape[2]//2:] = True
 
-    # Compute mean and standard deviation of intensity 
+    # Compute mean and standard deviation of intensity
     mean_volume1, std_volume1 = qim3d.features.mean_std_intensity(volume)  # Without mask
     mean_volume2, std_volume2 = qim3d.features.mean_std_intensity(volume, mask=mask)  # With mask
 
@@ -85,17 +88,18 @@ def test_mean_std_intensity():
     assert std_volume2 < std_volume1, "Standard deviation should be lower for masked volume"
 
 def test_size():
-    # Generate synthetic object
+    # Generate synthetic object and binarize (matching what prepare_obj does internally)
     volume = qim3d.generate.volume()
-    mesh = qim3d.mesh.from_volume(volume)
+    binary_volume = (volume > threshold_otsu(volume)).astype(np.uint8)
+    mesh = qim3d.mesh.from_volume(binary_volume)
 
     # Generate a mask for the bottom right quarter of the volume
-    mask = np.zeros_like(volume, dtype=bool)
-    mask[volume.shape[0]//2:, volume.shape[1]//2:, volume.shape[2]//2:] = True
+    mask = np.zeros_like(binary_volume, dtype=bool)
+    mask[binary_volume.shape[0]//2:, binary_volume.shape[1]//2:, binary_volume.shape[2]//2:] = True
 
     # Compute size from both volume and mesh
-    size_volume = qim3d.features.size(volume)
-    size_volume_masked = qim3d.features.size(volume, mask=mask)
+    size_volume = qim3d.features.size(binary_volume)
+    size_volume_masked = qim3d.features.size(binary_volume, mask=mask)
     size_mesh = qim3d.features.size(mesh)
 
     # Assertions
@@ -105,17 +109,19 @@ def test_size():
     assert size_volume_masked < size_volume, "Size with mask applied should be less than size without mask applied"
 
 def test_roughness():
-    # Generate synthetic objects of different noise levels
+    # Generate synthetic objects of different noise levels and binarize
     volume_low_noise = qim3d.generate.volume(noise_scale=0.01)
     volume_high_noise = qim3d.generate.volume(noise_scale=0.05)
+    binary_low = (volume_low_noise > threshold_otsu(volume_low_noise)).astype(np.uint8)
+    binary_high = (volume_high_noise > threshold_otsu(volume_high_noise)).astype(np.uint8)
 
-    # Extract meshes from the volumes
-    mesh_low_noise = qim3d.mesh.from_volume(volume_low_noise)
-    mesh_high_noise = qim3d.mesh.from_volume(volume_high_noise)
+    # Extract meshes from the binarized volumes
+    mesh_low_noise = qim3d.mesh.from_volume(binary_low)
+    mesh_high_noise = qim3d.mesh.from_volume(binary_high)
 
     # Compute roughness for volumes and meshes
-    roughness_volume_low = qim3d.features.roughness(volume_low_noise)
-    roughness_volume_high = qim3d.features.roughness(volume_high_noise)
+    roughness_volume_low = qim3d.features.roughness(binary_low)
+    roughness_volume_high = qim3d.features.roughness(binary_high)
 
     roughness_mesh_low = qim3d.features.roughness(mesh_low_noise)
     roughness_mesh_high = qim3d.features.roughness(mesh_high_noise)

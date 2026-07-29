@@ -182,7 +182,7 @@ def slices_grid(
         type(colormap) == matplotlib.colors.LinearSegmentedColormap
         or colormap == 'segmentation'
     ):
-        num_labels = volume.max()
+        num_labels = int(volume.max())
 
         if colormap == 'segmentation':
             colormap = qim3d.viz.colormaps.segmentation(num_labels)
@@ -1838,7 +1838,7 @@ def threshold(
                 threshold_slider.disabled = True
                 threshold_slider.observe(update_state, names='value')
             else:
-                msg = f"Unsupported thresholding method: {state['method']}"
+                msg = f'Unsupported thresholding method: {state["method"]}'
                 raise ValueError(msg)
 
         # Trigger visualization
