@@ -43,7 +43,6 @@ from qim3d.utils._misc import stringify_path
 
 
 class DataSaver:
-
     """
     Utility class for saving data to different file formats.
 
@@ -78,7 +77,7 @@ class DataSaver:
         """
         self.replace = kwargs.get('replace', False)
         self.compression = kwargs.get('compression', False)
-        self.basename = kwargs.get('basename', None)
+        self.basename = kwargs.get('basename')
         self.sliced_dim = kwargs.get('sliced_dim', 0)
         self.chunk_shape = kwargs.get('chunk_shape', 'auto')
 
@@ -289,15 +288,7 @@ class DataSaver:
             da.to_zarr(data, path, overwrite=self.replace)
 
         else:
-            # zarr_array = zarr.open(
-            #     path,
-            #     mode='w',
-            #     shape=data.shape,
-            #     chunks=self.chunk_shape,
-            #     dtype=data.dtype,
-            # )
-            # zarr_array[:] = data
-            zarr.api.synchronous.save(path, data, zarr_version = 3)
+            zarr.api.synchronous.save(path, data, zarr_format=3)
 
     def save_PIL(self, path: str | os.PathLike, data: np.ndarray):
         """
@@ -359,7 +350,7 @@ class DataSaver:
             else:
                 raise ValueError(
                     f"To save a stack as several TIFF files to the directory '{path}', please provide the keyword argument 'basename'. "
-                    + 'Otherwise, to save a single file, please provide a full path with a filename and valid extension.'
+                    'Otherwise, to save a single file, please provide a full path with a filename and valid extension.'
                 )
 
         # If path is not an existing directory
@@ -410,12 +401,12 @@ class DataSaver:
                 else:
                     raise ValueError(
                         'Please provide a file extension if you want to save as a single file.'
-                        + ' Otherwise, please provide a basename to save as a TIFF stack'
+                        ' Otherwise, please provide a basename to save as a TIFF stack'
                     )
             else:
                 raise ValueError(
                     f"The directory '{parentdir}' does not exist.\n"
-                    + 'Please provide a valid directory or specify a basename if you want to save a tiff stack as several files to a folder that does not yet exist'
+                    'Please provide a valid directory or specify a basename if you want to save a tiff stack as several files to a folder that does not yet exist'
                 )
 
 
@@ -432,8 +423,8 @@ def save(
     """
     General-purpose function to save, export, or write 3D data to disk.
 
-    Automatically detects the desired file format based on the filename extension. 
-    Supports saving entire volumes as single files or exporting them as a sequence 
+    Automatically detects the desired file format based on the filename extension.
+    Supports saving entire volumes as single files or exporting them as a sequence
     of 2D slices (stack).
 
     **Supported Formats:**
@@ -444,23 +435,23 @@ def save(
     * **Medical:** DICOM (`.dcm`) - *Saves as a series if a directory is provided.*
 
     Args:
-        path (str or os.PathLike): 
-            The destination path. Can be a filename (e.g., `volume.tif`) or a directory 
+        path (str or os.PathLike):
+            The destination path. Can be a filename (e.g., `volume.tif`) or a directory
             (e.g., `slices/`) if saving a stack.
-        data (numpy.ndarray or dask.array.Array): 
+        data (numpy.ndarray or dask.array.Array):
             The 2D or 3D image data to be saved.
-        replace (bool, optional): 
-            If `True`, overwrites the file if it already exists. If `False`, raises a 
+        replace (bool, optional):
+            If `True`, overwrites the file if it already exists. If `False`, raises a
             `FileExistsError` to prevent accidental data loss.
-        compression (bool, optional): 
+        compression (bool, optional):
             If `True`, applies lossless compression (e.g., Deflate for HDF5/TIFF) to reduce file size.
-        basename (str, optional): 
-            Used when saving a 3D volume as a stack of 2D files. Defines the common prefix 
+        basename (str, optional):
+            Used when saving a 3D volume as a stack of 2D files. Defines the common prefix
             for the filenames (e.g., `basename="slice"` results in `slice_000.tif`, `slice_001.tif`).
-        sliced_dim (int, optional): 
-            The dimension along which to slice the volume when saving as a stack. 
+        sliced_dim (int, optional):
+            The dimension along which to slice the volume when saving as a stack.
             Usually `0` (Z-axis).
-        **kwargs (Any): 
+        **kwargs (Any):
             Additional arguments passed to the specific backend saver.
 
 
@@ -484,7 +475,7 @@ def save(
         ```
 
     Example: Saving as a Stack of Slices
-        To save a 3D volume as individual 2D images (e.g., for inspection in standard image viewers), 
+        To save a 3D volume as individual 2D images (e.g., for inspection in standard image viewers),
         provide a directory `path` and a `basename`.
 
         ```python
@@ -495,6 +486,7 @@ def save(
         # Save as slice_000.tif, slice_001.tif, etc. inside the 'slices' folder
         qim3d.io.save("slices_folder", vol, basename="slice", sliced_dim=0)
         ```
+
     """
 
     DataSaver(
@@ -541,7 +533,7 @@ def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
     """
     Exports or saves a 3D surface mesh to a file.
 
-    Writes the geometry of a PyGEL3D Manifold object to disk. The output format is 
+    Writes the geometry of a PyGEL3D Manifold object to disk. The output format is
     determined automatically by the filename extension.
 
     **Supported Formats:**
@@ -551,9 +543,9 @@ def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
     * **X3D** (`.x3d`)
 
     Args:
-        filename (str or os.PathLike): 
+        filename (str or os.PathLike):
             The destination path. The extension determines the format.
-        mesh (hmesh.Manifold): 
+        mesh (hmesh.Manifold):
             The mesh object containing the geometry to be saved.
 
     Example:
@@ -567,6 +559,7 @@ def save_mesh(filename: str, mesh: hmesh.Manifold) -> None:
         # Save the mesh to an OBJ file
         qim3d.io.save_mesh("surface.obj", mesh)
         ```
+
     """
     # Export the mesh to the specified filename
     hmesh.save(filename, mesh)
