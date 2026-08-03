@@ -1,32 +1,136 @@
+import io
+
 import numpy as np
+import pyvista as pv
 import scipy
 import scipy.ndimage
 from pygel3d import hmesh
+from pytetwild import tetrahedralize_pv
+from pyvista import PolyData, UnstructuredGrid
 
-from qim3d.utils import log
+
+class VolumeMesh(UnstructuredGrid):
+    def export_to_comsol(self, filename: str = 'mesh1.mphtxt') -> None:
+        if not filename.endswith('.mphtxt'):
+            msg = f"Filename needs to have extension '.mphtxt. Your filename is {filename}"
+            raise ValueError(msg)
+
+        # These to can be arguments in the future if the feature is required
+        tags = ('mesh1',)
+        types = ('obj',)
+
+        vertices_str = io.StringIO()
+        np.savetxt(
+            vertices_str, self.points.astype(np.float64, copy=False), fmt='%.12f'
+        )
+
+        tetras_str = io.StringIO()
+        tetras = self.cells.reshape((-1, 5))[:, 1:]
+        np.savetxt(tetras_str, tetras, fmt='%d')
+
+        with open(filename, 'w') as f:
+            writeline = lambda s: f.write(str(s) + '\n')
+            # Some lines require number of characters before the actual string
+            write_num_line = lambda s: writeline(str(len(s)) + ' ' + s)
+            start_object = lambda obj_num: writeline(
+                f'#--------------- Object {obj_num} ---------------\n\n0 0 1'
+            )
+
+            #####################################
+            #           HEADER
+            #####################################
+            writeline(
+                '# Created by COMSOL Multiphysics.\n\n# Major & minor version\n0 1'
+            )
+            writeline(len(tags))
+            for tag in tags:
+                write_num_line(tag)
+            writeline(len(types))
+            for mesh_type in types:
+                write_num_line(mesh_type)
+
+            #####################################
+            #           VERTICES
+            #####################################
+            start_object(0)
+            write_num_line('Mesh')  # class
+            writeline(4)  # version
+            writeline(3)  # sdim
+
+            writeline(self.points.shape[0])
+            writeline(0)  # lowest mesh vertex index
+
+            writeline(vertices_str.getvalue())
+
+            #####################################
+            #           TETRAS
+            #####################################
+            writeline(1)  # number of element types
+            write_num_line('tet')
+            writeline(4)  # number of vertices per element (tetrahedra)
+            writeline(tetras.shape[0])
+            writeline(tetras_str.getvalue())
+
+            writeline(0)  # number of geometric entity indices
+
+
+class SurfaceMesh(PolyData):
+    def __new__(cls, mesh: hmesh.Manifold | PolyData):
+        if isinstance(mesh, PolyData):
+            return super().__new__(cls, mesh.points, mesh.faces)
+
+    @classmethod
+    def from_pygel(cls: 'SurfaceMesh', mesh: hmesh.Manifold) -> 'SurfaceMesh':
+        points = np.array(mesh.positions())
+        faces_list = []
+        for face in mesh.faces():
+            verts = list(mesh.circulate_face(face, mode='v'))
+            faces_list.extend([len(verts)] + verts)
+        return cls(pv.PolyData(points, np.array(faces_list)))
+
+    def tetrahedralize(
+        self, optimize: bool = True, edge_length_fac: float = 0.05
+    ) -> 'VolumeMesh':
+        return VolumeMesh(tetrahedralize_pv(self, edge_length_fac, optimize))
 
 
 def from_volume(
-    volume: np.ndarray, mesh_precision: float = 1.0, **kwargs: any
-) -> hmesh.Manifold:
+    volume: np.ndarray,
+    mesh_precision: float = 1.0,
+    backend: str = 'pyvista',
+    method: str = 'marching_cubes',
+    isovalue: float = 0.5,
+    return_pygel3d: bool = False,
+    **kwargs: any,
+) -> SurfaceMesh | hmesh.Manifold:
     """
-    Convert a 3D numpy array to a mesh object using the [volumetric_isocontour](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour)
-    function from Pygel3D.
+    Converts a 3D binary or grayscale volume into a polygon mesh (isosurface extraction).
+
+    This function transforms voxel-based data into a vector-based surface representation (triangular mesh). This process, often called polygonization or tessellation, is a necessary step for 3D printing (exporting to STL), finite element analysis (FEA), or surface-based geometric measurements. The mesh can be generated using either PyVista or PyGEL3D. When using the PyGEL3D backend, it utilizes the [`volumetric_isocontour`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour) function from PyGEL3D. It extracts the surface where the volume values equal `isovalue`.
 
     Args:
         volume (np.ndarray): A 3D numpy array representing a volume.
         mesh_precision (float, optional): Scaling factor for adjusting the resolution of the mesh.
-                                          Default is 1.0 (no scaling).
-        **kwargs: Additional arguments to pass to the Pygel3D volumetric_isocontour function.
+                                        Default is 1.0 (no scaling).
+        backend (str, optional): What python package is used to compute mesh from volume.
+            It is either 'pyvista' or 'pygel'. Default is 'pyvista'
+        method (str, optional): Only applies if `backend = pyvista`. What method is used to compute mesh from volume.
+            It can be either 'marching_cubes' or 'flying_edges'. Default is 'marching_cubes'
+        isovalue (float, optional): The scalar value at which to extract the isosurface.
+            For binary volumes with values 0 and 1, the boundary is usually 0.5. Default is 0.5.
+        return_pygel3d (bool, optional): If set to True, returns pygel3d.hmesh.Manifold. If False, returns qim3d.mesh.SurfaceMesh.
+            Default is False.
+        **kwargs: Additional arguments to pass to the PyGEL3D [`volumetric_isocontour`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/hmesh.html#volumetric_isocontour) function.
 
     Raises:
-        ValueError: If the input volume is not a 3D numpy array or if the input volume is empty.
+        ValueError: If the input is not 3D, is empty, or if `mesh_precision` is outside the (0, 1] range.
 
     Returns:
-        hmesh.Manifold: A Pygel3D mesh object representing the input volume.
+        mesh (SurfaceMesh | hmesh.Manifold):
+            The generated mesh object containing vertices and faces.
 
     Example:
-        Convert a 3D numpy array to a Pygel3D mesh object:
+        Convert a 3D numpy array to a mesh object:
         ```python
         import qim3d
 
@@ -39,14 +143,13 @@ def from_volume(
         ![pygel3d_visualization_vol](../../assets/screenshots/viz-pygel_mesh_vol.png){width='300', length='200'}
 
         ```python
-        # Convert the 3D numpy array to a Pygel3D mesh object
+        # Convert the 3D numpy array to a mesh object
         mesh = qim3d.mesh.from_volume(synthetic_blob, mesh_precision=0.5)
 
         # Visualize the generated mesh
         qim3d.viz.mesh(mesh)
         ```
         ![pygel3d_visualization_mesh](../../assets/screenshots/viz-pygel_mesh.png){width='300', length='200'}
-
 
     """
 
@@ -62,9 +165,33 @@ def from_volume(
         msg = 'The mesh precision must be between 0 and 1.'
         raise ValueError(msg)
 
+    if backend not in ('pyvista', 'pygel'):
+        msg = f"Backend has to be either 'pyvista' or 'pygel'. Yours is {backend}"
+        raise ValueError(msg)
+
+    if 'tau' in kwargs:
+        msg = 'Use `isovalue` instead of passing `tau` through kwargs.'
+        raise ValueError(msg)
+
     # Apply scaling to adjust mesh resolution
     volume = scipy.ndimage.zoom(volume, zoom=mesh_precision, order=0)
 
-    mesh = hmesh.volumetric_isocontour(volume, **kwargs)
+    if backend == 'pyvista':
+        grid = pv.ImageData(dimensions=volume.shape)
+        mesh = grid.contour(
+            [isovalue],
+            volume.flatten(order='F'),
+            method=method,
+        )
+        if return_pygel3d:
+            mesh = mesh.triangulate()
+            faces = mesh.faces.reshape(-1, 4)[:, 1:]
+            return hmesh.Manifold.from_triangles(np.asarray(mesh.points), faces)
 
-    return mesh
+    elif backend == 'pygel':
+        mesh = hmesh.volumetric_isocontour(volume, tau=isovalue, **kwargs)
+        if return_pygel3d:
+            return mesh
+        return SurfaceMesh.from_pygel(mesh)
+
+    return SurfaceMesh(mesh)

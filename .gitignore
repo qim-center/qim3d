@@ -1,31 +1,36 @@
-# Compiled Python files
-*.pyc
-*.pyo
+# Python
+*.py[cod]
 __pycache__/
+.venv/
 
 # Distribution directories
 dist/
 build/
 *.egg-info/
 
-# Development and editor files
+# Documentation
+site/
+
+# Editors
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# Tools
 .cache/
 .pytest_cache/
 .ruff_cache/
 *.coverage
-*.swp
-*.swo
-*.pyc
-*~
 *.html
 
-# Notebook checkpoints
+# Notebooks
 .ipynb_checkpoints/
 
 # MacOS finder files
 *.DS_Store
 
-# Installed itk-vtk-viewer files
-itk_vtk_viewer/
+# Installed Volume Explorer files
+qim3d/viz/volume_explorer/.nvm
+qim3d/viz/volume_explorer/viewer_app

@@ -10,10 +10,9 @@ Volumetric visualization using K3D.
 import k3d
 import matplotlib.pyplot as plt
 import numpy as np
-import plotly.graph_objects as go
 import pygel3d
+import plotly.graph_objects as go
 from matplotlib.colors import Colormap
-from pygel3d import jupyter_display as jd
 
 from qim3d.utils._decorators import coarseness
 from qim3d.utils._logger import log
@@ -39,42 +38,63 @@ def volumetric(
     **kwargs,
 ) -> k3d.Plot | None:
     """
-    Visualizes a 3D volume using volumetric rendering.
+    Renders a 3D volume using high-performance hardware-accelerated ray-casting.
+
+    Creates an interactive 3D visualization in the browser using K3D. This function is ideal for inspecting complex voxel data, understanding 3D spatial relationships, or creating exportable HTML representations of a stack. It handles large datasets by automatically downsampling if the size exceeds a set threshold.
+
+    **Key Features:**
+
+    * **Browser-Based:** Renders directly in Jupyter notebooks or exports to standalone HTML.
+    * **Performance:** Automatically manages sampling rates and data types (`float16`) for smooth interaction.
+    * **Customization:** Supports custom colormaps, opacity transfer functions, and camera modes.
 
     Args:
-        volume (numpy.ndarray): The input 3D image data. It should be a 3D numpy array.
-        aspectmode (str, optional): Determines the proportions of the scene's axes. Defaults to "data".
-            If `'data'`, the axes are drawn in proportion with the axes' ranges.
-            If `'cube'`, the axes are drawn as a cube, regardless of the axes' ranges.
-        show (bool, optional): If True, displays the visualization inline. Defaults to True.
-        save (bool or str, optional): If True, saves the visualization as an HTML file.
-            If a string is provided, it's interpreted as the file path where the HTML
-            file will be saved. Defaults to False.
-        grid_visible (bool, optional): If True, the grid is visible in the plot. Defaults to False.
-        colormap (str or matplotlib.colors.Colormap or list, optional): The color map to be used for the volume rendering. If a string is passed, it should be a matplotlib colormap name. Defaults to 'magma'.
-        constant_opacity (bool): Set to True if doing an object label visualization with a corresponding colormap; otherwise, the plot may appear poorly. Defaults to False.
-        opacity_function (str or list, optional): Applies an opacity function to the plot, enabling custom values for opaqueness. Set to True if doing an object label visualization with a corresponding colormap; otherwise, the plot may appear poorly. Defaults to [].
-        min_value (float or None, optional): Together with max_value defines the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        max_value (float or None, optional): Together with min_value defines the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        samples (int or 'auto', optional): The number of samples to be used for the volume rendering in k3d. Input 'auto' for auto selection. Defaults to 'auto'.
-            Lower values will render faster but with lower quality.
-        max_voxels (int, optional): Defaults to 256^3.
-        data_type (str, optional): Default to 'scaled_float16'.
-        camera_mode (str, optional): Camera interaction mode, being 'orbit', 'trackball' or 'fly'. Defaults to 'orbit'.
-        **kwargs (Any): Additional keyword arguments to be passed to the `k3d.plot` function.
+        volume (numpy.ndarray): The 3D input data to be rendered.
+        aspectmode (str, optional): Controls the proportions of the scene axes.
+
+            * `'data'`: Axes are drawn in proportion to the physical data range.
+            * `'cube'`: Axes are constrained to a cube regardless of data range.
+
+        show (bool, optional): If `True`, displays the plot immediately.
+        save (bool or str, optional): Controls saving the output.
+
+            * **str**: Saves the visualization to the specified HTML file path.
+            * **True**: Saves as 'snapshot.html' (default behavior of save).
+            * **False**: Does not save the file.
+
+        grid_visible (bool, optional): If `True`, displays a grid around the volume.
+        colormap (str, matplotlib.colors.Colormap, or list, optional): Colormap for the rendering. Can be a Matplotlib name (e.g., 'magma') or object.
+        constant_opacity (bool, optional): **Deprecated**. Use `opacity_function='constant'` instead.
+        opacity_function (str or list, optional): Defines the transparency transfer function.
+
+            * `'constant'`: Sets a uniform opacity for segmentation masks.
+            * **list**: A specific list defining the opacity curve.
+
+        min_value (float, optional): Minimum value for color scaling. If `None`, inferred from data.
+        max_value (float, optional): Maximum value for color scaling. If `None`, inferred from data.
+        samples (int or str, optional): Number of ray-marching samples.
+
+            * `'auto'`: Calculates optimal samples based on volume size.
+            * **int**: Specific number of samples (lower is faster, higher is better quality).
+
+        max_voxels (int, optional): Maximum number of voxels allowed before downsampling occurs (defaults to approx. 16 million).
+        data_type (str, optional): Internal data type for rendering. `'scaled_float16'` reduces memory usage.
+        camera_mode (str, optional): Interaction mode for the camera (`'orbit'`, `'trackball'`, or `'fly'`).
+        **kwargs: Additional keyword arguments passed to `k3d.plot`.
 
     Returns:
-        plot (k3d.plot): If `show=False`, returns the K3D plot object.
+        plot (k3d.Plot):
+            The K3D plot object. Returned if `show=False`.
 
     Raises:
-        ValueError: If `aspectmode` is not `'data'` or `'cube'`.
+        ValueError: If `aspectmode` is not 'data' or 'cube'.
+        ValueError: If `camera_mode` is not 'orbit', 'trackball', or 'fly'.
 
     Tip:
         The function can be used for object label visualization using a `colormap` created with `qim3d.viz.colormaps.objects` along with setting `objects=True`. The latter ensures appropriate rendering.
 
     Example:
         Display a volume inline:
-
         ```python
         import qim3d
 
@@ -82,15 +102,11 @@ def volumetric(
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/fima-bone_128x128x128-20240221113459.html" width="100%" height="500" frameborder="0"></iframe>
-
-        Save a plot to an HTML file:
-
+        
+        Save the rendering to an HTML file without displaying it:
         ```python
-        import qim3d
-        vol = qim3d.examples.bone_128x128x128
-        plot = qim3d.viz.volumetric(vol, show=False, save="plot.html")
+        plot = qim3d.viz.volumetric(vol, show=False, save="my_render.html")
         ```
-
     """
 
     pixel_count = volume.shape[0] * volume.shape[1] * volume.shape[2]
@@ -200,7 +216,7 @@ def volumetric(
 
 
 def mesh(
-    mesh: pygel3d.hmesh.Manifold,
+    mesh,
     backend: str = 'pygel3d',
     wireframe: bool = True,
     flat_shading: bool = True,
@@ -210,37 +226,49 @@ def mesh(
     **kwargs,
 ) -> k3d.Plot | go.FigureWidget | None:
     """
-    Visualize a 3D mesh using `pygel3d` or `k3d`. The visualization with the pygel3d backend provides higher-quality rendering, but it may take more time compared to using the k3d backend.
+    Visualizes a 3D surface mesh using either high-fidelity or fast interactive backends.
+
+    Renders a polygonal surface model (Manifold) to inspect geometry, topology, or segmentation results. This function supports two rendering engines: 'pygel3d' for high-quality, smoothed aesthetic visualization, and 'k3d' for fast, hardware-accelerated performance suitable for large tessellations.
+
+    **Key Features:**
+
+    * **Dual Backends:** Choose between presentation-quality rendering (`pygel3d`) or performance-focused exploration (`k3d`).
+    * **Geometry Inspection:** Toggle wireframes to inspect edge loops and vertex placement.
+    * **Export:** Save K3D visualizations directly to HTML for sharing.
 
     Args:
-        mesh (pygel3d.hmesh.Manifold): The input mesh object.
-        backend (str, optional): The visualization backend to use.
-            Choose between `pygel3d` (default) and `k3d`.
-        wireframe (bool, optional): If True, displays the mesh as a wireframe.
-            Works both with backend `pygel3d` and `k3d`. Defaults to True.
-        flat_shading (bool, optional): If True, applies flat shading to the mesh.
-            Works only with backend `k3d`. Defaults to True.
-        grid_visible (bool, optional): If True, shows a grid in the visualization.
-            Works only with backend `k3d`. Defaults to False.
-        show (bool, optional): If True, displays the visualization inline, useful for multiple plots.
-            Works only with backend `k3d`. Defaults to True.
-        save (bool or str, optional): If True, saves the visualization as an HTML file.
-            If a string is provided, it's interpreted as the file path where the HTML
-            file will be saved. Works only with the backend `k3d`. Defaults to False.
-        **kwargs (Any): Additional keyword arguments specific to the chosen backend:
+        mesh (pygel3d.hmesh.Manifold): The input polygonal mesh object.
+        backend (str, optional): The visualization engine to use.
 
-            - `k3d.plot` kwargs: Arguments that customize the [`k3d.plot`](https://k3d-jupyter.org/reference/factory.plot.html) visualization.
+            * `'pygel3d'`: High-quality rendering (default).
+            * `'k3d'`: Fast, WebGL-based rendering.
 
-            - `pygel3d.display` kwargs: Arguments that customize the [`pygel3d.display`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display) visualization.
+        wireframe (bool, optional): If `True`, overlays the mesh edges (wireframe) on the surface.
+        flat_shading (bool, optional): If `True`, renders faces with flat colors instead of smooth interpolation. Works only with `backend='k3d'`.
+        grid_visible (bool, optional): If `True`, displays a background grid. Works only with `backend='k3d'`.
+        show (bool, optional): If `True`, displays the plot inline immediately. Works only with `backend='k3d'`.
+        save (bool or str, optional): Controls saving the output (Works only with `backend='k3d'`).
+
+            * **str**: Saves the visualization to the specified HTML file path.
+            * **True**: Saves as 'snapshot.html'.
+            * **False**: Does not save the file.
+
+        **kwargs: Additional backend-specific arguments.
+
+            * **k3d**: Arguments passed to `k3d.plot`.
+            * **pygel3d**: Arguments passed to `pygel3d.display`.
 
     Returns:
-        k3d.Plot or None:
-
-            - If `backend="k3d"`, returns a `k3d.Plot` object.
-            - If `backend="pygel3d"`, the function displays the mesh but does not return a plot object.
+        plot (k3d.Plot or go.FigureWidget or None):
+            The visualization object.
+            
+            * **k3d.Plot**: Returned if `backend='k3d'` and `show=False`.
+            * **go.FigureWidget**: Returned if `backend='pygel3d'`.
+            * **None**: Returned if `backend='k3d'` and `show=True`.
 
     Raises:
-        ValueError: If `backend` is not `pygel3d` or `k3d`.
+        ValueError: If `backend` is not 'pygel3d' or 'k3d'.
+        ValueError: If the mesh data is malformed (vertices or faces have incorrect shapes).
 
     Example:
         ```python
@@ -261,8 +289,6 @@ def mesh(
         qim3d.viz.mesh(mesh, backend='k3d', wireframe=False, flat_shading=False)
         ```
         ![k3d_visualization](../../assets/screenshots/viz-k3d_mesh.png)
-
-
     """
 
     if len(mesh.vertices()) > 100000:

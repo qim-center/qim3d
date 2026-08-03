@@ -6,7 +6,7 @@ import scipy.ndimage
 from IPython.display import display
 
 import qim3d
-from qim3d.utils import log
+from qim3d.utils import log, scale_to_float16
 from qim3d.utils._dependencies import optional_import
 
 # Import noise as optional dependency
@@ -16,184 +16,6 @@ pnoise3 = noise.pnoise3
 snoise3 = noise.snoise3
 
 __all__ = ['volume', 'background']
-
-
-def volume(
-    base_shape: tuple = (128, 128, 128),
-    final_shape: tuple = None,
-    noise_scale: float = 0.02,
-    noise_type: str = 'perlin',
-    decay_rate: float = 10,
-    gamma: float = 1,
-    threshold: float = 0.5,
-    max_value: float = 255,
-    shape: str = None,
-    tube_hole_ratio: float = 0.5,
-    axis: int = 0,
-    order: int = 1,
-    dtype: str = 'uint8',
-    hollow: int = 0,
-    seed: int = 0,
-) -> np.ndarray:
-    """
-    Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling.
-
-    Note: This function requires the 'noise' package. Install with:
-        pip install qim3d[synthetic-data]
-
-    Args:
-        base_shape (tuple of ints, optional): Shape of the initial volume to generate.
-            Defaults to (128, 128, 128).
-        final_shape (tuple of ints, optional): Desired shape of the final volume.
-            If unspecified, will assume same shape as base_shape. Defaults to None.
-        noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.02.
-        noise_type (str, optional): Type of noise to be used for volume generation.
-            Should be `simplex` or `perlin`. Defaults to perlin.
-        decay_rate (float, optional): The decay rate of the fading of the noise.
-            Defaults to 10.0.
-        gamma (float, optional): Applies gamma correction. Defaults to 1.
-        threshold (float, optional): Threshold value for clipping low intensity values.
-            Defaults to 0.5.
-        max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
-        shape (str, optional): Shape of the volume to generate, either `cylinder`, or `tube`.
-            Defaults to None.
-        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes.
-            Defaults to 0.5.
-        axis (int, optional): Axis of the given shape. Defaults to 0.
-        order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
-        dtype (data-type, optional): Desired data type of the output volume. Defaults to `uint8`.
-        hollow (int, optional): Determines thickness of the hollowing operation. Defaults to 0.
-        seed (int, optional): Specifies a fixed offset for the generated noise. Defaults to 0.
-
-    Returns:
-        volume (numpy.ndarray): Generated 3D volume with specified parameters.
-
-    Raises:
-        ImportError: If the 'noise' package is not installed.
-        ValueError: If `shape` or `noise_type` is invalid.
-        TypeError: If `base_shape` or `final_shape` format is invalid.
-
-    """
-
-    if not isinstance(final_shape, tuple) or len(final_shape) != 3:
-        message = 'Size must be a tuple of 3 dimensions'
-        raise TypeError(message)
-    if not np.issubdtype(dtype, np.number):
-        message = 'Invalid data type'
-        raise ValueError(message)
-
-    # Initialize the 3D array for the shape
-    volume = np.empty((base_shape[0], base_shape[1], base_shape[2]), dtype=np.float32)
-
-    # Generate grid of coordinates
-    z, y, x = np.indices(base_shape)
-
-    # Calculate the distance from the center of the shape
-    center = np.array(base_shape) / 2
-
-    dist = np.sqrt((z - center[0]) ** 2 + (y - center[1]) ** 2 + (x - center[2]) ** 2)
-
-    dist /= np.sqrt(3 * (center[0] ** 2))
-
-    # Generate Perlin noise and adjust the values based on the distance from the center
-    vectorized_pnoise3 = np.vectorize(
-        pnoise3
-    )  # Vectorize pnoise3, since it only takes scalar input
-
-    noise = vectorized_pnoise3(
-        z.flatten() * noise_scale, y.flatten() * noise_scale, x.flatten() * noise_scale
-    ).reshape(base_shape)
-
-    volume = (1 + noise) * (1 - dist)
-
-    # Normalize
-    volume = (volume - np.min(volume)) / (np.max(volume) - np.min(volume))
-
-    # Gamma correction
-    volume = np.power(volume, gamma)
-
-    # Scale the volume to the maximum value
-    volume = volume * max_value
-
-    # If volume shape is specified, smooth borders are disabled
-    if volume_shape:
-        smooth_borders = False
-
-    if smooth_borders:
-        # Maximum value among the six sides of the 3D volume
-        max_border_value = np.max(
-            [
-                np.max(volume[0, :, :]),
-                np.max(volume[-1, :, :]),
-                np.max(volume[:, 0, :]),
-                np.max(volume[:, -1, :]),
-                np.max(volume[:, :, 0]),
-                np.max(volume[:, :, -1]),
-            ]
-        )
-
-        # Compute threshold such that there will be no straight cuts in the blob
-        threshold = max_border_value / max_value
-
-    # Clip the low values of the volume to create a coherent volume
-    volume[volume < threshold * max_value] = 0
-
-    # Clip high values
-    volume[volume > max_value] = max_value
-
-    # Scale up the volume of volume to size
-    volume = scipy.ndimage.zoom(
-        volume, np.array(final_shape) / np.array(base_shape), order=order
-    )
-
-    # Fade into a shape if specified
-    if volume_shape == 'cylinder':
-        # Arguments for the fade_mask function
-        geometry = 'cylindrical'  # Fade in cylindrical geometry
-        axis = np.argmax(
-            volume.shape
-        )  # Fade along the dimension where the volume is the largest
-        target_max_normalized_distance = (
-            1.4  # This value ensures that the volume will become cylindrical
-        )
-
-        volume = qim3d.operations.fade_mask(
-            volume,
-            geometry=geometry,
-            axis=axis,
-            target_max_normalized_distance=target_max_normalized_distance,
-        )
-
-    elif volume_shape == 'tube':
-        # Arguments for the fade_mask function
-        geometry = 'cylindrical'  # Fade in cylindrical geometry
-        axis = np.argmax(
-            volume.shape
-        )  # Fade along the dimension where the volume is the largest
-        decay_rate = 5  # Decay rate for the fade operation
-        target_max_normalized_distance = (
-            1.4  # This value ensures that the volume will become cylindrical
-        )
-
-        # Fade once for making the volume cylindrical
-        volume = qim3d.operations.fade_mask(
-            volume,
-            geometry=geometry,
-            axis=axis,
-            decay_rate=decay_rate,
-            target_max_normalized_distance=target_max_normalized_distance,
-            invert=False,
-        )
-
-        # Fade again with invert = True for making the volume a tube (i.e. with a hole in the middle)
-        volume = qim3d.operations.fade_mask(
-            volume, geometry=geometry, axis=axis, decay_rate=decay_rate, invert=True
-        )
-
-    # Convert to desired data type
-    volume = volume.astype(dtype)
-
-    return volume
 
 
 def background(
@@ -208,21 +30,39 @@ def background(
     apply_to: np.ndarray = None,
 ) -> np.ndarray:
     """
-    Generate a noise volume with random intensity values from a uniform distribution.
+    Generates a 3D noise field or adds synthetic background noise to an existing volume.
+
+    Unlike `volume` (which creates structures), this function generates **unstructured uniform noise**.
+    It is useful for simulating:
+
+    * **Sensor Noise:** Electronic noise or grain common in CT/microscopy scans.
+    * **Imaging Artifacts:** Low-contrast background variations.
+    * **Data Augmentation:** Making training data more robust by adding random interference.
 
     Args:
-        background_shape (tuple): The shape of the noise volume to generate.
-        baseline_value (float, optional): The baseline intensity of the noise volume. Default is 0.
-        min_noise_value (float, optional): The minimum intensity of the noise. Default is 0.
-        max_noise_value (float, optional): The maximum intensity of the noise. Default is 20.
-        generate_method (str, optional): The method used to combine `baseline_value` and noise. Choose from 'add' (`baseline + noise`), 'subtract' (`baseline - noise`), 'multiply' (`baseline * noise`), or 'divide' (`baseline / (noise+ε)`). Default is 'add'.
-        apply_method (str, optional): The method to apply the generated noise to `apply_to`, if provided. Choose from 'add' (`apply_to + background`), 'subtract' (`apply_to - background`), 'multiply' (`apply_to * background`), or 'divide' (`apply_to / (background+ε)`). Only applicable if apply_to is defined. Default is None.
-        seed (int, optional): The seed for the random number generator. Default is 0.
-        dtype (data-type, optional): Desired data type of the output volume. Default is 'uint8'.
-        apply_to (np.ndarray, optional): An input volume to which noise will be applied. Only applicable if apply_method is defined. Defaults to None.
+        background_shape (tuple):
+            The shape of the noise volume to generate (Z, Y, X).
+        baseline_value (float, optional):
+            The constant base intensity level of the background.
+        min_noise_value (float, optional):
+            The lower bound of the random noise distribution.
+        max_noise_value (float, optional):
+            The upper bound of the random noise distribution.
+        generate_method (str, optional):
+            How to combine the baseline with the noise: `'add'`, `'subtract'`, `'multiply'`, or `'divide'`.
+        apply_method (str, optional):
+            If `apply_to` is provided, this defines how the noise is merged with the input volume.
+        seed (int, optional):
+            Random seed for reproducibility.
+        dtype (str, optional):
+            Output data type.
+        apply_to (numpy.ndarray, optional):
+            An existing 3D volume. If provided, the noise is applied directly to this array
+            using `apply_method`.
 
     Returns:
-        background (np.ndarray): The generated noise volume (if `apply_to` is None) or the input volume with added noise (if `apply_to` is not None).
+        background (numpy.ndarray):
+            The noise volume (if `apply_to` is None) or the modified input volume.
 
     Raises:
         ValueError: If `apply_method` is not one of 'add', 'subtract', 'multiply', or 'divide'.
@@ -404,33 +244,69 @@ def volume(
     seed: int = 0,
 ) -> np.ndarray:
     """
-    Generate a 3D volume with Perlin noise, spherical gradient, and optional scaling and gamma correction.
+    Generates a synthetic 3D volume using structured Perlin noise.
+
+    Creates valid 3D morphological structures that resemble biological or material samples
+    (e.g., cells, tissues, pores). By default, it generates a "blob-like" object, but it can
+    also create specific geometric shapes like **cylinders** or **tubes**.
+
+    This function is ideal for:
+
+    * **Benchmarking:** Creating standard inputs for testing algorithms.
+    * **Augmentation:** Generating synthetic samples to train deep learning models.
+    * **Simulation:** Modeling physical structures with controlled noise properties.
+
+    **Supported Shapes:**
+
+    * **Blob:** (Default) amorphous, organic-looking structure.
+    * **Cylinder:** A solid cylindrical rod.
+    * **Tube:** A hollow cylinder.
 
     Args:
-        base_shape (tuple of ints, optional): Shape of the initial volume to generate. Defaults to (128, 128, 128).
-        final_shape (tuple of ints, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape. Defaults to None.
-        noise_scale (float, optional): Scale factor for Perlin noise. Defaults to 0.05.
-        noise_type (str, optional): Type of noise to be used for volume generation. Should be `simplex` or `perlin`. Defaults to perlin.
-        decay_rate (float, optional): The decay rate of the fading of the noise. Can also be interpreted as the sharpness of the edge of the volume. Defaults to 5.0.
-        gamma (float, optional): Applies gamma correction, adjusting contrast in the volume. If gamma<0, the volume intensity is increased and if gamma>0 it's decreased. Defaults to 0.
-        threshold (float, optional): Threshold value for clipping low intensity values. Defaults to 0.5.
-        max_value (int, optional): Maximum value for the volume intensity. Defaults to 255.
-        shape (str, optional): Shape of the volume to generate, either `cylinder`, or `tube`. Defaults to None.
-        tube_hole_ratio (float, optional): Ratio for the inverted fade mask used to generate tubes. Will only have an effect if shape=`tube`. Defaults to 0.5.
-        axis (int, optional): Axis of the given shape. Will only be active if shape is defined. Defaults to 0.
-        order (int, optional): Order of the spline interpolation used in resizing. Defaults to 1.
-        dtype (data-type, optional): Desired data type of the output volume. Defaults to `uint8`.
-        hollow (bool, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0. Defaults to 0.
-        seed (int, optional): Specifies a fixed offset for the generated noise. Only works for perlin noise. Defaults to 0.
+        base_shape (tuple, optional):
+            The resolution of the internal noise grid. Higher values create finer details
+            but require more computation.
+        final_shape (tuple, optional):
+            The final output resolution. If `None`, matches `base_shape`.
+            Use this to upsample the generated volume.
+        noise_scale (float, optional):
+            Controls the "zoom" of the noise texture. Smaller values = smooth, large features.
+            Larger values = rough, high-frequency details.
+        noise_type (str, optional):
+            The noise algorithm: `perlin` (standard) or `simplex` (faster, different artifacts).
+        decay_rate (float, optional):
+            Controls how quickly the object fades into the background at the edges.
+            Higher values create sharper, distinct boundaries.
+        gamma (float, optional):
+            Adjusts contrast. `<1` flattens values (fuzzier), `>1` pushes values to extremes (binary-like).
+        threshold (float, optional):
+            The cut-off value (0.0 to 1.0) defining the object's surface.
+            Lower values make the object larger/fatter; higher values make it smaller/thinner.
+        max_value (float, optional):
+            The maximum intensity value in the output array (e.g., 255 for 8-bit images).
+        shape (str, optional):
+            Forces the volume into a geometric shape: `None` (Blob), `cylinder`, or `tube`.
+        tube_hole_ratio (float, optional):
+            Only for `tube`. Defines the relative thickness of the wall.
+            `0.1` is a thick wall, `0.9` is a thin shell.
+        axis (int, optional):
+            The orientation axis (0, 1, or 2) for cylinders and tubes.
+        order (int, optional):
+            Interpolation order when resizing to `final_shape` (0=Nearest, 1=Linear, etc.).
+        dtype (str, optional):
+            Output data type (e.g., `uint8`, `float32`).
+        hollow (int, optional):
+            If > 0, hollows out the blob by eroding the center, creating a shell of thickness `hollow`.
+        seed (int, optional):
+            Random seed for reproducibility.
 
     Returns:
-        volume (numpy.ndarray): Generated 3D volume with specified parameters.
+        vol (numpy.ndarray):
+            The generated 3D volume.
 
     Raises:
-        ValueError: If `shape` is invalid.
-        ValueError: If `noise_type` is invalid.
-        TypeError: If `base_shape` is not a tuple or does not have three elements.
-        TypeError: If `final_shape` is not a tuple or does not have three elements.
+        ValueError: If `shape` or `noise_type` is invalid.
+        TypeError: If either `base_shape` or `final_shape` is not a tuple or does not have three elements.
         TypeError: If `dtype` is not a valid numpy number type.
         ValueError: If `hollow` is not 0 or a positive integer.
 
@@ -659,30 +535,30 @@ def volume(
 
 class ParameterVisualizer:
     """
-    Class for visualizing and experimenting with parameter changes and combinations on synthetic data.
+    Interactive Jupyter widget for exploring synthetic data generation parameters.
+
+    Provides a Graphical User Interface (GUI) to tune the parameters of `qim3d.generate.volume`
+    in real-time. Users can adjust sliders for noise scale, threshold, and gamma while immediately
+    seeing the resulting 3D structure.
 
     Args:
-        base_shape (tuple, optional): Determines the shape of the generate volume. This will not be update when exploring parameters and must be determined when generating the visualizer.
-        final_shape (tuple, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape. Defaults to None.
+        base_shape (tuple, optional): Determines the shape of the generate volume. This will not be updated when exploring parameters and must be determined when generating the visualizer.
+        final_shape (tuple, optional): Desired shape of the final volume. If unspecified, will assume same shape as base_shape.
         seed (int, optional): Determines the seed for the volume generation. Enables the user to generate different volumes with the same parameters.
-        hollow (int, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0. Defaults to 0.
+        hollow (int, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0.
         initial_config (dict, optional): Dictionary that defines the starting parameters of the visualizer. Can be used if a specific setup is needed. The dictionary may contain the keywords: `noise_type`, `noise_scale`, `decay_rate`, `gamma`, `threshold`, `shape` and `tube_hole_ratio`.
-        nsmin (float, optional): Determines minimum value for the noise scale slider. Defaults to 0.0.
-        nsmax (float, optional): Determines maximum value for the noise scale slider. Defaults to 0.1.
-        dsmin (float, optional): Determines minimum value for the decay rate slider. Defaults to 0.1.
-        dsmax (float, optional): Determines maximum value for the decay rate slider. Defaults to 20.
-        gsmin (float, optional): Determines minimum value for the gamma slider. Defaults to 0.1.
-        gsmax (float, optional): Determines maximum value for the gamma slider. Defaults to 2.0.
-        tsmin (float, optional): Determines minimum value for the threshold slider. Defaults to 0.0.
-        tsmax (float, optional): Determines maximum value for the threshold slider. Defaults to 1.0.
-        grid_visible (bool, optional): Determines if the grid should be visible upon plot generation. Defaults to False.
+        nsmin (float, optional): Determines minimum value for the noise scale slider.
+        nsmax (float, optional): Determines maximum value for the noise scale slider.
+        dsmin (float, optional): Determines minimum value for the decay rate slider.
+        dsmax (float, optional): Determines maximum value for the decay rate slider.
+        gsmin (float, optional): Determines minimum value for the gamma slider.
+        gsmax (float, optional): Determines maximum value for the gamma slider.
+        tsmin (float, optional): Determines minimum value for the threshold slider.
+        tsmax (float, optional): Determines maximum value for the threshold slider.
+        grid_visible (bool, optional): Determines if the grid should be visible upon plot generation.
 
     Raises:
-        ValueError: If base_shape is invalid.
-        ValueError: If noise slider values are invalid.
-        ValueError: If decay slider values are invalid.
-        ValueError: If gamma slider values are invalid.
-        ValueError: If threshold slider values are invalid.
+        ValueError: If either `base_shape`, `noise slider`, `decay slider`, `gamma slider`, or `threshold slider` are invalid.
 
     Example:
         ```python
@@ -1132,16 +1008,20 @@ class ParameterVisualizer:
 
     def get_volume(self):
         """
-        Retrieves the most recently generated volume from the visualizer.
+        Extracts the generated volume from the widget's current state.
+
+        Allows you to retrieve the numpy array resulting from your interactive adjustments
+        so you can use it in your pipeline (e.g., saving it or using it for training).
 
         Returns:
-            numpy.ndarray: The current synthetic 3D volume based on the widget parameters.
+            vol (numpy.ndarray): The 3D volume currently visualized in the widget.
 
         Example:
-        ```python
-            viz = qim3d.generate.ParameterVisualizer()
-            vol = viz.get_volume()
-            '''
+            ```python
+            # After adjusting sliders in the widget:
+            my_custom_blob = viz.get_volume()
+            qim3d.io.save("custom_blob.tif", my_custom_blob)
+            ```
 
         """
         return self.plt_volume.volume

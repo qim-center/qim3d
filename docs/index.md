@@ -1,10 +1,3 @@
----
-hide:
-  - navigation
----
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 <audio id="audio" src="assets/qim3d.mp3"></audio>
 
 <script>
@@ -12,33 +5,31 @@ document.addEventListener("DOMContentLoaded", function() {
   const audio = document.getElementById("audio");
   const playButton = document.getElementById("playButton");
 
+  if (!playButton || !audio) return;
+
   playButton.addEventListener("click", function() {
-    const icon = playButton.querySelector("i");
     if (audio.paused) {
       audio.play();
-      icon.classList.remove("fa-circle-play");
-      icon.classList.add("fa-circle-pause");
+      playButton.innerHTML = "⏸"; // Swaps to pause symbol
     } else {
       audio.pause();
-      icon.classList.remove("fa-circle-pause");
-      icon.classList.add("fa-circle-play");
+      playButton.innerHTML = "🕪"; // Swaps back to play symbol
     }
   });
 
   audio.addEventListener("ended", function() {
-    const icon = playButton.querySelector("i");
-    icon.classList.remove("fa-circle-pause");
-    icon.classList.add("fa-circle-play");
+    playButton.innerHTML = "🕪";
   });
 });
 </script>
 
-# ![qim3d logo](assets/qim3d-logo.svg){ width="25%" }
+
+# ![qim3d logo](assets/qim3d-logo.png){ width="256px" }
 
 [![PyPI version](https://badge.fury.io/py/qim3d.svg)](https://badge.fury.io/py/qim3d)
 [![Downloads](https://static.pepy.tech/badge/qim3d)](https://pepy.tech/project/qim3d)
 
-The **`qim3d`** (kɪm θriː diː <button id="playButton"><i class="fa-regular fa-circle-play"></i></button>)  library is designed for **Quantitative Imaging in 3D** using Python. It offers a range of features, including data loading and manipulation, image processing and filtering, data visualization, and analysis of imaging results.
+The **`qim3d`** (kɪm θriː di: <button id="playButton" style="background: none; border: none; cursor: pointer; padding: 0; margin-left: 2px; font-size: 0.75em;" title="Play pronunciation">🕪</button> )  library is designed for **Quantitative Imaging in 3D** using Python. It offers a range of features, including data loading and manipulation, image processing and filtering, data visualization, and analysis of imaging results.
 
 You can easily load and process 3D image data from various file formats, apply filters and transformations to the data, visualize the results using interactive plots and 3D volumetric rendering.
 
@@ -70,177 +61,7 @@ Whether you are working with medical imaging data, materials science data, or an
     ```python
     import qim3d
 
-    vol = qim3d.examples.NT_128x128x128
-    val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 2)
+    vol = qim3d.examples.fibers_150x150x150
+    val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 1)
     ```
-
-    ![structure tensor](assets/screenshots/structure_tensor_visualization.gif)
-
-## Installation
-
-### Create environment
-
-Creating a `conda` environment is not required but recommended.
-
-??? info "Miniconda installation and setup"
-
-    [Miniconda](https://docs.anaconda.com/free/miniconda/index.html) is a free minimal installer for conda. 
-
-    Here are some quick instructions to help you set up the latest Miniconda installer for your system: 
-
-    === "Windows"
-
-        The easiest way to install Miniconda on Windows is through the graphical interface installer. Follow these steps:
-
-        1. Download the installer [here](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe).
-        2. Run the installer and follow the on-screen instructions.
-        3. When the installation finishes, open `Anaconda Prompt (miniconda3)` from the Start menu.
-        
-    
-    === "macOS"
- 
-        The easiest way to install Miniconda on macOS is through the graphical interface installer. Follow these steps:
-
-        1. Download the correct installer for your processor version. If you are unsure about your version, check [here](https://support.apple.com/en-us/116943).
-            - For Intel processors, download [x86](https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.pkg)
-            - For Apple Silicon (M1/M2/M3 etc) processors, download [arm64](https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.pkg)
-
-        2. Run the installer and follow the on-screen instructions.
-        
-    === "Linux"
-        These four commands quickly and quietly install the latest 64-bit version of the installer and then clean up after themselves. To install a different version or architecture of Miniconda for Linux, change the name of the `.sh` installer in the `wget` command.
-
-        ```bash
-        mkdir -p ~/miniconda3
-        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-        bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-        rm -rf ~/miniconda3/miniconda.sh
-        ```
-
-        After installing, initialize your newly-installed Miniconda. The following commands initialize for bash and zsh shells:
-
-        ```bash
-        ~/miniconda3/bin/conda init bash
-        ~/miniconda3/bin/conda init zsh
-        ```
-Once you have `conda` installed, open your terminal and create a new enviroment:
-
-    conda create -n qim3d python=3.11
-
-After the environment is created, activate it by running:
-
-    conda activate qim3d
-
-Remember, if you chose to create an environment to install `qim3d`, it needs to be activated each time before using the library.
-
-### Install using `pip`
-
-The latest stable version can be simply installed using `pip`. Open your terminal and run:
-
-    pip install qim3d
-
-After completing the installation, you can verify its success by running one or both of the following commands:
-
-    qim3d
-
-or:
-
-    pip show qim3d
-
-If either command displays information about the qim3d library, the installation was successful.
-
-### Optional dependencies
-
-`qim3d` includes some features that require additional Python packages. These are not installed by default, keeping the base library lightweight. 
-
-You can install optional dependencies for specific features:
-
-| Feature | Optional dependency | Install command |
-|---------|-------------------|----------------|
-| Deep-learning / model training | `torch`, `torchvision`, `torchinfo`, `monai` | `pip install qim3d[deep-learning]` |
-| Synthetic data generation | `noise` | `pip install qim3d[synthetic-data]` |
-| GUI / interactive tools | `gradio` | `pip install qim3d[gui]` |
-| All optional features | All of the above | `pip install qim3d[all]` |
-
-!!! note
-    If you try to run a script that requires an optional dependency and it is not installed, `qim3d` will show a ImportError with instructions on how to install the missing dependency.
-
-!!! tip "Installing Multiple Features"
-    You can install multiple optional dependency groups simultaneously by separating the names with a comma, without spaces, inside the brackets.     
-    For example, to install both the `synthetic-data` features and the `deep-learning` features, use the following command:
-
-    ```bash
-    pip install qim3d[synthetic-data,deep-learning]
-    ```
-
-
-### Troubleshooting
-
-Here are some solutions for commonly found issues during installation and usage of `qim3d`.
-
-#### Failed building
-
-Some Windows users could face an build error during installation.
-
-??? Bug "ERROR: Failed building wheel for noise"
-    ```
-    Building wheels for collected packages: noise, outputformat, asciitree, ffmpy
-    Building wheel for noise (setup.py) ... error
-    error: subprocess-exited-with-error
-
-    × python setup.py bdist_wheel did not run successfully.
-    │ exit code: 1
-    ╰─> [14 lines of output]
-        running bdist_wheel
-        running build
-        running build_py
-        creating build
-        creating build\lib.win-amd64-cpython-311
-        creating build\lib.win-amd64-cpython-311\noise
-        copying perlin.py -> build\lib.win-amd64-cpython-311\noise
-        copying shader.py -> build\lib.win-amd64-cpython-311\noise
-        copying shader_noise.py -> build\lib.win-amd64-cpython-311\noise
-        copying test.py -> build\lib.win-amd64-cpython-311\noise
-        copying __init__.py -> build\lib.win-amd64-cpython-311\noise
-        running build_ext
-        building 'noise._simplex' extension
-        error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
-        [end of output]
-
-    note: This error originates from a subprocess, and is likely not a problem with pip.
-    ERROR: Failed building wheel for noise
-    ```
-
-This issue occurs because the system lacks the necessary tools to compile the library requirements. To resolve this, follow these steps:
-
-- Go to the [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) page and click on "Download build tools."
-- Run the installer and ensure that `Desktop development with C++` is checked. ![Windows build tools](assets/screenshots/Troubleshooting-Windows_build_tools.png)
-- Restart your computer
-- Activate your conda enviroment and run `pip install qim3d` again
-
-#### Get the latest version
-
-The library is under constant development, so make sure to keep your installation updated:
-
-    pip install --upgrade qim3d
-
-## Collaboration
-
-Contributions to `qim3d` are welcome!
-
-If you find a bug, have a feature request, or would like to contribute code, please open an issue or submit a pull request.
-
-You can find us at Gitlab:
-[https://lab.compute.dtu.dk/QIM/tools/qim3d](https://lab.compute.dtu.dk/QIM/tools/qim3d
-)
-
-This project is licensed under the [MIT License](https://lab.compute.dtu.dk/QIM/tools/qim3d/-/blob/main/LICENSE).
-
-
-## Support
-
-The development of the `qim3d` is supported by the Infrastructure for Quantitative AI-based Tomography QUAITOM which is supported by a Novo Nordisk Foundation Data Science Programme grant (Grant number NNF21OC0069766).
-
-![QIM](https://platform.qim.dk/static/images/QIM-logo.svg){ width="148" }
-
-![Novo Nordisk Foundation](https://novonordiskfonden.dk//app/uploads/NNF-INT_logo_tagline_blue_RGB_solid.png){ width="256" }
+    ![structure tensor](assets/screenshots/structure_tensor_visualization_fibers.gif)

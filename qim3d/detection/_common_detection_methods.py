@@ -16,22 +16,31 @@ def blobs(
     exclude_border: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
-    Extract blobs from a volume using Difference of Gaussian (DoG) method, and retrieve a binary volume with the blobs marked as True
+    Detects spherical objects (blobs) in a 3D volume using the Difference of Gaussian (DoG) method.
+
+    This function is essential for particle analysis, cell counting, or void detection. It identifies local maxima in the scale-space of the image to locate blobs of various sizes. In addition to returning the precise coordinates and radii of the detected features, it generates a binary mask where the spherical regions are fully reconstructed.
 
     Args:
-        volume (np.ndarray): The volume to detect blobs in.
-        background (str): 'dark' if background is darker than the blobs, 'bright' if background is lighter than the blobs. Defaults to 'dark'.
-        min_sigma (float): The minimum standard deviation for Gaussian kernel. Defaults to 1.
-        max_sigma (float): The maximum standard deviation for Gaussian kernel. Defaults to 50.
-        sigma_ratio (float): The ratio between the standard deviation of Gaussian Kernels. Defaults to 1.6.
-        threshold (float): The absolute lower bound for scale space maxima. Reduce this to detect blobs with lower intensities. Defaults to 0.5.
-        overlap (float): The fraction of area of two blobs that overlap. Defaults to 0.5.
-        threshold_rel (float or None): The relative lower bound for scale space maxima. Defaults to None.
-        exclude_border (bool): If True, exclude blobs that are too close to the border of the image. Defaults to False.
+        volume (np.ndarray): The 3D input volume.
+        background (str, optional): The intensity of the background relative to the objects.
+            
+            * **'dark'**: Use if the background is darker than the objects (detects bright spots).
+            * **'bright'**: Use if the background is lighter than the objects (detects dark spots/pores).
+        
+        min_sigma (float, optional): The minimum standard deviation for the Gaussian kernel. Controls the smallest blob size to detect. Defaults to 1.
+        max_sigma (float, optional): The maximum standard deviation for the Gaussian kernel. Controls the largest blob size to detect. Defaults to 50.
+        sigma_ratio (float, optional): The ratio between the standard deviations of consecutive Gaussian kernels in the scale space. Defaults to 1.6.
+        threshold (float, optional): The absolute lower bound for intensity. reduce this value to detect fainter blobs. Defaults to 0.5.
+        overlap (float, optional): The maximum fraction of spatial overlap allowed between two blobs. If two blobs overlap by more than this fraction, the smaller one is eliminated. Defaults to 0.5.
+        threshold_rel (float or None, optional): Minimum intensity of peaks, calculated as `max(image) * threshold_rel`. Defaults to `None`.
+        exclude_border (bool, optional): If `True`, ignores blobs found near the border of the volume. Defaults to `False`.
 
     Returns:
-        blobs: The blobs found in the volume as (p, r, c, radius)
-        binary_volume: A binary volume with the blobs marked as True
+        results (tuple[np.ndarray, np.ndarray]):
+            A tuple containing the detection metrics and the resulting segmentation.
+
+            * **blobs**: An array of shape `(N, 4)` containing the parameters `(z, y, x, radius)` for each detected blob.
+            * **binary_volume**: A boolean mask of the same shape as `volume`, where the detected spherical regions are marked as `True`.
 
     Example:
             ```python
@@ -62,7 +71,6 @@ def blobs(
             qim3d.viz.slicer(binary_volume)
             ```
             ![blob detection](../../assets/screenshots/blob_get_mask.gif)
-
     """
     from skimage.feature import blob_dog
 

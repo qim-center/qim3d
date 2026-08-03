@@ -28,36 +28,41 @@ def vectors(
     show: bool = False,
 ) -> plt.Figure | widgets.interactive:
     """
-    Visualizes the orientation of the structures in a 3D volume using the eigenvectors of the structure tensor.
+    Visualizes the local orientation of structures using structure tensor eigenvectors.
+
+    This function is designed to analyze anisotropy and fiber direction in 3D volumes. It generates a three-panel visualization to interpret the structure tensor output:
+
+    1.  **Quiver Plot:** Overlays vector arrows on the image slice to show the dominant direction in the 2D plane.
+    2.  **Orientation Histogram:** displays the distribution of angles, helping to identify if structures are aligned or random.
+    3.  **Color Map:** Renders the slice using an HSV scheme where Hue represents the in-plane angle and Saturation represents the out-of-plane alignment (vectors pointing out of the screen appear desaturated/gray).
 
     Args:
-        volume (np.ndarray): The 3D volume to be sliced.
-        vectors (np.ndarray): The eigenvectors of the structure tensor.
-        axis (int, optional): The axis along which to visualize the orientation. Defaults to 0.
-        volume_colormap (str, optional): Defines colormap for display of the volume
-        min_value (float, optional): Together with max_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None.
-        max_value (float, optional): Together with min_value define the data range the colormap covers. By default colormap covers the full range. Defaults to None
-        slice_index (int or float or None, optional): The initial slice to be visualized. The slice index
-            can afterwards be changed. If value is an integer, it will be the index of the slice
-            to be visualized. If value is a float between 0 and 1, it will be multiplied by the
-            number of slices and rounded to the nearest integer. If None, the middle slice will
-            be used. Defaults to None.
-        grid_size (int, optional): The size of the grid. Defaults to 10.
-        interactive (bool, optional): If True, returns an interactive widget. Defaults to True.
-        figsize (tuple, optional): The size of the figure. Defaults to (15, 5).
-        show (bool, optional): If True, displays the plot (i.e. calls plt.show()). Defaults to False.
+        volume (np.ndarray): The 3D input volume (scalar field).
+        vectors (np.ndarray): The eigenvectors of the structure tensor, typically shape `(3, Z, Y, X)`.
+        axis (int, optional): The axis along which to slice the volume for visualization (0, 1, or 2). Defaults to 0.
+        volume_colormap (str, optional): The colormap for the background volume slice in the quiver plot. Defaults to 'grey'.
+        min_value (float, optional): Minimum value for the volume display contrast.
+        max_value (float, optional): Maximum value for the volume display contrast.
+        slice_index (int or float, optional): The initial slice to display.
 
-    Raises:
-        ValueError: If the axis to slice along is not 0, 1, or 2.
-        ValueError: If the slice index is not an integer or a float between 0 and 1.
+            * **int**: The exact index of the slice.
+            * **float**: A fraction between 0.0 and 1.0.
+            * **None**: Defaults to the middle slice.
+
+        grid_size (int, optional): The spacing between arrows in the quiver plot. Lower values result in denser vector fields. Defaults to 10.
+        interactive (bool, optional): If `True`, returns a widget with sliders for slicing and grid density. If `False`, returns a static figure. Defaults to `True`.
+        figsize (tuple[int, int], optional): The width and height of the figure in inches. Defaults to (10, 5).
+        show (bool, optional): If `True`, calls `plt.show()` to display the plot immediately. Defaults to `False`.
 
     Returns:
-        fig (widgets.interactive or plt.Figure): If `interactive` is True, returns an interactive widget. Otherwise, returns a matplotlib figure.
+        object (widgets.interactive or matplotlib.figure.Figure):
+            The visualization object.
 
-    Note:
-        The orientation of the vectors is visualized using an HSV color map, where the saturation corresponds to the vector component
-        of the slicing direction (i.e. z-component when choosing visualization along `axis = 0`). Hence, if an orientation in the volume
-        is orthogonal to the slicing direction, the corresponding color of the visualization will be gray.
+            * **widgets.interactive**: Returned if `interactive=True`.
+            * **matplotlib.figure.Figure**: Returned if `interactive=False`.
+
+    Raises:
+        ValueError: If `axis` is invalid or `slice_index` is out of bounds.
 
     Example:
         ```python
@@ -336,78 +341,66 @@ def vector_field_3d(
     **kwargs,
 ) -> go.Figure:
     """
-    Visualize 3D structure tensor eigenvectors as cones in Plotly.
+    Generates an interactive 3D quiver plot (vector field) using cones to visualize local orientation.
 
-    Each cone represents an eigenvector whose direction and size indicate the dominant local orientation and the magnitude of the corresponding eigenvalue.
-    If `sampling_step` is greater than 1, each cone represents the average orientation and magnitude within that sampled region.
+    This function is designed to visualize the output of structure tensor analysis. It draws 3D cones representing the eigenvectors at various points in the volume. This is widely used to analyze material anisotropy, such as identifying fiber orientations (linear structures) or surface normals (planar structures).
 
-    The function is designed to work directly with the outputs of `qim3d.processing.structure_tensor()` which is in ascendic order by default.
+    To handle large 3D datasets efficiently, the function downsamples the volume by averaging vectors within grid blocks (`sampling_step`) and filters to show only the most significant regions (`max_cones`).
 
     Args:
-        val (np.ndarray): Eigenvalues from the structure tensor, with shape `(3, *vol.shape)`.
-        vec (np.ndarray): Eigenvectors from the structure tensor.
-            Shape depends on the `smallest` parameter from qim3d.processing.structure_tensor():
+        vec (np.ndarray): The eigenvectors from the structure tensor.
+            Expected shapes:
 
-            - `(3, nx, ny, nz)` if `smallest=True`
-            - `(3, 3, nx, ny, nz)` if `smallest=False`
+            * `(3, Z, Y, X)`: Contains a single eigenvector per voxel (e.g., result of `structure_tensor(..., smallest=True)`).
+            * `(3, 3, Z, Y, X)`: Contains all three eigenvectors per voxel.
 
-        select_eigen (Literal["smallest","largest","middle"], optional):
-            If vec has shape `(3, 3, nx, ny, nz)`, specifies which eigenvector to visualize.
-        sampling_step (int, optional):
-            Grid spacing for sampling points.
-            Default is `4`.
-        max_cones (int, optional):
-            Maximum number of cones to display. If more points are sampled,
-            only the locations with the highest eigenvalues are kept.
-            Default is `50000`.
-        cone_size (float, optional):
-            Scaling factor for cone length, proportional to vector magnitude.
-            Default is `1`.
-        verbose (bool, optional):
-            Whether to print progress and info messages.
-            Default is `True`.
-        colormap (str, optional):
-            Name of the Plotly colorscale used for cones.
-            Default is `"Portland"`.
-        cmin (float, optional):
-            Minimum value for color scale. If `None`, uses the minimum vector magnitude.
-        cmax (float, optional):
-            Maximum value for color scale. If `None`, uses the maximum vector magnitude.
-        **kwargs:
-            Additional keyword arguments passed to `plotly.graph_objects.Cone`.
-            See the [Plotly Cone documentation](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Cone.html)
+        val (np.ndarray): The eigenvalues from the structure tensor, with shape `(3, Z, Y, X)`.
+        select_eigen (str, optional): Determines which eigenvector to visualize (only used if `vec` contains all three).
+
+            * `'smallest'`: Visualizes the vector associated with the smallest eigenvalue (typically the **surface normal** in planar structures).
+            * `'largest'`: Visualizes the vector associated with the largest eigenvalue (typically the **fiber direction** in linear structures).
+            * `'middle'`: Visualizes the intermediate vector.
+
+        sampling_step (int, optional): The stride for the sampling grid. A value of `4` means every 4th voxel in each dimension is sampled (averaging the region). Higher values improve performance but reduce resolution. Defaults to 4.
+        max_cones (int, optional): The maximum number of cones to render. If the sampled grid exceeds this, only the points with the highest eigenvalues (strongest features) are kept. Defaults to 50000.
+        cone_size (float, optional): A scaling factor for the size of the cones. Defaults to 1.
+        verbose (bool, optional): If `True`, prints progress and grid statistics. Defaults to `True`.
+        colormap (str, optional): The name of the Plotly colorscale. Defaults to 'Portland'.
+        cmin (float, optional): The minimum value for the color mapping. If `None`, uses the data minimum.
+        cmax (float, optional): The maximum value for the color mapping. If `None`, uses the data maximum.
+        **kwargs: Additional keyword arguments passed to `plotly.graph_objects.Cone`. See the [Plotly Cone documentation](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Cone.html)
             for full customization options.
-
-    Raises:
-        ValueError: If an invalid combination of `smallest` and `sort` is provided.
 
     Returns:
         fig (plotly.graph_objects.Figure):
-            Interactive 3D Plotly figure showing cone representations of local orientation vectors.
+            The interactive Plotly figure containing the 3D vector field.
+
+    Raises:
+        ValueError: If `select_eigen` is not one of 'smallest', 'largest', or 'middle'.
 
     Example:
         ```python
         vol = qim3d.examples.fibers_150x150x150
-        val, vec = qim3d.processing.structure_tensor(vol, smallest = False)
-        qim3d.viz.vector_field_3d(vec, val, sampling_step=12, max_cones=5000, cone_size = 2, select_eigen="smallest")
+        val, vec = qim3d.processing.structure_tensor(vol, smallest = True)
+        qim3d.viz.vector_field_3d(vec, val, sampling_step=12, max_cones=5000, cone_size = 2)
         ```
         ![vector field](../../assets/screenshots/viz-vector_field.png)
 
+
     Notes:
-        **Understanding the Structure Tensor**
+        **Interpreting Eigenvalues and Eigenvectors**
 
-        Each voxel is associated with three **eigenvalues** (λ₁, λ₂, λ₃) and corresponding
-        **eigenvectors**, which describe how much intensity varies along each direction.
+        The structure tensor yields three eigenvalues (λ₁ ≤ λ₂ ≤ λ₃) and corresponding eigenvectors.
+        The smallest eigenvector (v₁) indicates the predominant orientation, the direction of minimum
+        intensity variation.
 
-        The relative magnitudes of the eigenvalues determine the type of local structure:
+        | Structure Type | Eigenvalue Pattern | Interpretation |
+        | :--- | :--- | :--- |
+        | **Linear** (fibers, tubes) | λ₁ ≪ λ₂ ≈ λ₃ | Follow v₁ to trace fiber |
+        | **Planar** (sheets, boundaries) | λ₁ ≈ λ₂ ≪ λ₃ | v₁ tangent to surface  |
+        | **Isotropic** (noise, blobs) | λ₁ ≈ λ₂ ≈ λ₃ | No predominant direction |
 
-        | Structure type              | Eigenvalue pattern               | Dominant orientation vector                          |
-        |-----------------------------|----------------------------------|-------------------------------------------------------|
-        | **Planar structure (surface)** | Two large, one small (λ₁, λ₂ ≫ λ₃) | Eigenvector with **smallest** eigenvalue → surface normal |
-        | **Linear structure (fiber)**   | One large, two small (λ₁ ≫ λ₂, λ₃) | Eigenvector with **largest** eigenvalue → line direction  |
-        | **Isotropic region (flat)**    | All similar (λ₁ ≈ λ₂ ≈ λ₃)        | No dominant direction                                  |
-
-        So based on what you are interested in visualizing, you may want to select different eigenvectors using the `select_eigen` parameter.
+        [Structure Tensor Notes](https://people.compute.dtu.dk/vand/notes/ST_intro.pdf)
 
     """
     if vec.ndim == 4:

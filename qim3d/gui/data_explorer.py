@@ -26,6 +26,7 @@ import matplotlib.figure
 import matplotlib.pyplot as plt
 import numpy as np
 import outputformat as ouf
+import zarr
 
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
@@ -34,6 +35,7 @@ from qim3d.utils._dependencies import optional_import
 from qim3d.utils._logger import log
 
 gr = optional_import('gradio', extra='gui')
+gife = optional_import('gradio_improvedfileexplorer', extra='gui')
 
 
 class Interface(BaseInterface):
@@ -103,7 +105,7 @@ class Interface(BaseInterface):
                         )
                     with gr.Column(scale=1, min_width=36):
                         reload_base_path = gr.Button(value='⟳')
-                explorer = gr.FileExplorer(
+                explorer = gife.ImprovedFileExplorer(
                     ignore_glob='*/.*',  # ignores hidden files
                     root_dir=os.getcwd(),
                     label=os.getcwd(),
@@ -152,6 +154,37 @@ class Interface(BaseInterface):
 
                 # Show series_contains only if load_series is checked
                 load_series.change(toggle_show, load_series, series_contains)
+
+                # Only visible if zarr.Group is selected in the file explorer
+                zarr_resolution = gr.Dropdown(
+                    visible = False,
+                    label='Zarr resolution (for multiscale zarrs)',
+                    choices=['0'],
+                    value='0',
+                    info='Select the resolution level to load for multiscale zarr datasets.',
+                    interactive = True,
+                )
+                def toggle_zarr_resolution(explorer_path):
+                    if explorer_path is None or not explorer_path.endswith('.zarr'):
+                        return gr.update(visible=False)
+                    try:
+
+                        zarr_root = zarr.open(explorer_path, mode='r')
+                        if isinstance(zarr_root, zarr.Group):
+                            choices = [f'{key} {zarr_root[key].shape}' for key in sorted(zarr_root.keys())]
+                            return gr.update(
+                                visible = True,
+                                choices = choices,
+                                value = choices[-1]
+                            )
+                        else:
+                            return gr.update(visible=False)
+                        
+                    except Exception as e:
+                        log.info(f'Error when reading zarr multiscale info: {e}')
+                        return gr.update(visible=False)
+
+                explorer.change(fn = toggle_zarr_resolution, inputs = explorer, outputs = zarr_resolution)
 
             with gr.Column(scale=1):
                 gr.Markdown('### Operations')
@@ -265,7 +298,7 @@ class Interface(BaseInterface):
 
         btn_run.click(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
             fn=self.start_session,
-            inputs=[load_series, series_contains, explorer, base_path],
+            inputs=[load_series, series_contains, explorer, base_path, zarr_resolution],
             outputs=[],
         ).then(fn=self.update_run_btn, inputs=[], outputs=btn_run).then(
             fn=self.check_error_state, inputs=[], outputs=[]
@@ -355,7 +388,12 @@ class Interface(BaseInterface):
     #######################################################
 
     def start_session(
-        self, load_series: bool, series_contains: str, explorer: str, base_path: str
+        self, 
+        load_series: bool, 
+        series_contains: str, 
+        explorer: str, 
+        base_path: str, 
+        zarr_group_member:str, 
     ):
         self.projections_calculated = (
             False  # Probably new file was loaded, we would need new projections
@@ -383,6 +421,12 @@ class Interface(BaseInterface):
         elif base_path and (os.path.isfile(base_path) or load_series):
             self.file_path = base_path
 
+        elif explorer and os.path.isdir(explorer) and explorer.endswith('.zarr') or explorer.split('/')[-2].endswith('.zarr'):
+            opened_zarr = zarr.open(explorer, mode='r')
+            if isinstance(opened_zarr, zarr.Group):
+                self.file_path = os.path.join(explorer, zarr_group_member.split(' ')[0])
+            else:
+                self.file_path = explorer
         else:
             self.error_message = 'Invalid file path'
 

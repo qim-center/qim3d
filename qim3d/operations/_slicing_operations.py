@@ -293,16 +293,19 @@ def get_random_slice(
     volume: np.ndarray, width: int, length: int, seed: int | None = None
 ) -> np.ndarray:
     """
-    Extract a randomly oriented 2D slice from a 3D volume.
+    Extracts an arbitrary 2D plane (slice) from the 3D volume at a random orientation and position.
+
+    This function samples a rectangular region from the volume by defining a random plane vector and origin point. It effectively acts as a "virtual camera" placed inside the volume at a random angle. This is particularly useful for data augmentation in machine learning, allowing a model to see the 3D structure from diverse angles rather than just the fixed orthogonal (XY, XZ, YZ) views.
 
     Args:
         volume (np.ndarray): The input 3D volume.
-        width (int): The width of the extracted slice.
-        length (int): The length of the extracted slice.
-        seed (int | None, optional): Seed for the random number generator, for reproducibility.
+        width (int): The width of the extracted slice in pixels.
+        length (int): The length (height) of the extracted slice in pixels.
+        seed (int, optional): A seed for the random number generator. Providing a value ensures that the same random slice can be reproduced. Defaults to `None`.
 
     Returns:
-        np.ndarray: A 2D slice of shape (width, length) extracted from the volume.
+        slice2d (np.ndarray):
+            The extracted 2D image of shape `(width, length)`.
 
     !!! quote "Reference"
         This slicer is adapted from the
@@ -329,7 +332,6 @@ def get_random_slice(
 
         ```
         ![Random slices](../../assets/screenshots/random_slice-after.png)
-
     """
 
     if seed is not None:
@@ -349,17 +351,41 @@ def get_random_slice(
 
 def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
     """
-    Return an evenly spaced subsample of a volume.
+    Reduces the volume resolution by extracting every N'th voxel (strided slicing).
 
-    The returned volume is a **view** of the original volume, meaning that it references the same underlying memory but with modified strides. Thus changes to the returned volume will affect the original.
+    This function performs downsampling by selecting voxels at regular intervals defined by the `coarseness` factor. It is highly efficient because it returns a **view** of the original array rather than a copy. This means it consumes almost no additional memory, making it ideal for generating quick previews, thumbnails, or testing pipelines on large datasets without full processing.
+
+    !!! warning "Important notice"
+        Since the returned object is a view, modifying the subsampled volume will also modify the original input volume.
 
     Args:
-        volume (np.ndarray): The input 3D volume to be subsampled.
-        coarseness (int or list[int]): Controls the spacing between sampled elements. Must be a positive integer. A value of 1 returns the original volume, a value of 2 samples every second element along each axis and so on. Can also be a list of length 3, a value for each dimension.
+        volume (np.ndarray): The input 3D volume.
+        coarseness (int or list[int]): The step size (stride) for sampling.
+            
+            * **int**: Applies the same step size to all axes (isotropic downsampling). A value of `1` returns the original volume. A value of `2` takes every second voxel.
+            * **list[int]**: A list of 3 integers specifying the step size for each axis `[z, y, x]`.
 
     Returns:
-        np.ndarray: The subsampled 3D volume.
+        subsampled_volume (np.ndarray):
+            A view of the input volume with reduced dimensions.
 
+    Example:
+        ```python
+        import qim3d
+        import numpy as np
+
+        # Create a sample volume
+        vol = np.zeros((100, 100, 100))
+        
+        # Subsample by taking every 4th voxel
+        vol_small = qim3d.operations.subsample(vol, coarseness=4)
+        
+        print(f"Original shape: {vol.shape}")
+        print(f"Subsampled shape: {vol_small.shape}")
+        ```
+        Original shape: (100, 100, 100)
+
+        Subsampled shape: (25, 25, 25)
     """
     if isinstance(coarseness, int):
         coarseness = tuple(coarseness for _ in range(3))
@@ -384,19 +410,43 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
 
 def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
     """
-    Return an evenly spaced subsample of a volume by targeting a desired ratio of elements to keep.
+    Subsamples the volume to retain a specific fraction of the original data.
 
-    The function automatically chooses a stride that yields a subsample ratio as close as
-    possible to the requested ratio. The returned volume is a **view** of the original,
-    meaning that it references the same underlying memory with modified strides. Changes
-    to the returned volume will affect the original.
+    This function automatically calculates the integer stride (step size) required to reduce the volume's total element count to approximately the requested `ratio`. Like `subsample`, it returns a **view** of the original array, making it extremely memory-efficient and fast for creating lightweight previews or managing large datasets.
+
+    **Note:** The exact ratio may not be achievable because the stride must be an integer. The function selects the stride that results in a size closest to the target.
 
     Args:
-        volume (np.ndarray): The input 3D volume to be subsampled.
-        ratio (float): The desired fraction of the original elements to keep (0 < ratio <= 1).
+        volume (np.ndarray): The input 3D volume.
+        ratio (float): The target fraction of elements to keep, where 0 < ratio <= 1. For example, `0.125` aims to keep 12.5% of the voxels (equivalent to a stride of 2 in 3D: 1/2^3 = 1/8).
 
     Returns:
-        np.ndarray: The subsampled 3D volume.
+        subsampled_volume (np.ndarray):
+            A view of the input volume with reduced dimensions.
+
+    Example:
+        ```python
+        import qim3d
+        import numpy as np
+
+        # Create a volume with 1 million voxels
+        vol = np.zeros((100, 100, 100))
+        
+        # Subsample to keep ~1.5% of the data
+        # Ideally, stride = cbrt(1/0.015) ≈ 4.05 -> stride 4
+        vol_small = qim3d.operations.ratio_subsample(vol, ratio=0.015)
+        
+        print(f"Original size: {vol.size}")
+        print(f"Subsampled size: {vol_small.size}")
+        print(f"Actual ratio: {vol_small.size / vol.size:.4f}")
+        ```
+        Subsampled volume has size 1.56% of the original volume. Used a spacing of 4 in each axis.
+
+        Original size: 1000000
+
+        Subsampled size: 15625
+
+        Actual ratio: 0.0156
     """
     def calc_ratio(vol: np.ndarray, stride: int) -> float:
         """Compute the achieved ratio given a stride value."""

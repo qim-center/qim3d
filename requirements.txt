@@ -1,4 +1,5 @@
 gradio>=5.1,<6
+gradio-improvedfileexplorer>=1.0.0
 h5py>=3.9.0
 localthickness>=0.1.2
 matplotlib>=3.8.0
@@ -34,4 +35,5 @@ PyGEL3D>=0.6.1
 pyvista[jupyter]>=0.45
 imageio-ffmpeg>=0.6
 numcodecs<0.16
+pytetwild
 pygorpho>=1.0.1

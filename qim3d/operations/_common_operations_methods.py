@@ -11,18 +11,27 @@ def remove_background(
     **median_kwargs,
 ) -> np.ndarray:
     """
-    Remove background from a volume using a qim3d filters.
+    Applies a background correction pipeline using median filtering and morphological operations.
+
+    This function acts as a convenience wrapper for a sequential processing pipeline designed to smooth the image and suppress clutter. It performs two distinct operations:
+    
+    1.  **Median Filter:** Reduces high-frequency impulse noise (salt-and-pepper) using a kernel of size `median_filter_size`.
+    2.  **Morphological Opening:** Removes bright features (or dark, if `background='bright'`) that are smaller than the `min_object_radius`. This effectively separates large structural components from small background artifacts or texture.
 
     Args:
-        volume (np.ndarray): The volume to remove background from.
-        median_filter_size (int, optional): The size of the median filter. Defaults to 2.
-        min_object_radius (int, optional): The radius of the structuring element for the tophat filter. Defaults to 3.
-        background ('dark' or 'bright, optional): The background type. Can be 'dark' or 'bright'. Defaults to 'dark'.
-        **median_kwargs (Any): Additional keyword arguments for the Median filter.
+        volume (np.ndarray): The input volume to process.
+        median_filter_size (int, optional): The size of the kernel for the initial median denoising step. Defaults to 2.
+        min_object_radius (int, optional): The radius of the structuring element (ball) used for the morphological operation. Details smaller than this size are removed. Defaults to 3.
+        background (str, optional): The intensity of the background relative to the objects.
+            
+            * **'dark'**: Use for bright objects on a dark background.
+            * **'bright'**: Use for dark objects on a bright background (the volume is inverted during processing).
+            
+        **median_kwargs (Any): Additional keyword arguments passed to the underlying `Median` filter.
 
     Returns:
-        filtered_volume (np.ndarray): The volume with background removed.
-
+        filtered_volume (np.ndarray):
+            The processed volume with background clutter and noise suppressed.
 
     Example:
         ```python
@@ -40,7 +49,6 @@ def remove_background(
         fig2 = qim3d.viz.slices_grid(vol_filtered, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
         ![operations-remove_background_after](../../assets/screenshots/operations-remove_background_after.png)
-
     """
 
     # Create a pipeline with a median filter and a tophat filter
@@ -63,19 +71,29 @@ def fade_mask(
     **kwargs,
 ) -> np.ndarray:
     """
-    Apply edge fading to a volume.
+    Applies a soft attenuation mask (vignetting) to the volume to suppress boundary artifacts.
+
+    This function multiplies the input volume by a generated mask that decays from the center outwards based on a power-law profile. It is commonly used to remove reconstruction artifacts at the edges of a scan or to isolate a central Region of Interest (ROI) by suppressing peripheral data. The shape of the mask can be spherical or cylindrical.
 
     Args:
-        volume (np.ndarray): The volume to apply edge fading to.
-        decay_rate (float, optional): The decay rate of the fading. Defaults to 10.
-        ratio (float, optional): The ratio of the volume to fade. Defaults to 0.5.
-        geometry ('spherical' or 'cylindrical', optional): The geometric shape of the fading. Can be 'spherical' or 'cylindrical'. Defaults to 'spherical'.
-        invert (bool, optional): Flag for inverting the fading. Defaults to False.
-        axis (int, optional): The axis along which to apply the fading. Defaults to 0.
-        **kwargs (Any): Additional keyword arguments for the edge fading.
+        volume (np.ndarray): The 3D input volume.
+        decay_rate (float, optional): The exponent for the power-law decay. Higher values create a "flatter" central region with a sharper drop-off near the mask edge, while lower values cause a more gradual fade from the center. Defaults to 10.
+        ratio (float, optional): The effective radius of the non-zero mask region relative to the volume size. Defaults to 0.5.
+        geometry (str, optional): The geometric shape of the mask.
+            
+            * **'spherical'**: Fades in all directions from the volume center.
+            * **'cylindrical'**: Fades radially from a central axis (defined by `axis`), maintaining constant intensity along that axis. Defaults to 'spherical'.
+            
+        invert (bool, optional): If `True`, inverts the mask (fades the center and keeps the edges). Defaults to `False`.
+        axis (int, optional): The axis of alignment for the cylinder if `geometry='cylindrical'`. Defaults to 0.
+        **kwargs (Any): Additional keyword arguments.
 
     Returns:
-        faded_vol (np.ndarray): The volume with edge fading applied.
+        faded_vol (np.ndarray):
+            The volume with the attenuation mask applied, renormalized to match the original maximum intensity.
+
+    Raises:
+        ValueError: If `axis` is invalid or `geometry` is not 'spherical' or 'cylindrical'.
 
     Example:
         ```python
@@ -92,7 +110,6 @@ def fade_mask(
         ```
         Afterwards the artifacts are faded out, making the object of interest more visible for visualization purposes.
         <iframe src="https://platform.qim.dk/k3d/fly_faded.html" width="100%" height="500" frameborder="0"></iframe>
-
     """
     if axis < 0 or axis >= volume.ndim:
         error = 'Axis must be between 0 and the number of dimensions of the volume'
@@ -158,26 +175,22 @@ def overlay_rgb_images(
     hide_black: bool = True,
 ) -> np.ndarray:
     """
-    Overlay an RGB foreground onto an RGB background using alpha blending.
+    Composites a foreground image onto a background using alpha blending.
+
+    This function overlays a mask or secondary image (foreground) onto a base image (background). It automatically normalizes inputs (handling 2D/3D, float/integer, and range mismatches) to ensure compatible 8-bit RGB formats before blending. A key feature is the conditional transparency (`hide_black`), which treats black pixels in the foreground as fully transparent, making it ideal for overlaying sparse segmentation masks without obscuring the rest of the image.
 
     Args:
-        background (numpy.ndarray): The background RGB image.
-        foreground (numpy.ndarray): The foreground RGB image (usually masks).
-        alpha (float, optional): The alpha value for blending. Defaults to 0.5.
-        hide_black (bool, optional): If True, black pixels will have alpha value 0, so the black won't be visible. Used for segmentation where we don't care about background. Defaults to True.
+        background (np.ndarray): The base image.
+        foreground (np.ndarray): The overlay image (e.g., a segmentation mask or heatmap). Must match the spatial dimensions of the background.
+        alpha (float, optional): The global opacity of the foreground, ranging from 0.0 (fully transparent) to 1.0 (fully opaque). Defaults to 0.5.
+        hide_black (bool, optional): If `True`, forces the alpha channel to 0 for all perfectly black pixels `[0, 0, 0]` in the foreground. This prevents the background of a sparse mask from darkening the base image. Defaults to `True`.
 
     Returns:
-        composite (numpy.ndarray): The composite RGB image with overlaid foreground.
+        composite (np.ndarray):
+            The resulting 8-bit RGB image after blending.
 
     Raises:
-        ValueError: If input images have different shapes.
-
-    Note:
-        - The function performs alpha blending to overlay the foreground onto the background.
-        - It ensures that the background and foreground have the same first two dimensions (image size matches).
-        - It can handle greyscale images, values from 0 to 1, raw values which are negative or bigger than 255.
-        - It calculates the maximum projection of the foreground and blends them onto the background.
-
+        ValueError: If the spatial dimensions (height/width) of the input images do not match.
     """
 
     def to_uint8(image: np.ndarray) -> np.ndarray:
@@ -244,14 +257,17 @@ def make_hollow(
     thickness: int,
 ) -> np.ndarray:
     """
-    Make a volume hollow by applying a mask created by a minimum filter and an xor-gate.
+    Constructs a hollow shell from a solid 3D volume.
+
+    This function isolates the outer boundary layer of an object. It achieves this by performing a morphological erosion (using a minimum filter) to identify the inner core, which is then subtracted from the original volume via a logical XOR operation. The result is a shell that retains the original intensity values, while the interior is set to zero.
 
     Args:
-        volume (np.ndarray): The volume to hollow.
-        thickness (int): The thickness of the shell after hollowing.
+        volume (np.ndarray): The input 3D volume. Non-zero values are treated as the object.
+        thickness (int): The width of the resulting shell in voxels. This value determines the size of the erosion kernel used to define the hollow core.
 
     Returns:
-        vol_hollowed (np.ndarray): The hollowed volume.
+        vol_hollowed (np.ndarray):
+            The processed volume containing only the outer shell of the object.
 
     Example:
         ```python
@@ -268,7 +284,6 @@ def make_hollow(
         qim3d.viz.slicer(vol_hollowed)
         ```
         ![synthetic_collection](../../assets/screenshots/hollow_slicer_2.gif)
-
     """
     # Create base mask
     vol_mask_base = volume > 0

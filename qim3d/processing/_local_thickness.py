@@ -17,28 +17,26 @@ def local_thickness(
     **viz_kwargs,
 ) -> np.ndarray:
     """
-    Wrapper for the local thickness function from the [local thickness package](https://github.com/vedranaa/local-thickness)
+    Computes the local thickness map for a 2D or 3D image.
 
-    The "Fast Local Thickness" by Vedrana Andersen Dahl and Anders Bjorholm Dahl from the Technical University of Denmark is a efficient algorithm for computing local thickness in 2D and 3D images.
-    Their method significantly reduces computation time compared to traditional algorithms by utilizing iterative dilation with small structuring elements, rather than the large ones typically used.
-    This approach allows the local thickness to be determined much faster, making it feasible for high-resolution volumetric data that are common in contemporary 3D microscopy.
+    Local Thickness is a morphometric measure defined as the diameter of the largest sphere that fits entirely within the object boundary and contains the point. Intuitively, it represents the "width" of the structure at any given voxel. It is widely used to analyze pore sizes, trabecular bone thickness, or vessel diameters.
 
-    Testing against conventional methods and other Python-based tools like PoreSpy shows that the new algorithm is both accurate and faster, offering significant improvements in processing time for large datasets.
+    This function wraps the [localthickness](https://github.com/vedranaa/local-thickness) package, which implements the "Fast Local Thickness" algorithm. Unlike traditional methods that use computationally expensive large structuring elements, this algorithm uses iterative dilation with small kernels, making it significantly faster and feasible for high-resolution 3D microscopy data.
 
+    **Note:** This function requires a **binary** image. If a grayscale image is provided, it will be automatically binarized using Otsu's thresholding method.
 
     Args:
-        image (np.ndarray): 2D or 3D NumPy array representing the image/volume.
-            If binary, it will be passed directly to the local thickness function.
-            If grayscale, it will be binarized using Otsu's method.
-        scale (float, optional): Downscaling factor, e.g. 0.5 for halving each dim of the image.
-            Default is 1.
-        mask (np.ndarray or None, optional): Binary mask of the same size of the image defining parts of the
-            image to be included in the computation of the local thickness. Default is None.
-        visualize (bool, optional): Whether to visualize the local thickness. Default is False.
-        **viz_kwargs (Any): Additional keyword arguments passed to `qim3d.viz.local_thickness`. Only used if `visualize=True`.
+        image (np.ndarray): The input 2D or 3D array.
+            * **Binary:** Processed directly.
+            * **Grayscale:** Automatically binarized using Otsu's method (a warning will be logged).
+        scale (float, optional): A downscaling factor to speed up computation. For example, `0.5` downsamples the image by half in each dimension before processing. Defaults to 1 (no scaling).
+        mask (np.ndarray, optional): A binary mask of the same shape as `image`. Local thickness will only be computed for regions where the mask is `True`. Defaults to `None`.
+        visualize (bool, optional): If `True`, immediately displays a visualization of the thickness map using `qim3d.viz.local_thickness`. Defaults to `False`.
+        **viz_kwargs (Any): Additional keyword arguments passed to the visualization function.
 
     Returns:
-        local_thickness (np.ndarray): 2D or 3D NumPy array representing the local thickness of the input image/volume.
+        local_thickness (np.ndarray):
+            A NumPy array of the same shape as the input, where each pixel/voxel value represents the local thickness at that point.
 
     Example:
         ```python
@@ -62,9 +60,8 @@ def local_thickness(
         ```
         ![local thickness 2d](../../assets/screenshots/local_thickness_2d.png)
 
-    !!! info "Runtime and memory usage of the local thickness method for different volume sizes"
+    !!! info "Runtime and memory usage"
         ![local thickness estimate time and mem](../../assets/screenshots/Local_thickness_time_mem_estimation.png)
-
         Performance computed on Intel(R) Xeon(R) Gold 6226 CPU @ 2.70GHz.
 
     !!! quote "Reference"
@@ -73,18 +70,14 @@ def local_thickness(
 
         ```bibtex
         @inproceedings{Dahl_2023, title={Fast Local Thickness},
-        url={http://dx.doi.org/10.1109/CVPRW59228.2023.00456},
+        url={[http://dx.doi.org/10.1109/CVPRW59228.2023.00456](http://dx.doi.org/10.1109/CVPRW59228.2023.00456)},
         DOI={10.1109/cvprw59228.2023.00456},
         booktitle={2023 IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops (CVPRW)},
         publisher={IEEE},
         author={Dahl, Vedrana Andersen and Dahl, Anders Bjorholm},
         year={2023},
         month=jun }
-
         ```
-
-
-
     """
     import localthickness as lt
     from skimage.filters import threshold_otsu

@@ -4,17 +4,22 @@ from qim3d.utils._logger import log
 
 def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, int]:
     """
-    Apply watershed segmentation to a binary volume.
+    Performs watershed segmentation to separate touching objects in a binary volume.
+
+    This function converts a binary mask (foreground vs. background) into a labeled instance segmentation (where each object is assigned a unique integer ID). It is particularly useful for splitting fused particles, cells, or blobs that have been merged during thresholding. The algorithm uses a distance transform to identify markers (seeds) at the centers of objects and grows regions outward until they meet the boundaries of the original mask.
 
     Args:
-        binary_volume (np.ndarray): Binary volume to segment. The input should be a 3D binary image where non-zero elements
-                              represent the objects to be segmented.
-        min_distance (int): Minimum number of pixels separating peaks in the distance transform. Peaks that are
-                            too close will be merged, affecting the number of segmented objects. Default is 5.
+        binary_volume (np.ndarray): The 3D binary input mask. Non-zero elements represent the objects to segment.
+        min_distance (int, optional): The minimum distance (in pixels) allowed between distinct object centers (peaks). Increasing this value prevents over-segmentation (splitting single objects), while decreasing it helps separate closely packed objects. Defaults to 5.
 
     Returns:
-        labeled_vol (np.ndarray): A 3D array of the same shape as the input `binary_volume`, where each segmented object is assigned a unique integer label.
-        num_labels (int): The total number of unique objects found in the labeled volume.
+        labeled_vol (np.ndarray):
+            A 3D integer array with the same shape as the input. Each segmented object is filled with a unique label ID (1, 2, 3...). Background is 0.
+        num_labels (int):
+            The total count of unique objects identified.
+
+    Raises:
+        ValueError: If `binary_volume` contains more than 2 unique values (i.e., is not binary).
 
     Example:
         ```python
@@ -34,7 +39,6 @@ def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndar
         fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, color_map=cmap, display_figure=True)
         ```
         ![operations-watershed_after](../../assets/screenshots/operations-watershed_after.png)
-
     """
     import scipy
     import skimage

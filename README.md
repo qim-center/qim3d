@@ -5,7 +5,6 @@
 [![PyPI version](https://badge.fury.io/py/qim3d.svg)](https://badge.fury.io/py/qim3d)
 [![Downloads](https://static.pepy.tech/badge/qim3d)](https://pepy.tech/project/qim3d)
 
-
 The `qim3d` (kɪm θriː diː) library is designed to make it easier to work with 3D imaging data in Python. It offers a range of features, including data loading and manipulation, image processing and filtering, visualization of 3D data, and analysis of imaging results.
 
 You can easily load and process 3D image data from various file formats, apply filters and transformations to the data, visualize the results using interactive plots and 3D rendering, and perform quantitative analysis on the images.
@@ -23,11 +22,13 @@ conda create -n qim3d python=3.11
 ```
 
 After the environment is created, activate it by running:
+
 ```bash
 conda activate qim3d
 ```
 
 And then installation is easy using pip:
+
 ```bash
 pip install qim3d
 ```
@@ -91,11 +92,14 @@ qim3d.viz.volumetric(volume_collection)
 ```python
 import qim3d
 
-vol = qim3d.examples.NT_128x128x128
-val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 2)
+vol = qim3d.examples.fibers_150x150x150
+val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 1)
 ```
+![structure tensor](docs/assets/screenshots/structure_tensor_visualization_fibers.gif)
 
-![structure tensor](docs/assets/screenshots/structure_tensor_visualization.gif)
+## Contributing
+
+Please see the [Contributor Guide](/CONTRIBUTING.md).
 
 ## Support
 
