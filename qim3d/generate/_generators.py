@@ -6,7 +6,7 @@ import scipy.ndimage
 from IPython.display import display
 
 import qim3d
-from qim3d.utils import log
+from qim3d.utils import log, scale_to_float16
 from qim3d.utils._dependencies import optional_import
 
 # Import noise as optional dependency
@@ -16,6 +16,7 @@ pnoise3 = noise.pnoise3
 snoise3 = noise.snoise3
 
 __all__ = ['volume', 'background']
+
 
 def background(
     background_shape: tuple,
@@ -31,7 +32,7 @@ def background(
     """
     Generates a 3D noise field or adds synthetic background noise to an existing volume.
 
-    Unlike `volume` (which creates structures), this function generates **unstructured uniform noise**. 
+    Unlike `volume` (which creates structures), this function generates **unstructured uniform noise**.
     It is useful for simulating:
 
     * **Sensor Noise:** Electronic noise or grain common in CT/microscopy scans.
@@ -39,30 +40,30 @@ def background(
     * **Data Augmentation:** Making training data more robust by adding random interference.
 
     Args:
-        background_shape (tuple): 
+        background_shape (tuple):
             The shape of the noise volume to generate (Z, Y, X).
-        baseline_value (float, optional): 
+        baseline_value (float, optional):
             The constant base intensity level of the background.
-        min_noise_value (float, optional): 
+        min_noise_value (float, optional):
             The lower bound of the random noise distribution.
-        max_noise_value (float, optional): 
+        max_noise_value (float, optional):
             The upper bound of the random noise distribution.
-        generate_method (str, optional): 
+        generate_method (str, optional):
             How to combine the baseline with the noise: `'add'`, `'subtract'`, `'multiply'`, or `'divide'`.
-        apply_method (str, optional): 
+        apply_method (str, optional):
             If `apply_to` is provided, this defines how the noise is merged with the input volume.
-        seed (int, optional): 
+        seed (int, optional):
             Random seed for reproducibility.
-        dtype (str, optional): 
+        dtype (str, optional):
             Output data type.
-        apply_to (numpy.ndarray, optional): 
-            An existing 3D volume. If provided, the noise is applied directly to this array 
+        apply_to (numpy.ndarray, optional):
+            An existing 3D volume. If provided, the noise is applied directly to this array
             using `apply_method`.
 
     Returns:
-        background (numpy.ndarray): 
+        background (numpy.ndarray):
             The noise volume (if `apply_to` is None) or the modified input volume.
-            
+
     Raises:
         ValueError: If `apply_method` is not one of 'add', 'subtract', 'multiply', or 'divide'.
         ValueError: If `apply_method` is provided without `apply_to` input volume provided, or vice versa.
@@ -245,8 +246,8 @@ def volume(
     """
     Generates a synthetic 3D volume using structured Perlin noise.
 
-    Creates valid 3D morphological structures that resemble biological or material samples 
-    (e.g., cells, tissues, pores). By default, it generates a "blob-like" object, but it can 
+    Creates valid 3D morphological structures that resemble biological or material samples
+    (e.g., cells, tissues, pores). By default, it generates a "blob-like" object, but it can
     also create specific geometric shapes like **cylinders** or **tubes**.
 
     This function is ideal for:
@@ -256,51 +257,51 @@ def volume(
     * **Simulation:** Modeling physical structures with controlled noise properties.
 
     **Supported Shapes:**
-    
+
     * **Blob:** (Default) amorphous, organic-looking structure.
     * **Cylinder:** A solid cylindrical rod.
     * **Tube:** A hollow cylinder.
 
     Args:
-        base_shape (tuple, optional): 
-            The resolution of the internal noise grid. Higher values create finer details 
+        base_shape (tuple, optional):
+            The resolution of the internal noise grid. Higher values create finer details
             but require more computation.
-        final_shape (tuple, optional): 
-            The final output resolution. If `None`, matches `base_shape`. 
+        final_shape (tuple, optional):
+            The final output resolution. If `None`, matches `base_shape`.
             Use this to upsample the generated volume.
-        noise_scale (float, optional): 
-            Controls the "zoom" of the noise texture. Smaller values = smooth, large features. 
+        noise_scale (float, optional):
+            Controls the "zoom" of the noise texture. Smaller values = smooth, large features.
             Larger values = rough, high-frequency details.
-        noise_type (str, optional): 
+        noise_type (str, optional):
             The noise algorithm: `perlin` (standard) or `simplex` (faster, different artifacts).
-        decay_rate (float, optional): 
-            Controls how quickly the object fades into the background at the edges. 
+        decay_rate (float, optional):
+            Controls how quickly the object fades into the background at the edges.
             Higher values create sharper, distinct boundaries.
-        gamma (float, optional): 
+        gamma (float, optional):
             Adjusts contrast. `<1` flattens values (fuzzier), `>1` pushes values to extremes (binary-like).
-        threshold (float, optional): 
-            The cut-off value (0.0 to 1.0) defining the object's surface. 
+        threshold (float, optional):
+            The cut-off value (0.0 to 1.0) defining the object's surface.
             Lower values make the object larger/fatter; higher values make it smaller/thinner.
-        max_value (float, optional): 
+        max_value (float, optional):
             The maximum intensity value in the output array (e.g., 255 for 8-bit images).
-        shape (str, optional): 
+        shape (str, optional):
             Forces the volume into a geometric shape: `None` (Blob), `cylinder`, or `tube`.
-        tube_hole_ratio (float, optional): 
-            Only for `tube`. Defines the relative thickness of the wall. 
+        tube_hole_ratio (float, optional):
+            Only for `tube`. Defines the relative thickness of the wall.
             `0.1` is a thick wall, `0.9` is a thin shell.
-        axis (int, optional): 
+        axis (int, optional):
             The orientation axis (0, 1, or 2) for cylinders and tubes.
-        order (int, optional): 
+        order (int, optional):
             Interpolation order when resizing to `final_shape` (0=Nearest, 1=Linear, etc.).
-        dtype (str, optional): 
+        dtype (str, optional):
             Output data type (e.g., `uint8`, `float32`).
-        hollow (int, optional): 
+        hollow (int, optional):
             If > 0, hollows out the blob by eroding the center, creating a shell of thickness `hollow`.
-        seed (int, optional): 
+        seed (int, optional):
             Random seed for reproducibility.
 
     Returns:
-        vol (numpy.ndarray): 
+        vol (numpy.ndarray):
             The generated 3D volume.
 
     Raises:
@@ -536,8 +537,8 @@ class ParameterVisualizer:
     """
     Interactive Jupyter widget for exploring synthetic data generation parameters.
 
-    Provides a Graphical User Interface (GUI) to tune the parameters of `qim3d.generate.volume` 
-    in real-time. Users can adjust sliders for noise scale, threshold, and gamma while immediately 
+    Provides a Graphical User Interface (GUI) to tune the parameters of `qim3d.generate.volume`
+    in real-time. Users can adjust sliders for noise scale, threshold, and gamma while immediately
     seeing the resulting 3D structure.
 
     Args:
@@ -546,14 +547,14 @@ class ParameterVisualizer:
         seed (int, optional): Determines the seed for the volume generation. Enables the user to generate different volumes with the same parameters.
         hollow (int, optional): Determines thickness of the hollowing operation. Volume is only hollowed if hollow>0.
         initial_config (dict, optional): Dictionary that defines the starting parameters of the visualizer. Can be used if a specific setup is needed. The dictionary may contain the keywords: `noise_type`, `noise_scale`, `decay_rate`, `gamma`, `threshold`, `shape` and `tube_hole_ratio`.
-        nsmin (float, optional): Determines minimum value for the noise scale slider. 
+        nsmin (float, optional): Determines minimum value for the noise scale slider.
         nsmax (float, optional): Determines maximum value for the noise scale slider.
-        dsmin (float, optional): Determines minimum value for the decay rate slider. 
-        dsmax (float, optional): Determines maximum value for the decay rate slider. 
-        gsmin (float, optional): Determines minimum value for the gamma slider. 
-        gsmax (float, optional): Determines maximum value for the gamma slider. 
-        tsmin (float, optional): Determines minimum value for the threshold slider. 
-        tsmax (float, optional): Determines maximum value for the threshold slider. 
+        dsmin (float, optional): Determines minimum value for the decay rate slider.
+        dsmax (float, optional): Determines maximum value for the decay rate slider.
+        gsmin (float, optional): Determines minimum value for the gamma slider.
+        gsmax (float, optional): Determines maximum value for the gamma slider.
+        tsmin (float, optional): Determines minimum value for the threshold slider.
+        tsmax (float, optional): Determines maximum value for the threshold slider.
         grid_visible (bool, optional): Determines if the grid should be visible upon plot generation.
 
     Raises:
@@ -1009,7 +1010,7 @@ class ParameterVisualizer:
         """
         Extracts the generated volume from the widget's current state.
 
-        Allows you to retrieve the numpy array resulting from your interactive adjustments 
+        Allows you to retrieve the numpy array resulting from your interactive adjustments
         so you can use it in your pipeline (e.g., saving it or using it for training).
 
         Returns:
@@ -1021,5 +1022,6 @@ class ParameterVisualizer:
             my_custom_blob = viz.get_volume()
             qim3d.io.save("custom_blob.tif", my_custom_blob)
             ```
+
         """
         return self.plt_volume.volume

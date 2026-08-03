@@ -9,7 +9,7 @@ from qim3d.segmentation._connected_components import connected_components
 @pytest.fixture(scope='module')
 def setup_data():
     components = np.array(
-        [[0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0], [1, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0]]
+        [[[0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0], [1, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0]]]
     )
     num_components = 4
     connected_components_ = connected_components(components)
@@ -19,7 +19,7 @@ def setup_data():
 def test_connected_components_property(setup_data):
     connected_components_, _, _ = setup_data
     components = np.array(
-        [[0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0], [2, 2, 0, 0, 3, 0], [0, 0, 0, 4, 0, 0]]
+        [[[0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0], [2, 2, 0, 0, 3, 0], [0, 0, 0, 4, 0, 0]]]
     )
     assert np.array_equal(connected_components_.get_cc(), components)
 
@@ -32,12 +32,12 @@ def test_num_connected_components_property(setup_data):
 def test_get_connected_component_with_index(setup_data):
     connected_components, _, _ = setup_data
     expected_component = np.array(
-        [
+        [[
             [0, 0, 1, 1, 0, 0],
             [0, 0, 0, 1, 0, 0],
             [0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0],
-        ],
+        ]],
         dtype=bool,
     )
     print(connected_components.get_cc(index=1))
