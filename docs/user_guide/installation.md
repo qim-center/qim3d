@@ -95,6 +95,16 @@ You can install optional dependencies for specific features:
     pip install qim3d[synthetic-data,deep-learning]
     ```
 
+!!! note "Installing qim3d And CIL In The Same Environment"
+
+    `CIL` is an open-source Python framework for tomographic imaging, and is often used together with `qim3d`. To install both packages in the same environment, create and activate a new environment, then run:
+
+    ```bash
+    conda install -c conda-forge -c ccpi cil=26.0.0 && pip install qim3d
+    ```
+
+    This installs CIL first, and then qim3d. The installation order is important: `CIL` must be installed before `qim3d` to avoid package conflicts.
+
 
 ## Troubleshooting
 
@@ -145,3 +155,4 @@ This issue occurs because the system lacks the necessary tools to compile the li
 The library is under constant development, so make sure to keep your installation updated:
 
     pip install --upgrade qim3d
+
