@@ -22,7 +22,7 @@ def test_structure_tensor():
 
 def test_structure_tensor_full():
     volume = np.random.rand(50, 50, 50)
-    val, vec = qim3d.processing.structure_tensor(volume, 1.5, 1.5, full=True)
+    val, vec = qim3d.processing.structure_tensor(volume, 1.5, 1.5, smallest=False)
     assert val.shape == (3, 50, 50, 50)
     assert vec.shape == (3, 3, 50, 50, 50)
     assert np.all(val[0] <= val[1])
