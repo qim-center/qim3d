@@ -38,7 +38,7 @@ def test_data_not_fit_raises():
     large = np.zeros((10, 10, 10), dtype=np.uint8)
     with pytest.raises(ValueError, match=r'No custom volumes fit within collection size'):
         qim3d.generate.volume_collection(
-            num_volumes=1,
+            n_volumes=1,
             collection_shape=(5, 5, 5),
             data=large
         )
@@ -47,7 +47,7 @@ def test_data_single_fit_multiple_placements():
     # Single small volume fits repeatedly
     vol = np.full((3, 3, 3), fill_value=42, dtype=np.uint8)
     coll, labels = qim3d.generate.volume_collection(
-        num_volumes=2,
+        n_volumes=2,
         collection_shape=(10, 10, 10),
         data=vol
     )
