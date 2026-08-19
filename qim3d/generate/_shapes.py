@@ -199,10 +199,20 @@ def berry(
     Returns:
         Berry volume as NumPy array, or tuple of (berry_volume, labels) if return_labels=True.
 
-    Examples:
-        >>> import qim3d
-        >>> berry_vol = qim3d.generate.berry(num_drupelets=80, seed=42)
-        >>> berry_vol, labels = qim3d.generate.berry(return_labels=True)
+    Example:
+        ```python
+        import qim3d
+
+        # Generate berry volume and corresponding labels for each drupelet
+        berry_vol, labels = qim3d.generate.berry(return_labels=True)
+
+        num_druplets = len(labels)
+        cmap = qim3d.viz.colormaps.segmentation(n_labels=num_druplets)
+
+        # Display slices of the labels
+        qim3d.viz.slices_grid(labels, colormap=cmap, max_value=num_druplets)
+        ```
+        ![synthetic_berry_slices](../../assets/screenshots/synthetic_raspberry_slices.png)
 
     """
     # Validate inputs
@@ -461,10 +471,19 @@ def rope(
     Returns:
         Rope volume as NumPy array, or tuple of (rope_volume, labels) if return_labels=True.
 
-    Examples:
-        >>> import qim3d
-        >>> rope_vol = qim3d.generate.rope(num_threads=12, twist_rate=1.5)
-        >>> rope_vol, labels = qim3d.generate.rope(return_labels=True)
+    Example:
+        ```python
+        import qim3d
+
+        # Generate rope volume and individual thread labels
+        rope_vol, labels = qim3d.generate.rope(return_labels=True)
+
+        num_threads = len(labels)
+        cmap = qim3d.viz.colormaps.segmentation(n_labels=num_threads)
+        # Display slices of the labels
+        qim3d.viz.slices_grid(labels, colormap=cmap, max_value=num_threads)
+        ```
+        ![synthetic_rope_labels_slices](../../assets/screenshots/synthetic_rope_slices.png)
 
     """
     # Validate inputs
