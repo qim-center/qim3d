@@ -19,12 +19,12 @@ from ._data_exploration import (
 )
 from ._detection import circles
 from ._k3d import volumetric
-from ._mesh import mesh
 from ._local_thickness import local_thickness
+from ._mesh import mesh
 from ._metrics import grid_overview, grid_pred, plot_metrics, vol_masked
 from ._preview import image_preview
-from ._structure_tensor import vectors, vector_field_3d
-from .volume_explorer import volume_explorer, itk_vtk  # itk_vtk kept as legacy alias
+from ._structure_tensor import streamlines, vector_field_3d, vectors
+from .itk_vtk_viewer import  volume_explorer, itk_vtk
 
 __all__ = [
     '_layers2d',
@@ -53,6 +53,8 @@ __all__ = [
     'image_preview',
     'vectors',
     'vector_field_3d',
+    'streamlines',
+    'itk_vtk',
     'volume_explorer',
     'iso_surface',
     'overlay',
