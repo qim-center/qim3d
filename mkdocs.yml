@@ -5,6 +5,10 @@ site_description: Documentation for the qim3d python library
 repo_url: https://github.com/qim-center/qim3d
 repo_name: qim-center/qim3d
 
+watch:
+  - qim3d
+  - docs
+  - mkdocs.yml
 
 nav:
   - User Guide:
@@ -36,30 +40,6 @@ nav:
     - qim3d.viz: api_reference/viz.md
   - Release Notes: https://github.com/qim-center/qim3d/releases
 
-##### OLD NAVIGATION STRUCTURE (TO DO: REMOVE)
-# nav:
-#   - Data handling:
-#     - Input and Output: doc/data_handling/io.md
-#     - Synthetic data: doc/data_handling/generate.md
-#   - Visualization:
-#     - Display volumes: doc/visualization/viz.md
-#     - Colormaps: doc/visualization/colormaps.md
-#     - Explore data: doc/visualization/exploration.md
-#     - Plot and render: doc/visualization/rendering.md
-#   - Image analysis:
-#     - Features: doc/image_analysis/features.md
-#     - Filters: doc/image_analysis/filters.md
-#     - Detection: doc/image_analysis/detection.md
-#     - Segmentation: doc/image_analysis/segmentation.md
-#     - Operations: doc/image_analysis/operations.md
-#     - Morphology: doc/image_analysis/morphology.md
-#     - Processing: doc/image_analysis/processing.md
-#     - Meshes: doc/image_analysis/mesh.md
-#   - Machine Learning: doc/ml/models.md
-#   - Graphical User Interfaces: doc/gui/gui.md
-#   - Command Line Interface: doc/cli/cli.md
-#   - Release history: doc/releases/releases.md
-
 theme:
   language: en
   name: material
@@ -84,7 +64,6 @@ theme:
   palette:
     primary: white
     accent: orange
-
 
 extra_css:
   - stylesheets/extra.css
