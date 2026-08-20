@@ -133,20 +133,20 @@ def test_sequential_filter_appending():
     assert np.array_equal(filtered_image_initial, filtered_image_appended)
 
 
-def test_assertion_error_not_filterbase_subclass():
+def test_type_error_not_filterbase_or_callable():
     # Get valid filter classes
     valid_filters = [
         subclass.__name__ for subclass in qim3d.filters.FilterBase.__subclasses__()
     ]
 
     # Create invalid object
-    invalid_filter = object()  # An object that is not an instance of FilterBase
+    invalid_filter = object()  # An object that is not an instance of FilterBase or callable
 
     # Construct error message
     message = (
         f'filters should be instances of one of the following classes: {valid_filters}'
     )
 
-    # Use pytest.raises to catch the AssertionError
-    with pytest.raises(AssertionError, match=re.escape(message)):
-        sequential_pipeline = qim3d.filters.Pipeline(invalid_filter)
+    # Use pytest.raises to catch the TypeError
+    with pytest.raises(TypeError):
+        qim3d.filters.Pipeline(invalid_filter)
