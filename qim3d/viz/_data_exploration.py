@@ -3340,7 +3340,7 @@ class OverlaySlicer:
 
         if isinstance(cmaps, str | matplotlib.colors.Colormap):
             cmaps = (cmaps, cmaps)
-        self.cmaps = tuple(matplotlib.cm.get_cmap(c) for c in cmaps)
+        self.cmaps = tuple(matplotlib.colormaps.get_cmap(c) for c in cmaps)
         self.img_format = 'png'
 
         self.slice_axis = 0
