@@ -18,18 +18,19 @@ You may find it helpful to read their [getting started guide](https://docs.astra
 
 ### Pre-Commit
 
-To ensure consistent styling and reduce git diffs, please install the pre-commit git hook by running the following:
+To ensure consistent styling and reduce git diffs, please install a pre-commit git hook by running the following:
 
 ```sh
-uvx pre-commit install
+uvx prek install
 ```
 
-You may wish to install pre-commit as a tool to be able to run it outside the git hook:
+You may wish to install `prek` as a tool to be able to run it outside the git hook:
 
 ```sh
-uv tool install pre-commit
+uv tool install prek
 ```
 
+_Note: We use [`prek`](https://github.com/j178/prek) instead of `pre-commit`. It is fully compatible with `pre-commit`, but is generally more pleasant to work with and is a lot faster. You can choose to use the original `pre-commit` instead, if you prefer._
 ### Task runner: `just`
 
 For ease of development, this project uses the popular [`just`](https://just.systems/) task runner, which is configured via the [`justfile`](/justfile) in the root of the repository.
