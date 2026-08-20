@@ -105,6 +105,7 @@ all = [
 
 [dependency-groups]
 dev = [
+    "qim3d[all]",
     { include-group = "docs" },
     { include-group = "jupyter" },
     { include-group = "lint" },
@@ -115,7 +116,6 @@ docs = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.6.7",
     "mkdocstrings[python]>=0.28.2",
-    "mktestdocs>=0.2.4",
 ]
 
 jupyter = [
@@ -129,9 +129,11 @@ lint = [
 ]
 
 test = [
-    "pytest>=9.1.1",
-    "testbook>=0.4.2",
+    "mktestdocs>=0.2.4",
     "pytest-cov>=7.1.0",
+    "pytest>=9.1.1",
+    "qim3d[all]",
+    "testbook>=0.4.2",
 ]
 
 ### Tools
