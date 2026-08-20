@@ -31,6 +31,17 @@ uv tool install prek
 ```
 
 _Note: We use [`prek`](https://github.com/j178/prek) instead of `pre-commit`. It is fully compatible with `pre-commit`, but is generally more pleasant to work with and is a lot faster. You can choose to use the original `pre-commit` instead, if you prefer._
+### Task runner: `just`
+
+For ease of development, this project uses the popular [`just`](https://just.systems/) task runner, which is configured via the [`justfile`](/justfile) in the root of the repository.
+
+You can install it with:
+
+```sh
+uv tool install rust-just
+```
+
+When installed, you can easily perform common tasks with just. To see an overview of available commands, simply run `just` in the terminal.
 
 ## Git
 
