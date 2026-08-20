@@ -24,7 +24,7 @@ from ._mesh import mesh
 from ._metrics import grid_overview, grid_pred, plot_metrics, vol_masked
 from ._preview import image_preview
 from ._structure_tensor import streamlines, vector_field_3d, vectors
-from .itk_vtk_viewer import  volume_explorer, itk_vtk
+from .volume_explorer import itk_vtk, volume_explorer
 
 __all__ = [
     '_layers2d',
