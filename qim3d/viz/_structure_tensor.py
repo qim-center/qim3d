@@ -10,6 +10,7 @@ from qim3d.utils._logger import log
 
 previous_logging_level = logging.getLogger().getEffectiveLevel()
 logging.getLogger().setLevel(logging.CRITICAL)
+
 logging.getLogger().setLevel(previous_logging_level)
 
 
@@ -24,84 +25,68 @@ def vectors(
     grid_size: int = 10,
     interactive: bool = True,
     figsize: tuple[int, int] = (10, 5),
-    background: int | None = None,
     show: bool = False,
 ) -> plt.Figure | widgets.interactive:
     """
-        Visualizes the local orientation of structures using structure tensor eigenvectors
-        overlaid on a 2D slice of the volume.
+    Visualizes the local orientation of structures using structure tensor eigenvectors.
 
-        Generates a three-panel visualization:
+    This function is designed to analyze anisotropy and fiber direction in 3D volumes. It generates a three-panel visualization to interpret the structure tensor output:
 
-        1. **Quiver Plot:** Arrows showing the dominant orientation direction in the slice plane.
-        2. **Orientation Histogram:** Distribution of orientation angles in the current slice,
-           colored by the same HSV scheme used in the color map.
-        3. **Color Map:** The slice colored by orientation using an HSV scheme where hue encodes
-           the in-plane angle and saturation encodes how much the fiber points out of the plane
-           (fibers pointing out of the screen appear desaturated toward gray).
-
-        The color scheme follows the fan-based approach described in Dahl 2026:
-        https://people.compute.dtu.dk/vand/notes/ST_intro.pdf
+    1.  **Quiver Plot:** Overlays vector arrows on the image slice to show the dominant direction in the 2D plane.
+    2.  **Orientation Histogram:** displays the distribution of angles, helping to identify if structures are aligned or random.
+    3.  **Color Map:** Renders the slice using an HSV scheme where Hue represents the in-plane angle and Saturation represents the out-of-plane alignment (vectors pointing out of the screen appear desaturated/gray).
 
     Args:
-            volume (np.ndarray): The 3D input volume with shape (Z, Y, X).
-            vectors (np.ndarray): The eigenvectors of the structure tensor with shape (3, Z, Y, X).
-                If the full eigenvector array of shape (3, 3, Z, Y, X) is provided, only the
-                first eigenvector (corresponding to the smallest eigenvalue) will be used.
-            axis (int, optional): The axis along which to slice the volume.
-                0 slices along Z, 1 along Y, 2 along X. Defaults to 0.
-            volume_colormap (str, optional): The colormap used to display the background volume
-                slice in the quiver plot. Defaults to 'grey'.
-            min_value (float, optional): Minimum intensity value for display contrast adjustment.
-                Useful for highlighting specific intensity ranges. Defaults to None.
-            max_value (float, optional): Maximum intensity value for display contrast adjustment.
-                Useful for highlighting specific intensity ranges. Defaults to None.
-            slice_index (int or float, optional): Which slice to display initially.
-                Provide an integer for the exact slice index, a float between 0.0 and 1.0
-                for a relative position, or None to default to the middle slice.
-            grid_size (int, optional): Spacing between arrows in the quiver plot in pixels.
-                Lower values produce denser arrow fields. Defaults to 10.
-            interactive (bool, optional): If True, returns a widget with sliders to scroll
-                through slices and adjust arrow density. If False, returns a static figure.
-                Defaults to True.
-            figsize (tuple[int, int], optional): Width and height of the figure in inches.
-                Defaults to (10, 5).
-            background (float, optional): Intensity threshold below which orientation vectors
-                are hidden. Useful for suppressing arrows in background regions. Set to 0 to
-                hide all zero-intensity regions. Defaults to None (no filtering).
-            show (bool, optional): If True, immediately displays the plot by calling
-                plt.show(). Defaults to False.
+        volume (np.ndarray): The 3D input volume (scalar field).
+        vectors (np.ndarray): The eigenvectors of the structure tensor, typically shape `(3, Z, Y, X)`.
+        axis (int, optional): The axis along which to slice the volume for visualization (0, 1, or 2). Defaults to 0.
+        volume_colormap (str, optional): The colormap for the background volume slice in the quiver plot. Defaults to 'grey'.
+        min_value (float, optional): Minimum value for the volume display contrast.
+        max_value (float, optional): Maximum value for the volume display contrast.
+        slice_index (int or float, optional): The initial slice to display.
+
+            * **int**: The exact index of the slice.
+            * **float**: A fraction between 0.0 and 1.0.
+            * **None**: Defaults to the middle slice.
+
+        grid_size (int, optional): The spacing between arrows in the quiver plot. Lower values result in denser vector fields. Defaults to 10.
+        interactive (bool, optional): If `True`, returns a widget with sliders for slicing and grid density. If `False`, returns a static figure. Defaults to `True`.
+        figsize (tuple[int, int], optional): The width and height of the figure in inches. Defaults to (10, 5).
+        show (bool, optional): If `True`, calls `plt.show()` to display the plot immediately. Defaults to `False`.
 
     Returns:
-            object (widgets.interactive or matplotlib.figure.Figure):
-                A widget with interactive sliders if interactive is True,
-                or a static matplotlib figure if interactive is False.
+        object (widgets.interactive or matplotlib.figure.Figure):
+            The visualization object.
+
+            * **widgets.interactive**: Returned if `interactive=True`.
+            * **matplotlib.figure.Figure**: Returned if `interactive=False`.
 
     Raises:
-            ValueError: If axis is not 0, 1, or 2, or if slice_index is out of bounds.
+        ValueError: If `axis` is invalid or `slice_index` is out of bounds.
 
     Example:
-    ```python
-            import qim3d
+        ```python
+        import qim3d
 
-            vol = qim3d.examples.NT_128x128x128
-            val, vec = qim3d.processing.structure_tensor(vol)
+        vol = qim3d.examples.NT_128x128x128
+        val, vec = qim3d.processing.structure_tensor(vol)
 
-            qim3d.viz.vectors(vol, vec, axis=2, interactive=True)
-    ```
-            ![structure tensor](../../assets/screenshots/structure_tensor_visualization.gif)
+        # Visualize the structure tensor
+        qim3d.viz.vectors(vol, vec, axis = 2, interactive = True)
+        ```
+        ![structure tensor](../../assets/screenshots/structure_tensor_visualization.gif)
 
     """
 
-    # Ensure volume is a float array for correct normalization
+    # Ensure volume is a float
     if volume.dtype != np.float32 and volume.dtype != np.float64:
         volume = volume.astype(np.float32)
 
-    # Normalize volume to [0, 1] if values are in [0, 255]
+    # Normalize the volume if needed (i.e. if values are in [0, 255])
     if volume.max() > 1.0:
         volume = volume / 255.0
 
-    # Compute valid grid size range based on volume dimensions
+    # Define grid size limits
     min_grid_size = max(1, volume.shape[axis] // 50)
     max_grid_size = max(1, volume.shape[axis] // 10)
     if max_grid_size <= min_grid_size:
@@ -110,77 +95,95 @@ def vectors(
     if not grid_size:
         grid_size = (min_grid_size + max_grid_size) // 2
 
+    # Testing
     if grid_size < min_grid_size or grid_size > max_grid_size:
+        # Adjust grid size as little as possible to be within the limits
         grid_size = min(max(min_grid_size, grid_size), max_grid_size)
         log.warning(f'Adjusting grid size to {grid_size} as it is out of bounds.')
 
     def _structure_tensor(volume, vectors, axis, slice_index, grid_size, figsize, show):
-        # Extract the 2D slice and corresponding vector components based on the chosen axis
+        # Choose the appropriate slice based on the specified dimension
         if axis == 0:
             data_slice = volume[slice_index, :, :]
             vectors_slice_x = vectors[0, slice_index, :, :]
             vectors_slice_y = vectors[1, slice_index, :, :]
             vectors_slice_z = vectors[2, slice_index, :, :]
+
         elif axis == 1:
             data_slice = volume[:, slice_index, :]
             vectors_slice_x = vectors[0, :, slice_index, :]
             vectors_slice_y = vectors[2, :, slice_index, :]
             vectors_slice_z = vectors[1, :, slice_index, :]
+
         elif axis == 2:
             data_slice = volume[:, :, slice_index]
             vectors_slice_x = vectors[1, :, :, slice_index]
             vectors_slice_y = vectors[2, :, :, slice_index]
             vectors_slice_z = vectors[0, :, :, slice_index]
+
         else:
             msg = 'Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.'
             raise ValueError(msg)
 
+        # Create three subplots
         fig, ax = plt.subplots(1, 3, figsize=figsize, layout='constrained')
 
-        # Blending function: mixes pure hue color toward gray (0.5) based on saturation
-        # When saturation is 0 the color is pure hue, when 1 it becomes gray
-        blend_hue_saturation = lambda hue, sat: hue * (1 - sat) + 0.5 * sat
+        blend_hue_saturation = (
+            lambda hue, sat: hue * (1 - sat) + 0.5 * sat
+        )  # Function for blending hue and saturation
+        blend_slice_colors = lambda slice, colors: 0.5 * (
+            slice + colors
+        )  # Function for blending image slice with orientation colors
 
-        # ===================== PANEL 1: QUIVER PLOT =====================
-
+        # ----- Subplot 1: Image slice with orientation vectors ----- #
+        # Create meshgrid with the correct dimensions
         xmesh, ymesh = np.mgrid[0 : data_slice.shape[0], 0 : data_slice.shape[1]]
 
-        # Sample grid points at regular intervals defined by grid_size
+        # Create a slice object for selecting the grid points
         g = slice(grid_size // 2, None, grid_size)  # noqa: A002
 
-        # Only show arrows where the volume intensity is above zero
-        intensity_mask = data_slice[g, g] > 0
-
-        x_valid = xmesh[g, g][intensity_mask]
-        y_valid = ymesh[g, g][intensity_mask]
-        vx_valid = vectors_slice_x[g, g][intensity_mask]
-        vy_valid = vectors_slice_y[g, g][intensity_mask]
-
-        # Compute in-plane angle in [0, π] using mod π to handle sign ambiguity
-        # (v and -v represent the same orientation, mod π maps them to the same angle)
+        # Angles from 0 to pi
         angles_quiver = np.mod(
-            np.arctan2(vectors_slice_y[g, g], vectors_slice_x[g, g]),
+            np.arctan2(
+                vectors_slice_y[g, g],
+                vectors_slice_x[g, g],
+            ),
             np.pi,
         )
 
-        # The z-component squared gives how much the fiber points out of the slice plane
-        # This is used as saturation: high vz means the fiber is out of plane → gray color
+        # Calculate z-component (saturation)
         saturation_quiver = (vectors_slice_z[g, g] ** 2)[:, :, np.newaxis]
 
+        # Calculate hue
         hue_quiver = plt.cm.hsv(angles_quiver / np.pi)
+
+        # Blend hue and saturation
         rgba_quiver = blend_hue_saturation(hue_quiver, saturation_quiver)
-        rgba_quiver = np.clip(rgba_quiver, 0, 1)
+        rgba_quiver = np.clip(
+            rgba_quiver, 0, 1
+        )  # Ensure rgba values are values within [0, 1]
         rgba_quiver_flat = rgba_quiver.reshape(
             (rgba_quiver.shape[0] * rgba_quiver.shape[1], 4)
+        )  # Flatten array for quiver plot
+
+        # Plot vectors
+        ax[0].quiver(
+            ymesh[g, g],
+            xmesh[g, g],
+            vectors_slice_x[g, g],
+            vectors_slice_y[g, g],
+            color=rgba_quiver_flat,
+            angles='xy',
+        )
+        ax[0].quiver(
+            ymesh[g, g],
+            xmesh[g, g],
+            -vectors_slice_x[g, g],
+            -vectors_slice_y[g, g],
+            color=rgba_quiver_flat,
+            angles='xy',
         )
 
-        # Plot bidirectional arrows (both +v and -v) since eigenvectors have no preferred sense
-        ax[0].quiver(
-            y_valid, x_valid, vx_valid, vy_valid, color=rgba_quiver_flat, angles='xy'
-        )
-        ax[0].quiver(
-            y_valid, x_valid, -vx_valid, -vy_valid, color=rgba_quiver_flat, angles='xy'
-        )
         ax[0].imshow(data_slice, cmap=volume_colormap, vmin=min_value, vmax=max_value)
         ax[0].set_title(
             f'Orientation vectors (slice {slice_index})'
@@ -189,36 +192,35 @@ def vectors(
         )
         ax[0].set_axis_off()
 
-        # ===================== PANEL 2: ORIENTATION HISTOGRAM =====================
-
+        # ----- Subplot 2: Orientation histogram ----- #
         nbins = 36
 
-        # Compute angles for the full slice, optionally filtered by background threshold
+        # Angles from 0 to pi
         angles = np.mod(np.arctan2(vectors_slice_y, vectors_slice_x), np.pi)
-        intensity_mask_full = (
-            data_slice > background
-            if background is not None
-            else np.ones_like(data_slice, dtype=bool)
-        )
-        angles_filtered = angles[intensity_mask_full]
 
-        distribution, bin_edges = np.histogram(
-            angles_filtered, bins=nbins, range=(0.0, np.pi)
-        )
+        # Orientation histogram over angles
+        distribution, bin_edges = np.histogram(angles, bins=nbins, range=(0.0, np.pi))
+
+        # Half circle (180 deg)
         bin_centers = (np.arange(nbins) + 0.5) * np.pi / nbins
 
-        # Compute mean out-of-plane component per bin for saturation coloring
+        # Calculate z-component (saturation) for each bin
         bins = np.digitize(angles.ravel(), bin_edges)
         saturation_bin = np.array(
             [
-                np.mean((vectors_slice_z**2).ravel()[bins == i])
-                if np.sum(bins == i) > 0
-                else 0
+                (
+                    np.mean((vectors_slice_z**2).ravel()[bins == i])
+                    if np.sum(bins == i) > 0
+                    else 0
+                )
                 for i in range(1, len(bin_edges))
             ]
         )
 
+        # Calculate hue for each bin
         hue_bin = plt.cm.hsv(bin_centers / np.pi)
+
+        # Blend hue and saturation
         rgba_bin = hue_bin.copy()
         rgba_bin[:, :3] = blend_hue_saturation(
             hue_bin[:, :3], saturation_bin[:, np.newaxis]
@@ -234,27 +236,20 @@ def vectors(
         ax[1].set_ylabel('Frequency')
         ax[1].set_title('Histogram over orientation angles')
 
-        # ===================== PANEL 3: COLOR MAP =====================
-
+        # ----- Subplot 3: Image slice colored according to orientation ----- #
+        # Calculate z-component (saturation)
         saturation = (vectors_slice_z**2)[:, :, np.newaxis]
+
+        # Calculate hue
         hue = plt.cm.hsv(angles / np.pi)
+
+        # Blend hue and saturation
         rgba = blend_hue_saturation(hue, saturation)
 
-        # Only color pixels above the background threshold, keep the rest as grayscale
-        intensity_mask_2d = (
-            data_slice > background
-            if background is not None
-            else np.ones_like(data_slice, dtype=bool)
-        )
-
-        gray_slice = plt.cm.gray(data_slice)[:, :, :3]
-        data_slice_orientation_colored = gray_slice.copy()
-        data_slice_orientation_colored[intensity_mask_2d] = 0.5 * (
-            gray_slice[intensity_mask_2d] + rgba[:, :, :3][intensity_mask_2d]
-        )
-        data_slice_orientation_colored = (data_slice_orientation_colored * 255).astype(
-            'uint8'
-        )
+        # Grayscale image slice blended with orientation colors
+        data_slice_orientation_colored = (
+            blend_slice_colors(plt.cm.gray(data_slice), rgba) * 255
+        ).astype('uint8')
 
         ax[2].imshow(data_slice_orientation_colored)
         ax[2].set_title(
@@ -268,18 +263,18 @@ def vectors(
             plt.show()
 
         plt.close()
+
         return fig
 
-    # If the full eigenvector array is provided, use only the first eigenvector
     if vectors.ndim == 5:
         vectors = vectors[0, ...]
         log.warning(
             'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
         )
 
-    # Determine the initial slice index
     if slice_index is None:
         slice_index = volume.shape[axis] // 2
+
     elif isinstance(slice_index, float):
         if slice_index < 0 or slice_index > 1:
             raise ValueError(
@@ -296,6 +291,7 @@ def vectors(
             description='Slice index',
             layout=widgets.Layout(width='450px'),
         )
+
         grid_size_slider = widgets.IntSlider(
             min=min_grid_size,
             max=max_grid_size,
@@ -304,6 +300,7 @@ def vectors(
             description='Grid size',
             layout=widgets.Layout(width='450px'),
         )
+
         widget_obj = widgets.interactive(
             _structure_tensor,
             volume=widgets.fixed(volume),
@@ -314,6 +311,7 @@ def vectors(
             figsize=widgets.fixed(figsize),
             show=widgets.fixed(True),
         )
+        # Arrange sliders horizontally
         sliders_box = widgets.HBox([slice_index_slider, grid_size_slider])
         widget_obj = widgets.VBox([sliders_box, widget_obj.children[-1]])
         widget_obj.layout.align_items = 'center'
@@ -332,486 +330,187 @@ def vectors(
 def vector_field_3d(
     vec: np.ndarray,
     val: np.ndarray,
-    volume: np.ndarray,
     select_eigen: Literal['smallest', 'largest', 'middle'] = 'smallest',
     sampling_step: int = 4,
+    max_cones: int = 50000,
     cone_size: float = 1,
     verbose: bool = True,
+    colormap: str = 'Portland',
     cmin: float = None,
     cmax: float = None,
     **kwargs,
 ) -> go.Figure:
     """
-        Visualizes the 3D eigenvector field of a structure tensor as a bidirectional cone plot.
+    Generates an interactive 3D quiver plot (vector field) using cones to visualize local orientation.
 
-        Each sampled location in the volume is represented by two mirrored cones pointing in
-        opposite directions along the eigenvector axis. Two cones are used because eigenvectors
-        are direction-less: the structure tensor tells us the orientation axis but not which end
-        points where.
+    This function is designed to visualize the output of structure tensor analysis. It draws 3D cones representing the eigenvectors at various points in the volume. This is widely used to analyze material anisotropy, such as identifying fiber orientations (linear structures) or surface normals (planar structures).
 
-        Color and cone size both encode the eigenvalue corresponding to the selected eigenvector,
-        inverted and normalized to [0, 1]. This means cones are larger and brighter where the
-        local structure is most coherent (low eigenvalue) and smaller and darker in noisy or
-        ambiguous regions (high eigenvalue).
-
-        Note: Plotly's go.Cone colors each cone by the magnitude of its vector, which means
-        color and size cannot be decoupled. Any scalar encoded as color will automatically also
-        control size. This rules out direction-based coloring schemes. For full RGB coloring
-        based on fiber orientation, use the streamlines function instead.
-
-        Background voxels where the volume is zero are masked out before sampling.
-
-        For background on structure tensors and eigenvalue interpretation, see:
-        https://people.compute.dtu.dk/vand/notes/ST_intro.pdf
+    To handle large 3D datasets efficiently, the function downsamples the volume by averaging vectors within grid blocks (`sampling_step`) and filters to show only the most significant regions (`max_cones`).
 
     Args:
-            vec (np.ndarray): Eigenvectors of the structure tensor with shape (3, 3, Z, Y, X).
-                The first dimension indexes the eigenvector (0 = smallest, 1 = middle, 2 = largest).
-            val (np.ndarray): Eigenvalues of the structure tensor with shape (3, Z, Y, X).
-                The first dimension indexes the eigenvalue (0 = smallest, 1 = middle, 2 = largest).
-            volume (np.ndarray): The original 3D volume with shape (Z, Y, X). Used to mask out
-                background regions where the volume intensity is zero.
-            select_eigen (str, optional): Which eigenvector to visualize. Use 'smallest' for the
-                direction of minimum intensity change (fiber direction in structure tensors),
-                'largest' for the direction of maximum change, or 'middle' for the intermediate
-                direction. Defaults to 'smallest'.
-            sampling_step (int, optional): Spacing in voxels between sampled locations. Higher
-                values produce fewer but faster cones. Lower values produce denser visualizations
-                but are slower to compute. Defaults to 4.
-            cone_size (float, optional): Global scale factor controlling the size of all cones.
-                Increase to make cones larger, decrease to make them smaller. Defaults to 1.
-            verbose (bool, optional): If True, prints information about the number of cones
-                plotted and the eigenvalue range. Defaults to True.
-            cmin (float, optional): Minimum value for the colorscale. If None, uses the minimum
-                value in the data. Defaults to None.
-            cmax (float, optional): Maximum value for the colorscale. If None, uses the maximum
-                value in the data. Defaults to None.
-            **kwargs: Additional keyword arguments passed directly to Plotly's go.Cone.
+        vec (np.ndarray): The eigenvectors from the structure tensor.
+            Expected shapes:
+
+            * `(3, Z, Y, X)`: Contains a single eigenvector per voxel (e.g., result of `structure_tensor(..., smallest=True)`).
+            * `(3, 3, Z, Y, X)`: Contains all three eigenvectors per voxel.
+
+        val (np.ndarray): The eigenvalues from the structure tensor, with shape `(3, Z, Y, X)`.
+        select_eigen (str, optional): Determines which eigenvector to visualize (only used if `vec` contains all three).
+
+            * `'smallest'`: Visualizes the vector associated with the smallest eigenvalue (typically the **surface normal** in planar structures).
+            * `'largest'`: Visualizes the vector associated with the largest eigenvalue (typically the **fiber direction** in linear structures).
+            * `'middle'`: Visualizes the intermediate vector.
+
+        sampling_step (int, optional): The stride for the sampling grid. A value of `4` means every 4th voxel in each dimension is sampled (averaging the region). Higher values improve performance but reduce resolution. Defaults to 4.
+        max_cones (int, optional): The maximum number of cones to render. If the sampled grid exceeds this, only the points with the highest eigenvalues (strongest features) are kept. Defaults to 50000.
+        cone_size (float, optional): A scaling factor for the size of the cones. Defaults to 1.
+        verbose (bool, optional): If `True`, prints progress and grid statistics. Defaults to `True`.
+        colormap (str, optional): The name of the Plotly colorscale. Defaults to 'Portland'.
+        cmin (float, optional): The minimum value for the color mapping. If `None`, uses the data minimum.
+        cmax (float, optional): The maximum value for the color mapping. If `None`, uses the data maximum.
+        **kwargs: Additional keyword arguments passed to `plotly.graph_objects.Cone`. See the [Plotly Cone documentation](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Cone.html)
+            for full customization options.
 
     Returns:
-            go.Figure: An interactive Plotly 3D figure showing the cone plot.
+        fig (plotly.graph_objects.Figure):
+            The interactive Plotly figure containing the 3D vector field.
+
+    Raises:
+        ValueError: If `select_eigen` is not one of 'smallest', 'largest', or 'middle'.
 
     Example:
-    ```python
-            import qim3d
+        ```python
+        vol = qim3d.examples.fibers_150x150x150
+        val, vec = qim3d.processing.structure_tensor(vol, smallest = True)
+        qim3d.viz.vector_field_3d(vec, val, sampling_step=12, max_cones=5000, cone_size = 2)
+        ```
+        ![vector field](../../assets/screenshots/viz-vector_field.png)
 
-            vol = qim3d.examples.fiber_150x256x256
-            val, vec = qim3d.processing.structure_tensor(vol, sigma=2.0, rho=6)
 
-            fig = qim3d.viz.vector_field_3d(vec, val, vol, select_eigen='smallest')
-            fig.show()
-    ```
+    Notes:
+        **Interpreting Eigenvalues and Eigenvectors**
+
+        The structure tensor yields three eigenvalues (λ₁ ≤ λ₂ ≤ λ₃) and corresponding eigenvectors.
+        The smallest eigenvector (v₁) indicates the predominant orientation, the direction of minimum
+        intensity variation.
+
+        | Structure Type | Eigenvalue Pattern | Interpretation |
+        | :--- | :--- | :--- |
+        | **Linear** (fibers, tubes) | λ₁ ≪ λ₂ ≈ λ₃ | Follow v₁ to trace fiber |
+        | **Planar** (sheets, boundaries) | λ₁ ≈ λ₂ ≪ λ₃ | v₁ tangent to surface  |
+        | **Isotropic** (noise, blobs) | λ₁ ≈ λ₂ ≈ λ₃ | No predominant direction |
+
+        [Structure Tensor Notes](https://people.compute.dtu.dk/vand/notes/ST_intro.pdf)
 
     """
-
-    eps = 1e-12
-
-    # Select the eigenvector and its corresponding eigenvalue based on user choice
-    if vec.ndim == 5:
+    if vec.ndim == 4:
+        val = val[0]
+    elif vec.ndim == 5:
         if select_eigen == 'largest':
+            val = val[2]
             vec = vec[2, :, ...]
-            eigen_val = val[2]
         elif select_eigen == 'smallest':
+            val = val[0]
             vec = vec[0, :, ...]
-            eigen_val = val[0]
         elif select_eigen == 'middle':
+            val = val[1]
             vec = vec[1, :, ...]
-            eigen_val = val[1]
         else:
-            raise ValueError(
-                f'Invalid select_eigen: {select_eigen}. '
-                'Choose "smallest", "largest", or "middle".'
-            )
-
-    # Rearrange axes from (3, Z, Y, X) to (Z, Y, X, 3) for easier spatial indexing
+            msg = f'Invalid select_eigen value: {select_eigen}. Choose between "smallest", "largest", or "middle".'
+            raise ValueError(msg)
     vec = np.transpose(vec, (1, 2, 3, 0))
 
-    # Zero out eigenvectors in background voxels to avoid plotting cones in empty space
-    vec[volume == 0] = 0
-
-    # Normalize the eigenvalue to [0, 1] using the 99th percentile to avoid outlier spikes,
-    # then invert so that low eigenvalues (strong coherent structure) produce large bright cones
-    ev_flat = eigen_val.ravel()
-    ev_max = np.percentile(ev_flat[ev_flat > 0], 99)
-    eigen_val_norm = np.clip(eigen_val / (ev_max + eps), 0, 1)
-    eigen_val_norm = 1 - eigen_val_norm
-
-    if verbose:
-        log.info(
-            f'Eigenvalue range: {eigen_val[eigen_val > 0].min():.4f} to {eigen_val.max():.4f}'
-        )
-        log.info(
-            f'Normalized eigenvalue range: {eigen_val_norm.min():.4f} to {eigen_val_norm.max():.4f}'
-        )
-
     nx, ny, nz, _ = vec.shape
-    half = sampling_step // 2
-
     if verbose:
         log.info(f'Original number of grid points: {nx * ny * nz}')
+    half = sampling_step // 2
 
-    points, vectors, val_values = [], [], []
+    # Sampling grid
+    grid_x = np.arange(0, nx, sampling_step)
+    grid_y = np.arange(0, ny, sampling_step)
+    grid_z = np.arange(0, nz, sampling_step)
 
-    # Average vectors and eigenvalues within each sampling cube across the volume
-    for px in np.arange(0, nx, sampling_step):
-        for py in np.arange(0, ny, sampling_step):
-            for pz in np.arange(0, nz, sampling_step):
+    points, vectors, values = [], [], []
+
+    # Average vectors and eigenvalues in each sampling cube
+    for px in grid_x:
+        for py in grid_y:
+            for pz in grid_z:
                 x0, x1 = max(px - half, 0), min(px + half + 1, nx)
                 y0, y1 = max(py - half, 0), min(py + half + 1, ny)
                 z0, z1 = max(pz - half, 0), min(pz + half + 1, nz)
 
-                avg_vec = vec[x0:x1, y0:y1, z0:z1, :].mean(axis=(0, 1, 2))
-                avg_val = eigen_val_norm[x0:x1, y0:y1, z0:z1].mean()
+                region_vecs = vec[x0:x1, y0:y1, z0:z1, :]
+                region_vals = val[x0:x1, y0:y1, z0:z1]
 
-                # Skip cubes that are entirely background or have no valid data
-                if (
-                    not np.isfinite(avg_vec).all()
-                    or np.all(avg_vec == 0)
-                    or avg_val <= 0
-                ):
-                    continue
+                avg_vec = region_vecs.mean(axis=(0, 1, 2))
+                avg_val = region_vals.mean()
 
                 points.append((px, py, pz))
                 vectors.append(avg_vec)
-                val_values.append(avg_val)
-
-    if not points:
-        raise ValueError('No valid cones to plot. Try lowering sampling_step.')
+                values.append(avg_val)
 
     points = np.array(points)
     vectors = np.array(vectors)
-    val_values = np.array(val_values)
+    values = np.array(values)
+
+    # Select top N highest eigenvalue locations
+    idx_top = np.argsort(values)[::-1][:max_cones]
+    points_top = points[idx_top]
+    vectors_top = vectors[idx_top]
+    values_top = values[idx_top]
 
     if verbose:
-        log.info(f'Cones plotted: {len(points)}')
-        log.info(
-            f'Eigenvalue (normalized) range: {val_values.min():.4f} to {val_values.max():.4f}'
-        )
+        log.info(f'Number of grid points sampled: {len(values)}')
+        log.info(f'Number of cones actually plotted: {len(points_top)}')
 
-    # Normalize each vector to unit length for consistent cone direction
-    norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+    # Normalize vectors and scale by eigenvalue magnitude
+    norms = np.linalg.norm(vectors_top, axis=1, keepdims=True)
     norms[norms == 0] = 1
-    unit_vecs = vectors / norms
+    unit_vecs = vectors_top / norms
 
-    # Resolve sign ambiguity by forcing vz >= 0
-    # Eigenvectors have no preferred sense (v and -v are equivalent), so we
-    # standardize the direction to ensure consistent orientation across the field
-    flip = unit_vecs[:, 2] < 0
-    unit_vecs[flip] *= -1
+    # Apply decay to downscale weak directions
+    # scaled_strength = values_top * np.exp(
+    #     -decay_rate * (1 - values_top / values_top.max())
+    # )
+    # scaled_strength = np.log(values_top - values_top.min() + 1)
 
-    # Scale the unit vectors by the normalized eigenvalue so that the cone magnitude
-    # encodes structural coherence — go.Cone uses magnitude for both color and size
-    u = unit_vecs[:, 0] * val_values
-    v = unit_vecs[:, 1] * val_values
-    w = unit_vecs[:, 2] * val_values
+    scaled_strength = np.log1p(values_top)
+
+    u = unit_vecs[:, 0] * scaled_strength
+    v = unit_vecs[:, 1] * scaled_strength
+    w = unit_vecs[:, 2] * scaled_strength
+
+    # Compute magnitude for color scaling if needed
+    magnitude = np.sqrt(u**2 + v**2 + w**2)
+    min_mag = magnitude.min()
+    max_mag = magnitude.max()
+    if verbose:
+        log.info(f'Min magnitude: {min_mag:.4f}, Max magnitude: {max_mag:.4f}')
 
     if cmin is None:
-        cmin = val_values.min()
+        cmin = min_mag
     if cmax is None:
-        cmax = val_values.max()
+        cmax = max_mag
 
-    shared = dict(
-        x=points[:, 2],
-        y=points[:, 1],
-        z=points[:, 0],
-        sizemode='scaled',
-        sizeref=cone_size,
-        colorscale='Hot',
-        cmin=cmin,
-        cmax=cmax,
-        anchor='tail',
-        **kwargs,
-    )
-
-    # Plot two mirrored cones per point to represent the bidirectional nature of eigenvectors
+    # Use 'raw' to display sizes in actual vector length.
     fig = go.Figure(
-        data=[
-            go.Cone(u=u, v=v, w=w, colorbar_title=f'λ ({select_eigen})', **shared),
-            go.Cone(u=-u, v=-v, w=-w, showscale=False, **shared),
-        ],
+        data=go.Cone(
+            x=points_top[:, 0],
+            y=points_top[:, 1],
+            z=points_top[:, 2],
+            u=u,
+            v=v,
+            w=w,
+            sizemode='scaled',
+            sizeref=cone_size,
+            colorscale=colormap,
+            colorbar_title='Orientation strength',
+            cmin=cmin,
+            cmax=cmax,
+            **kwargs,
+        ),
         layout={'width': 900, 'height': 700},
     )
 
     return fig
-
-
-def streamlines(
-    volume,
-    eigenvectors,
-    eigenvalues,
-    background_threshold=None,
-    fiber_spacing=20,
-    initial_step_size=0.5,
-    max_step_size=2.5,
-    max_fiber_length=300,
-    terminal_speed=1e-10,
-    show_volume=False,
-    show_starting_points=False,
-    camera_position='iso',
-):
-    """
-        Visualizes fiber orientations as 3D streamlines by tracing paths through the
-        eigenvector field of the structure tensor.
-
-        Starting from a uniform grid of seed points placed inside the foreground of the volume,
-        each fiber is traced in both directions by following the local eigenvector orientation.
-        Tracing stops when the fiber reaches the maximum allowed length or enters a region
-        where the vector magnitude drops below the terminal speed threshold, which happens
-        naturally in background regions and areas with low structural coherence.
-
-        Fibers are colored using the fan-based color scheme from Dahl 2026, designed for
-        planar fiber distributions. The in-plane azimuthal angle of the eigenvector is mapped
-        to hue via the HSV color wheel, while the out-of-plane component desaturates the color
-        toward gray. Fibers lying flat in the XY plane appear as fully saturated colors, while
-        fibers pointing out of plane appear gray. Sign ambiguity is resolved by using mod π
-        when computing the angle, so that v and -v always map to the same color.
-
-        For background on structure tensors, eigenvalues, and orientation analysis, see:
-        https://people.compute.dtu.dk/vand/notes/ST_intro.pdf
-
-    Parameters:
-            volume (np.ndarray): The 3D input volume with shape (Z, Y, X). Used for background
-                detection and optional volume rendering.
-            eigenvectors (np.ndarray): Structure tensor eigenvectors with shape (3, 3, Z, Y, X)
-                or (3, Z, Y, X). The first eigenvector, corresponding to the direction of minimum
-                intensity change, is used as the fiber direction.
-            eigenvalues (np.ndarray): Structure tensor eigenvalues with shape (3, Z, Y, X).
-                The smallest eigenvalue λ1 is used to scale the eigenvectors so that tracing
-                stops naturally in noisy or incoherent regions.
-            background_threshold (float, optional): Intensity value below which seed points are
-                rejected as background. If not provided, it is computed automatically using
-                Otsu thresholding. Set to 0 to use all non-zero regions. Defaults to None.
-            fiber_spacing (int, optional): Distance in voxels between fiber seed points. Lower
-                values produce denser fiber visualizations but increase computation time.
-                Defaults to 20.
-            initial_step_size (float, optional): Starting step length for fiber integration in
-                voxels. Smaller values follow fiber paths more accurately but are slower.
-                Defaults to 0.5.
-            max_step_size (float, optional): Maximum allowed step length in voxels. Larger values
-                produce smoother fibers but may skip fine details. Defaults to 2.5.
-            max_fiber_length (int, optional): Maximum number of integration steps per fiber.
-                Higher values allow longer fibers but increase computation time. Defaults to 300.
-            terminal_speed (float, optional): Minimum vector magnitude below which fiber tracing
-                stops. Since eigenvectors are scaled by the inverse of λ1, this threshold
-                naturally stops fibers in background and incoherent regions. Lower values allow
-                fibers to continue longer into uncertain areas. Defaults to 1e-10.
-            show_volume (bool, optional): If True, renders the original volume as a semi-transparent
-                gray background behind the fibers for spatial context. Defaults to False.
-            show_starting_points (bool, optional): If True, shows the fiber seed points as red
-                spheres. Useful for understanding the seeding distribution. Defaults to False.
-            camera_position (str, optional): Initial camera viewpoint for the 3D render.
-                Options are 'iso' for isometric, 'xy', 'xz', or 'yz'. Defaults to 'iso'.
-
-    Returns:
-            None: Displays the visualization directly in a PyVista window.
-
-        Example:
-    ```python
-            import qim3d
-
-            val, vec = qim3d.processing.structure_tensor(volume, sigma=2.0, rho=6)
-
-            qim3d.viz.streamlines(volume, vec, val)
-
-            qim3d.viz.streamlines(volume, vec, val, fiber_spacing=8, initial_step_size=0.3)
-
-            qim3d.viz.streamlines(volume, vec, val, fiber_spacing=25, show_volume=True)
-
-            qim3d.viz.streamlines(volume, vec, val, max_fiber_length=600, show_starting_points=True)
-    ```
-
-    """
-    import numpy as np
-    import pyvista as pv
-
-    # Compute the background threshold automatically using Otsu thresholding if not provided
-    if background_threshold is None:
-        nonzero = volume[volume > 0]
-        if len(nonzero) > 0:
-            vmin, vmax = int(volume.min()), int(volume.max())
-            hist, bin_edges = np.histogram(volume, bins=4096, range=(vmin, vmax))
-            bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2
-            w0 = np.cumsum(hist)
-            w1 = hist.sum() - w0
-            mu0 = np.cumsum(hist * bin_centers) / np.maximum(w0, 1)
-            mu1 = (np.cumsum((hist * bin_centers)[::-1]) / np.maximum(w1[::-1], 1))[
-                ::-1
-            ]
-            sigma_b2 = w0 * w1 * (mu0 - mu1) ** 2
-            background_threshold = bin_centers[np.argmax(sigma_b2)] * 1.05
-        else:
-            background_threshold = 0
-
-    print(f'Background threshold: {background_threshold:.2f}')
-
-    # Use the first eigenvector which corresponds to the direction of minimum intensity
-    # change, representing the dominant fiber orientation in structure tensor analysis
-    if eigenvectors.ndim == 5:
-        vec_fiber = eigenvectors[0].copy()
-    else:
-        vec_fiber = eigenvectors.copy()
-
-    # Scale the eigenvectors by the inverse of the smallest eigenvalue λ1.
-    # λ1 is small where the local structure is coherent and the fiber direction is reliable.
-    # Inverting it produces large magnitudes in well-defined structural regions and small
-    # magnitudes in noisy or background regions, causing fiber tracing to stop there naturally.
-    epsilon = 1e-12
-    l1 = eigenvalues[0]
-
-    l1_valid = l1.ravel()[l1.ravel() > 0]
-    inv_l1 = np.clip(1.0 / (l1 + epsilon), 0, 1.0 / epsilon)
-    inv_l1_max = np.percentile(inv_l1[l1 > 0], 99) if len(l1_valid) > 0 else 1.0
-    inv_l1_norm = np.clip(inv_l1 / (inv_l1_max + epsilon), 0, 1)
-
-    # Explicitly zero out background voxels so fibers stop at the volume boundary
-    inv_l1_norm[volume == 0] = 0
-
-    vec_scaled = vec_fiber * inv_l1_norm[np.newaxis, ...]
-
-    print(
-        f'Inverse λ1 normalized range: {inv_l1_norm.min():.4f} to {inv_l1_norm.max():.4f}'
-    )
-    print(
-        f'  Mean (foreground): {inv_l1_norm[volume > background_threshold].mean():.4f}'
-    )
-
-    # Set up the PyVista structured grid with the volume dimensions and unit spacing
-    grid = pv.ImageData()
-    grid.dimensions = (volume.shape[2], volume.shape[1], volume.shape[0])
-    grid.origin = (0, 0, 0)
-    grid.spacing = (1, 1, 1)
-
-    # Reorder arrays from (Z, Y, X) to (X, Y, Z) as required by PyVista
-    vectors_reordered = vec_scaled.transpose(3, 2, 1, 0)
-    grid.point_data['vectors'] = vectors_reordered.reshape(-1, 3, order='F')
-
-    intensity_reordered = volume.transpose(2, 1, 0)
-    grid.point_data['intensity'] = intensity_reordered.flatten(order='F')
-
-    # Compute the fan-based RGB color for each voxel following Dahl 2026, Fig. 6 col. 3:
-    # (r, g, b) = (1 - vz²) · hsv2rgb(arctan(vy/vx), 1, 1) + 0.5·vz²
-    # Hue encodes the in-plane azimuthal angle, vz² desaturates out-of-plane fibers toward gray
-    vx = vec_fiber[0]
-    vy = vec_fiber[1]
-    vz = vec_fiber[2]
-
-    # Use mod π to resolve sign ambiguity: arctan2(-vy, -vx) = arctan2(vy, vx) + π,
-    # and mod π makes them equal, so v and -v always get the same hue
-    hue = (np.arctan2(vy, vx) % np.pi) / np.pi
-    h6 = hue * 6.0
-    i = h6.astype(int) % 6
-    f = h6 - np.floor(h6)
-
-    # Vectorized HSV to RGB conversion with saturation=1 and value=1 (pure hue colors)
-    hsv_r = np.select(
-        [i == 0, i == 1, i == 2, i == 3, i == 4, i == 5], [1, 1 - f, 0, 0, f, 1]
-    ).astype(np.float32)
-    hsv_g = np.select(
-        [i == 0, i == 1, i == 2, i == 3, i == 4, i == 5], [f, 1, 1, 1 - f, 0, 0]
-    ).astype(np.float32)
-    hsv_b = np.select(
-        [i == 0, i == 1, i == 2, i == 3, i == 4, i == 5], [0, 0, f, 1, 1, 1 - f]
-    ).astype(np.float32)
-
-    vz2 = vz**2
-    fan_r = (1 - vz2) * hsv_r + 0.5 * vz2
-    fan_g = (1 - vz2) * hsv_g + 0.5 * vz2
-    fan_b = (1 - vz2) * hsv_b + 0.5 * vz2
-
-    fan_rgb = np.stack([fan_r, fan_g, fan_b], axis=-1)
-    fan_rgb_reordered = fan_rgb.transpose(2, 1, 0, 3)
-    fan_rgb_flat = (
-        np.clip(fan_rgb_reordered, 0, 1).reshape(-1, 3, order='F') * 255
-    ).astype(np.uint8)
-    grid.point_data['fan_rgb'] = fan_rgb_flat
-
-    # Place seed points on a uniform grid within the bounding box of the foreground
-    threshold = (
-        np.percentile(intensity_reordered[intensity_reordered > 0], 10)
-        if (intensity_reordered > 0).any()
-        else 0
-    )
-    nonzero_coords = np.argwhere(intensity_reordered > threshold)
-
-    if len(nonzero_coords) == 0:
-        print('WARNING: No foreground voxels found!')
-        return
-
-    x_min, y_min, z_min = nonzero_coords.min(axis=0)
-    x_max, y_max, z_max = nonzero_coords.max(axis=0)
-
-    x_seeds = np.arange(x_min, x_max, fiber_spacing)
-    y_seeds = np.arange(y_min, y_max, fiber_spacing)
-    z_seeds = np.arange(z_min, z_max, fiber_spacing)
-    seed_grid = np.array(
-        np.meshgrid(x_seeds, y_seeds, z_seeds, indexing='ij')
-    ).T.reshape(-1, 3)
-
-    # Keep only seed points where the volume intensity is above the background threshold
-    seed_indices = seed_grid.astype(int)
-    intensity_3d_grid = grid.point_data['intensity'].reshape(grid.dimensions, order='F')
-    seed_intensities = intensity_3d_grid[
-        seed_indices[:, 0], seed_indices[:, 1], seed_indices[:, 2]
-    ]
-    valid_seeds = seed_grid[seed_intensities > background_threshold]
-
-    print(f'Seeds: {len(seed_grid)} → {len(valid_seeds)} after filtering')
-
-    if len(valid_seeds) == 0:
-        print('WARNING: No valid seeds after filtering!')
-        return
-
-    seed_points = pv.PolyData(valid_seeds)
-
-    print('Generating streamlines...')
-    print(f'  Max steps: {max_fiber_length}')
-    print(f'  Step size: {initial_step_size} to {max_step_size}')
-
-    streamlines_mesh = grid.streamlines_from_source(
-        seed_points,
-        vectors='vectors',
-        max_steps=max_fiber_length,
-        initial_step_length=initial_step_size,
-        max_step_length=max_step_size,
-        integration_direction='both',
-        terminal_speed=terminal_speed,
-        surface_streamlines=False,
-        interpolator_type='cell',  # cell locator is more robust than point locator
-        compute_vorticity=False,  # not needed for line visualization, saves computation
-        progress_bar=True,
-    )
-
-    print(
-        f'Generated {streamlines_mesh.n_lines} fibers with {streamlines_mesh.n_points} total points'
-    )
-
-    plotter = pv.Plotter()
-
-    if show_volume:
-        plotter.add_volume(
-            grid,
-            scalars='intensity',
-            opacity='linear',
-            cmap='gray',
-            opacity_unit_distance=20,
-        )
-
-    plotter.add_mesh(
-        streamlines_mesh,
-        scalars='fan_rgb',
-        rgb=True,
-        line_width=2,
-        render_lines_as_tubes=False,
-        show_scalar_bar=False,
-    )
-
-    if show_starting_points:
-        plotter.add_mesh(
-            seed_points, color='red', point_size=8, render_points_as_spheres=True
-        )
-
-    plotter.camera_position = camera_position
-    plotter.add_text(
-        f'Fiber Visualization ({streamlines_mesh.n_lines} fibers)', font_size=12
-    )
-    plotter.show()
