@@ -5,6 +5,10 @@ site_description: Documentation for the qim3d python library
 repo_url: https://github.com/qim-center/qim3d
 repo_name: qim-center/qim3d
 
+watch:
+  - qim3d
+  - docs
+  - mkdocs.yml
 
 nav:
   - User Guide:
@@ -34,37 +38,13 @@ nav:
     - qim3d.viz: api_reference/viz.md
   - Release Notes: https://github.com/qim-center/qim3d/releases
 
-##### OLD NAVIGATION STRUCTURE (TO DO: REMOVE)
-# nav:
-#   - Data handling:
-#     - Input and Output: doc/data_handling/io.md
-#     - Synthetic data: doc/data_handling/generate.md
-#   - Visualization:
-#     - Display volumes: doc/visualization/viz.md
-#     - Colormaps: doc/visualization/colormaps.md
-#     - Explore data: doc/visualization/exploration.md
-#     - Plot and render: doc/visualization/rendering.md
-#   - Image analysis:
-#     - Features: doc/image_analysis/features.md
-#     - Filters: doc/image_analysis/filters.md
-#     - Detection: doc/image_analysis/detection.md
-#     - Segmentation: doc/image_analysis/segmentation.md
-#     - Operations: doc/image_analysis/operations.md
-#     - Morphology: doc/image_analysis/morphology.md
-#     - Processing: doc/image_analysis/processing.md
-#     - Meshes: doc/image_analysis/mesh.md
-#   - Machine Learning: doc/ml/models.md
-#   - Graphical User Interfaces: doc/gui/gui.md
-#   - Command Line Interface: doc/cli/cli.md
-#   - Release history: doc/releases/releases.md
-
 theme:
-  language: en 
+  language: en
   name: material
   nav_position: top
   logo: assets/qim3d-icon.svg
   favicon: assets/qim3d-icon.svg
-  features: 
+  features:
     - navigation.tabs
     - navigation.tabs.sticky
     - navigation.sections
@@ -82,7 +62,6 @@ theme:
   palette:
     primary: white
     accent: orange
-
 
 extra_css:
   - stylesheets/extra.css
@@ -111,16 +90,16 @@ markdown_extensions:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
-plugins: 
+plugins:
     - tags
-    - search 
+    - search
     - privacy:
         links_attr_map:
           target: _blank
     - mkdocstrings:
         handlers:
           python:
-            options:    
+            options:
               show_root_heading: false
               show_source: true
               show_root_full_path: true
