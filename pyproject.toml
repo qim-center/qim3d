@@ -121,6 +121,7 @@ docs = [
 jupyter = [
     # See: https://github.com/microsoft/vscode-jupyter/issues/17228#issuecomment-4477302475 and a plethora of other issues on vscode-jupyter.
     "ipykernel<7",
+    "notebook>=7.6.1",
 ]
 
 lint = [
