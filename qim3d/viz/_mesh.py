@@ -14,35 +14,35 @@ def mesh(
     show_edges: bool = True,
     show: bool = True,
     save_screenshot: str = '',
-    export_html:str = '',
+    export_html: str = '',
     explode: int = 0,
     smooth_shading: bool = False,
-    face_color = '#cccccc',
-    edge_color = '#993333',
+    face_color: str = '#cccccc',
+    edge_color: str = '#993333',
     **kwargs,
-) ->  None:
+) -> None:
     """
     Visualize a 3D mesh using `pygel3d` or `pyvista`. If you need more advanced tools, use pyvista directly.
 
     Args:
-        mesh (pygel3d.hmesh.Manifold): The input mesh object.
+        mesh (pygel3d.hmesh.Manifold | SurfaceMesh | VolumeMesh): The input mesh object.
         wireframe (bool, optional): If True, displays the mesh as a wireframe. Defaults to False.
-        show_edges (bool, optional): If True, shows edges of the mesh. Fefaults to True.
+        show_edges (bool, optional): If True, shows edges of the mesh. Defaults to True.
         show (bool, optional): If True, displays the visualization inline, useful for multiple plots.
             Works only with backend `pyvista`. Defaults to True.
-        save_screenshot (str, optional): If True, saves the visualization as an `png` file.
+        save_screenshot (str, optional): If True, saves the visualization as a `png` file.
             The string is interpreted as the file path where the screenshot will 
             be saved. Works only with the backend `pyvista`. Defaults to ''.
         export_html (str, optional): If True, saves the visualization as an `html` file.
             The string is interpreted as the file path where the scene will 
             be saved. Works only with the backend `pyvista`. Defaults to ''.
         explode (int, optional): Only works when mesh is qim3d.mesh.VolumeMesh.
-            Defines how spread are the tetrahedrons. If 0, the volume us intact.
+            Defines how spread are the tetrahedrons. If 0, the volume is intact.
             Defaults to 1.
-        smooth_shading (bool, optional): Smooths out edges. Only works with `pyvista'.
+        smooth_shading (bool, optional): Smooths out edges. Only works with `pyvista`.
             Defaults to False.
-        face_color (str, optional): Face color of the mesh. Onyl works with `pyvista`.
-            Doesn't work with `wireframe = True'. Defaults to '#cccccc'.
+        face_color (str, optional): Face color of the mesh. Only works with `pyvista`.
+            Doesn't work with `wireframe = True`. Defaults to '#cccccc'.
         edge_color (str, optional): Edge color of the mesh. Only works with `pyvista`.
             Defaults to '#993333'.
         **kwargs (Any): Additional keyword arguments specific to the chosen backend:
@@ -67,16 +67,6 @@ def mesh(
         qim3d.viz.mesh(mesh)
         ```
         ![pygel3d_visualization](../../assets/screenshots/viz-pygel_mesh.png)
-
-        ```python
-        qim3d.viz.mesh(mesh, backend='k3d', wireframe=False, flat_shading=False)
-        ```
-        [k3d_visualization](../../assets/screenshots/sphere.html)
-        <div class="scene">
-            <iframe src="http://127.0.0.1:8000/qim3d/assets/screenshots/sphere.html" width="100%" height="500" frameborder="0"></iframe>
-        </div>
-
-
     """
 
     if isinstance(mesh, (VolumeMesh, SurfaceMesh)):
