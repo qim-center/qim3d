@@ -13,3 +13,6 @@ jobs:
 
       - name: Pre-Commit
         uses: j178/prek-action@v2
+        with:
+          # Should match version in pyproject.toml and CONTRIBUTING.md
+          prek-version: 0.4.14

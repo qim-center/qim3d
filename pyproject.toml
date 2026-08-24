@@ -109,6 +109,7 @@ dev = [
     { include-group = "docs" },
     { include-group = "jupyter" },
     { include-group = "lint" },
+    { include-group = "misc" },
     { include-group = "test" },
 ]
 
@@ -126,6 +127,10 @@ jupyter = [
 
 lint = [
     "ruff>=0.15.20"  # Should match version in .pre-commit-config.yaml
+]
+
+misc = [
+    "prek>=0.4.14",  # Should match version in workflows/pre-commit.yaml and CONTRIBUTING.md
 ]
 
 test = [
