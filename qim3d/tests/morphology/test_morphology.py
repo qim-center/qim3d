@@ -31,7 +31,7 @@ def test_erode():
 
 def test_opening():
     vol = np.random.rand(50, 50, 50)
-    
+
     s = 5
     strel = np.ones((s,s,s))
     vol_opened = qim3d.morphology.opening(vol, strel, method='ndi')
@@ -40,7 +40,7 @@ def test_opening():
 
 def test_closing():
     vol = np.random.rand(50, 50, 50)
-    
+
     s = 5
     strel = np.ones((s,s,s))
     vol_opened = qim3d.morphology.closing(vol, strel, method='ndi')
@@ -50,7 +50,7 @@ def test_closing():
 
 def test_black_tophat():
     vol = np.random.rand(50, 50, 50)
-    
+
     s = 5
     strel = np.ones((s,s,s))
     vol_opened = qim3d.morphology.black_tophat(vol, strel, method='ndi')
@@ -59,7 +59,7 @@ def test_black_tophat():
 
 def test_white_tophat():
     vol = np.random.rand(50, 50, 50)
-    
+
     s = 5
     strel = np.ones((s,s,s))
     vol_opened = qim3d.morphology.white_tophat(vol, strel, method='ndi')

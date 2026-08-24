@@ -22,6 +22,7 @@
       # Python
       - id: debug-statements
       - id: name-tests-test
+        args: ["--pytest-test-first"]
 
   - repo: https://github.com/asottile/pyupgrade
     rev: v3.21.2
