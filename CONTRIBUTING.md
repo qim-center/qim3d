@@ -16,21 +16,6 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 You may find it helpful to read their [getting started guide](https://docs.astral.sh/uv/getting-started/) if you are not familiar with `uv`.
 
-### Pre-Commit
-
-To ensure consistent styling and reduce git diffs, please install a pre-commit git hook by running the following:
-
-```sh
-uvx prek install
-```
-
-You may wish to install `prek` as a tool to be able to run it outside the git hook:
-
-```sh
-uv tool install prek
-```
-
-_Note: We use [`prek`](https://github.com/j178/prek) instead of `pre-commit`. It is fully compatible with `pre-commit`, but is generally more pleasant to work with and is a lot faster. You can choose to use the original `pre-commit` instead, if you prefer._
 ### Task runner: `just`
 
 For ease of development, this project uses the popular [`just`](https://just.systems/) task runner, which is configured via the [`justfile`](/justfile) in the root of the repository.
@@ -41,7 +26,23 @@ You can install it with:
 uv tool install rust-just
 ```
 
-When installed, you can easily perform common tasks with just. To see an overview of available commands, simply run `just` in the terminal.
+When installed, you can easily perform common tasks with `just`. To see an overview of available commands, simply run `just` in the terminal.
+
+### Pre-Commit
+
+To ensure consistent styling and reduce git diffs, please install a pre-commit git hook by running the following:
+
+```sh
+just install-pre-commit
+```
+
+You may wish to install `prek` as a tool to be able to run it outside the git hook:
+
+```sh
+uv tool install prek==0.4.14
+```
+
+_Note: We use [`prek`](https://github.com/j178/prek) instead of `pre-commit`. It is fully compatible with `pre-commit`, but is generally more pleasant to work with and is a lot faster._
 
 ## Git
 
