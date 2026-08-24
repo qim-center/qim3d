@@ -40,6 +40,7 @@ from skimage.filters import (
 
 import qim3d
 import qim3d.operations
+from qim3d._types import ColormapLike, PathLike
 from qim3d.utils import log
 from qim3d.utils._decorators import coarseness
 
@@ -48,8 +49,6 @@ try:
     from tqdm.notebook import tqdm
 except ImportError:
     from tqdm import tqdm
-
-ColormapLike = str | matplotlib.colors.Colormap
 
 
 @coarseness('volume')
@@ -2660,13 +2659,13 @@ def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
 
 
 def export_rotation(
-    path: str,
+    path: PathLike,
     volume: np.ndarray,
     degrees: int = 360,
     n_frames: int = 180,
     fps: int = 30,
     image_size: tuple[int, int] | None = (256, 256),
-    colormap: str = 'magma',
+    colormap: ColormapLike = 'magma',
     camera_height: float = 2.0,
     camera_distance: float | str = 'auto',
     camera_focus: list | str = 'center',
@@ -2684,13 +2683,13 @@ def export_rotation(
     * **Customizable Camera:** Control the height, distance, and focus point of the rotation.
 
     Args:
-        path (str): The destination file path. Must end with .gif, .avi, .mp4, or .webm. If no extension is provided, defaults to .gif.
+        path (PathLike): The destination file path. Must end with .gif, .avi, .mp4, or .webm.
         volume (numpy.ndarray): The 3D input volume to be animated.
         degrees (int, optional): Total rotation angle in degrees (e.g., 360 for a full spin).
         n_frames (int, optional): Total number of frames to generate. Higher values create smoother/slower animations at fixed FPS.
         fps (int, optional): Frames per second. Controls the playback speed.
         image_size (tuple[int, int] or None, optional): Resolution (width, height) of the output frames.
-        colormap (str, optional): Matplotlib colormap name for the volume rendering.
+        colormap (ColormapLike, optional): Matplotlib colormap for the volume rendering.
         camera_height (float, optional): Vertical position of the camera relative to the volume's Z-axis height.
         camera_distance (float or str, optional): Distance from the camera to the focus point.
 
@@ -2752,10 +2751,6 @@ def export_rotation(
         msg = f'Value "{camera_distance}" for camera distance is invalid. Use "auto" or a float value.'
         raise TypeError(msg)
 
-    if Path(path).suffix == '':
-        print(f'Input path: "{path}" does not have a filetype. Defaulting to .gif.')
-        path += '.gif'
-
     # Handle img in (xyz) instead of (zyx) (due to rendering issues with the up-vector, ensure that z=y, such that we now have (x,z,y))
     vol = np.transpose(volume, (2, 0, 1))
 
@@ -2807,28 +2802,26 @@ def export_rotation(
         img = plotter.screenshot(return_img=True, window_size=image_size)
         frames.append(img)
 
-    if path[-4:] == '.gif':
-        imageio.mimsave(path, frames, fps=fps, loop=0)
+    path = Path(path)
+    match path.suffix.lower():
+        case '.gif':
+            imageio.mimsave(path, frames, fps=fps, loop=0)
+        case '.avi' | '.mp4':
+            writer = imageio.get_writer(path, fps=fps)
+            for frame in frames:
+                writer.append_data(frame)
+            writer.close()
+        case '.webm':
+            writer = imageio.get_writer(
+                path, fps=fps, codec='vp9', ffmpeg_params=['-crf', '32']
+            )
+            for frame in frames:
+                writer.append_data(frame)
+            writer.close()
+        case _:
+            msg = 'Invalid file extension. Please use .gif, .avi, .mp4 or .webm'
+            raise ValueError(msg)
 
-    elif path[-4:] == '.avi' or path[-4:] == '.mp4':
-        writer = imageio.get_writer(path, fps=fps)
-        for frame in frames:
-            writer.append_data(frame)
-        writer.close()
-
-    elif path[-5:] == '.webm':
-        writer = imageio.get_writer(
-            path, fps=fps, codec='vp9', ffmpeg_params=['-crf', '32']
-        )
-        for frame in frames:
-            writer.append_data(frame)
-        writer.close()
-
-    else:
-        msg = 'Invalid file extension. Please use .gif, .avi, .mp4 or .webm'
-        raise ValueError(msg)
-
-    path = _get_save_path(path)
     log.info('File saved to ' + str(path.resolve()))
 
     if show:
