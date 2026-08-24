@@ -15,27 +15,27 @@ For more information on the QIM center visit https://qim.dk/
 
 ## Installation
 
-We recommend using a conda environment:
+`qim3d` is distributed via [pypi](https://pypi.org/project/qim3d/) and can be installed easily with:
 
-```bash
-conda create -n qim3d python=3.11
-```
+```sh
+# pip
+pip install qim3d
 
-After the environment is created, activate it by running:
+# uv
+uv add qim3d
 
-```bash
-conda activate qim3d
-```
+# pixi
+pixi add --pypi qim3d
 
-And then installation is easy using pip:
-
-```bash
+# conda
+conda create -n myqim3d python=3.14
+conda activate myqim3d
 pip install qim3d
 ```
 
-Remember that the environment needs to be activated each time you use `qim3d`!
+Note that some features require you to install extra dependencies — you can use `qim3d[all]` to install all features. For more detailed instructions and troubleshooting, please refer to the [documentation](https://docs.qim.dk/qim3d/user_guide/installation/).
 
-For more detailed instructions and troubleshooting, please refer to the [documentation](https://platform.qim.dk/qim3d/#installation).
+`qim3d` follows the [SPEC-0](https://scientific-python.org/specs/spec-0000/) recommendation for supported Python versions, currently: Python 3.12 – 3.14.
 
 ## Examples
 
