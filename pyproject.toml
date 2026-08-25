@@ -126,7 +126,7 @@ jupyter = [
 ]
 
 lint = [
-    "ruff>=0.15.20"  # Should match version in .pre-commit-config.yaml
+    "ruff==0.16.4"  # Should match version in .pre-commit-config.yaml, pinned to match exactly
 ]
 
 misc = [
@@ -149,100 +149,13 @@ license-files = []
 [tool.setuptools.packages]
 find = { namespaces = false }
 
-# See list of rules here: https://docs.astral.sh/ruff/rules/
-[tool.ruff]
-line-length = 88
-indent-width = 4
-exclude = ["docs", "qim3d/tests"]
-
 [tool.ruff.lint]
-# Allow fix for all enabled rules (when `--fix`) is provided.
-fixable = ["ALL"]
-unfixable = []
 
-# Allow unused variables when underscore-prefixed
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-select = [
-    "F",
-    "E",     # Errors
-    "W",     # Warnings
-    "I",     # Imports
-    "N",     # Naming
-    "D",     # Documentation
-    "UP",    # Upgrades
-    "YTT",
-    "ANN",
-    "ASYNC",
-    "S",
-    "BLE",
-    "B",
-    "A",
-    "COM",
-    "C4",
-    "T10",
-    "DJ",
-    "EM",
-    "EXE",
-    "ISC",
-    "LOG",
-    "PIE",
-    "PYI",
-    "PT",
-    "RSE",
-    "SLF",
-    "SLOT",
-    "SIM",
-    "TID",
-    "TCH",
-    "INT",
-    "ERA",
-    "PGH",
-]
-
+select = ["ALL"]
 ignore = [
-    "ANN002",
-    "ANN003",
-    "ANN101",
-    "ANN201",
-    "ANN204",
-    "B008",
-    "B026",
-    "B028",
-    "B905",
-    "COM812",
-    "D100",
-    "D101",
-    "D107",
-    "D201",
-    "D202",
-    "D203",
-    "D205",
-    "D211",
-    "D212",
-    "D401",
-    "D406",
-    "D407",
-    "E501",
-    "E731",
-    "F821",
-    "F841",
-    "ISC001",
-    "S101",
-    "S301",
-    "S311",
-    "S507",
-    "S603",
-    "S605",
-    "S607",
-    "SIM113",
-    "W291",
-    "W293",
-]
 
-[tool.ruff.format]
-# Use single quotes for strings
-quote-style = "single"
+]
 
 [tool.coverage.run]
 omit = [

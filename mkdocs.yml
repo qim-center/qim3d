@@ -38,6 +38,8 @@ nav:
     - qim3d.processing: api_reference/processing.md
     - qim3d.segmentation: api_reference/segmentation.md
     - qim3d.viz: api_reference/viz.md
+  - "Developer's Guide":
+    - Bumping Python Version: dev_guide/bump_python_version.md
   - Release Notes: https://github.com/qim-center/qim3d/releases
 
 theme:
