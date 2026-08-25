@@ -30,7 +30,7 @@ def train_model(
     Executes the training loop for a PyTorch model.
 
     This function manages the iterative process of training. It handles:
-    
+
     1.  **Training Steps**: Iterating through the training data, computing gradients (backpropagation), and updating model weights.
     2.  **Validation**: Periodically evaluating the model on unseen data to monitor for overfitting.
     3.  **Logging**: Printing loss values to track convergence.
@@ -73,7 +73,7 @@ def train_model(
             model=model,
             augmentation=augmentation
         )
-        
+
         train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
             train_set, val_set, test_set, batch_size=1
         )
@@ -188,9 +188,9 @@ def train_model(
 def load_checkpoint(model: torch.nn.Module, checkpoint_path: str) -> torch.nn.Module:
     """
     Restores a model's state (weights and biases) from a saved checkpoint file.
-    
+
     This function loads a dictionary of learned parameters from a `.pth` file and applies them to the provided model architecture. This is essential for:
-    
+
     * **Inference**: Using a pre-trained model to make predictions on new data.
     * **Resuming Training**: Continuing the training process from a specific point.
     * **Transfer Learning**: Fine-tuning a pre-trained model on a new task.
@@ -208,16 +208,16 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str) -> torch.nn.Mo
     Example:
         ```python
         import qim3d
-        
+
         # 1. Define the architecture (must match the saved model)
         model = qim3d.ml.models.UNet(size='small')
-        
+
         # 2. Path to the saved weights
         checkpoint_path = "dataset/model_5epochs.pth"
 
         # 3. Load the weights
         model = qim3d.ml.load_checkpoint(model, checkpoint_path)
-        
+
         # The model is now ready for inference
         print("Checkpoint loaded successfully.")
         ```
@@ -250,7 +250,7 @@ def model_summary(
 
         # Define model and data components
         model = qim3d.ml.models.UNet(size='small')
-        
+
         # ... (assume train_loader is already prepared) ...
 
         # Print model summary
@@ -274,7 +274,7 @@ def test_model(
     Runs inference on a test dataset to generate segmentation predictions.
 
     This function iterates through the provided `test_set`, applies the trained `model`, and post-processes the output. It automatically handles:
-    
+
     1.  **Device Management**: Moves data to GPU if available.
     2.  **Batching**: Adds necessary batch dimensions for the model input.
     3.  **Activation**: Applies a Sigmoid function to convert raw model outputs (logits) into probabilities.
@@ -308,7 +308,7 @@ def test_model(
 
         # Visualize the first result
         vol, target, pred = results[0]
-        
+
         # Display the middle slice of the prediction
         mid_slice = pred.shape[0] // 2
         plt.imshow(pred[mid_slice], cmap='gray')

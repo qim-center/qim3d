@@ -1,4 +1,4 @@
-/* 
+/*
 qim3d colors:
 #ff9900
 #cd4d00
@@ -109,12 +109,12 @@ body > header{
 .md-typeset h1 {
   font-weight: 300;
   font-size: 2.5em;
-  padding-bottom: 0.2em; 
+  padding-bottom: 0.2em;
 }
 
 /* Ensure inline code inside headers is also bold and scales properly */
 .md-typeset h1 code {
-    font-size: 1em; 
+    font-size: 1em;
     font-weight: bold;
 }
 

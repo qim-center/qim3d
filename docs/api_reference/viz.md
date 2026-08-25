@@ -3,9 +3,8 @@
 ::: qim3d.viz
 
 ::: qim3d.viz.colormaps
-    options: 
-        members: 
-            - segmentation 
+    options:
+        members:
+            - segmentation
             - qim
-    
-    
+

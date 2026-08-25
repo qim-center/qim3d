@@ -824,11 +824,11 @@ def load(
     """
     General-purpose function to load, import, or read 3D data from various file formats.
 
-    Automatically identifies the file format based on the extension and uses the appropriate backend to open the file. 
+    Automatically identifies the file format based on the extension and uses the appropriate backend to open the file.
     It supports a wide range of standard bio-imaging and material science formats.
 
     **Supported Formats:**
-    
+
     * **Images:** TIFF (`.tif`, `.tiff`), PIL supported formats (`.png`, `.jpg`, etc.)
     * **Volumes:** DICOM (`.dcm`), NIfTI (`.nii`, `.nii.gz`)
     * **HDF5-based:** HDF5 (`.h5`), TXRM/TXM/XRM (`.txrm`, `.txm`)
@@ -837,52 +837,52 @@ def load(
     * **Stacks:** Directories containing sequences of 2D images (TIFF or DICOM series).
 
     **Memory Management (Virtual Stack):**
-    
-    For datasets that are too large to fit into RAM, use `virtual_stack=True`. This enables 
-    **lazy loading** (or memory mapping), allowing you to inspect metadata (shape, data type) 
+
+    For datasets that are too large to fit into RAM, use `virtual_stack=True`. This enables
+    **lazy loading** (or memory mapping), allowing you to inspect metadata (shape, data type)
     and slice specific sub-regions of the volume without reading the entire file into memory immediately.
 
     Args:
-        path (str or os.PathLike): 
-            The path to the file or directory to load. If a directory is provided, the function 
+        path (str or os.PathLike):
+            The path to the file or directory to load. If a directory is provided, the function
             attempts to load it as a stack of images (e.g., a DICOM series or TIFF sequence).
-        virtual_stack (bool, optional): 
-            If `True`, enables lazy loading. The data is not read into memory until explicitly accessed. 
+        virtual_stack (bool, optional):
+            If `True`, enables lazy loading. The data is not read into memory until explicitly accessed.
             Useful for inspecting large files.
-        dataset_name (str, optional): 
-            Used only for HDF5 files containing multiple datasets. Specifies which internal dataset 
+        dataset_name (str, optional):
+            Used only for HDF5 files containing multiple datasets. Specifies which internal dataset
             to load.
-        return_metadata (bool, optional): 
-            If `True`, returns a tuple `(data, metadata)`. Currently supported for HDF5, NIfTI, 
+        return_metadata (bool, optional):
+            If `True`, returns a tuple `(data, metadata)`. Currently supported for HDF5, NIfTI,
             and TXRM/TXM/XRM files.
-        contains (str, optional): 
-            Used when loading a directory of files (Stack). Specifies a unique substring that must 
-            be present in the filenames (e.g., "slice_"). Identifying files by this string helps 
+        contains (str, optional):
+            Used when loading a directory of files (Stack). Specifies a unique substring that must
+            be present in the filenames (e.g., "slice_"). Identifying files by this string helps
             avoid loading unrelated files in the same folder.
-        force_load (bool, optional): 
-            Safety override. If the file size exceeds available system memory, a `MemoryError` 
+        force_load (bool, optional):
+            Safety override. If the file size exceeds available system memory, a `MemoryError`
             is raised. Set this to `True` to convert the error into a warning and attempt loading anyway.
-        dim_order (tuple, optional): 
+        dim_order (tuple, optional):
             Used for `.vol` files. Defines the dimension order (Z, Y, X).
-        progress_bar (bool, optional): 
+        progress_bar (bool, optional):
             If `True`, displays a progress bar during loading (Linux/POSIX only).
-        display_memory_usage (bool, optional): 
+        display_memory_usage (bool, optional):
             If `True`, prints a report of memory usage after loading.
-        raw_shape (tuple[int,int,int] | None, optional): 
+        raw_shape (tuple[int,int,int] | None, optional):
             Shape of RAW volume in (X,Y,Z). Required for .raw files.
-        raw_dtype (str | np.dtype | None, optional): 
+        raw_dtype (str | np.dtype | None, optional):
             Datatype for RAW (e.g. "float32", "uint16"). Required for .raw files.
-        raw_byteorder (str, optional): 
+        raw_byteorder (str, optional):
             Byte order for RAW. "<" little-endian, ">" big-endian. Default "<".
-        raw_offset_bytes (int, optional): 
+        raw_offset_bytes (int, optional):
             Header offset in bytes for RAW (usually 0). Default 0.
-        **kwargs (Any): 
+        **kwargs (Any):
             Additional arguments passed to the underlying `DataLoader` class.
 
     Returns:
         vol (ndarray, Virtual Stack Object, or tuple):
             The loaded data.
-            
+
             The specific type depends on the input parameters and file format:
 
             * **numpy.ndarray**: Standard in-memory array (if `virtual_stack=False`).
@@ -906,7 +906,7 @@ def load(
 
         # 2. Load a large file lazily (virtual stack) to check shape
         vol_lazy = qim3d.io.load("path/to/huge_scan.h5", virtual_stack=True)
-        print(vol_lazy.shape) 
+        print(vol_lazy.shape)
 
         # 3. Load a specific dataset from an HDF5 file
         vol = qim3d.io.load("data.h5", dataset_name="reconstruction")
@@ -983,7 +983,7 @@ def load_mesh(filename: str) -> hmesh.Manifold:
     """
     Imports or loads a 3D surface mesh from a file.
 
-    Reads geometry data from standard mesh formats and returns a PyGEL3D Manifold object. 
+    Reads geometry data from standard mesh formats and returns a PyGEL3D Manifold object.
     This is useful for analyzing surface structures, isosurfaces, or exported models.
 
     **Supported Formats:**
@@ -994,12 +994,12 @@ def load_mesh(filename: str) -> hmesh.Manifold:
     * **X3D** (`.x3d`) - Extensible 3D
 
     Args:
-        filename (str or os.PathLike): 
+        filename (str or os.PathLike):
             The path to the mesh file to load.
 
     Returns:
-        mesh (Manifold or None): 
-            A PyGEL3D object containing the mesh geometry (vertices, faces, edges). 
+        mesh (Manifold or None):
+            A PyGEL3D object containing the mesh geometry (vertices, faces, edges).
             Returns `None` if loading fails.
 
     Example:
@@ -1008,7 +1008,7 @@ def load_mesh(filename: str) -> hmesh.Manifold:
 
         # Load a mesh file
         mesh = qim3d.io.load_mesh("path/to/model.obj")
-        
+
         # Check number of vertices
         print(len(mesh.vertices()))
         ```

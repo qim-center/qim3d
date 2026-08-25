@@ -1,7 +1,7 @@
 # Command line interface
-The library also includes a command line interface for easy access to some functionalities, and the convenience of using qim3d directly from your terminal. 
+The library also includes a command line interface for easy access to some functionalities, and the convenience of using qim3d directly from your terminal.
 
-This offers quick interactions, making it ideal for tasks that require efficiency or when certain functionalities need to run on a server. 
+This offers quick interactions, making it ideal for tasks that require efficiency or when certain functionalities need to run on a server.
 
 !!! Example
     ``` title="Command"
@@ -161,7 +161,7 @@ Or an specific path for destination can be used. We can also choose to not open 
     qim3d viz cement_128x128x128.tif --destination my_plot.html --no-browser
 
     ```
-    
+
     ``` title="Output"
     Loading data from cement_128x128x128.tif
     Loading: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2.02MB/2.02MB  [00:00<00:00, 909MB/s]
@@ -193,7 +193,7 @@ File previewing can also be done directly from the command line interface to pre
 
 !!! Example
     ``` title="Command"
-    qim3d preview blobs_256x256x256.tif 
+    qim3d preview blobs_256x256x256.tif
     ```
 
     ![CLI k3d](../../assets/preview/default.png){ width="512" }

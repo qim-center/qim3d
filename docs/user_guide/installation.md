@@ -6,9 +6,9 @@ Creating a `conda` environment is not required but recommended.
 
 ??? info "Miniconda installation and setup"
 
-    [Miniconda](https://docs.anaconda.com/free/miniconda/index.html) is a free minimal installer for conda. 
+    [Miniconda](https://docs.anaconda.com/free/miniconda/index.html) is a free minimal installer for conda.
 
-    Here are some quick instructions to help you set up the latest Miniconda installer for your system: 
+    Here are some quick instructions to help you set up the latest Miniconda installer for your system:
 
     === "Windows"
 
@@ -17,10 +17,10 @@ Creating a `conda` environment is not required but recommended.
         1. Download the installer [here](https://repo.anaconda.com/miniconda/Miniconda3-latest-Windows-x86_64.exe).
         2. Run the installer and follow the on-screen instructions.
         3. When the installation finishes, open `Anaconda Prompt (miniconda3)` from the Start menu.
-        
-    
+
+
     === "macOS"
- 
+
         The easiest way to install Miniconda on macOS is through the graphical interface installer. Follow these steps:
 
         1. Download the correct installer for your processor version. If you are unsure about your version, check [here](https://support.apple.com/en-us/116943).
@@ -28,7 +28,7 @@ Creating a `conda` environment is not required but recommended.
             - For Apple Silicon (M1/M2/M3 etc) processors, download [arm64](https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.pkg)
 
         2. Run the installer and follow the on-screen instructions.
-        
+
     === "Linux"
         These four commands quickly and quietly install the latest 64-bit version of the installer and then clean up after themselves. To install a different version or architecture of Miniconda for Linux, change the name of the `.sh` installer in the `wget` command.
 
@@ -73,7 +73,7 @@ If either command displays information about the qim3d library, the installation
 
 ## Optional dependencies
 
-`qim3d` includes some features that require additional Python packages. These are not installed by default, keeping the base library lightweight. 
+`qim3d` includes some features that require additional Python packages. These are not installed by default, keeping the base library lightweight.
 
 You can install optional dependencies for specific features:
 
@@ -88,7 +88,7 @@ You can install optional dependencies for specific features:
     If you try to run a script that requires an optional dependency and it is not installed, `qim3d` will show a ImportError with instructions on how to install the missing dependency.
 
 !!! tip "Installing Multiple Features"
-    You can install multiple optional dependency groups simultaneously by separating the names with a comma, without spaces, inside the brackets.     
+    You can install multiple optional dependency groups simultaneously by separating the names with a comma, without spaces, inside the brackets.  
     For example, to install both the `synthetic-data` features and the `deep-learning` features, use the following command:
 
     ```bash

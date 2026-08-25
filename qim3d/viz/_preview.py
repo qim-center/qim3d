@@ -441,7 +441,7 @@ def image_preview(
     slice: int = None,
     relative_intensity: bool = True,
 ):
-    """ 
+    """
     Image preview function
     """
     if image.ndim == 3 and image.shape[2] > 4:

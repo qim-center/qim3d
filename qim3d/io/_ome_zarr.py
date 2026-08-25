@@ -165,7 +165,7 @@ class OMEScaler(
 
         for i in range(self.max_layer):
             log.debug(f"\nScale {i+1}\n{'-'*32}")
-            
+
             scaled = da.coarsen(np.mean, rv[-1], {0:2, 1:2, 2:2}, trim_excess=True)
             rv.append(scaled)
             log.info(f'- Scale {i+1}: {rv[-1].shape}')
@@ -205,40 +205,40 @@ def export_ome_zarr(
     """
     Exports 3D data to the OME-Zarr (NGFF) format with multi-scale pyramidal levels.
 
-    Generates a **Next Generation File Format (NGFF)** representation of the input volume. 
-    This format creates a multi-resolution pyramid (downsampled copies), allowing for efficient 
+    Generates a **Next Generation File Format (NGFF)** representation of the input volume.
+    This format creates a multi-resolution pyramid (downsampled copies), allowing for efficient
     visualization and streaming of large datasets over networks or the cloud.
 
     **Key Features:**
-    
+
     * **Chunking:** Data is divided into small blocks (`chunk_size`) for efficient random access.
-    * **Pyramidal Levels:** Automatically calculates and generates lower-resolution levels 
+    * **Pyramidal Levels:** Automatically calculates and generates lower-resolution levels
       until the dataset fits within a single chunk.
     * **Dask Integration:** efficiently handles larger-than-memory datasets by processing chunks in parallel.
 
     Args:
-        path (str or os.PathLike): 
+        path (str or os.PathLike):
             The destination directory path. The directory will be created as a Zarr group. (E.g. `"data.zarr"`).
-        data (numpy.ndarray or dask.array.Array): 
+        data (numpy.ndarray or dask.array.Array):
             The 3D image volume to export.
-        chunk_size (int, optional): 
-            The size of the chunks (cubes) for storage (e.g., `256` creates 256x256x256 blocks). 
+        chunk_size (int, optional):
+            The size of the chunks (cubes) for storage (e.g., `256` creates 256x256x256 blocks).
             Smaller chunks improve access time for specific regions but increase file count.
-        downsample_rate (int, optional): 
-            The reduction factor between pyramid levels. A rate of `2` means each level is 
+        downsample_rate (int, optional):
+            The reduction factor between pyramid levels. A rate of `2` means each level is
             half the size of the previous one.
-        order (int, optional): 
+        order (int, optional):
             The interpolation order for downsampling. `0` = Nearest Neighbor (faster) and `1` = Linear.
-        replace (bool, optional): 
-            If `True`, deletes the existing directory at `path` before writing. 
+        replace (bool, optional):
+            If `True`, deletes the existing directory at `path` before writing.
             If `False`, raises an error if the directory exists.
-        method (str, optional): 
-            The downsampling strategy. 
-            `"scaleZYXdask_coarsen"` uses block averaging (faster, reduces noise). 
+        method (str, optional):
+            The downsampling strategy.
+            `"scaleZYXdask_coarsen"` uses block averaging (faster, reduces noise).
             `"scaleZYXdask"` uses interpolation (slower, potentially sharper).
-        progress_bar (bool, optional): 
+        progress_bar (bool, optional):
             If `True`, displays a progress bar tracking the chunk writing process.
-        progress_bar_repeat_time (str or int, optional): 
+        progress_bar_repeat_time (str or int, optional):
             Interval in seconds for updating the progress bar.
 
     Raises:
@@ -318,7 +318,7 @@ def export_ome_zarr(
 
         # Get number of chunks for each shape and sum them together
         n_chunks = sum([np.prod(np.ceil(np.array(scaled_data.shape)/chunk_size)) for scaled_data in mip])
-    
+
         with OmeZarrExportProgressBar(
             path=path, n_chunks=n_chunks, reapeat_time=progress_bar_repeat_time
         ):
@@ -337,24 +337,24 @@ def import_ome_zarr(
     """
     Imports or reads image data from an OME-Zarr (NGFF) container.
 
-    Allows reading specific resolution levels from a multi-scale dataset. This is particularly 
+    Allows reading specific resolution levels from a multi-scale dataset. This is particularly
     useful for previewing large datasets by loading a coarse scale before fetching the full-resolution data.
 
     Args:
-        path (str or os.PathLike): 
+        path (str or os.PathLike):
             The path to the OME-Zarr file (directory).
-        scale (int or str, optional): 
+        scale (int or str, optional):
             The resolution level to load.
             `0` is the full resolution (finest). Higher integers are progressively lower resolutions.
             Can also accept `'highest'` (alias for 0) or `'lowest'` (coarsest available scale).
-        load (bool, optional): 
-            If `True`, reads the data into memory as a `numpy.ndarray`. 
+        load (bool, optional):
+            If `True`, reads the data into memory as a `numpy.ndarray`.
             If `False`, returns a `dask.array.Array` for lazy loading/processing.
 
     Returns:
         vol (numpy.ndarray or dask.array.Array):
             The requested image data.
-            
+
             * **numpy.ndarray**: The full image data loaded into memory (if `load=True`).
             * **dask.array.Array**: A lazy-loaded Dask array connected to the Zarr store (if `load=False`).
     Raises:

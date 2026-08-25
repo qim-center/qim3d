@@ -28,7 +28,7 @@ class Interface(BaseInterface):
         filename = f'generated_volume{extension}'
         save(filename, self.og_vol, replace = True)
         return gr.update(value = filename, visible = True)
-    
+
     def save_plot(self):
         snapshot = self.fig.get_snapshot()
         with open('generated_volume.html', 'w') as f:
@@ -47,7 +47,7 @@ class Interface(BaseInterface):
             tube_hole_ratio,
             hollow,
             seed):
-        
+
         shape = None if shape == 'None' else shape.lower()
         self.og_vol = volume(
                     noise_type = noise_type.lower(),
@@ -106,22 +106,22 @@ class Interface(BaseInterface):
                     generate_volume = gr.Button('Save volume', variant = 'primary')
                     file_extensions = gr.Dropdown(
                         choices = [
-                            '.tiff', 
-                            '.nii.gz', 
-                            '.h5', 
-                            '.vol', 
-                            '.dcm', 
+                            '.tiff',
+                            '.nii.gz',
+                            '.h5',
+                            '.vol',
+                            '.dcm',
                             '.zarr'
-                            ], 
-                            value = '.tiff', 
-                            label = 'File format', 
+                            ],
+                            value = '.tiff',
+                            label = 'File format',
                             interactive=True)
                     volume_file = gr.File(visible = False)
                 # with gr.Row():
                 with gr.Group():
                     generate_html = gr.Button('Save interactive plot', variant = 'primary')
                     html_file = gr.File(visible = False)
-                        
+
 
             with gr.Column(scale= 3):
 
@@ -159,7 +159,7 @@ class Interface(BaseInterface):
               fn = self.plot_volume,
               inputs = display_inputs,
               outputs = viz_outputs)
-        
+
         # Axis of shape if only available if shape is not None
         shape.change(self.toggle_axis, inputs=shape, outputs=axis)
 

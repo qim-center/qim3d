@@ -128,14 +128,14 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
         os.rmdir(folder)
 
 def get_all_functions_by_module():
-    """ 
+    """
     Creates and returns a dictionary of functions from the qim3d modules.
     """
 
     # List of qim3d modules
     # TODO: Get this list automatically from the qim3d package information
     modules = [
-        'io', 'generate', 'viz', 'features', 'filters', 'detection', 
+        'io', 'generate', 'viz', 'features', 'filters', 'detection',
         'segmentation', 'operations', 'processing', 'mesh', 'ml',
     ]
 
@@ -146,7 +146,7 @@ def get_all_functions_by_module():
 
         # Dynamically import the module
         module = importlib.import_module(f'qim3d.{module_name}')
-        
+
         # Retrieve all functions listed in the __all__ variable
         functions = [
             getattr(module, name)
@@ -156,7 +156,7 @@ def get_all_functions_by_module():
 
         # Only keep functions (not classes) in the list
         functions = [func for func in functions if inspect.isfunction(func)]
-        
+
         # Store the functions in the dictionary
         functions_by_module[module_name] = functions
 
@@ -186,7 +186,7 @@ def merge_code_blocks(code_blocks):
             # If there's an existing block, add it to the merged list
             if current_block.strip():
                 merged_blocks.append(current_block.strip())
-                
+
             # Start a new block
             current_block = block
         else:
