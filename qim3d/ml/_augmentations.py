@@ -27,7 +27,7 @@ class Augmentation:
         ```python
         import qim3d
 
-        # Create an augmentation strategy that crops images and applies moderate 
+        # Create an augmentation strategy that crops images and applies moderate
         # transformations during training.
         augmentation = qim3d.ml.Augmentation(resize='crop', transform_train='moderate')
         ```

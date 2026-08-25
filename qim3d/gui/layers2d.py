@@ -159,7 +159,7 @@ class Interface(BaseInterface):
             20em if all of them are visible
 
             When one slicing axis is made unvisible we want the other two images to be bigger
-            For some reason, gradio changes their width but not their height. So we have to 
+            For some reason, gradio changes their width but not their height. So we have to
             change their height manually
             """
 

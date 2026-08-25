@@ -43,10 +43,10 @@ def segment_layers(
         # Load data (using a 2D slice for this example)
         # In this image, we want to find 2 distinct boundaries
         layers_image = qim3d.io.load('layers3d.tif')[:,:,0]
-        
+
         # Segment the layers
         layers = qim3d.processing.segment_layers(layers_image, n_layers=2)
-        
+
         # Extract the line coordinates for plotting
         layer_lines = qim3d.processing.get_lines(layers)
 
@@ -125,7 +125,7 @@ def get_lines(segmentations: list[np.ndarray]) -> list:
         ```python
         # Assuming 'layers' is the output from segment_layers
         lines = qim3d.processing.get_lines(layers)
-        
+
         # Plotting the first layer
         plt.plot(lines[0], color='red')
         ```

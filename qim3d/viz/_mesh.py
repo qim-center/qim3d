@@ -31,10 +31,10 @@ def mesh(
         show (bool, optional): If True, displays the visualization inline, useful for multiple plots.
             Works only with backend `pyvista`. Defaults to True.
         save_screenshot (str, optional): If True, saves the visualization as an `png` file.
-            The string is interpreted as the file path where the screenshot will 
+            The string is interpreted as the file path where the screenshot will
             be saved. Works only with the backend `pyvista`. Defaults to ''.
         export_html (str, optional): If True, saves the visualization as an `html` file.
-            The string is interpreted as the file path where the scene will 
+            The string is interpreted as the file path where the scene will
             be saved. Works only with the backend `pyvista`. Defaults to ''.
         explode (int, optional): Only works when mesh is qim3d.mesh.VolumeMesh.
             Defines how spread are the tetrahedrons. If 0, the volume us intact.
@@ -87,12 +87,12 @@ def mesh(
 
         if wireframe:
             kwargs['style'] =  'wireframe'
-        plotter.add_mesh(mesh, 
-                         show_edges = show_edges, 
+        plotter.add_mesh(mesh,
+                         show_edges = show_edges,
                          smooth_shading = smooth_shading,
                          show_scalar_bar=False,
                          color = face_color,
-                         edge_color=edge_color, 
+                         edge_color=edge_color,
                          **kwargs)
 
         if show:

@@ -178,7 +178,7 @@ class Interface(BaseInterface):
         # fmt: off
         img_editor.change(
             fn = self.clear_files, inputs = None , outputs = None).then(                        # Prepares for handling the new update
-            fn = self.create_preview, inputs = img_editor, outputs = overlay_img).then(         # Create the preview in top right corner                                           
+            fn = self.create_preview, inputs = img_editor, outputs = overlay_img).then(         # Create the preview in top right corner
             fn = self.set_visible, inputs = None, outputs = overlay_img).then(                  # Makes the preview visible
             fn = self.create_download_list, inputs = img_editor, outputs = masks_download).then(# Separates the color mask and put them into file list
             fn = self.set_visible, inputs = None, outputs = masks_download)                     # Displays the download file list

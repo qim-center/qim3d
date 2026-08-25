@@ -88,13 +88,13 @@ class _Myfolder:
 class Downloader:
     """
     Provides access to the QIM online data repository and manages file downloads.
-    
-    This utility allows users to easily fetch, download, and load sample datasets for testing, 
-    benchmarking, or educational purposes. It automatically handles local caching to avoid 
+
+    This utility allows users to easily fetch, download, and load sample datasets for testing,
+    benchmarking, or educational purposes. It automatically handles local caching to avoid
     repeated downloads of the same file.
-    
-    The `Downloader` acts as an interface to the [QIM data repository](https://data.qim.dk/), 
-    organizing files into accessible attributes (e.g., `downloader.Cowry_Shell.Cowry_DOWNSAMPLED`). It also 
+
+    The `Downloader` acts as an interface to the [QIM data repository](https://data.qim.dk/),
+    organizing files into accessible attributes (e.g., `downloader.Cowry_Shell.Cowry_DOWNSAMPLED`). It also
     serves as a general-purpose tool to retrieve files from any given URL via the `__call__` method.
 
     Attributes:
@@ -137,10 +137,10 @@ class Downloader:
         import qim3d
 
         downloader = qim3d.io.Downloader()
-        
+
         # Browse available files
         downloader.list_files()
-        
+
         # Download and load a specific sample
         data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
 
@@ -165,29 +165,29 @@ class Downloader:
         """
         Downloads a file or dataset from a direct URL.
 
-        This function serves as a general-purpose file retriever, capable of fetching data from 
-        external resources or cloud storage. It supports standard image formats (TIFF, HDF5, NIfTI, DICOM) 
+        This function serves as a general-purpose file retriever, capable of fetching data from
+        external resources or cloud storage. It supports standard image formats (TIFF, HDF5, NIfTI, DICOM)
         as well as modern chunked formats (Zarr, OME-Zarr).
 
-        For large 3D volumes that may exceed available RAM, this function supports lazy loading 
-        via the `virtual_stack` parameter. This allows users to work with metadata and open the 
+        For large 3D volumes that may exceed available RAM, this function supports lazy loading
+        via the `virtual_stack` parameter. This allows users to work with metadata and open the
         file without immediately reading the full pixel data into memory.
 
         Args:
             url (str):
                 The direct URL of the file to download. Supported formats include:
-                regular files (TIFF, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM) 
+                regular files (TIFF, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM)
                 and Zarr/OME-Zarr stores.
             output_dir (str, optional):
                 The local directory where the file will be saved. Defaults to the current working directory.
             load_file (bool, optional):
-                If `True`, the function will import/read the file into a Python object after downloading. 
+                If `True`, the function will import/read the file into a Python object after downloading.
                 If `False`, it only downloads the file to the disk. Default is `False`.
             virtual_stack (bool, optional):
-                If `True`, the file is loaded as a virtual stack (lazy loading) if the format supports it. 
+                If `True`, the file is loaded as a virtual stack (lazy loading) if the format supports it.
                 This is recommended for large datasets to save memory. Default is `True`.
             scale (int, optional):
-                Used only for Zarr/OME-Zarr stores when `load_file` is True. Specifies the resolution 
+                Used only for Zarr/OME-Zarr stores when `load_file` is True. Specifies the resolution
                 level (pyramid scale) to load. 0 is full resolution. Default is 0.
 
         Returns:
@@ -283,9 +283,9 @@ class Downloader:
     def list_files(self) -> None:
         """
         Displays a catalog of all available datasets in the QIM repository.
-        
-        This method prints a formatted list of folder names, file names, and file sizes to the console log. 
-        It is useful for exploring the inventory of biological and material science scans available for 
+
+        This method prints a formatted list of folder names, file names, and file sizes to the console log.
+        It is useful for exploring the inventory of biological and material science scans available for
         download without needing to visit the website.
 
         The output groups files by their parent folder (e.g., 'Coal', 'Corals', 'Foam').

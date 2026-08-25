@@ -10,18 +10,18 @@ class LabeledVolume:
         self.shape = labels.shape
         self._sizes = None
         self._count = self.labels.max()
-    
+
     @property
     def sizes(self) -> np.ndarray:
         """Returns the sizes of the labels."""
         if self._sizes is None:
             self._sizes = np.bincount(self.labels.ravel())
         return self._sizes
-    
+
     def __len__(self) -> int:
         """Number of non-background labels"""
         return self._count
-    
+
     def filter_by_size(self, min_size: int = None, max_size: int = None) -> np.ndarray:
         """
         Extract a labels volume where only the labels with size within the chosen range are kept.
@@ -137,7 +137,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
     Args:
         volume (np.ndarray): The binary input volume (boolean or integer) where non-zero values represent the foreground objects.
         connectivity (int, optional): Defines which neighbors are considered "connected".
-            
+
             * **1**: Faces only (6-connectivity in 3D). Closest packing.
             * **2**: Faces and edges (18-connectivity in 3D).
             * **3**: Faces, edges, and corners (26-connectivity in 3D). Loose packing.
@@ -156,7 +156,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
         qim3d.viz.slicer(cc.labels, slice_axis=1, colormap=color_map)
         ```
-    
+
     Example: Show the largest connected components
         ```python
         import qim3d
@@ -169,7 +169,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         color_map = qim3d.viz.colormaps.segmentation(len(cc), style='bright')
         qim3d.viz.volumetric(filtered, colormap=color_map, constant_opacity=True)
         ```
-    
+
     Example: Filter the connected components by size
         ```python
         import qim3d
@@ -177,7 +177,7 @@ def connected_components(volume: np.ndarray, connectivity: int = 1) -> Connected
         vol = qim3d.examples.cement_128x128x128
         binary = qim3d.filters.gaussian(vol, sigma=2) < 60
         cc = qim3d.segmentation.connected_components(binary)
-        
+
         # Show a histogram of the distribution of label sizes
         cc.sizes_histogram()
 

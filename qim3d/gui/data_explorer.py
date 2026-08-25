@@ -179,7 +179,7 @@ class Interface(BaseInterface):
                             )
                         else:
                             return gr.update(visible=False)
-                        
+
                     except Exception as e:
                         log.info(f'Error when reading zarr multiscale info: {e}')
                         return gr.update(visible=False)
@@ -388,12 +388,12 @@ class Interface(BaseInterface):
     #######################################################
 
     def start_session(
-        self, 
-        load_series: bool, 
-        series_contains: str, 
-        explorer: str, 
-        base_path: str, 
-        zarr_group_member:str, 
+        self,
+        load_series: bool,
+        series_contains: str,
+        explorer: str,
+        base_path: str,
+        zarr_group_member:str,
     ):
         self.projections_calculated = (
             False  # Probably new file was loaded, we would need new projections

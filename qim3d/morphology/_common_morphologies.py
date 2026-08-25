@@ -474,7 +474,7 @@ def black_tophat(
         qim3d.viz.volumetric(vol)
         ```
         <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
-        
+
         ```python
         # Apply the black top-hat to extract dark details
         vol_black = qim3d.morphology.black_tophat(vol, kernel=(10,10,10), method='scipy.ndimage')

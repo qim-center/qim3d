@@ -504,70 +504,70 @@ def volume_collection(
     """
     Generates a synthetic dataset of multiple non-overlapping volumes with ground truth labels.
 
-    This function creates a "collection" volume populated with multiple objects. It uses a collision 
-    detection algorithm to ensure objects do not overlap. Crucially, it returns a **label mask** where each object is identified by a unique integer ID, making this tool ideal for generating 
+    This function creates a "collection" volume populated with multiple objects. It uses a collision
+    detection algorithm to ensure objects do not overlap. Crucially, it returns a **label mask** where each object is identified by a unique integer ID, making this tool ideal for generating
     training data for **Instance Segmentation** or **Object Detection** models.
 
-    Objects can be generated synthetically (blobs, cylinders, tubes) with randomized properties, 
+    Objects can be generated synthetically (blobs, cylinders, tubes) with randomized properties,
     or you can inject your own pre-existing 3D arrays using the `data` parameter.
 
     Args:
-        n_volumes (int, optional): 
+        n_volumes (int, optional):
             Target number of volumes/objects to place in the collection.
-        collection_shape (tuple, optional): 
+        collection_shape (tuple, optional):
             Dimensions of the final container volume (Z, Y, X).
-        data (numpy.ndarray or list[numpy.ndarray], optional): 
-            Pre-defined 3D volume(s) to place into the collection. If provided, the function picks 
-            randomly from this list instead of generating new synthetic blobs. Useful for creating 
+        data (numpy.ndarray or list[numpy.ndarray], optional):
+            Pre-defined 3D volume(s) to place into the collection. If provided, the function picks
+            randomly from this list instead of generating new synthetic blobs. Useful for creating
             scenes with specific real-world objects.
-        positions (list[tuple], optional): 
-            List of specific (z, y, x) center coordinates for placement. If `None`, positions are 
+        positions (list[tuple], optional):
+            List of specific (z, y, x) center coordinates for placement. If `None`, positions are
             chosen randomly. If provided, `n_volumes` must match the length of this list.
-        shape_range (tuple[tuple], optional): 
+        shape_range (tuple[tuple], optional):
             Defines the size variance of generated objects. Format: `((min_z, min_y, min_x), (max_z, max_y, max_x))`.
-        shape_magnification_range (tuple[float], optional): 
+        shape_magnification_range (tuple[float], optional):
             Range for random uniform scaling factors applied to the object shape.
-        noise_type (str, optional): 
+        noise_type (str, optional):
             Algorithm for synthetic texture generation: `'perlin'`, `'simplex'`, or `'mixed'` (randomly selects per object).
-        noise_range (tuple[float], optional): 
+        noise_range (tuple[float], optional):
             Range for the noise scale parameter (roughness).
-        rotation_degree_range (tuple[int], optional): 
+        rotation_degree_range (tuple[int], optional):
             Range of rotation angles (in degrees) to apply to each object.
-        rotation_axes (list[tuple], optional): 
+        rotation_axes (list[tuple], optional):
             List of axis pairs to rotate around (e.g., `[(0, 1)]` for XY rotation).
-        gamma_range (tuple[float], optional): 
+        gamma_range (tuple[float], optional):
             Range for gamma correction (contrast).
-        value_range (tuple[int], optional): 
+        value_range (tuple[int], optional):
             Range for the maximum intensity value of the objects.
-        threshold_range (tuple[float], optional): 
+        threshold_range (tuple[float], optional):
             Range for the threshold used to define the object surface/size.
-        decay_rate_range (tuple[float], optional): 
+        decay_rate_range (tuple[float], optional):
             Range for the edge decay rate (fading at boundaries).
-        shape (str, optional): 
+        shape (str, optional):
             Force a specific geometric shape: `'cylinder'`, `'tube'`, or `None` (organic blob).
-        tube_hole_ratio (float, optional): 
+        tube_hole_ratio (float, optional):
             Ratio of the inner hole if `shape='tube'`.
-        axis (int, optional): 
+        axis (int, optional):
             Orientation axis (0, 1, 2) if `shape` is defined.
-        verbose (bool, optional): 
+        verbose (bool, optional):
             If `True`, enables detailed logging of placement attempts.
-        same_seed (bool, optional): 
+        same_seed (bool, optional):
             If `True`, reuses the same random seed for every object (they will look identical).
-        hollow (bool, optional): 
+        hollow (bool, optional):
             If `True`, applies a hollowing operation to synthetic objects.
-        seed (int, optional): 
+        seed (int, optional):
             Global random seed for reproducibility.
-        dtype (str, optional): 
+        dtype (str, optional):
             Data type of the output arrays.
-        return_positions (bool, optional): 
+        return_positions (bool, optional):
             If `True`, the function returns a third element containing the list of successfully placed coordinates.
 
     Returns:
-        volume_collection (numpy.ndarray): 
+        volume_collection (numpy.ndarray):
             The 3D volume containing all placed objects.
-        labels (numpy.ndarray): 
+        labels (numpy.ndarray):
             A 3D integer mask of the same shape, where 0 is background and 1..N are the object IDs.
-        positions (list[tuple]): 
+        positions (list[tuple]):
             (Only if `return_positions=True`) A list of (z, y, x) coordinates for the centers of the placed objects.
 
     Raises:

@@ -224,4 +224,3 @@ def _read_ole_image(ole, label, metadata, datatype=None):
     )
     return image
 
-         

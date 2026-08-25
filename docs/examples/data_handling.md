@@ -15,7 +15,7 @@ data = downloader.Mussel.ClosedMussel1_DOWNSAMPLED(load_file=True)
 <div class="notebook-output"><pre>
 Downloading ClosedMussel1_DOWNSAMPLED.tif
 https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Mussel/ClosedMussel1_DOWNSAMPLED.tif
-143MB [00:05, 26.5MB/s]                                                         
+143MB [00:05, 26.5MB/s]  
 
 Loading ClosedMussel1_DOWNSAMPLED.tif
 Using virtual stack

@@ -23,10 +23,10 @@ def blobs(
     Args:
         volume (np.ndarray): The 3D input volume.
         background (str, optional): The intensity of the background relative to the objects.
-            
+
             * **'dark'**: Use if the background is darker than the objects (detects bright spots).
             * **'bright'**: Use if the background is lighter than the objects (detects dark spots/pores).
-        
+
         min_sigma (float, optional): The minimum standard deviation for the Gaussian kernel. Controls the smallest blob size to detect. Defaults to 1.
         max_sigma (float, optional): The maximum standard deviation for the Gaussian kernel. Controls the largest blob size to detect. Defaults to 50.
         sigma_ratio (float, optional): The ratio between the standard deviations of consecutive Gaussian kernels in the scale space. Defaults to 1.6.

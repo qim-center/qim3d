@@ -361,7 +361,7 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
     Args:
         volume (np.ndarray): The input 3D volume.
         coarseness (int or list[int]): The step size (stride) for sampling.
-            
+
             * **int**: Applies the same step size to all axes (isotropic downsampling). A value of `1` returns the original volume. A value of `2` takes every second voxel.
             * **list[int]**: A list of 3 integers specifying the step size for each axis `[z, y, x]`.
 
@@ -376,10 +376,10 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
 
         # Create a sample volume
         vol = np.zeros((100, 100, 100))
-        
+
         # Subsample by taking every 4th voxel
         vol_small = qim3d.operations.subsample(vol, coarseness=4)
-        
+
         print(f"Original shape: {vol.shape}")
         print(f"Subsampled shape: {vol_small.shape}")
         ```
@@ -431,11 +431,11 @@ def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
 
         # Create a volume with 1 million voxels
         vol = np.zeros((100, 100, 100))
-        
+
         # Subsample to keep ~1.5% of the data
         # Ideally, stride = cbrt(1/0.015) ≈ 4.05 -> stride 4
         vol_small = qim3d.operations.ratio_subsample(vol, ratio=0.015)
-        
+
         print(f"Original size: {vol.size}")
         print(f"Subsampled size: {vol_small.size}")
         print(f"Actual ratio: {vol_small.size / vol.size:.4f}")

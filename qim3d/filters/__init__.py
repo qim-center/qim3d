@@ -4,7 +4,7 @@ from ._common_filter_methods import (
 )
 
 __all__ = [
-    'gaussian', 
+    'gaussian',
     'median',
     'maximum',
     'minimum',
