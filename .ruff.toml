@@ -1,0 +1,650 @@
+unsafe-fixes = false
+lint.preview = true
+
+# See: https://google.github.io/styleguide/pyguide.html#383-functions-and-methods
+lint.pydocstyle.convention = "google"
+
+# See: https://docs.astral.sh/ruff/rules/
+lint.select = ["ALL"]
+lint.ignore = [
+    # Permanent rules that we currently wish to follow (until proven otherwise)
+    # AIR: apache-airflow
+    "AIR", #we don't use Airflow, so N/A
+    # COM: flake8-commas
+    "COM819",  # prohibited-trailing-comma: Unnecessary trailing comma (this is used to signal preservation of newlines for formatter)
+    # CPY: flake8-copyright
+    "CPY001",  # copyright notice header in files
+    # D: pydocstyle
+    "D413",    # missing blank line after last section of docstring (we use Google convention, so not advised)
+    # E: flake8-errmsg
+    "EM101",  # raw-string-in-exception: too restrictive
+    "EM102",  # f-string-in-exception: too restrictive
+    "EM103",  # dot-format-in-exception: too restrictive
+    # FAST: fastapi
+    "FAST", # we don't use FastAPI, so N/A
+    # FURB: refurb
+    "FURB131",  # delete-full-slice: too many false positives, ignored
+    "FURB145",  # slice-copy: too many false positives, ignored
+    "FURB154",  # repeated-global: ignored, too opinionated
+    # PLR: Pylint - Refactor
+    "PLR2004", # magic value in comparison (unidiomatic, e.g. `arr.shape == 3` would violate this)
+    # RUF: Ruff
+    "RUF201", # rule-codes-in-selectors: we prefer to use rule codes in this file.
+
+    # # Below here are rules that we wish to comply with but currently do not.
+    # # Over time, hopefully we can remove some of these.
+    # # Critical (fix ASAP)
+    # "F821",   # undefined name
+    # "SIM115", # Use context manager when opening files
+    # "B006",   # Do not use mutable data structures for argument defaults
+    # "B026",   # star-arg after keyword-arg
+
+    # # Hard
+    # "E501",   # line too long
+    # "ANN001", # missing type annotation for function arg
+    # "ANN201", # missing type annotation for function return
+    # # "ANN203",  # missing type annotation TODO
+    # "ANN204", # missing type annotation for special method
+
+    # # Medium
+    # "PLW1510", # subprocess.run without check
+    # "S607",    # subprocess with partial executable path
+    # "S603",    # subprocess potentially untrusted input
+    # "ANN202",  # missing return type annotation (private func)
+    # "S102",    # use of exec
+    # "BLE001",  # do not catch blind Exception
+    # "E722",    # do not use bare except
+    # "TRY002",  # raise Exception
+    # "D100",    # missing docstring in public module
+    # "D101",    # missing docstring in public class
+    # "D102",    # missing docstring in public method
+    # "D103",    # missing docstring in public function
+    # "D104",    # missing docstring in public package
+    # "D107",    # missing docstring in __init__
+    # "ERA001",  # commented out code
+
+    # # Easy
+    # "PLW0602", # using global but no assignment done
+    # "F841",    # local variable assigned but unused
+    # "F401",    # imported but unused (remove or explicit re-export)
+    # "TRY004",  # prefer TypeError for invalid type
+    # "RUF015",  # Prefer next(iter(...)) over list(...)[0]
+    # "RUF059",  # Unpacked variable never used
+    # "RUF013",  # Implicit Optional[...]
+    # "RUF057",  # Value being rounded is already integer
+    # "C408",    # Unnecessary call
+    # "SIM103",  # Return condition directly if possible
+    # "UP031",   # Use format specifiers instead of percent format
+    # "B008",    # Constant function call for argument default
+    # "FURB192", # Use min over sorted to get minimum of sequence
+    # "RUF046",  # Redundant int cast
+    # "DTZ005",  # use of `datetime.now` without tz
+    # "DTZ006",  # use of `datetime.fromtimestamp` without tz
+    # "PERF102", # use dict.values instead of dict.items where possible
+    # "SIM102",  # unnecessarily nested if statement
+    # "SIM401",  # use dict.get(..., default=...) instead of if where possible
+    # "UP007",   # use X | Y instead of Union[X, Y]
+    # "D401",    # First line of docstring should be imperative mood
+    # "T201",    # Use of print
+    # "PTH100",  # os.path.abspath -> Path.resolve
+    # "PTH102",  # os.mkdir -> Path.mkdir
+    # "PTH106",  # os.rmdir -> Path.rmdir
+    # "PTH107",  # os.remove -> Path.unlink
+    # "PTH108",  # os.unlink -> Path.unlink
+    # "PTH110",  # os.path.exists -> Path.exists
+    # "PTH111",  # os.path.expanduser -> Path.expanduser
+    # "PTH112",  # os.path.isdir -> Path.is_dir
+    # "PTH114",  # os.path.islink -> Path.is_symlink
+    # "PTH119",  # os.path.basename -> Path.name
+    # "PTH120",  # os.path.dirname -> Path.parent
+    # "PTH202",  # os.path.getsize -> Path.stat().st_size
+    # "PTH204",  # os.path.getmtime -> Path.stat().st_mtime
+    # "PTH205",  # os.path.getctime -> Path.stat().st_ctime
+    # "PTH208",  # os.listdir -> Path.iterdir
+    # "D400",    # first line of docstring should end in period
+    # "D415",    # first line of docstring should end in punctuation
+    # "D205",    # 1 blank line required between summary line and description
+    # "D200",    # one-line docstring should fit on one line
+    # "A002",    # shadowing of builtin
+]
+
+# These lists of fixable and unfixable rules are exhaustive to prevent accidentally
+# enabling new automatic fixes when updating ruff.
+# To find potentially fixable rules in the current ruff version that have not yet been
+# explicitly marked as either fixable or unfixable, run `scripts/check_ruff_rules.py` and check the output.
+lint.fixable = [
+    # B: flake8-bugbear
+    "B013", # redundant-tuple-in-exception-handler
+    # COM: flake8-commas
+    "COM812", # missing-trailing-comma: trailing comma missing (good to reduce diffs)
+    # D: pydocstyle
+    "D200", # unnecessary-multiline-docstring
+    "D201", # blank-line-before-function
+    "D202", # blank-line-after-function: no blank line after function docstring
+    "D204", # incorrect-blank-line-after-class: Usually no with google convention, but we like
+    "D205", # missing-blank-line-after-summary
+    "D209", # new-line-after-last-paragraph: end """ should be on new line, per PEP257
+    "D210", # surrounding-whitespace: remove whitespace around """ in docstring
+    "D211", # blank-line-before-class: no blank lines before class docstring
+    "D212", # multi-line-summary-first-line: preferred over D213 when using google convention
+    "D214", # overindented-section: over-indented section in docstring
+    "D300", # triple-single-quotes: always use """ for docstrings, per PEP257
+    "D301", # escape-sequence-in-docstring: should use r""" if docstring contains escape sequences, per PEP257
+    "D400", # missing-trailing-period: first line of docstring should end in period, per PEP257
+    "D403", # first-word-uncapitalized: first word of docstring should be capitalized
+    "D405", # non-capitalized-section-name: section name should be capitalized, per google convention
+    "D410", # no-blank-line-after-section: google docstring convention
+    "D411", # no-blank-line-before-section: google docstring convention
+    "D412", # blank-lines-between-header-and-content
+    "D415", # missing-terminal-punctuation: google docstring convention
+    "D416", # missing-section-name-colon: google docstring convention
+    # E: pydocstyle - Error
+    "E201", # whitespace-after-open-bxracket
+    "E202", # whitespace-before-close-bracket
+    "E203", # whitespace-before-punctuation
+    "E204", # whitespace-after-decorator
+    "E211", # whitespace-before-parameters
+    "E221", # multiple-spaces-before-operator
+    "E222", # multiple-spaces-after-operator
+    "E223", # tab-before-operator
+    "E224", # tab-after-operator
+    "E225", # missing-whitespace-around-operator
+    "E226", # missing-whitespace-around-arithmetic-operator
+    "E227", # missing-whitespace-around-bitwise-or-shift-operator
+    "E228", # missing-whitespace-around-modulo-operator
+    "E231", # missing-whitespace
+    "E241", # multiple-spaces-after-comma
+    "E242", # tab-after-comma
+    "E251", # unexpected-spaces-around-keyword-parameter-equals
+    "E252", # missing-whitespace-around-parameter-equals
+    "E261", # too-few-spaces-before-inline-comment
+    "E262", # no-space-after-inline-comment
+    "E265", # no-space-after-block-comment
+    "E271", # multiple-spaces-after-keyword
+    "E272", # multiple-spaces-before-keyword
+    "E273", # tab-after-keyword
+    "E274", # tab-before-keyword
+    "E275", # missing-whitespace-after-keyword
+    "E301", # blank-line-between-methods
+    "E302", # blank-lines-top-level
+    "E303", # too-many-blank-lines
+    "E304", # blank-line-after-decorator
+    "E305", # blank-lines-after-function-or-class
+    "E306", # blank-lines-before-nested-definition
+    "E401", # multiple-imports-on-one-line
+    "E402", # module-import-not-at-top-of-file
+    "E502", # redundant-backslash
+    "E703", # useless-semicolon
+    "E711", # none-comparison
+    "E712", # true-false-comparison
+    "E713", # not-in-test
+    "E714", # not-is-test
+    # EXE: flake8-executable
+    "EXE004", # shebang-leading-whitespace: remove whitespace before #!...
+    # F: Pyflakes
+    "F401", # unused-import: imported, but unused
+    "F541", # f-string-missing-placeholders: f-string without placeholders
+    # FA: flake8-future-annotations
+    "FA100", # future-rewritable-type-annotation
+    "FA102", # future-required-type-annotation
+    # FURB: refurb
+    "FURB105", # print-empty-string
+    # I: isort
+    "I001", # unsorted-imports: import block unsorted
+    "I002", # missing-required-import: any configured required imports are added
+    # ISC: flake8-implicit-str-concat
+    "ISC001", # single-line-implicit-string-concatenation
+    "ISC003", # explicit-string-concatenation
+    # PIE: flake8-pie
+    "PIE790", # unnecessary-placeholder: redundant ... or pass
+    "PIE808", # unnecessary-range-start: range(0, 3) -> range(3)
+    # PLE: Pylint - Error
+    "PLE2510", # invalid-character-backspace
+    "PLE2512", # invalid-character-sub
+    "PLE2513", # invalid-character-esc
+    "PLE2514", # invalid-character-nul
+    "PLE2515", # invalid-character-zero-width-space
+    # PLR: Pylint - Refactor
+    "PLR0402", # manual-from-import
+    "PLR5501", # collapsible-else-if
+    # PT: flake8-pytest-style
+    "PT001", # pytest-fixture-incorrect-parentheses-style
+    "PT023", # pytest-incorrect-mark-parentheses-style
+    "PT026", # pytest-use-fixtures-without-parameters
+    # PYI: flake8-pyi
+    "PYI009", # pass-statement-stub-body
+    "PYI016", # duplicate-union-member
+    "PYI030", # unnecessary-literal-union
+    "PYI041", # redundant-numeric-union
+    "PYI061", # redundant-none-literal
+    "PYI062", # duplicate-literal-member
+    # Q: flake8-quotes
+    "Q000", # bad-quotes-inline-string: ' -> "
+    "Q001", # bad-quotes-multiline-string: ''' -> """
+    "Q002", # bad-quotes-docstring: '''...''' -> """..."""
+    "Q003", # avoidable-escaped-quote: "\"" -> '"'
+    "Q004", # unnecessary-escaped-quote '\"' -> '"'
+    # RSE: flake8-raise
+    "RSE102", # unnecessary-paren-on-raise-exception
+    # RUF: Ruff
+    "RUF021", # parenthesize-chained-operators
+    "RUF022", # unsorted-dunder-all
+    "RUF023", # unsorted-dunder-slots
+    "RUF036", # none-not-at-end-of-union
+    "RUF038", # redundant-bool-literal
+    "RUF041", # unnecessary-nested-literal
+    # TC: flake8-type-checking
+    "TC008", # quoted-type-alias: prefer this over TC007
+    # TD: flake8-todos
+    "TD006", # invalid-todo-capitalization: # todo -> # TODO
+    # UP: pyupgrade
+    "UP001", # useless-metaclass-type
+    "UP003", # type-of-primitive
+    "UP004", # useless-object-inheritance
+    "UP005", # deprecated-unittest-alias
+    "UP006", # non-pep585-annotation
+    "UP007", # non-pep604-annotation-union
+    "UP008", # super-call-with-parameters
+    "UP009", # utf8-encoding-declaration
+    "UP010", # unnecessary-future-import
+    "UP011", # lru-cache-without-parameters
+    "UP012", # unnecessary-encode-utf8
+    "UP013", # convert-typed-dict-functional-to-class
+    "UP014", # convert-named-tuple-functional-to-class
+    "UP015", # redundant-open-modes
+    "UP017", # datetime-timezone-utc
+    "UP018", # native-literals
+    "UP019", # typing-text-str-alias
+    "UP020", # open-alias
+    "UP021", # replace-universal-newlines
+    "UP022", # replace-stdout-stderr
+    "UP023", # deprecated-c-element-tree
+    "UP024", # os-error-alias
+    "UP025", # unicode-kind-prefix
+    "UP026", # deprecated-mock-import
+    "UP028", # yield-in-for-loop
+    "UP029", # unnecessary-builtin-import
+    "UP030", # format-literals
+    "UP031", # printf-string-formatting
+    "UP032", # f-string
+    "UP033", # lru-cache-with-maxsize-none
+    "UP034", # extraneous-parentheses
+    "UP035", # deprecated-import
+    "UP036", # outdated-version-block
+    "UP037", # quoted-annotation
+    "UP039", # unnecessary-class-parentheses
+    "UP040", # non-pep695-type-alias
+    "UP041", # timeout-error-alias
+    "UP042", # replace-str-enum
+    "UP043", # unnecessary-default-type-args
+    "UP044", # non-pep646-unpack
+    "UP045", # non-pep604-annotation-optional
+    "UP046", # non-pep695-generic-class
+    "UP047", # non-pep695-generic-function
+    "UP048", # while-one
+    "UP049", # private-type-parameter
+    "UP050", # useless-class-metaclass-type
+    "UP051", # deprecated-abc-decorator
+    # W: pycodestyle - Warning
+    "W291", # trailing-whitespace
+    "W292", # missing-newline-at-end-of-file
+    "W293", # blank-line-with-whitespace
+    "W391", # too-many-newlines-at-end-of-file
+]
+
+# See comment above lint.fixable
+# Some of these would be fine to fix automatically, but it feels a bit too magical to do so
+# so instead we want to raise the hint and have the developer fix it manually.
+# These are marked as 'should be fixed manually'.
+lint.unfixable = [
+    # AIR: apache-airflow
+    "AIR", # we don't use Airflow, so N/A
+    # FAST: fastapi
+    "FAST", # we don't use FastAPI, so N/A
+    # ANN: flake8-annotations
+    "ANN201", # missing-return-type-undocumented-public-function: should be fixed manually
+    "ANN202", # missing-return-type-private-function: should be fixed manually
+    "ANN204", # missing-return-type-special-method: should be fixed manually
+    "ANN205", # missing-return-type-static-method: should be fixed manually
+    "ANN206", # missing-return-type-class-method: should be fixed manually
+    # ASYNC: flake8-async
+    "ASYNC105", # trio-sync-call: should be fixed manually
+    "ASYNC115", # async-zero-sleep: should be fixed manually
+    "ASYNC116", # long-sleep-not-forever: should be fixed manually
+    # B: flake8-bugbear
+    "B004", # unreliable-callable-check: should be fixed manually
+    "B006", # mutable-argument-default: should be fixed manually
+    "B007", # unused-loop-control-variable: should be fixed manually
+    "B009", # get-attr-with-constant: should be fixed manually
+    "B010", # set-attr-with-constant: should be fixed manually
+    "B011", # assert-false: should be fixed manually
+    "B014", # duplicate-handler-exception: should be fixed manually
+    "B028", # no-explicit-stacklevel: should be fixed manually
+    "B033", # duplicate-value: should be fixed manually
+    "B043", # del-attr-with-constant: should be fixed manually
+    "B905", # zip-without-explicit-strict: should be fixed manually
+    "B912", # map-without-explicit-strict: should be fixed manually
+    # C4: flake8-comprehensions
+    "C400", # unnecessary-generator-list: unsafe, should be fixed manually
+    "C401", # unnecessary-generator-set: unsafe, should be fixed manually
+    "C402", # unnecessary-generator-dict: unsafe, should be fixed manually
+    "C403", # unnecessary-list-comprehension-set: unsafe, should be fixed manually
+    "C404", # unnecessary-list-comprehension-dict: unsafe, should be fixed manually
+    "C405", # unnecessary-literal-set: unsafe, should be fixed manually
+    "C406", # unnecessary-literal-dict: unsafe, should be fixed manually
+    "C408", # unnecessary-collection-call: unsafe, should be fixed manually
+    "C409", # unnecessary-literal-within-tuple-call: unsafe, should be fixed manually
+    "C410", # unnecessary-literal-within-list-call: unsafe, should be fixed manually
+    "C411", # unnecessary-list-call: unsafe, should be fixed manually
+    "C413", # unnecessary-call-around-sorted: unsafe, should be fixed manually
+    "C414", # unnecessary-double-cast-or-process: unsafe, should be fixed manually
+    "C416", # unnecessary-comprehension: unsafe, should be fixed manually
+    "C417", # unnecessary-map: unsafe, should be fixed manually
+    "C418", # unnecessary-literal-within-dict-call: unsafe, should be fixed manually
+    "C419", # unnecessary-comprehension-in-call: unsafe, should be fixed manually
+    "C420", # unnecessary-dict-comprehension-for-iterable: unsafe, should be fixed manually
+    # COM: flake8-commas
+    "COM819", # prohibited-trailing-comma: Unnecessary trailing comma (this is used to signal preservation of newlines for formatter)
+    # D: pydocstyle
+    "D203", # incorrect-blank-line-before-class: N/A with google convention
+    "D207", # under-indentation: indention should match opening. Ignored per documentation since formatter already fixes
+    "D208", # over-indentation: indention should match opening. Ignored per documentation since formatter already fixes
+    "D213", # multi-line-summary-second-line: D212 preferred when using google convention
+    "D215", # overindented-section-underline: N/A with google convention
+    "D407", # missing-dashed-underline-after-section N/A with google convention
+    "D408", # missing-section-underline-after-name: N/A with google convention
+    "D409", # mismatched-section-underline-length: N/A with google convention
+    "D413", # missing-blank-line-after-last-section: N/A with google convention
+    # E: pydocstyle - Error
+    "E266", # multiple-leading-hashes-for-block-comment: should be fixed manually
+    "E731", # lambda-assignment: should be fixed manually
+    # EM: flake8-errmsg
+    "EM101", # raw-string-in-exception: ignored
+    "EM102", # f-string-in-exception: ignored
+    "EM103", # dot-format-in-exception: ignored
+    # F: Pyflakes
+    "F504", # percent-format-extra-named-arguments: unused key in printf, should be fixed manually
+    "F522", # string-dot-format-extra-named-arguments: unused arg in str.format, should be fixed manually
+    "F523", # string-dot-format-extra-positional-arguments: extra args in str.format, should be fixed manually
+    "F601", # multi-value-repeated-key-literal: should be fixed manually
+    "F602", # multi-value-repeated-key-variable: should be fixed manually
+    "F632", # is-literal: should be fixed manually
+    "F811", # redefined-while-unused: should be fixed manually
+    "F841", # unused-variable: should be fixed manually
+    "F901", # raise-not-implemented: should be fixed manually, should be NotImplementedError instead
+    # FLY: flynt
+    "FLY002", # static-join-to-f-string: should be fixed manually
+    # FURB: refurb
+    "FURB101", # read-whole-file: should be fixed manually
+    "FURB103", # write-whole-file: should be fixed manually
+    "FURB110", # if-exp-instead-of-or-operator: should be fixed manually
+    "FURB113", # repeated-append: should be fixed manually
+    "FURB116", # f-string-number-format: should be fixed manually
+    "FURB118", # reimplemented-operator: should be fixed manually
+    "FURB122", # for-loop-writes: should be fixed manually
+    "FURB129", # readlines-in-for: should be fixed manually
+    "FURB131", # delete-full-slice: too many false positives, ignored
+    "FURB132", # check-and-remove-from-set: should be fixed manually
+    "FURB136", # if-expr-min-max: should be fixed manually
+    "FURB140", # reimplemented-starmap: should be fixed manually
+    "FURB142", # for-loop-set-mutations: should be fixed manually
+    "FURB145", # slice-copy: too many false positives, ignored
+    "FURB148", # unnecessary-enumerate: should be fixed manually
+    "FURB152", # math-constant: should be fixed manually
+    "FURB154", # repeated-global: ignored, too opinionated
+    "FURB156", # hardcoded-string-charset: should be fixed manually
+    "FURB157", # verbose-decimal-constructor: should be fixed manually
+    "FURB161", # bit-count: should be fixed manually
+    "FURB162", # fromisoformat-replace-z: should be fixed manually
+    "FURB163", # redundant-log-base: should be fixed manually
+    "FURB164", # unnecessary-from-float: should be fixed manually
+    "FURB166", # int-on-sliced-str: should be fixed manually
+    "FURB167", # regex-flag-alias: should be fixed manually
+    "FURB168", # isinstance-type-none: should be fixed manually
+    "FURB169", # type-none-comparison: should be fixed manually
+    "FURB171", # single-item-membership-test: should be fixed manually
+    "FURB177", # implicit-cwd: should be fixed manually
+    "FURB180", # meta-class-abc-meta: should be fixed manually
+    "FURB181", # hashlib-digest-hex: should be fixed manually
+    "FURB187", # list-reverse-copy: should be fixed manually
+    "FURB188", # slice-to-remove-prefix-or-suffix: should be fixed manually
+    "FURB189", # subclass-builtin: should be fixed manually
+    "FURB192", # sorted-min-max: should be fixed manually
+    # G: flake8-logging-format
+    "G004", # logging-f-string: should be fixed manually
+    "G010", # logging-warn: should be fixed manually
+    # ICN: flake8-import-conventions
+    "ICN001", # unconventional-import-alias: enforce conventional import aliases, i.e. pandas -> pd, should be fixed manually
+    # ISC: flake8-implicit-str-concat
+    "ISC004", # implicit-string-concatenation-in-collection-literal
+    # LOG: flake8-logging
+    "LOG001", # direct-logger-instantiation: should be fixed manually
+    "LOG002", # invalid-get-logger-argument: should be fixed manually
+    "LOG004", # log-exception-outside-except-handler: should be fixed manually
+    "LOG009", # undocumented-warn: should be fixed manually
+    "LOG014", # exc-info-outside-except-handler: should be fixed manually
+    # N: pep8-naming
+    "N804", # invalid-first-argument-name-for-class-method: should be fixed manually
+    "N805", # invalid-first-argument-name-for-method: should be fixed manually
+    # NPY: numpy
+    "NPY001", # numpy-deprecated-type-alias: should be fixed manually
+    "NPY003", # numpy-deprecated-function: should be fixed manually
+    "NPY201", # numpy2-deprecation: should be fixed manually
+    # PD: pandas-vet
+    "PD002", # pandas-use-of-inplace-argument: should be fixed manually
+    # PERF: Perflint
+    "PERF101", # unnecessary-list-cast: should be fixed manually
+    "PERF102", # incorrect-dict-iterator: should be fixed manually
+    "PERF401", # manual-list-comprehension: should be fixed manually
+    "PERF403", # manual-dict-comprehension: should be fixed manually
+    # PGH: pygrep-hooks
+    "PGH004", # blanket-noqa: should be fixed manually
+    # PIE: flake8-pie
+    "PIE794", # duplicate-class-field-definition: should be fixed manually
+    "PIE800", # unnecessary-spread: should be fixed manually
+    "PIE804", # unnecessary-dict-kwargs: should be fixed manually
+    "PIE807", # reimplemented-container-builtin: should be fixed manually
+    "PIE810", # multiple-starts-ends-with: should be fixed manually
+    # PLC: Pylint - Convention
+    "PLC0207", # missing-maxsplit-arg: should be fixed manually
+    "PLC0208", # iteration-over-set: should be fixed manually
+    "PLC0414", # useless-import-alias: should be fixed manually
+    "PLC1802", # len-test: should be fixed manually
+    "PLC2801", # unnecessary-dunder-call: should be fixed manually
+    # PLE: Pylint - Error
+    "PLE0241", # duplicate-bases: should be fixed manually
+    "PLE1141", # dict-iter-missing-items: should be fixed manually
+    "PLE1519", # singledispatch-method: should be fixed manually
+    "PLE1520", # singledispatchmethod-function: should be fixed manually
+    "PLE4703", # modified-iterating-set: should be fixed manually
+    # PLR: Pylint - Refactor
+    "PLR0202", # no-classmethod-decorator: should be fixed manually
+    "PLR0203", # no-staticmethod-decorator: should be fixed manually
+    "PLR1711", # useless-return: should be fixed manually
+    "PLR1712", # swap-with-temporary-variable: should be fixed manually
+    "PLR1714", # repeated-equality-comparison: should be fixed manually
+    "PLR1716", # boolean-chained-comparison: should be fixed manually
+    "PLR1722", # sys-exit-alias: should be fixed manually
+    "PLR1730", # if-stmt-min-max: should be fixed manually
+    "PLR1733", # unnecessary-dict-index-lookup: should be fixed manually
+    "PLR1736", # unnecessary-list-index-lookup: should be fixed manually
+    "PLR2044", # empty-comment: should be fixed manually
+    "PLR6104", # non-augmented-assignment: should be fixed manually
+    "PLR6201", # literal-membership: should be fixed manually
+    # PLW: Pylint - Warning
+    "PLW0108", # unnecessary-lambda: should be fixed manually
+    "PLW0120", # useless-else-on-loop: should be fixed manually
+    "PLW0133", # useless-exception-statement: should be fixed manually
+    "PLW0245", # super-without-brackets: should be fixed manually
+    "PLW1507", # shallow-copy-environ: should be fixed manually
+    "PLW1510", # subprocess-run-without-check: should be fixed manually, good for explicit behaviour
+    "PLW1514", # unspecified-encoding: should be fixed manually, good for explicit behaviour
+    "PLW3301", # nested-min-max: should be fixed manually
+    # PT: flake8-pytest-style
+    "PT003", # pytest-extraneous-scope-function: should be fixed manually
+    "PT006", # pytest-parametrize-names-wrong-type: should be fixed manually
+    "PT007", # pytest-parametrize-values-wrong-type: should be fixed manually
+    "PT009", # pytest-unittest-assertion: should be fixed manually
+    "PT014", # pytest-duplicate-parametrize-test-cases: should be fixed manually
+    "PT018", # pytest-composite-assertion: should be fixed manually
+    "PT022", # pytest-useless-yield-fixture: should be fixed manually
+    "PT024", # pytest-unnecessary-asyncio-mark-on-fixture: should be fixed manually
+    "PT025", # pytest-erroneous-use-fixtures-on-fixture: should be fixed manually
+    "PT027", # pytest-unittest-raises-assertion: should be fixed manually
+    # PTH: flake8-use-pathlib
+    "PTH100", # os-path-abspath: should be fixed manually
+    "PTH101", # os-chmod: should be fixed manually
+    "PTH102", # os-mkdir: should be fixed manually
+    "PTH103", # os-makedirs: should be fixed manually
+    "PTH104", # os-rename: should be fixed manually
+    "PTH105", # os-replace: should be fixed manually
+    "PTH106", # os-rmdir: should be fixed manually
+    "PTH107", # os-remove: should be fixed manually
+    "PTH108", # os-unlink: should be fixed manually
+    "PTH109", # os-getcwd: should be fixed manually
+    "PTH110", # os-path-exists: should be fixed manually
+    "PTH111", # os-path-expanduser: should be fixed manually
+    "PTH112", # os-path-isdir: should be fixed manually
+    "PTH113", # os-path-isfile: should be fixed manually
+    "PTH114", # os-path-islink: should be fixed manually
+    "PTH115", # os-readlink: should be fixed manually
+    "PTH116", # os-stat: should be fixed manually
+    "PTH117", # os-path-isabs: should be fixed manually
+    "PTH119", # os-path-basename: should be fixed manually
+    "PTH120", # os-path-dirname: should be fixed manually
+    "PTH121", # os-path-samefile: should be fixed manually
+    "PTH123", # builtin-open: should be fixed manually
+    "PTH201", # path-constructor-current-directory: should be fixed manually
+    "PTH202", # os-path-getsize: should be fixed manually
+    "PTH203", # os-path-getatime: should be fixed manually
+    "PTH204", # os-path-getmtime: should be fixed manually
+    "PTH205", # os-path-getctime: should be fixed manually
+    "PTH210", # invalid-pathlib-with-suffix: should be fixed manually
+    "PTH211", # os-symlink: should be fixed manually
+    # PYI: flake8-pyi
+    "PYI010", # non-empty-stub-body: should be fixed manually
+    "PYI011", # typed-argument-default-in-stub: should be fixed manually
+    "PYI012", # pass-in-class-body: should be fixed manually
+    "PYI013", # ellipsis-in-non-empty-class-body: should be fixed manually
+    "PYI014", # argument-default-in-stub: should be fixed manually
+    "PYI015", # assignment-default-in-stub: should be fixed manually
+    "PYI018", # unused-private-type-var: should be fixed manually
+    "PYI019", # custom-type-var-for-self: should be fixed manually
+    "PYI020", # quoted-annotation-in-stub: should be fixed manually
+    "PYI021", # docstring-in-stub: should be fixed manually
+    "PYI025", # unaliased-collections-abc-set-import: should be fixed manually
+    "PYI026", # type-alias-without-annotation: should be fixed manually
+    "PYI029", # str-or-repr-defined-in-stub: should be fixed manually
+    "PYI032", # any-eq-ne-annotation: should be fixed manually
+    "PYI034", # non-self-return-type: should be fixed manually
+    "PYI036", # bad-exit-annotation: should be fixed manually
+    "PYI044", # future-annotations-in-stub: should be fixed manually
+    "PYI053", # string-or-bytes-too-long: should be fixed manually
+    "PYI054", # numeric-literal-too-long: should be fixed manually
+    "PYI055", # unnecessary-type-union: should be fixed manually
+    "PYI058", # generator-return-from-iter-method: should be fixed manually
+    "PYI059", # generic-not-last-base-class: should be fixed manually
+    "PYI064", # redundant-final-literal: should be fixed manually
+    # RET: flake8-return
+    "RET501", # unnecessary-return-none: prefer implicit None when only None returned, should be fixed manually
+    "RET502", # implicit-return-value: prefer explicit None if return value possible, should be fixed manually
+    "RET503", # implicit-return: prefer explicit None if return value possible, should be fixed manually
+    "RET504", # unnecessary-assign: discourage assignment -> return, very opinionated so disabled
+    "RET505", # superfluous-else-return: should be fixed manually
+    "RET506", # superfluous-else-raise: should be fixed manually
+    "RET507", # superfluous-else-continue: should be fixed manually
+    "RET508", # superfluous-else-break: should be fixed manually
+    # RUF: Ruff
+    "RUF005", # collection-literal-concatenation: should be fixed manually
+    "RUF007", # zip-instead-of-pairwise: should be fixed manually
+    "RUF010", # explicit-f-string-type-conversion: should be fixed manually
+    "RUF013", # implicit-optional: should be fixed manually
+    "RUF015", # unnecessary-iterable-allocation-for-first-element: should be fixed manually
+    "RUF017", # quadratic-list-summation: should be fixed manually
+    "RUF019", # unnecessary-key-check: should be fixed manually
+    "RUF020", # never-union: should be fixed manually
+    "RUF024", # mutable-fromkeys-value: should be fixed manually
+    "RUF026", # default-factory-kwarg: should be fixed manually
+    "RUF027", # missing-f-string-syntax: should be fixed manually
+    "RUF028", # invalid-formatter-suppression-comment: should be fixed manually
+    "RUF030", # assert-with-print-message: should be fixed manually
+    "RUF031", # incorrectly-parenthesized-tuple-in-subscript: should be fixed manually
+    "RUF032", # decimal-from-float-literal: should be fixed manually
+    "RUF033", # post-init-default: should be fixed manually
+    "RUF037", # unnecessary-empty-iterable-within-deque-call: should be fixed manually
+    "RUF039", # unraw-re-pattern: should be fixed manually
+    "RUF046", # unnecessary-cast-to-int: should be fixed manually
+    "RUF047", # needless-else: should be fixed manually
+    "RUF050", # unnecessary-if: should be fixed manually
+    "RUF051", # if-key-in-dict-del: should be fixed manually
+    "RUF052", # used-dummy-variable: should be fixed manually
+    "RUF053", # class-with-mixed-type-vars: should be fixed manually
+    "RUF055", # unnecessary-regular-expression: should be fixed manually
+    "RUF056", # falsy-dict-get-fallback: should be fixed manually
+    "RUF057", # unnecessary-round: should be fixed manually
+    "RUF058", # starmap-zip: should be fixed manually
+    "RUF059", # unused-unpacked-variable: should be fixed manually
+    "RUF061", # legacy-form-pytest-raises: should be fixed manually
+    "RUF064", # non-octal-permissions: should be fixed manually
+    "RUF068", # duplicate-entry-in-dunder-all: should be fixed manually
+    "RUF070", # unnecessary-assign-before-yield: ignored, should be fixed manually
+    "RUF071", # os-path-commonprefix: should be fixed manually
+    "RUF072", # useless-finally: should be fixed manually
+    "RUF100", # unused-noqa: should be fixed manually
+    "RUF101", # redirected-noqa: should be fixed manually
+    "RUF102", # invalid-rule-code: should be fixed manually
+    "RUF103", # invalid-suppression-comment: should be fixed manually
+    "RUF105", # noqa-comments: should be fixed manually, quite opinionated
+    "RUF106", # rule-codes-in-suppression-comments: should be fixed manually
+    "RUF201", # rule-codes-in-selectors: should be fixed manually, but we don't want to use this very opinionated rule
+    # SIM: flake8-simplify
+    "SIM101", # duplicate-isinstance-call: should be fixed manually
+    "SIM102", # collapsible-if: should be fixed manually
+    "SIM103", # needless-bool: should be fixed manually
+    "SIM105", # suppressible-exception: should be fixed manually
+    "SIM108", # if-else-block-instead-of-if-exp: should be fixed manually
+    "SIM109", # compare-with-tuple: should be fixed manually
+    "SIM110", # reimplemented-builtin: should be fixed manually
+    "SIM112", # uncapitalized-environment-variables: should be fixed manually
+    "SIM114", # if-with-same-arms: should be fixed manually
+    "SIM117", # multiple-with-statements: should be fixed manually
+    "SIM118", # in-dict-keys: should be fixed manually
+    "SIM201", # negate-equal-op: should be fixed manually
+    "SIM202", # negate-not-equal-op: should be fixed manually
+    "SIM208", # double-negation: should be fixed manually
+    "SIM210", # if-expr-with-true-false: should be fixed manually
+    "SIM211", # if-expr-with-false-true: should be fixed manually
+    "SIM212", # if-expr-with-twisted-arms: should be fixed manually
+    "SIM220", # expr-and-not-expr: should be fixed manually
+    "SIM221", # expr-or-not-expr: should be fixed manually
+    "SIM222", # expr-or-true: should be fixed manually
+    "SIM223", # expr-and-false: should be fixed manually
+    "SIM300", # yoda-conditions: should be fixed manually
+    "SIM401", # if-else-block-instead-of-dict-get: should be fixed manually
+    "SIM905", # split-static-string: should be fixed manually
+    "SIM910", # dict-get-with-none-default: should be fixed manually
+    "SIM911", # zip-dict-keys-and-values: should be fixed manually
+    # T20: flake8-print
+    "T201", # print: should be fixed manually
+    "T203", # p-print: should be fixed manually
+    # TC: flake8-type-checking
+    "TC001", # typing-only-first-party-import: should be fixed manually, maybe opinionated?
+    "TC002", # typing-only-third-party-import: should be fixed manually, maybe opinionated?
+    "TC003", # typing-only-standard-library-import: should be fixed manually, maybe opinionated?
+    "TC004", # runtime-import-in-type-checking-block: should be fixed manually
+    "TC005", # empty-type-checking-block: should be fixed manually
+    "TC006", # runtime-cast-value: should be fixed manually, ignore
+    "TC007", # unquoted-type-alias: should be fixed manually, ignore
+    # TID: flake8-tidy-imports
+    "TID252", # relative-imports: should be fixed manually
+    "TID254", # lazy-import-mismatch: should be fixed manually
+    "TID255", # lazy-import-immediately-resolved: should be fixed manually
+    # TRY: tryceratops
+    "TRY201", # verbose-raise: should be fixed manually
+    "TRY400", # error-instead-of-exception: should be fixed manually
+    # W: pycodestyle - Warning
+    "W605", # invalid-escape-sequence: should be fixed manually
+
+    # TO BE DECIDED
+    "D406", # missing-new-line-after-section-name: docs says disabled when google, but I think it should be on per google?
+]
