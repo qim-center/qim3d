@@ -15,22 +15,29 @@ For more information on the QIM center visit https://qim.dk/
 
 ## Installation
 
-`qim3d` is distributed via [pypi](https://pypi.org/project/qim3d/) and can be installed easily with:
+`qim3d` is distributed via [pypi](https://pypi.org/project/qim3d/) and can be installed easily with several methods.  
+**Choose one of the methods below**:
 
 ```sh
 # pip
 pip install qim3d
+```
 
-# uv
-uv add qim3d
-
-# pixi
-pixi add --pypi qim3d
-
+```sh
 # conda
 conda create -n myqim3d python=3.14
 conda activate myqim3d
 pip install qim3d
+```
+
+```sh
+# uv
+uv add qim3d
+```
+
+```sh
+# pixi
+pixi add --pypi qim3d
 ```
 
 Note that some features require you to install extra dependencies — you can use `qim3d[all]` to install all features. For more detailed instructions and troubleshooting, please refer to the [documentation](https://docs.qim.dk/qim3d/user_guide/installation/).
