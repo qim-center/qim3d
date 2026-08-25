@@ -155,4 +155,3 @@ This issue occurs because the system lacks the necessary tools to compile the li
 The library is under constant development, so make sure to keep your installation updated:
 
     pip install --upgrade qim3d
-

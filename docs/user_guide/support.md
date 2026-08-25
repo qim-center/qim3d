@@ -5,4 +5,3 @@ The development of the `qim3d` is supported by the Infrastructure for Quantitati
 
 ![Novo Nordisk Foundation](https://novonordiskfonden.dk//app/uploads/NNF-INT_logo_tagline_blue_RGB_solid.png){ width="256px"}
 ![QIM](../assets/Qim-logo_standard-full-title-transparent-background.png){ width="512px"  style="margin-left: 64px;"  }
-
