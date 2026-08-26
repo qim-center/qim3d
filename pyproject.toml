@@ -15,6 +15,9 @@ maintainers = [
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
@@ -25,12 +28,15 @@ classifiers = [
     "Topic :: Software Development :: User Interfaces",
 ]
 
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
-    # Base
-    "dask>=2023.6.0",
-    "numpy>=1.26.0",
-    "scipy>=1.11.2",
+    # SPEC-0 Base
+    # See: https://scientific-python.org/specs/spec-0000/
+    "numpy>=2.2.0",
+    "scipy>=1.15.0",
+    "matplotlib>=3.10.0",
+    "scikit-image>=0.25.0",
+    "zarr>=3.0",
 
     # Mesh
     "trimesh>=4.4.9",
@@ -39,10 +45,9 @@ dependencies = [
     # Viz
     "imageio-ffmpeg>=0.6",
     "k3d>=2.17",
-    "matplotlib>=3.8.0",
     "Pillow>=10.0.1",
     "plotly>=5.14.1",
-    "PyGEL3D==0.7.3",
+    "PyGEL3D>=0.7.3",
     "pyvista[jupyter]>=0.45",
     "seaborn>=0.12.2",
     "tqdm>=4.65.0",
@@ -51,6 +56,7 @@ dependencies = [
     "ipywidgets>=8.1.2",
 
     # Data
+    "dask>=2023.6.0",
     "h5py>=3.9.0",
     "imagecodecs>=2024.12.30",
     "nibabel>=5.2.0",
@@ -58,13 +64,11 @@ dependencies = [
     "ome_zarr>=0.12.0",
     "pydicom==2.4.4",
     "tifffile>=2025.1.10",
-    "zarr>=3.0",
 
     # Processing
     "dask-image>=2024.5.3",
     "localthickness>=0.1.2",
     "pygorpho>=1.0.1",
-    "scikit-image>=0.24.0",
     "slgbuilder>=0.2.1",
     "structure-tensor>=0.2.1",
 
