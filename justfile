@@ -5,7 +5,7 @@ set default-list := true
 # Installs the project dependencies
 [group: 'setup']
 install:
-    uv sync --all-extras
+    uv sync
 
 # Installs the pre-commit hook (prek)
 [group: 'setup']
@@ -31,26 +31,26 @@ alias pc-all := pre-commit-all
 # Formats the code using ruff
 [group: 'format']
 format:
-    uv run ruff check . --fix
-    uv run ruff format .
+    uv run --group lint ruff check . --fix
+    uv run --group lint ruff format .
 
 # Checks the code for linting errors
 [group: 'format']
 lint:
-    uv run ruff check .
+    uv run --group lint ruff check .
 
 ### --- TEST ---
 # Runs the test suite
 [group: 'test']
 test *args:
-    uv run pytest {{args}}
+    uv run --group test pytest {{args}}
 
 ### --- DOCS ---
 # Serves documentation locally
 [group: 'docs']
 docs-serve:
-    uv run mkdocs serve
+    uv run --group docs mkdocs serve
 
 [group: 'docs']
 docs-build:
-    uv run mkdocs build
+    uv run --group docs mkdocs build
