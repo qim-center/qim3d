@@ -4256,11 +4256,11 @@ wheels = [
 
 [[package]]
 name = "pydicom"
-version = "2.4.4"
+version = "3.0.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/25/98/0b530df4b0129f5651a006534168769a507e50c92657a22fb3e26bd2b0cf/pydicom-2.4.4.tar.gz", hash = "sha256:90b4801d851ce65be3df520e16bbfa3d6c767cf2a3a3b1c18f6780e6b670b87a", size = 2016625, upload-time = "2023-12-14T21:44:29.896Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/7a/de/52aaf905f1f0ae7aba85996e2592ea2c1fe49157f3cfbcd1871965bdb51d/pydicom-3.0.2.tar.gz", hash = "sha256:5942bfc2d72c6fa4b3b5b62c527f54b7f2355f21d6f5d296df6bb30188df6a4f", size = 2886792, upload-time = "2026-03-19T21:46:20.935Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/35/2a/8c0f6fe243e6b6793868c6834203a44cc8f3f25abad780e1c7b21e15594d/pydicom-2.4.4-py3-none-any.whl", hash = "sha256:f9f8e19b78525be57aa6384484298833e4d06ac1d6226c79459131ddb0bd7c42", size = 1771279, upload-time = "2023-12-14T21:44:27.232Z" },
+    { url = "https://files.pythonhosted.org/packages/46/e0/60466c6d712dad2cf807df315e39863e91609ffd1064ecb835994460bbda/pydicom-3.0.2-py3-none-any.whl", hash = "sha256:abf971a5440f84dbaf42c4b6758e30e62480902584f8b270b9a5d146e278a07b", size = 2376822, upload-time = "2026-03-19T21:46:19.042Z" },
 ]
 
 [[package]]
@@ -4742,7 +4742,7 @@ requires-dist = [
     { name = "pillow", specifier = ">=10.0.1" },
     { name = "plotly", specifier = ">=5.14.1" },
     { name = "psutil", specifier = ">=5.9.0" },
-    { name = "pydicom", specifier = "==2.4.4" },
+    { name = "pydicom", specifier = ">=2.4.4" },
     { name = "pygel3d", specifier = "==0.7.3" },
     { name = "pygorpho", specifier = ">=1.0.1" },
     { name = "pytetwild" },
