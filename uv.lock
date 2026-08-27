@@ -4274,7 +4274,7 @@ wheels = [
 
 [[package]]
 name = "pygel3d"
-version = "0.7.3"
+version = "0.8.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -4283,8 +4283,12 @@ dependencies = [
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "scipy", version = "1.18.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/b7/aa/a074bc7544abfd65037aac8fdbcfcca480a7d73fafdc5fb07a1f3653ffef/pygel3d-0.8.2.tar.gz", hash = "sha256:8c676820d011f43f4ef8ae93bd371c30fdc93f5c6d79adf29fff9c66505f797d", size = 859360, upload-time = "2026-09-02T10:39:26.541Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6f/56/055cffbac9cd0ee91a2236ea4cab7832a7bc49ed145fbeb33e73f7192f32/pygel3d-0.7.3-py3-none-any.whl", hash = "sha256:7dea728d01cbb44fd5ea8a0d55e4ad595c16c3d209f2b114aaa26221266663c5", size = 4869484, upload-time = "2026-08-17T12:02:40.8Z" },
+    { url = "https://files.pythonhosted.org/packages/c1/05/7fe575d4c015461f0f67610fef1125f1fcef232d682c7f07d8dbba32f962/pygel3d-0.8.2-py3-none-macosx_11_0_universal2.whl", hash = "sha256:e45165fb4a7f4becda1f434cc18160e83924c9f297266d9421d9943aad57e36b", size = 2204446, upload-time = "2026-09-02T10:39:20.391Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/e6/30f77102871e8f6b9b25386f9b1c84f4ad8df396ad6390b929ffac774443/pygel3d-0.8.2-py3-none-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:235f4be4338f0ff7d917bc4d48ae1f57c69069ac224f416aa2347277887c031e", size = 1555237, upload-time = "2026-09-02T10:39:22.07Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/3d/1166b81b8b685fee4b563f83d17731d34846707ab7f183d52f71f1281934/pygel3d-0.8.2-py3-none-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:3603a86c966182f296e3408c640bee0aa67cd04778b9d85d20e6536959606d96", size = 1627842, upload-time = "2026-09-02T10:39:23.613Z" },
+    { url = "https://files.pythonhosted.org/packages/6e/44/596bcbc798d7bc516e4faf5f017816bc0a7e2a257733c90023cabf673cbb/pygel3d-0.8.2-py3-none-win_amd64.whl", hash = "sha256:8a57927b6bbe513a1345320aefd4d6e8daf2efb28f87c5eaf2577f670f33cad2", size = 676525, upload-time = "2026-09-02T10:39:25.042Z" },
 ]
 
 [[package]]
@@ -4743,7 +4747,7 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.14.1" },
     { name = "psutil", specifier = ">=5.9.0" },
     { name = "pydicom", specifier = ">=2.4.4" },
-    { name = "pygel3d", specifier = "==0.7.3" },
+    { name = "pygel3d", specifier = ">=0.8.2" },
     { name = "pygorpho", specifier = ">=1.0.1" },
     { name = "pytetwild" },
     { name = "pyvista", extras = ["jupyter"], specifier = ">=0.45" },
