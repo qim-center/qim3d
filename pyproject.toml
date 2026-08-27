@@ -56,7 +56,7 @@ dependencies = [
     "nibabel>=5.2.0",
     "olefile>=0.46",
     "ome_zarr>=0.12.0",
-    "pydicom==2.4.4",
+    "pydicom>=2.4.4",
     "tifffile>=2025.1.10",
     "zarr>=3.0",
 
