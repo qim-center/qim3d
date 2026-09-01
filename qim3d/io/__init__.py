@@ -1,4 +1,4 @@
-# from ._sync import Sync # this will be added back after future development
+from ._sync import Sync 
 from ._loading import load, load_mesh
 from ._downloader import Downloader
 from ._saving import save, save_mesh
