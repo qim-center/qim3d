@@ -11,11 +11,11 @@ import qim3d
 
 def test_image_exist():
     # Create random test image
-    test_image = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    test_image = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.tif')
+        image_path = os.path.join(temp_dir, "test_image.tif")
 
         # Save to temporary directory
         qim3d.io.save(image_path, test_image)
@@ -30,8 +30,8 @@ def test_compression():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.tif')
-        compressed_image_path = os.path.join(temp_dir, 'compressed_test_image.tif')
+        image_path = os.path.join(temp_dir, "test_image.tif")
+        compressed_image_path = os.path.join(temp_dir, "compressed_test_image.tif")
 
         # Save to temporary directory with and without compression
         qim3d.io.save(image_path, test_image)
@@ -47,11 +47,11 @@ def test_compression():
 
 def test_image_matching():
     # Create random test image
-    original_image = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    original_image = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'original_image.tif')
+        image_path = os.path.join(temp_dir, "original_image.tif")
 
         # Save to temporary directory
         qim3d.io.save(image_path, original_image)
@@ -73,7 +73,7 @@ def test_compressed_image_matching():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'original_image.tif')
+        image_path = os.path.join(temp_dir, "original_image.tif")
 
         # Save to temporary directory
         qim3d.io.save(image_path, original_image, compression=True)
@@ -91,12 +91,12 @@ def test_compressed_image_matching():
 
 def test_file_replace():
     # Create random test image
-    test_image1 = np.random.randint(0, 256, (100, 100, 100), 'uint8')
-    test_image2 = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    test_image1 = np.random.randint(0, 256, (100, 100, 100), "uint8")
+    test_image2 = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.tif')
+        image_path = os.path.join(temp_dir, "test_image.tif")
 
         # Save first test image to temporary directory
         qim3d.io.save(image_path, test_image1)
@@ -114,12 +114,12 @@ def test_file_replace():
 
 def test_file_already_exists():
     # Create random test image
-    test_image1 = np.random.randint(0, 256, (100, 100, 100), 'uint8')
-    test_image2 = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    test_image1 = np.random.randint(0, 256, (100, 100, 100), "uint8")
+    test_image2 = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.tif')
+        image_path = os.path.join(temp_dir, "test_image.tif")
 
         # Save first test image to temporary directory
         qim3d.io.save(image_path, test_image1)
@@ -134,12 +134,12 @@ def test_file_already_exists():
 
 def test_no_file_ext():
     # Create random test image
-    test_image = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    test_image = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create filename without extension
-    filename = 'test_image'
+    filename = "test_image"
 
-    message = 'Please provide a file extension if you want to save as a single file. Otherwise, please provide a basename to save as a TIFF stack'
+    message = "Please provide a file extension if you want to save as a single file. Otherwise, please provide a basename to save as a TIFF stack"
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -152,10 +152,10 @@ def test_no_file_ext():
 
 def test_folder_doesnt_exist():
     # Create random test image
-    test_image = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    test_image = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create invalid path
-    invalid_path = os.path.join('this', 'path', 'doesnt', 'exist.tif')
+    invalid_path = os.path.join("this", "path", "doesnt", "exist.tif")
 
     # message = f'The directory {re.escape(os.path.dirname(invalid_path))} does not exist. Please provide a valid directory'
     message = f"""The directory '{re.escape(os.path.dirname(invalid_path))}' does not exist.\nPlease provide a valid directory or specify a basename if you want to save a tiff stack as several files to a folder that does not yet exist"""
@@ -167,22 +167,22 @@ def test_folder_doesnt_exist():
 
 def test_unsupported_file_format():
     # Create random test image
-    test_image = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    test_image = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create filename with unsupported format
-    filename = 'test_image.unsupported'
+    filename = "test_image.unsupported"
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
         image_path = os.path.join(temp_dir, filename)
 
-        with pytest.raises(ValueError, match='Unsupported file format'):
+        with pytest.raises(ValueError, match="Unsupported file format"):
             # Try to save test image with an unsupported file extension
             qim3d.io.save(image_path, test_image)
 
 
 def test_no_basename():
     # Create random test image
-    test_image = np.random.randint(0, 256, (100, 100, 100), 'uint8')
+    test_image = np.random.randint(0, 256, (100, 100, 100), "uint8")
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -196,15 +196,15 @@ def test_no_basename():
 
 def test_mkdir_tiff_stack():
     # Create random test image
-    test_image = np.random.randint(0, 256, (10, 100, 100), 'uint8')
+    test_image = np.random.randint(0, 256, (10, 100, 100), "uint8")
 
     # create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
         # Define a folder that does not yet exist
-        path2save = os.path.join(temp_dir, 'tempfolder')
+        path2save = os.path.join(temp_dir, "tempfolder")
 
         # Save to this folder with a basename
-        qim3d.io.save(path2save, test_image, basename='test')
+        qim3d.io.save(path2save, test_image, basename="test")
 
         # Assert that folder is created
         assert os.path.isdir(path2save)
@@ -212,12 +212,12 @@ def test_mkdir_tiff_stack():
 
 def test_tiff_stack_naming():
     # Create random test image
-    test_image = np.random.randint(0, 256, (10, 100, 100), 'uint8')
+    test_image = np.random.randint(0, 256, (10, 100, 100), "uint8")
 
     # Define expected filenames
-    basename = 'test'
+    basename = "test"
     expected_filenames = [
-        basename + str(i).zfill(2) + '.tif' for i, _ in enumerate(test_image)
+        basename + str(i).zfill(2) + ".tif" for i, _ in enumerate(test_image)
     ]
 
     # create temporary directory
@@ -229,15 +229,15 @@ def test_tiff_stack_naming():
 
 def test_tiff_stack_slicing_dim():
     # Create random test image where the three dimensions are not the same length
-    test_image = np.random.randint(0, 256, (5, 10, 15), 'uint8')
+    test_image = np.random.randint(0, 256, (5, 10, 15), "uint8")
 
     with tempfile.TemporaryDirectory() as temp_dir:
         # Iterate thorugh all three dims and save the image as slices in
         # each dimension in separate folder and assert the number of files
         # match the shape of the image
         for dim in range(3):
-            path2save = os.path.join(temp_dir, 'dim' + str(dim))
-            qim3d.io.save(path2save, test_image, basename='test', sliced_dim=dim)
+            path2save = os.path.join(temp_dir, "dim" + str(dim))
+            qim3d.io.save(path2save, test_image, basename="test", sliced_dim=dim)
             assert len(os.listdir(path2save)) == test_image.shape[dim]
 
 
@@ -247,7 +247,7 @@ def test_tiff_save_load():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.tif')
+        image_path = os.path.join(temp_dir, "test_image.tif")
 
         # Save to temporary directory
         qim3d.io.save(image_path, original_image)
@@ -269,7 +269,7 @@ def test_vol_save_load():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.vol')
+        image_path = os.path.join(temp_dir, "test_image.vol")
 
         # Save to temporary directory
         qim3d.io.save(image_path, original_image)
@@ -291,8 +291,8 @@ def test_pil_save_load():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path_png = os.path.join(temp_dir, 'test_image.png')
-        image_path_jpg = os.path.join(temp_dir, 'test_image.jpg')
+        image_path_png = os.path.join(temp_dir, "test_image.png")
+        image_path_jpg = os.path.join(temp_dir, "test_image.jpg")
 
         # Save to temporary directory
         qim3d.io.save(image_path_png, original_image)
@@ -319,8 +319,8 @@ def test_nifti_save_load():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.nii')
-        image_path_compressed = os.path.join(temp_dir, 'test_image_compressed.nii.gz')
+        image_path = os.path.join(temp_dir, "test_image.nii")
+        image_path_compressed = os.path.join(temp_dir, "test_image_compressed.nii.gz")
 
         # Save to temporary directory
         qim3d.io.save(image_path, original_image)
@@ -353,8 +353,8 @@ def test_h5_save_load():
 
     # Create temporary directory
     with tempfile.TemporaryDirectory() as temp_dir:
-        image_path = os.path.join(temp_dir, 'test_image.h5')
-        image_path_compressed = os.path.join(temp_dir, 'test_image_compressed.nii.gz')
+        image_path = os.path.join(temp_dir, "test_image.h5")
+        image_path_compressed = os.path.join(temp_dir, "test_image_compressed.nii.gz")
 
         # Save to temporary directory
         qim3d.io.save(image_path, original_image)

@@ -2,7 +2,7 @@
 
 import logging
 
-logger = logging.getLogger('qim3d')
+logger = logging.getLogger("qim3d")
 
 
 def set_detailed_output():
@@ -18,7 +18,7 @@ def set_detailed_output():
     """
 
     formatter = logging.Formatter(
-        '%(levelname)-10s%(filename)s:%(lineno)-5s%(message)s'
+        "%(levelname)-10s%(filename)s:%(lineno)-5s%(message)s"
     )
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
@@ -37,7 +37,7 @@ def set_simple_output():
         >>> set_simple_output()
 
     """
-    formatter = logging.Formatter('%(message)s')
+    formatter = logging.Formatter("%(message)s")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logger.handlers = []
@@ -119,19 +119,19 @@ def level(log_level):
         ValueError: If the specified level is not a valid logging level.
 
     """
-    if log_level in ['DEBUG', 'debug']:
+    if log_level in ["DEBUG", "debug"]:
         set_level_debug()
 
-    elif log_level in ['INFO', 'info']:
+    elif log_level in ["INFO", "info"]:
         set_level_info()
 
-    elif log_level in ['WARNING', 'warning']:
+    elif log_level in ["WARNING", "warning"]:
         set_level_warning()
 
-    elif log_level in ['ERROR', 'error']:
+    elif log_level in ["ERROR", "error"]:
         set_level_error()
 
-    elif log_level in ['CRITICAL', 'critical']:
+    elif log_level in ["CRITICAL", "critical"]:
         set_level_critical()
 
     elif isinstance(log_level, int):
@@ -145,6 +145,6 @@ def level(log_level):
 
 
 # Create the logger
-log = logging.getLogger('qim3d')
+log = logging.getLogger("qim3d")
 set_level_info()
 set_simple_output()

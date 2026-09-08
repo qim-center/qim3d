@@ -9,6 +9,7 @@ from qim3d.generate._shapes import (
     rope,
 )
 
+
 # =============================================================================
 # Tests for _generate_twisted_thread
 # =============================================================================
@@ -26,18 +27,18 @@ def test_generate_twisted_thread_basic():
 
     assert thread.shape == (length, thickness, thickness)
     assert thread.dtype == np.uint8
-    assert np.any(thread > 0), 'Thread should have non-zero values'
+    assert np.any(thread > 0), "Thread should have non-zero values"
 
 
 def test_generate_twisted_thread_reproducibility():
     """Test that same seed produces identical results."""
     params = {
-        'length': 50,
-        'thickness': 8,
-        'twist_rate': 1.5,
-        'phase_offset': 45.0,
-        'noise_scale': 0.02,
-        'seed': 123,
+        "length": 50,
+        "thickness": 8,
+        "twist_rate": 1.5,
+        "phase_offset": 45.0,
+        "noise_scale": 0.02,
+        "seed": 123,
     }
 
     thread1 = _generate_twisted_thread(**params)
@@ -49,11 +50,11 @@ def test_generate_twisted_thread_reproducibility():
 def test_generate_twisted_thread_different_seeds():
     """Test that different seeds produce different results."""
     params = {
-        'length': 50,
-        'thickness': 8,
-        'twist_rate': 1.5,
-        'phase_offset': 45.0,
-        'noise_scale': 0.02,
+        "length": 50,
+        "thickness": 8,
+        "twist_rate": 1.5,
+        "phase_offset": 45.0,
+        "noise_scale": 0.02,
     }
 
     thread1 = _generate_twisted_thread(**params, seed=1)
@@ -65,11 +66,11 @@ def test_generate_twisted_thread_different_seeds():
 def test_generate_twisted_thread_twist_rate():
     """Test different twist rates affect the output."""
     params = {
-        'length': 50,
-        'thickness': 8,
-        'phase_offset': 0.0,
-        'noise_scale': 0.02,
-        'seed': 42,
+        "length": 50,
+        "thickness": 8,
+        "phase_offset": 0.0,
+        "noise_scale": 0.02,
+        "seed": 42,
     }
 
     thread_low_twist = _generate_twisted_thread(**params, twist_rate=0.5)
@@ -84,10 +85,10 @@ def test_generate_twisted_thread_twist_rate():
 def test_generate_berry_positions_reproducibility():
     """Test reproducibility with same seed."""
     params = {
-        'core_radius': 15,
-        'drupelet_radius': 8,
-        'num_drupelets': 20,
-        'seed': 123,
+        "core_radius": 15,
+        "drupelet_radius": 8,
+        "num_drupelets": 20,
+        "seed": 123,
     }
 
     pos1, rad1 = _generate_berry_positions(**params)
@@ -136,7 +137,9 @@ def test_overlapping_placement_with_labels():
     blob = np.ones((10, 10, 10), dtype=np.uint8) * 100
     position = (25, 25, 25)
 
-    result, placed = _overlapping_placement(collection, blob, position, labels, label_id=1)
+    result, placed = _overlapping_placement(
+        collection, blob, position, labels, label_id=1
+    )
 
     assert placed is True
     assert np.any(labels == 1)
@@ -166,7 +169,7 @@ def test_berry_basic():
 
     assert berry_vol.shape == (100, 100, 100)
     assert berry_vol.dtype == np.uint8
-    assert np.any(berry_vol > 0), 'Berry should have non-zero values'
+    assert np.any(berry_vol > 0), "Berry should have non-zero values"
 
 
 def test_berry_with_labels():
@@ -181,15 +184,15 @@ def test_berry_with_labels():
     assert berry_vol.shape == (100, 100, 100)
     assert labels.shape == (100, 100, 100)
     assert labels.dtype == np.uint8
-    assert np.max(labels) > 0, 'Labels should be assigned'
+    assert np.max(labels) > 0, "Labels should be assigned"
 
 
 def test_berry_reproducibility():
     """Test berry reproducibility with same seed."""
     params = {
-        'shape': (80, 80, 80),
-        'num_drupelets': 20,
-        'seed': 123,
+        "shape": (80, 80, 80),
+        "num_drupelets": 20,
+        "seed": 123,
     }
 
     berry1 = berry(**params)
@@ -201,8 +204,8 @@ def test_berry_reproducibility():
 def test_berry_different_seeds():
     """Test different seeds produce different berries."""
     params = {
-        'shape': (80, 80, 80),
-        'num_drupelets': 20,
+        "shape": (80, 80, 80),
+        "num_drupelets": 20,
     }
 
     berry1 = berry(**params, seed=1)
@@ -213,28 +216,30 @@ def test_berry_different_seeds():
 
 def test_berry_parameter_validation():
     """Test parameter validation."""
-    with pytest.raises(ValueError, match='num_drupelets must be at least 1'):
+    with pytest.raises(ValueError, match="num_drupelets must be at least 1"):
         berry(num_drupelets=0)
 
-    with pytest.raises(ValueError, match='core_radius must be positive'):
+    with pytest.raises(ValueError, match="core_radius must be positive"):
         berry(core_radius=-5)
 
-    with pytest.raises(ValueError, match='drupelet_radius must be positive'):
+    with pytest.raises(ValueError, match="drupelet_radius must be positive"):
         berry(drupelet_radius=0)
 
-    with pytest.raises(ValueError, match='All shape dimensions must be positive'):
+    with pytest.raises(ValueError, match="All shape dimensions must be positive"):
         berry(shape=(100, 0, 100))
 
-    with pytest.raises(ValueError, match='threshold must be between 0 and 1'):
+    with pytest.raises(ValueError, match="threshold must be between 0 and 1"):
         berry(threshold=1.5)
 
-    with pytest.raises(ValueError, match='top_opening_threshold must be between 0 and 1'):
+    with pytest.raises(
+        ValueError, match="top_opening_threshold must be between 0 and 1"
+    ):
         berry(top_opening_threshold=1.2)
 
-    with pytest.raises(ValueError, match='rim_thickness must be between 0 and 1'):
+    with pytest.raises(ValueError, match="rim_thickness must be between 0 and 1"):
         berry(rim_thickness=0)
 
-    with pytest.raises(ValueError, match='gamma must be positive'):
+    with pytest.raises(ValueError, match="gamma must be positive"):
         berry(gamma=-0.5)
 
 
@@ -266,7 +271,7 @@ def test_rope_basic():
 
     assert rope_vol.shape == (200, 60, 60)
     assert rope_vol.dtype == np.uint8
-    assert np.any(rope_vol > 0), 'Rope should have non-zero values'
+    assert np.any(rope_vol > 0), "Rope should have non-zero values"
 
 
 def test_rope_with_labels():
@@ -281,15 +286,15 @@ def test_rope_with_labels():
     assert rope_vol.shape == (200, 60, 60)
     assert labels.shape == (200, 60, 60)
     assert labels.dtype == np.uint8
-    assert np.max(labels) > 0, 'Labels should be assigned'
+    assert np.max(labels) > 0, "Labels should be assigned"
 
 
 def test_rope_reproducibility():
     """Test rope reproducibility with same seed."""
     params = {
-        'shape': (150, 50, 50),
-        'num_threads': 10,
-        'seed': 123,
+        "shape": (150, 50, 50),
+        "num_threads": 10,
+        "seed": 123,
     }
 
     rope1 = rope(**params)
@@ -301,8 +306,8 @@ def test_rope_reproducibility():
 def test_rope_different_seeds():
     """Test different seeds produce different ropes."""
     params = {
-        'shape': (150, 50, 50),
-        'num_threads': 10,
+        "shape": (150, 50, 50),
+        "num_threads": 10,
     }
 
     rope1 = rope(**params, seed=1)
@@ -313,25 +318,25 @@ def test_rope_different_seeds():
 
 def test_rope_parameter_validation():
     """Test parameter validation."""
-    with pytest.raises(ValueError, match='num_threads must be at least 1'):
+    with pytest.raises(ValueError, match="num_threads must be at least 1"):
         rope(num_threads=0)
 
-    with pytest.raises(ValueError, match='thread_thickness must be positive'):
+    with pytest.raises(ValueError, match="thread_thickness must be positive"):
         rope(thread_thickness=-5)
 
-    with pytest.raises(ValueError, match='All shape dimensions must be positive'):
+    with pytest.raises(ValueError, match="All shape dimensions must be positive"):
         rope(shape=(100, 0, 50))
 
-    with pytest.raises(ValueError, match='Rope cross-section must be square'):
+    with pytest.raises(ValueError, match="Rope cross-section must be square"):
         rope(shape=(100, 50, 60))
 
-    with pytest.raises(ValueError, match='twist_rate must be non-negative'):
+    with pytest.raises(ValueError, match="twist_rate must be non-negative"):
         rope(twist_rate=-1.0)
 
-    with pytest.raises(ValueError, match='compression_factor must be between 0 and 1'):
+    with pytest.raises(ValueError, match="compression_factor must be between 0 and 1"):
         rope(compression_factor=1.5)
 
-    with pytest.raises(ValueError, match='thread_spacing must be positive'):
+    with pytest.raises(ValueError, match="thread_spacing must be positive"):
         rope(thread_spacing=-0.5)
 
 
@@ -349,9 +354,9 @@ def test_rope_different_thread_counts():
 def test_rope_different_twist_rates():
     """Test rope with different twist rates."""
     params = {
-        'shape': (150, 50, 50),
-        'num_threads': 10,
-        'seed': 42,
+        "shape": (150, 50, 50),
+        "num_threads": 10,
+        "seed": 42,
     }
 
     low_twist = rope(**params, twist_rate=0.5)
@@ -363,9 +368,9 @@ def test_rope_different_twist_rates():
 def test_rope_with_compression():
     """Test rope with different compression factors."""
     params = {
-        'shape': (150, 50, 50),
-        'num_threads': 10,
-        'seed': 42,
+        "shape": (150, 50, 50),
+        "num_threads": 10,
+        "seed": 42,
     }
 
     no_compression = rope(**params, compression_factor=0.0)

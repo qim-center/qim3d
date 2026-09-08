@@ -45,7 +45,7 @@ import tifffile
 import qim3d
 from qim3d.utils._dependencies import optional_import
 
-gr = optional_import('gradio', extra='gui')
+gr = optional_import("gradio", extra="gui")
 
 
 class Interface(qim3d.gui.interface.InterfaceWithExamples):
@@ -57,7 +57,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
         figsize: int = 6,
     ):
         super().__init__(
-            title='Local thickness', height=1024, width=960, verbose=verbose
+            title="Local thickness", height=1024, width=960, verbose=verbose
         )
 
         self.plot_height = plot_height
@@ -68,7 +68,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
         # Get the temporary files from gradio
         temp_sets = self.interface.temp_file_sets
         for temp_set in temp_sets:
-            if 'localthickness' in str(temp_set):
+            if "localthickness" in str(temp_set):
                 # Get the lsit of the temporary files
                 temp_path_list = list(temp_set)
 
@@ -88,7 +88,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
 
     def define_interface(self, gradio_interface, *args, **kwargs):
         gr.Markdown(
-            'Interface for _Fast local thickness in 3D_ (https://github.com/vedranaa/local-thickness)'
+            "Interface for _Fast local thickness in 3D_ (https://github.com/vedranaa/local-thickness)"
         )
 
         with gr.Row():
@@ -96,12 +96,12 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
                 if self.img is not None:
                     data = gr.State(value=self.img)
                 else:
-                    with gr.Tab('Input'):
+                    with gr.Tab("Input"):
                         data = gr.File(
                             show_label=False,
                             value=self.img,
                         )
-                    with gr.Tab('Examples'):
+                    with gr.Tab("Examples"):
                         gr.Examples(examples=self.img_examples, inputs=data)
 
                 with gr.Row():
@@ -110,15 +110,15 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
                         maximum=1,
                         value=0.5,
                         step=0.01,
-                        label='Z position',
-                        info='Local thickness is calculated in 3D, this slider controls the visualization only.',
+                        label="Z position",
+                        info="Local thickness is calculated in 3D, this slider controls the visualization only.",
                     )
 
-                with gr.Tab('Parameters'):
+                with gr.Tab("Parameters"):
                     gr.Markdown(
-                        'It is possible to scale down the image before processing. Lower values will make the algorithm run faster, but decreases the accuracy of results.'
+                        "It is possible to scale down the image before processing. Lower values will make the algorithm run faster, but decreases the accuracy of results."
                     )
-                    lt_scale = gr.Slider(0.1, 1.0, label='Scale', value=0.5, step=0.1)
+                    lt_scale = gr.Slider(0.1, 1.0, label="Scale", value=0.5, step=0.1)
 
                     with gr.Row():
                         threshold = gr.Slider(
@@ -126,38 +126,38 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
                             1.0,
                             value=0.5,
                             step=0.05,
-                            label='Threshold',
-                            info='Local thickness uses a binary image, so a threshold value is needed.',
+                            label="Threshold",
+                            info="Local thickness uses a binary image, so a threshold value is needed.",
                         )
 
                     dark_objects = gr.Checkbox(
                         value=False,
-                        label='Dark objects',
-                        info='Inverts the image before thresholding. Use in case your foreground is darker than the background.',
+                        label="Dark objects",
+                        info="Inverts the image before thresholding. Use in case your foreground is darker than the background.",
                     )
 
-                with gr.Tab('Display options'):
+                with gr.Tab("Display options"):
                     cmap_original = gr.Dropdown(
-                        value='viridis',
+                        value="viridis",
                         choices=plt.colormaps(),
-                        label='Colormap - input',
+                        label="Colormap - input",
                         interactive=True,
                     )
                     cmap_lt = gr.Dropdown(
-                        value='magma',
+                        value="magma",
                         choices=plt.colormaps(),
-                        label='Colormap - local thickness',
+                        label="Colormap - local thickness",
                         interactive=True,
                     )
 
-                    nbins = gr.Slider(5, 50, value=25, step=1, label='Histogram bins')
+                    nbins = gr.Slider(5, 50, value=25, step=1, label="Histogram bins")
 
                 # Run button
                 with gr.Row():
                     with gr.Column(scale=3, min_width=64):
-                        btn = gr.Button('Run local thickness', variant='primary')
+                        btn = gr.Button("Run local thickness", variant="primary")
                     with gr.Column(scale=1, min_width=64):
-                        btn_clear = gr.Button('Clear', variant='stop')
+                        btn_clear = gr.Button("Clear", variant="stop")
 
             with gr.Column(scale=4):
 
@@ -171,38 +171,38 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
                         intensity * 255
                     )
                     fig, ax = plt.subplots(figsize=(10, 10))
-                    ax.imshow(pixels, interpolation='nearest')
+                    ax.imshow(pixels, interpolation="nearest")
 
                     # Adjustments
-                    ax.axis('off')
+                    ax.axis("off")
                     fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
                     return fig
 
                 with gr.Row():
                     input_vol = gr.Plot(
                         show_label=True,
-                        label='Original',
+                        label="Original",
                         visible=True,
                         value=create_uniform_image(),
                     )
 
                     binary_vol = gr.Plot(
                         show_label=True,
-                        label='Binary',
+                        label="Binary",
                         visible=True,
                         value=create_uniform_image(),
                     )
 
                     output_vol = gr.Plot(
                         show_label=True,
-                        label='Local thickness',
+                        label="Local thickness",
                         visible=True,
                         value=create_uniform_image(),
                     )
                 with gr.Row():
                     histogram = gr.Plot(
                         show_label=True,
-                        label='Thickness histogram',
+                        label="Thickness histogram",
                         visible=True,
                         value=create_uniform_image(),
                     )
@@ -210,7 +210,7 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
                     lt_output = gr.File(
                         interactive=False,
                         show_label=True,
-                        label='Output file',
+                        label="Output file",
                         visible=False,
                     )
 
@@ -290,16 +290,16 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
         zpos: int,
         vmin: float = None,
         vmax: float = None,
-        cmap: str = 'viridis',
+        cmap: str = "viridis",
     ):
         plt.close()
         z_idx = int(zpos * (vol.shape[0] - 1))
         fig, ax = plt.subplots(figsize=(self.figsize, self.figsize))
 
-        ax.imshow(vol[z_idx], interpolation='nearest', cmap=cmap, vmin=vmin, vmax=vmax)
+        ax.imshow(vol[z_idx], interpolation="nearest", cmap=cmap, vmin=vmin, vmax=vmax)
 
         # Adjustments
-        ax.axis('off')
+        ax.axis("off")
         fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 
         return fig
@@ -327,20 +327,20 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
         fig, ax = plt.subplots(figsize=(6, 4))
 
         ax.bar(
-            bin_edges[:-1], vol_hist, width=np.diff(bin_edges), ec='white', align='edge'
+            bin_edges[:-1], vol_hist, width=np.diff(bin_edges), ec="white", align="edge"
         )
 
         # Adjustments
-        ax.spines['right'].set_visible(False)
-        ax.spines['top'].set_visible(False)
-        ax.spines['left'].set_visible(True)
-        ax.spines['bottom'].set_visible(True)
-        ax.set_yscale('log')
+        ax.spines["right"].set_visible(False)
+        ax.spines["top"].set_visible(False)
+        ax.spines["left"].set_visible(True)
+        ax.spines["bottom"].set_visible(True)
+        ax.set_yscale("log")
 
         return fig
 
     def save_lt(self):
-        filename = 'localthickness.tif'
+        filename = "localthickness.tif"
         # Save output image in a temp space
         tifffile.imwrite(filename, self.vol_thickness)
 
@@ -349,8 +349,8 @@ class Interface(qim3d.gui.interface.InterfaceWithExamples):
     def remove_unused_file(self):
         # Remove localthickness.tif file from working directory
         # as it otherwise is not deleted
-        os.remove('localthickness.tif')
+        os.remove("localthickness.tif")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Interface().run_interface()

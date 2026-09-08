@@ -2,7 +2,7 @@
 
 from qim3d.utils._dependencies import optional_import
 
-monai = optional_import('monai', extra='deep-learning')
+monai = optional_import("monai", extra="deep-learning")
 
 
 class Augmentation:
@@ -35,12 +35,12 @@ class Augmentation:
 
     def __init__(
         self,
-        resize: str = 'crop',
-        transform_train: str | None = 'moderate',
+        resize: str = "crop",
+        transform_train: str | None = "moderate",
         transform_validation: str | None = None,
         transform_test: str | None = None,
     ):
-        if resize not in ['crop', 'reshape', 'padding']:
+        if resize not in ["crop", "reshape", "padding"]:
             msg = f"Invalid resize type: {resize}. Use either 'crop', 'resize' or 'padding'."
             raise ValueError(msg)
 
@@ -91,11 +91,11 @@ class Augmentation:
             im_d, im_h, im_w = img_shape
 
         else:
-            msg = f'Invalid image shape: {img_shape}. Must be 3D.'
+            msg = f"Invalid image shape: {img_shape}. Must be 3D."
             raise ValueError(msg)
 
         # Check if one of standard augmentation levels
-        if level not in [None, 'light', 'moderate', 'heavy']:
+        if level not in [None, "light", "moderate", "heavy"]:
             msg = f"Invalid transformation level: {level}. Please choose one of the following levels: None, 'light', 'moderate', 'heavy'."
             raise ValueError(msg)
 
@@ -104,19 +104,19 @@ class Augmentation:
         baseline_aug = [ToTensor()]  # , NormalizeIntensityd(keys=["image"])]
 
         # Resize augmentations
-        if self.resize == 'crop':
+        if self.resize == "crop":
             resize_aug = [
-                CenterSpatialCropd(keys=['image', 'label'], roi_size=(im_d, im_h, im_w))
+                CenterSpatialCropd(keys=["image", "label"], roi_size=(im_d, im_h, im_w))
             ]
 
-        elif self.resize == 'reshape':
+        elif self.resize == "reshape":
             resize_aug = [
-                Resized(keys=['image', 'label'], spatial_size=(im_d, im_h, im_w))
+                Resized(keys=["image", "label"], spatial_size=(im_d, im_h, im_w))
             ]
 
-        elif self.resize == 'padding':
+        elif self.resize == "padding":
             resize_aug = [
-                SpatialPadd(keys=['image', 'label'], spatial_size=(im_d, im_h, im_w))
+                SpatialPadd(keys=["image", "label"], spatial_size=(im_d, im_h, im_w))
             ]
 
         # Level of augmentation
@@ -125,34 +125,34 @@ class Augmentation:
             level_aug = []
             resize_aug = []
 
-        elif level == 'light':
+        elif level == "light":
             # TODO: Do rotations along other axes?
             level_aug = [
-                RandRotate90d(keys=['image', 'label'], prob=1, spatial_axes=(0, 1))
+                RandRotate90d(keys=["image", "label"], prob=1, spatial_axes=(0, 1))
             ]
 
-        elif level == 'moderate':
+        elif level == "moderate":
             level_aug = [
-                RandRotate90d(keys=['image', 'label'], prob=1, spatial_axes=(0, 1)),
-                RandFlipd(keys=['image', 'label'], prob=0.3, spatial_axis=0),
-                RandFlipd(keys=['image', 'label'], prob=0.3, spatial_axis=1),
-                RandGaussianSmoothd(keys=['image'], sigma_x=(0.7, 0.7), prob=0.1),
+                RandRotate90d(keys=["image", "label"], prob=1, spatial_axes=(0, 1)),
+                RandFlipd(keys=["image", "label"], prob=0.3, spatial_axis=0),
+                RandFlipd(keys=["image", "label"], prob=0.3, spatial_axis=1),
+                RandGaussianSmoothd(keys=["image"], sigma_x=(0.7, 0.7), prob=0.1),
                 RandAffined(
-                    keys=['image', 'label'],
+                    keys=["image", "label"],
                     prob=0.5,
                     translate_range=(0.1, 0.1),
                     scale_range=(0.9, 1.1),
                 ),
             ]
 
-        elif level == 'heavy':
+        elif level == "heavy":
             level_aug = [
-                RandRotate90d(keys=['image', 'label'], prob=1, spatial_axes=(0, 1)),
-                RandFlipd(keys=['image', 'label'], prob=0.7, spatial_axis=0),
-                RandFlipd(keys=['image', 'label'], prob=0.7, spatial_axis=1),
-                RandGaussianSmoothd(keys=['image'], sigma_x=(1.2, 1.2), prob=0.3),
+                RandRotate90d(keys=["image", "label"], prob=1, spatial_axes=(0, 1)),
+                RandFlipd(keys=["image", "label"], prob=0.7, spatial_axis=0),
+                RandFlipd(keys=["image", "label"], prob=0.7, spatial_axis=1),
+                RandGaussianSmoothd(keys=["image"], sigma_x=(1.2, 1.2), prob=0.3),
                 RandAffined(
-                    keys=['image', 'label'],
+                    keys=["image", "label"],
                     prob=0.5,
                     translate_range=(0.2, 0.2),
                     scale_range=(0.8, 1.4),

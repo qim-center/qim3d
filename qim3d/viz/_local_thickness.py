@@ -63,24 +63,24 @@ def local_thickness(
             image = image.take(slice_index, axis=axis)
             image_lt = image_lt.take(slice_index, axis=axis)
 
-        fig, axs = plt.subplots(1, 3, figsize=figsize, layout='constrained')
+        fig, axs = plt.subplots(1, 3, figsize=figsize, layout="constrained")
 
-        axs[0].imshow(image, cmap='gray')
-        axs[0].set_title('Original image')
-        axs[0].axis('off')
+        axs[0].imshow(image, cmap="gray")
+        axs[0].set_title("Original image")
+        axs[0].axis("off")
 
-        axs[1].imshow(image_lt, cmap='viridis')
-        axs[1].set_title('Local thickness')
-        axs[1].axis('off')
+        axs[1].imshow(image_lt, cmap="viridis")
+        axs[1].set_title("Local thickness")
+        axs[1].axis("off")
 
         plt.colorbar(
-            axs[1].imshow(image_lt, cmap='viridis'), ax=axs[1], orientation='vertical'
+            axs[1].imshow(image_lt, cmap="viridis"), ax=axs[1], orientation="vertical"
         )
 
-        axs[2].hist(image_lt[image_lt > 0].ravel(), bins=32, edgecolor='black')
-        axs[2].set_title('Local thickness histogram')
-        axs[2].set_xlabel('Local thickness')
-        axs[2].set_ylabel('Count')
+        axs[2].hist(image_lt[image_lt > 0].ravel(), bins=32, edgecolor="black")
+        axs[2].set_title("Local thickness histogram")
+        axs[2].set_xlabel("Local thickness")
+        axs[2].set_ylabel("Count")
 
         if show:
             plt.show()
@@ -94,7 +94,7 @@ def local_thickness(
         if max_projection:
             if slice_index is not None:
                 log.warning(
-                    'slice_index is not used for max_projection. It will be ignored.'
+                    "slice_index is not used for max_projection. It will be ignored."
                 )
             image = image.max(axis=axis)
             image_lt = image_lt.max(axis=axis)
@@ -105,7 +105,7 @@ def local_thickness(
             elif isinstance(slice_index, float):
                 if slice_index < 0 or slice_index > 1:
                     raise ValueError(
-                        'Values of slice_index of float type must be between 0 and 1.'
+                        "Values of slice_index of float type must be between 0 and 1."
                     )
                 slice_index = int(slice_index * image.shape[0]) - 1
             slice_index_slider = widgets.IntSlider(
@@ -113,8 +113,8 @@ def local_thickness(
                 max=image.shape[axis] - 1,
                 step=1,
                 value=slice_index,
-                description='Slice index',
-                layout=widgets.Layout(width='450px'),
+                description="Slice index",
+                layout=widgets.Layout(width="450px"),
             )
             widget_obj = widgets.interactive(
                 _local_thickness,
@@ -125,15 +125,15 @@ def local_thickness(
                 axis=widgets.fixed(axis),
                 slice_index=slice_index_slider,
             )
-            widget_obj.layout = widgets.Layout(align_items='center')
+            widget_obj.layout = widgets.Layout(align_items="center")
             if show:
                 display(widget_obj)
             return widget_obj
     else:
         if max_projection:
             log.warning(
-                'max_projection is only used for 3D images. It will be ignored.'
+                "max_projection is only used for 3D images. It will be ignored."
             )
         if slice_index is not None:
-            log.warning('slice_index is only used for 3D images. It will be ignored.')
+            log.warning("slice_index is only used for 3D images. It will be ignored.")
         return _local_thickness(image, image_lt, show, figsize)

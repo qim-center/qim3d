@@ -7,7 +7,7 @@ from qim3d.generate._generators import volume
 from qim3d.operations import center_twist
 from qim3d.utils import log
 
-__all__ = ['berry', 'rope']
+__all__ = ["berry", "rope"]
 
 
 # =============================================================================
@@ -168,7 +168,7 @@ def berry(
     drupelet_radius_jitter: int = 1,
     position_jitter: int = 2,
     seed: int = 0,
-    dtype: str = 'uint8',
+    dtype: str = "uint8",
     return_labels: bool = False,
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
@@ -217,31 +217,31 @@ def berry(
     """
     # Validate inputs
     if num_drupelets < 1:
-        msg = 'num_drupelets must be at least 1'
+        msg = "num_drupelets must be at least 1"
         raise ValueError(msg)
     if core_radius <= 0:
-        msg = 'core_radius must be positive'
+        msg = "core_radius must be positive"
         raise ValueError(msg)
     if drupelet_radius <= 0:
-        msg = 'drupelet_radius must be positive'
+        msg = "drupelet_radius must be positive"
         raise ValueError(msg)
     if not all(s > 0 for s in shape):
-        msg = 'All shape dimensions must be positive'
+        msg = "All shape dimensions must be positive"
         raise ValueError(msg)
     if not 0 <= threshold <= 1:
-        msg = 'threshold must be between 0 and 1'
+        msg = "threshold must be between 0 and 1"
         raise ValueError(msg)
     if not 0 <= top_opening_threshold <= 1:
-        msg = 'top_opening_threshold must be between 0 and 1'
+        msg = "top_opening_threshold must be between 0 and 1"
         raise ValueError(msg)
     if not 0 < rim_thickness <= 1:
-        msg = 'rim_thickness must be between 0 and 1 (exclusive of 0)'
+        msg = "rim_thickness must be between 0 and 1 (exclusive of 0)"
         raise ValueError(msg)
     if gamma <= 0:
-        msg = 'gamma must be positive'
+        msg = "gamma must be positive"
         raise ValueError(msg)
 
-    log.info(f'Generating berry with {num_drupelets} drupelets in shape {shape}')
+    log.info(f"Generating berry with {num_drupelets} drupelets in shape {shape}")
 
     center = tuple(s // 2 for s in shape)
 
@@ -308,13 +308,13 @@ def _generate_twisted_thread(
         gamma=0.1,
         threshold=0.6,
         max_value=240,
-        shape='cylinder',
+        shape="cylinder",
         axis=0,
         seed=seed,
     )
 
     total_rotation = twist_rate * 360 + phase_offset
-    return center_twist(thread, rotation_angle=total_rotation, axis='z', order=1)
+    return center_twist(thread, rotation_angle=total_rotation, axis="z", order=1)
 
 
 def _integrate_thread(
@@ -446,7 +446,7 @@ def rope(
     thread_spacing: float = 0.8,
     noise_scale: float = 0.03,
     seed: int = 0,
-    dtype: str = 'uint8',
+    dtype: str = "uint8",
     return_labels: bool = False,
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """
@@ -488,31 +488,31 @@ def rope(
     """
     # Validate inputs
     if num_threads < 1:
-        msg = 'num_threads must be at least 1'
+        msg = "num_threads must be at least 1"
         raise ValueError(msg)
     if thread_thickness <= 0:
-        msg = 'thread_thickness must be positive'
+        msg = "thread_thickness must be positive"
         raise ValueError(msg)
     if not all(s > 0 for s in shape):
-        msg = 'All shape dimensions must be positive'
+        msg = "All shape dimensions must be positive"
         raise ValueError(msg)
     if shape[1] != shape[2]:
         msg = (
-            f'Rope cross-section must be square (shape[1] == shape[2]). '
-            f'Got {shape[1]} != {shape[2]}'
+            f"Rope cross-section must be square (shape[1] == shape[2]). "
+            f"Got {shape[1]} != {shape[2]}"
         )
         raise ValueError(msg)
     if twist_rate < 0:
-        msg = 'twist_rate must be non-negative'
+        msg = "twist_rate must be non-negative"
         raise ValueError(msg)
     if not 0 <= compression_factor <= 1:
-        msg = 'compression_factor must be between 0 and 1'
+        msg = "compression_factor must be between 0 and 1"
         raise ValueError(msg)
     if thread_spacing <= 0:
-        msg = 'thread_spacing must be positive'
+        msg = "thread_spacing must be positive"
         raise ValueError(msg)
 
-    log.info(f'Generating rope with {num_threads} threads in shape {shape}')
+    log.info(f"Generating rope with {num_threads} threads in shape {shape}")
 
     rng = np.random.default_rng(seed)
 

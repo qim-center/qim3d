@@ -15,7 +15,7 @@ import qim3d
 from qim3d.io import load
 from qim3d.utils import log
 
-__all__ = ['Downloader', 'download_file']
+__all__ = ["Downloader", "download_file"]
 
 
 class _Myfolder:
@@ -40,11 +40,11 @@ class _Myfolder:
         for _, file in enumerate(files):
             # Changes names to usable function name.
             file_name = file
-            if ('%20' in file) or ('-' in file):
-                file_name = file_name.replace('%20', '_')
-                file_name = file_name.replace('-', '_')
+            if ("%20" in file) or ("-" in file):
+                file_name = file_name.replace("%20", "_")
+                file_name = file_name.replace("-", "_")
 
-            name = file_name.split('.')[0]
+            name = file_name.split(".")[0]
             setattr(self, name, self._make_fn(folder, file))
 
     def _make_fn(self, folder: str, file: str) -> Callable[[bool, bool], object]:
@@ -60,7 +60,7 @@ class _Myfolder:
 
         """
 
-        url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
+        url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
 
         def _download(load_file: bool = False, virtual_stack: bool = True) -> object:
             """
@@ -77,7 +77,7 @@ class _Myfolder:
 
             download_file(url_dl, folder, file)
             if load_file:
-                log.info(f'\nLoading {file}')
+                log.info(f"\nLoading {file}")
                 file_path = os.path.join(folder, file)
 
                 return load(path=file_path, virtual_stack=virtual_stack)
@@ -157,7 +157,7 @@ class Downloader:
     def __call__(
         self,
         url: str,
-        output_dir: str = '.',
+        output_dir: str = ".",
         load_file: bool = False,
         virtual_stack: bool = True,
         scale: int = 0,
@@ -221,15 +221,15 @@ class Downloader:
         """
 
         parsed = urlparse(url)
-        fname = os.path.basename(parsed.path.rstrip('/'))
+        fname = os.path.basename(parsed.path.rstrip("/"))
         dest = os.path.join(output_dir, fname)
 
         # --- Zarr / OME-Zarr store ---
-        if fname.endswith(('.zarr', '.ome.zarr')):
+        if fname.endswith((".zarr", ".ome.zarr")):
             if os.path.exists(dest):
-                log.warning(f'Zarr store already downloaded:\n{os.path.abspath(dest)}')
+                log.warning(f"Zarr store already downloaded:\n{os.path.abspath(dest)}")
             else:
-                log.info(f'Downloading Zarr store {fname}\n{url}')
+                log.info(f"Downloading Zarr store {fname}\n{url}")
                 download(url, output_dir=output_dir)  # return always None
             if load_file:
                 # If virtual stack == True --> dask array --> need to call False in load (we don't want call .compute())
@@ -244,12 +244,12 @@ class Downloader:
 
         # --- Regular single file ---
         if os.path.exists(dest):
-            log.warning(f'File already downloaded:\n{os.path.abspath(dest)}')
+            log.warning(f"File already downloaded:\n{os.path.abspath(dest)}")
             if load_file:
                 return load(path=dest, virtual_stack=virtual_stack)
             return dest
         else:
-            log.info(f'Downloading file {fname}\n{url}')
+            log.info(f"Downloading file {fname}\n{url}")
             try:
                 total = _get_file_size(url)
             except (HTTPError, URLError):
@@ -257,7 +257,7 @@ class Downloader:
 
             os.makedirs(output_dir, exist_ok=True)
             with tqdm(
-                total=total, unit='B', unit_scale=True, unit_divisor=1024, ncols=80
+                total=total, unit="B", unit_scale=True, unit_divisor=1024, ncols=80
             ) as pbar:
                 try:
                     urllib.request.urlretrieve(
@@ -268,14 +268,14 @@ class Downloader:
                         ),
                     )
                 except HTTPError as http_err:
-                    msg = f'Failed to download {url!r}: server returned HTTP {http_err.code}'
+                    msg = f"Failed to download {url!r}: server returned HTTP {http_err.code}"
                     raise FileNotFoundError(msg) from http_err
                 except URLError as url_err:
-                    msg = f'Failed to reach {url!r}: {url_err.reason}'
+                    msg = f"Failed to reach {url!r}: {url_err.reason}"
                     raise ConnectionError(msg) from url_err
 
         if load_file:
-            log.info(f'\nLoading {fname}')
+            log.info(f"\nLoading {fname}")
             return load(path=dest, virtual_stack=virtual_stack)
 
         return dest
@@ -291,24 +291,24 @@ class Downloader:
         The output groups files by their parent folder (e.g., 'Coal', 'Corals', 'Foam').
         """
 
-        url_dl = 'https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository'
+        url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
 
         folders = _extract_names()
 
         for folder in folders:
-            log.info(f'\n{ouf.boxtitle(folder, return_str=True)}')
+            log.info(f"\n{ouf.boxtitle(folder, return_str=True)}")
             files = _extract_names(folder)
 
             for file in files:
-                url = os.path.join(url_dl, folder, file).replace('\\', '/')
+                url = os.path.join(url_dl, folder, file).replace("\\", "/")
                 file_size = _get_file_size(url)
                 formatted_file = (
-                    f"{file[:-len(file.split('.')[-1])-1].replace('%20', '_')}"
+                    f"{file[: -len(file.split('.')[-1]) - 1].replace('%20', '_')}"
                 )
                 formatted_size = _format_file_size(file_size)
-                path_string = f'{folder}.{formatted_file}'
+                path_string = f"{folder}.{formatted_file}"
 
-                log.info(f'{path_string:<50}({formatted_size})')
+                log.info(f"{path_string:<50}({formatted_size})")
 
 
 def _update_progress(pbar: tqdm, blocknum: int, bs: int) -> None:
@@ -320,7 +320,7 @@ def _update_progress(pbar: tqdm, blocknum: int, bs: int) -> None:
 def _get_file_size(url: str) -> int:
     """Helper function for the ´download_file()´ function. Finds the size of the file."""
 
-    return int(urllib.request.urlopen(url).info().get('Content-Length', -1))
+    return int(urllib.request.urlopen(url).info().get("Content-Length", -1))
 
 
 def download_file(path: str, name: str, file: str) -> None:
@@ -337,23 +337,23 @@ def download_file(path: str, name: str, file: str) -> None:
     if not os.path.exists(name):
         os.makedirs(name)
 
-    url = os.path.join(path, name, file).replace('\\', '/')  # if user is on windows
+    url = os.path.join(path, name, file).replace("\\", "/")  # if user is on windows
     file_path = os.path.join(name, file)
 
     if os.path.exists(file_path):
-        log.warning(f'File already downloaded:\n{os.path.abspath(file_path)}')
+        log.warning(f"File already downloaded:\n{os.path.abspath(file_path)}")
         return
     else:
         log.info(
-            f'Downloading {ouf.b(file, return_str=True)}\n{os.path.join(path,name,file)}'
+            f"Downloading {ouf.b(file, return_str=True)}\n{os.path.join(path, name, file)}"
         )
 
-    if ' ' in url:
-        url = quote(url, safe=':/')
+    if " " in url:
+        url = quote(url, safe=":/")
 
     with tqdm(
         total=_get_file_size(url),
-        unit='B',
+        unit="B",
         unit_scale=True,
         unit_divisor=1024,
         ncols=80,
@@ -379,10 +379,10 @@ def _extract_html(url: str) -> str:
     try:
         with urllib.request.urlopen(url) as response:
             html_content = response.read().decode(
-                'utf-8'
+                "utf-8"
             )  # Assuming the content is in UTF-8 encoding
     except urllib.error.URLError as e:
-        log.warning(f'Failed to retrieve data from {url}. Error: {e}')
+        log.warning(f"Failed to retrieve data from {url}. Error: {e}")
 
     return html_content
 
@@ -403,30 +403,30 @@ def _extract_names(name: str = None) -> list[str]:
 
     """
 
-    url = 'https://archive.compute.dtu.dk/files/public/projects/viscomp_data_repository'
+    url = "https://archive.compute.dtu.dk/files/public/projects/viscomp_data_repository"
     if name:
-        datapath = os.path.join(url, name).replace('\\', '/')
+        datapath = os.path.join(url, name).replace("\\", "/")
         html_content = _extract_html(datapath)
 
         data_split = html_content.split(
-            'files/public/projects/viscomp_data_repository/'
+            "files/public/projects/viscomp_data_repository/"
         )[3:]
         data_files = [
-            element.split(' ')[0][(len(name) + 1) : -3] for element in data_split
+            element.split(" ")[0][(len(name) + 1) : -3] for element in data_split
         ]
 
         return data_files
     else:
         html_content = _extract_html(url)
         split = html_content.split('"icon-folder-open">')[2:]
-        folders = [element.split(' ')[0][4:-4] for element in split]
+        folders = [element.split(" ")[0][4:-4] for element in split]
 
         return folders
 
 
 def _format_file_size(size_in_bytes: int) -> str:
     # Define size units
-    units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
     size = float(size_in_bytes)
     unit_index = 0
 
@@ -436,4 +436,4 @@ def _format_file_size(size_in_bytes: int) -> str:
         unit_index += 1
 
     # Format the size with 1 decimal place
-    return f'{size:.2f}{units[unit_index]}'
+    return f"{size:.2f}{units[unit_index]}"

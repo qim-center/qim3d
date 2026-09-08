@@ -6,7 +6,7 @@ import qim3d
 
 def test_wrong_ndim():
     img_2d = np.random.rand(50, 50)
-    with pytest.raises(ValueError, match='The input volume must be 3D'):
+    with pytest.raises(ValueError, match="The input volume must be 3D"):
         qim3d.processing.structure_tensor(img_2d, 1.5, 1.5)
 
 

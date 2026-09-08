@@ -2,7 +2,10 @@ import numpy as np
 
 from qim3d.utils._logger import log
 
-def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndarray, int]:
+
+def watershed(
+    binary_volume: np.ndarray, min_distance: int = 5
+) -> tuple[np.ndarray, int]:
     """
     Performs watershed segmentation to separate touching objects in a binary volume.
 
@@ -45,7 +48,7 @@ def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndar
 
     if len(np.unique(binary_volume)) > 2:
         raise ValueError(
-            'binary_volume has to be binary volume - it must contain max 2 unique values.'
+            "binary_volume has to be binary volume - it must contain max 2 unique values."
         )
 
     # Compute distance transform of binary volume
@@ -70,6 +73,6 @@ def watershed(binary_volume: np.ndarray, min_distance: int = 5) -> tuple[np.ndar
 
     # Extract number of objects found
     num_labels = len(np.unique(labeled_volume)) - 1
-    log.info(f'Total number of objects found: {num_labels}')
+    log.info(f"Total number of objects found: {num_labels}")
 
     return labeled_volume, num_labels

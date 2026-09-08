@@ -11,7 +11,7 @@ from qim3d.utils._dependencies import optional_import
 
 from ._augmentations import Augmentation
 
-torch = optional_import('torch', extra='deep-learning')
+torch = optional_import("torch", extra="deep-learning")
 
 
 class Dataset(torch.utils.data.Dataset):
@@ -42,12 +42,12 @@ class Dataset(torch.utils.data.Dataset):
     """
 
     def __init__(
-        self, root_path: str, split: str = 'train', transform: Callable | None = None
+        self, root_path: str, split: str = "train", transform: Callable | None = None
     ):
         super().__init__()
 
         # Check if split is valid
-        if split not in ['train', 'test']:
+        if split not in ["train", "test"]:
             msg = f"Invalid split: {split}. Use either 'train' or 'test'."
             raise ValueError(msg)
 
@@ -56,8 +56,8 @@ class Dataset(torch.utils.data.Dataset):
 
         path = Path(root_path) / split
 
-        self.sample_images = sorted((path / 'images').iterdir())
-        self.sample_targets = sorted((path / 'labels').iterdir())
+        self.sample_images = sorted((path / "images").iterdir())
+        self.sample_targets = sorted((path / "labels").iterdir())
         assert len(self.sample_images) == len(self.sample_targets)
 
         # Checking the characteristics of the dataset
@@ -80,9 +80,9 @@ class Dataset(torch.utils.data.Dataset):
 
         if self.transform:
             # Apply augmentation
-            transformed = self.transform({'image': image, 'label': target})
-            image = transformed['image']
-            target = transformed['label']
+            transformed = self.transform({"image": image, "label": target})
+            image = transformed["image"]
+            target = transformed["label"]
 
         image = image.clone().detach().to(dtype=torch.float32)
         target = target.clone().detach().to(dtype=torch.float32)
@@ -100,10 +100,10 @@ class Dataset(torch.utils.data.Dataset):
         consistency_check = all(i == image_shapes[0] for i in image_shapes)
 
         if not consistency_check:
-            msg = 'Only images of all the same size can be processed at the moment'
+            msg = "Only images of all the same size can be processed at the moment"
             raise NotImplementedError(msg)
         else:
-            log.debug('Images are all the same size!')
+            log.debug("Images are all the same size!")
         return consistency_check
 
     def _get_shape(self, image_path: str) -> tuple:
@@ -140,7 +140,7 @@ def check_resize(
     final_w = resize[2] if resize[2] else orig_w
 
     # Finding suitable size to upsize with padding
-    if resize == 'padding':
+    if resize == "padding":
         final_d = (orig_d // 2**n_channels + 1) * 2**n_channels
         final_h = (orig_h // 2**n_channels + 1) * 2**n_channels
         final_w = (orig_w // 2**n_channels + 1) * 2**n_channels
@@ -161,8 +161,10 @@ def check_resize(
             raise ValueError(msg)
 
         if final_d != orig_d or final_h != orig_h or final_w != orig_w:
-            log.warning(f"The image size doesn't match the Unet model's depth. \
-                          The image is changed with '{resize}', from {orig_h, orig_w} to {final_h, final_w}.")
+            log.warning(
+                f"The image size doesn't match the Unet model's depth. \
+                          The image is changed with '{resize}', from {orig_h, orig_w} to {final_h, final_w}."
+            )
 
     return final_d, final_h, final_w
 
@@ -219,15 +221,15 @@ def prepare_datasets(
     """
 
     if not isinstance(val_fraction, float) or not (0 <= val_fraction < 1):
-        msg = 'The validation fraction must be a float between 0 and 1.'
+        msg = "The validation fraction must be a float between 0 and 1."
         raise ValueError(msg)
 
     resize = augmentation.resize
     n_channels = len(model.channels)
 
     # Get the first image to check the shape
-    im_path = Path(path) / 'train'
-    first_img = sorted((im_path / 'images').iterdir())[0]
+    im_path = Path(path) / "train"
+    first_img = sorted((im_path / "images").iterdir())[0]
 
     # Load 3D volume
     image = qim3d.io.load(first_img)
@@ -247,7 +249,7 @@ def prepare_datasets(
     )
     test_set = Dataset(
         root_path=path,
-        split='test',
+        split="test",
         transform=augmentation.augment(final_shape, level=augmentation.transform_test),
     )
 

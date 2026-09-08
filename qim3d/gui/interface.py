@@ -7,7 +7,7 @@ import numpy as np
 import qim3d.gui
 from qim3d.utils._dependencies import optional_import
 
-gr = optional_import('gradio', extra='gui')
+gr = optional_import("gradio", extra="gui")
 
 
 # TODO: when offline it throws an error in cli
@@ -20,7 +20,7 @@ class BaseInterface(ABC):
         self,
         title: str,
         height: int,
-        width: int = '100%',
+        width: int = "100%",
         verbose: bool = False,
         custom_css: str = None,
     ):
@@ -39,7 +39,7 @@ class BaseInterface(ABC):
 
         self.qim_dir = Path(qim3d.__file__).parents[0]
         self.custom_css = (
-            path.join(self.qim_dir, 'css', custom_css)
+            path.join(self.qim_dir, "css", custom_css)
             if custom_css is not None
             else None
         )
@@ -73,7 +73,7 @@ class BaseInterface(ABC):
             quiet=not self.verbose,
             height=self.height,
             width=self.width,
-            favicon_path=Path(qim3d.__file__).parents[0] / 'gui/assets/qim3d-icon.svg',
+            favicon_path=Path(qim3d.__file__).parents[0] / "gui/assets/qim3d-icon.svg",
             **kwargs,
         )
 
@@ -88,7 +88,7 @@ class BaseInterface(ABC):
             title=self.title,
             css=self.custom_css,
         ) as gradio_interface:
-            gr.Markdown(f'# {self.title}')
+            gr.Markdown(f"# {self.title}")
             self.define_interface(gradio_interface, **kwargs)
         return gradio_interface
 
@@ -96,7 +96,7 @@ class BaseInterface(ABC):
     def define_interface(self, **kwargs):
         pass
 
-    def run_interface(self, host: str = '0.0.0.0'):
+    def run_interface(self, host: str = "0.0.0.0"):
         qim3d.gui.run_gradio_app(self.create_interface(), host)
 
 
@@ -118,20 +118,20 @@ class InterfaceWithExamples(BaseInterface):
 
     def _set_examples_list(self):
         valid_sufixes = (
-            '.tif',
-            '.tiff',
-            '.h5',
-            '.nii',
-            '.gz',
-            '.dcm',
-            '.DCM',
-            '.vol',
-            '.vgi',
-            '.txrm',
-            '.txm',
-            '.xrm',
+            ".tif",
+            ".tiff",
+            ".h5",
+            ".nii",
+            ".gz",
+            ".dcm",
+            ".DCM",
+            ".vol",
+            ".vgi",
+            ".txrm",
+            ".txm",
+            ".xrm",
         )
-        examples_folder = path.join(self.qim_dir, 'examples')
+        examples_folder = path.join(self.qim_dir, "examples")
         self.img_examples = [
             path.join(examples_folder, example)
             for example in listdir(examples_folder)

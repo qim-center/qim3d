@@ -67,13 +67,13 @@ def segment_layers(
             data = ~data
     else:
         raise TypeError(
-            f'Data has to be type np.ndarray. Your data is of type {type(data)}'
+            f"Data has to be type np.ndarray. Your data is of type {type(data)}"
         )
 
     helper = MaxflowBuilder()
     if not isinstance(n_layers, int):
         raise TypeError(
-            f'Number of layers has to be positive integer. You passed {type(n_layers)}'
+            f"Number of layers has to be positive integer. You passed {type(n_layers)}"
         )
 
     if n_layers == 1:
@@ -89,7 +89,7 @@ def segment_layers(
 
     else:
         raise ValueError(
-            f'Number of layers has to be positive integer. You passed {n_layers}'
+            f"Number of layers has to be positive integer. You passed {n_layers}"
         )
 
     helper.add_layered_boundary_cost()
@@ -97,7 +97,7 @@ def segment_layers(
     if delta > 1:
         delta = int(delta)
     elif delta <= 0:
-        raise ValueError(f'Delta has to be positive number. You passed {delta}')
+        raise ValueError(f"Delta has to be positive number. You passed {delta}")
     helper.add_layered_smoothness(delta=delta, wrap=bool(wrap))
     helper.solve()
     if n_layers == 1:

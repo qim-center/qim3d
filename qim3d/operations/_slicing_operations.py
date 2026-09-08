@@ -69,18 +69,18 @@ class _Slicer:
 
     def to_dict(self):
         slicer_dict = {}
-        slicer_dict['RotationVector'] = self.rot_vec.tolist()
-        slicer_dict['RotationMatrix'] = self.rot_mat.tolist()
-        slicer_dict['Origin'] = self.origin.tolist()
-        slicer_dict['VolumeShape'] = self.volume_shape.tolist()
+        slicer_dict["RotationVector"] = self.rot_vec.tolist()
+        slicer_dict["RotationMatrix"] = self.rot_mat.tolist()
+        slicer_dict["Origin"] = self.origin.tolist()
+        slicer_dict["VolumeShape"] = self.volume_shape.tolist()
 
         return slicer_dict
 
     def from_dict(self, slicer_dict):
-        self.rot_vec = np.array(slicer_dict['RotationVector'])
-        self.rot_mat = np.array(slicer_dict['RotationMatrix'])
-        self.origin = np.array(slicer_dict['Origin'])
-        self.volume_shape = np.array(slicer_dict['VolumeShape'])
+        self.rot_vec = np.array(slicer_dict["RotationVector"])
+        self.rot_mat = np.array(slicer_dict["RotationMatrix"])
+        self.origin = np.array(slicer_dict["Origin"])
+        self.volume_shape = np.array(slicer_dict["VolumeShape"])
 
         self.update_orientation_vectors(self.rot_vec)
 
@@ -154,23 +154,23 @@ class _Slicer:
         candidates=None,
         class_weights=None,
         origin_shift_range=0.8,
-        sampling_mode='random',
-        sampling_axis='random',
+        sampling_mode="random",
+        sampling_axis="random",
     ):
         """
         Randomizes the orientation vectors and origin.
         """
-        if sampling_mode == 'grid':
-            if sampling_axis == 'random':
+        if sampling_mode == "grid":
+            if sampling_axis == "random":
                 rotation_vector = np.zeros(3)
                 rotation_vector[np.random.randint(3)] = 1
-            elif sampling_axis == 'x':
+            elif sampling_axis == "x":
                 rotation_vector = np.array([1, 0, 0])
-            elif sampling_axis == 'y':
+            elif sampling_axis == "y":
                 rotation_vector = np.array([0, 1, 0])
-            elif sampling_axis == 'z':
+            elif sampling_axis == "z":
                 rotation_vector = np.array([0, 0, 1])
-        elif sampling_mode == 'random':
+        elif sampling_mode == "random":
             rotation_vector = self._generate_uniformly_random_unit_vector()
         else:
             raise ValueError('sampling_mode must be either "random" or "grid".')
@@ -341,7 +341,7 @@ def get_random_slice(
     slicer = _Slicer(volume.shape)
 
     # Randomize orientation and origin
-    slicer.randomize(sampling_mode='random')
+    slicer.randomize(sampling_mode="random")
 
     # Extract square slice
     slice2d = slicer.get_slice(volume, width=width, length=length)
@@ -392,21 +392,22 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
 
     vol_subsample = volume[tuple(slice(None, None, step) for step in coarseness)]
     ratio = vol_subsample.size / volume.size
-    log.info(f'Subsampled volume has size {100*ratio:.3g}% of the original volume.')
+    log.info(f"Subsampled volume has size {100 * ratio:.3g}% of the original volume.")
 
     # User warnings
     min_elements = 1000
     min_axis_len = 5
     if vol_subsample.size < min_elements:
         log.info(
-            f'User warning: less than {min_elements} elements in subsample. Consider using a lower coarseness for higher precision.'
+            f"User warning: less than {min_elements} elements in subsample. Consider using a lower coarseness for higher precision."
         )
     elif np.min(vol_subsample.shape) < min_axis_len:
         log.info(
-            f'User warning: subsampled volume contains an axis with size less than {min_axis_len}. Consider using a lower coarseness for higher precision.'
+            f"User warning: subsampled volume contains an axis with size less than {min_axis_len}. Consider using a lower coarseness for higher precision."
         )
 
     return vol_subsample
+
 
 def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
     """
@@ -448,6 +449,7 @@ def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
 
         Actual ratio: 0.0156
     """
+
     def calc_ratio(vol: np.ndarray, stride: int) -> float:
         """Compute the achieved ratio given a stride value."""
         shape = np.array(vol.shape)
@@ -466,10 +468,16 @@ def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
         ratio_below = calc_ratio(volume, stride_below)
         ratio_above = calc_ratio(volume, stride_above)
         # Pick the stride yielding ratio closer to the target
-        stride = stride_above if abs(ratio_above - ratio) < abs(ratio_below - ratio) else stride_below
+        stride = (
+            stride_above
+            if abs(ratio_above - ratio) < abs(ratio_below - ratio)
+            else stride_below
+        )
 
     vol_subsample = volume[::stride, ::stride, ::stride]
     actual_ratio = vol_subsample.size / volume.size
-    log.info(f'Subsampled volume has size {100*actual_ratio:.3g}% of the original volume. Used a spacing of {stride} in each axis.')
+    log.info(
+        f"Subsampled volume has size {100 * actual_ratio:.3g}% of the original volume. Used a spacing of {stride} in each axis."
+    )
 
     return vol_subsample

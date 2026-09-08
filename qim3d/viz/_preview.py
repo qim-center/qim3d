@@ -7,7 +7,7 @@ X_STRIDE = 4
 Y_STRIDE = 8
 
 
-BACK_TO_NORMAL = '\u001b[0m'
+BACK_TO_NORMAL = "\u001b[0m"
 END_MARKER = -10
 
 """
@@ -19,106 +19,106 @@ BITMAPS = [
     # Block graphics
     # 0xffff0000, 0x2580,  // upper 1/2; redundant with inverse lower 1/2
     0x00000000,
-    '\u00a0',
+    "\u00a0",
     0x0000000F,
-    '\u2581',  # lower 1/8
+    "\u2581",  # lower 1/8
     0x000000FF,
-    '\u2582',  # lower 1/4
+    "\u2582",  # lower 1/4
     0x00000FFF,
-    '\u2583',
+    "\u2583",
     0x0000FFFF,
-    '\u2584',  # lower 1/2
+    "\u2584",  # lower 1/2
     0x000FFFFF,
-    '\u2585',
+    "\u2585",
     0x00FFFFFF,
-    '\u2586',  # lower 3/4
+    "\u2586",  # lower 3/4
     0x0FFFFFFF,
-    '\u2587',
+    "\u2587",
     # 0xffffffff, 0x2588,  # full; redundant with inverse space
     0xEEEEEEEE,
-    '\u258a',  # left 3/4
+    "\u258a",  # left 3/4
     0xCCCCCCCC,
-    '\u258c',  # left 1/2
+    "\u258c",  # left 1/2
     0x88888888,
-    '\u258e',  # left 1/4
+    "\u258e",  # left 1/4
     0x0000CCCC,
-    '\u2596',  # quadrant lower left
+    "\u2596",  # quadrant lower left
     0x00003333,
-    '\u2597',  # quadrant lower right
+    "\u2597",  # quadrant lower right
     0xCCCC0000,
-    '\u2598',  # quadrant upper left
+    "\u2598",  # quadrant upper left
     # 0xccccffff, 0x2599,  # 3/4 redundant with inverse 1/4
     0xCCCC3333,
-    '\u259a',  # diagonal 1/2
+    "\u259a",  # diagonal 1/2
     # 0xffffcccc, 0x259b,  # 3/4 redundant
     # 0xffff3333, 0x259c,  # 3/4 redundant
     0x33330000,
-    '\u259d',  # quadrant upper right
+    "\u259d",  # quadrant upper right
     # 0x3333cccc, 0x259e,  # 3/4 redundant
     # 0x3333ffff, 0x259f,  # 3/4 redundant
     # Line drawing subset: no double lines, no complex light lines
     0x000FF000,
-    '\u2501',  # Heavy horizontal
+    "\u2501",  # Heavy horizontal
     0x66666666,
-    '\u2503',  # Heavy vertical
+    "\u2503",  # Heavy vertical
     0x00077666,
-    '\u250f',  # Heavy down and right
+    "\u250f",  # Heavy down and right
     0x000EE666,
-    '\u2513',  # Heavy down and left
+    "\u2513",  # Heavy down and left
     0x66677000,
-    '\u2517',  # Heavy up and right
+    "\u2517",  # Heavy up and right
     0x666EE000,
-    '\u251b',  # Heavy up and left
+    "\u251b",  # Heavy up and left
     0x66677666,
-    '\u2523',  # Heavy vertical and right
+    "\u2523",  # Heavy vertical and right
     0x666EE666,
-    '\u252b',  # Heavy vertical and left
+    "\u252b",  # Heavy vertical and left
     0x000FF666,
-    '\u2533',  # Heavy down and horizontal
+    "\u2533",  # Heavy down and horizontal
     0x666FF000,
-    '\u253b',  # Heavy up and horizontal
+    "\u253b",  # Heavy up and horizontal
     0x666FF666,
-    '\u254b',  # Heavy cross
+    "\u254b",  # Heavy cross
     0x000CC000,
-    '\u2578',  # Bold horizontal left
+    "\u2578",  # Bold horizontal left
     0x00066000,
-    '\u2579',  # Bold horizontal up
+    "\u2579",  # Bold horizontal up
     0x00033000,
-    '\u257a',  # Bold horizontal right
+    "\u257a",  # Bold horizontal right
     0x00066000,
-    '\u257b',  # Bold horizontal down
+    "\u257b",  # Bold horizontal down
     0x06600660,
-    '\u254f',  # Heavy double dash vertical
+    "\u254f",  # Heavy double dash vertical
     0x000F0000,
-    '\u2500',  # Light horizontal
+    "\u2500",  # Light horizontal
     0x0000F000,
-    '\u2500',  #
+    "\u2500",  #
     0x44444444,
-    '\u2502',  # Light vertical
+    "\u2502",  # Light vertical
     0x22222222,
-    '\u2502',
+    "\u2502",
     0x000E0000,
-    '\u2574',  # light left
+    "\u2574",  # light left
     0x0000E000,
-    '\u2574',  # light left
+    "\u2574",  # light left
     0x44440000,
-    '\u2575',  # light up
+    "\u2575",  # light up
     0x22220000,
-    '\u2575',  # light up
+    "\u2575",  # light up
     0x00030000,
-    '\u2576',  # light right
+    "\u2576",  # light right
     0x00003000,
-    '\u2576',  # light right
+    "\u2576",  # light right
     0x00004444,
-    '\u2577',  # light down
+    "\u2577",  # light down
     0x00002222,
-    '\u2577',  # light down
+    "\u2577",  # light down
     0x11224488,
-    '\u2571',  # diagonals
+    "\u2571",  # diagonals
     0x88442211,
-    '\u2572',
+    "\u2572",
     0x99666699,
-    '\u2573',
+    "\u2573",
     0,
     END_MARKER,
     0,  # End marker
@@ -135,17 +135,17 @@ class Color:
         self.blue = blue
 
     def check_value(sel, value: int):
-        assert isinstance(
-            value, int
-        ), f'Color value has to be integer, this is {type(value)}'
-        assert value < 256, f'Color value has to be between 0 and 255, this is {value}'
-        assert value >= 0, f'Color value has to be between 0 and 255, this is {value}'
+        assert isinstance(value, int), (
+            f"Color value has to be integer, this is {type(value)}"
+        )
+        assert value < 256, f"Color value has to be between 0 and 255, this is {value}"
+        assert value >= 0, f"Color value has to be between 0 and 255, this is {value}"
 
     def __str__(self):
         """
         Returns the string in ansi color format
         """
-        return f'{self.red};{self.green};{self.blue}'
+        return f"{self.red};{self.green};{self.blue}"
 
 
 def chardata(unicodeChar: str, character_color: Color, background_color: Color) -> str:
@@ -157,7 +157,7 @@ def chardata(unicodeChar: str, character_color: Color, background_color: Color) 
     assert isinstance(character_color, Color)
     assert isinstance(background_color, Color)
     assert isinstance(unicodeChar, str)
-    return f'\033[38;2;{character_color}m\033[48;2;{background_color}m{unicodeChar}'
+    return f"\033[38;2;{character_color}m\033[48;2;{background_color}m{unicodeChar}"
 
 
 def get_best_unicode_pattern(bitmap: int) -> tuple[int, str, bool]:
@@ -180,7 +180,7 @@ def get_best_unicode_pattern(bitmap: int) -> tuple[int, str, bool]:
     """
     best_diff = 8
     best_pattern = 0x0000FFFF
-    unicode = '\u2584'
+    unicode = "\u2584"
     inverse = False
 
     bit_not = lambda n: (1 << 32) - 1 - n
@@ -307,7 +307,7 @@ def segment_string(image_segment: np.ndarray) -> str:
     """
     bitmap = create_bitmap(image_segment)
     bitmap, unicode, reverse = get_best_unicode_pattern(bitmap)
-    if unicode == '\u00a0':
+    if unicode == "\u00a0":
         bg_color = fg_color = get_color(image_segment, ndarray_from_int_bitmap(bitmap))
     else:
         fg_color, bg_color = get_colors(image_segment, ndarray_from_int_bitmap(bitmap))
@@ -340,9 +340,9 @@ def image_ansi_string(image: np.ndarray) -> str:
                 this_segment = segment
             string.append(segment_string(this_segment))
 
-        string.append(f'{BACK_TO_NORMAL}\n')
+        string.append(f"{BACK_TO_NORMAL}\n")
 
-    return ''.join(string)
+    return "".join(string)
 
 
 ###################################################################
@@ -376,7 +376,7 @@ def check_and_adjust_image_dims(image: np.ndarray) -> np.ndarray:
             image = np.moveaxis(image, 0, -1)
     else:
         raise ValueError(
-            f'Image must have 2 (grayscale) or 3 (colorful) dimensions. Yours has {image.ndim}'
+            f"Image must have 2 (grayscale) or 3 (colorful) dimensions. Yours has {image.ndim}"
         )
 
     return image

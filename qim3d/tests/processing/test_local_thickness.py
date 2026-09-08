@@ -33,7 +33,7 @@ def test_local_thickness_3d():
         border_thickness:-border_thickness,
         border_thickness:-border_thickness,
     ]
-    disk3d = np.pad(disk3d, border_thickness, mode='constant')
+    disk3d = np.pad(disk3d, border_thickness, mode="constant")
 
     lt = qim3d.processing.local_thickness(disk3d)
 

@@ -31,25 +31,25 @@ import qim3d
 from qim3d.gui.interface import BaseInterface
 from qim3d.utils._dependencies import optional_import
 
-gr = optional_import('gradio', extra='gui')
+gr = optional_import("gradio", extra="gui")
 
 # TODO: img in launch should be self.img
 
 
 class Interface(BaseInterface):
     def __init__(
-        self, name_suffix: str = '', verbose: bool = False, img: np.ndarray = None
+        self, name_suffix: str = "", verbose: bool = False, img: np.ndarray = None
     ):
         super().__init__(
-            title='Annotation Tool',
+            title="Annotation Tool",
             height=768,
-            width='100%',
+            width="100%",
             verbose=verbose,
-            custom_css='annotation_tool.css',
+            custom_css="annotation_tool.css",
         )
 
         self.username = getpass.getuser()
-        self.temp_dir = os.path.join(tempfile.gettempdir(), f'qim-{self.username}')
+        self.temp_dir = os.path.join(tempfile.gettempdir(), f"qim-{self.username}")
         self.name_suffix = name_suffix
         self.img = img
 
@@ -62,7 +62,7 @@ class Interface(BaseInterface):
         # Get the temporary files from gradio
         temp_path_list = []
         for filename in os.listdir(self.temp_dir):
-            if 'mask' and self.name_suffix in str(filename):
+            if "mask" and self.name_suffix in str(filename):
                 # Get the list of the temporary files
                 temp_path_list.append(os.path.join(self.temp_dir, filename))
 
@@ -81,9 +81,9 @@ class Interface(BaseInterface):
         this is safer and backwards compatible (should be)
         """
         self.mask_names = [
-            f'red{self.name_suffix}',
-            f'green{self.name_suffix}',
-            f'blue{self.name_suffix}',
+            f"red{self.name_suffix}",
+            f"green{self.name_suffix}",
+            f"blue{self.name_suffix}",
         ]
 
         # Clean up old files
@@ -91,7 +91,7 @@ class Interface(BaseInterface):
             files = os.listdir(self.temp_dir)
             for filename in files:
                 # Check if "mask" is in the filename
-                if ('mask' in filename) and (self.name_suffix in filename):
+                if ("mask" in filename) and (self.name_suffix in filename):
                     file_path = os.path.join(self.temp_dir, filename)
                     os.remove(file_path)
 
@@ -99,13 +99,13 @@ class Interface(BaseInterface):
             files = None
 
     def create_preview(self, img_editor: gr.ImageEditor) -> np.ndarray:
-        return img_editor['composite']
+        return img_editor["composite"]
 
     def create_download_list(self, img_editor: gr.ImageEditor) -> list[str]:
-        if len(img_editor['layers']) == 0:
+        if len(img_editor["layers"]) == 0:
             return []
 
-        masks_rgb = img_editor['layers'][0]
+        masks_rgb = img_editor["layers"][0]
         mask_threshold = 200  # This value is based
 
         mask_list = []
@@ -119,7 +119,7 @@ class Interface(BaseInterface):
             # Save only if we have a mask
             if np.sum(mask) > 0:
                 mask_list.append(mask)
-                filename = f'mask_{self.mask_names[idx]}.tif'
+                filename = f"mask_{self.mask_names[idx]}.tif"
                 if not os.path.exists(self.temp_dir):
                     os.makedirs(self.temp_dir)
                 filepath = os.path.join(self.temp_dir, filename)
@@ -133,11 +133,11 @@ class Interface(BaseInterface):
     def define_interface(self, gradio_interface, *args, **kwargs):
         brush = gr.Brush(
             colors=[
-                'rgb(255,50,100)',
-                'rgb(50,250,100)',
-                'rgb(50,100,255)',
+                "rgb(255,50,100)",
+                "rgb(50,250,100)",
+                "rgb(50,100,255)",
             ],
-            color_mode='fixed',
+            color_mode="fixed",
             default_size=10,
         )
         with gr.Row():
@@ -147,21 +147,21 @@ class Interface(BaseInterface):
                 img_editor = gr.ImageEditor(
                     value=(
                         {
-                            'background': self.img,
-                            'layers': [Image.new('RGBA', self.img.shape, (0, 0, 0, 0))],
-                            'composite': None,
+                            "background": self.img,
+                            "layers": [Image.new("RGBA", self.img.shape, (0, 0, 0, 0))],
+                            "composite": None,
                         }
                         if self.img is not None
                         else None
                     ),
-                    type='numpy',
-                    image_mode='RGB',
+                    type="numpy",
+                    image_mode="RGB",
                     brush=brush,
-                    sources='upload',
+                    sources="upload",
                     interactive=True,
                     show_download_button=True,
                     container=False,
-                    transforms=['crop'],
+                    transforms=["crop"],
                     layers=False,
                 )
 
@@ -173,7 +173,7 @@ class Interface(BaseInterface):
                         visible=False,
                     )
                 with gr.Row():
-                    masks_download = gr.File(label='Download masks', visible=False)
+                    masks_download = gr.File(label="Download masks", visible=False)
 
         # fmt: off
         img_editor.change(

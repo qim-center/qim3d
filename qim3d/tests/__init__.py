@@ -32,7 +32,7 @@ def mock_plot():
 
     """
 
-    matplotlib.use('Agg')
+    matplotlib.use("Agg")
 
     fig = plt.figure(figsize=(5, 4))
     axes = fig.add_axes([0.1, 0.1, 0.8, 0.8])
@@ -42,7 +42,7 @@ def mock_plot():
     return fig
 
 
-def mock_write_file(path, content='File created by qim3d'):
+def mock_write_file(path, content="File created by qim3d"):
     """
     Creates a file at the specified path and writes a predefined text into it.
 
@@ -53,7 +53,7 @@ def mock_write_file(path, content='File created by qim3d'):
         >>> mock_write_file("example.txt")
 
     """
-    _file = open(path, 'w', encoding='utf-8')
+    _file = open(path, "w", encoding="utf-8")
     _file.write(content)
     _file.close()
 
@@ -86,8 +86,8 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
         >>> tempdata('temporary_folder', n = 10, img_shape = (16, 16, 16))
 
     """
-    folder_trte = ['train', 'test']
-    sub_folders = ['images', 'labels']
+    folder_trte = ["train", "test"]
+    sub_folders = ["images", "labels"]
 
     # Creating train/test folder
     path_train = Path(folder) / folder_trte[0]
@@ -108,11 +108,30 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
         os.makedirs(path_train_lab)
         os.makedirs(path_test_lab)
         for i in range(n):
-
-            save(os.path.join(path_train_im, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
-            save(os.path.join(path_train_lab, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
-            save(os.path.join(path_test_im, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
-            save(os.path.join(path_test_lab, f'img_train{i}.nii.gz'), img, compression = True, replace = True)
+            save(
+                os.path.join(path_train_im, f"img_train{i}.nii.gz"),
+                img,
+                compression=True,
+                replace=True,
+            )
+            save(
+                os.path.join(path_train_lab, f"img_train{i}.nii.gz"),
+                img,
+                compression=True,
+                replace=True,
+            )
+            save(
+                os.path.join(path_test_im, f"img_train{i}.nii.gz"),
+                img,
+                compression=True,
+                replace=True,
+            )
+            save(
+                os.path.join(path_test_lab, f"img_train{i}.nii.gz"),
+                img,
+                compression=True,
+                replace=True,
+            )
 
     if remove:
         for filename in os.listdir(folder):
@@ -123,9 +142,10 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                log.warning('Failed to delete %s. Reason: %s' % (file_path, e))
+                log.warning("Failed to delete %s. Reason: %s" % (file_path, e))
 
         os.rmdir(folder)
+
 
 def get_all_functions_by_module():
     """
@@ -135,22 +155,30 @@ def get_all_functions_by_module():
     # List of qim3d modules
     # TODO: Get this list automatically from the qim3d package information
     modules = [
-        'io', 'generate', 'viz', 'features', 'filters', 'detection',
-        'segmentation', 'operations', 'processing', 'mesh', 'ml',
+        "io",
+        "generate",
+        "viz",
+        "features",
+        "filters",
+        "detection",
+        "segmentation",
+        "operations",
+        "processing",
+        "mesh",
+        "ml",
     ]
 
     # Dictionary to store functions from each module
     functions_by_module = {}
 
     for module_name in modules:
-
         # Dynamically import the module
-        module = importlib.import_module(f'qim3d.{module_name}')
+        module = importlib.import_module(f"qim3d.{module_name}")
 
         # Retrieve all functions listed in the __all__ variable
         functions = [
             getattr(module, name)
-            for name in getattr(module, '__all__', [])
+            for name in getattr(module, "__all__", [])
             if callable(getattr(module, name))
         ]
 
@@ -162,6 +190,7 @@ def get_all_functions_by_module():
 
     return functions_by_module
 
+
 def exec_python(source):
     """
     Execute a Python code block.
@@ -171,6 +200,7 @@ def exec_python(source):
     except Exception:
         print(source)
         raise
+
 
 def merge_code_blocks(code_blocks):
     """
@@ -182,7 +212,6 @@ def merge_code_blocks(code_blocks):
 
     for block in code_blocks:
         if "import qim3d" in block:
-
             # If there's an existing block, add it to the merged list
             if current_block.strip():
                 merged_blocks.append(current_block.strip())
@@ -199,6 +228,7 @@ def merge_code_blocks(code_blocks):
 
     return merged_blocks
 
+
 def filter_code_blocks(code_blocks):
     """Filter out code blocks that contain bibtex references."""
 
@@ -209,6 +239,7 @@ def filter_code_blocks(code_blocks):
             filtered_blocks.append(block)
 
     return filtered_blocks
+
 
 def check_docstring(obj):
     """

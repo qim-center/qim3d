@@ -4,6 +4,7 @@ import struct
 
 import olefile
 
+
 def read_txrm(file_name, slice_range=None):
     """
     Read data from a .txrm file, a compilation of .xrm files.
@@ -28,7 +29,7 @@ def read_txrm(file_name, slice_range=None):
     try:
         ole = olefile.OleFileIO(file_name)
     except IOError:
-        print('No such file or directory: %s', file_name)
+        print("No such file or directory: %s", file_name)
         return False
 
     metadata = read_ole_metadata(ole)
@@ -40,9 +41,9 @@ def read_txrm(file_name, slice_range=None):
                 metadata["image_height"],
                 metadata["image_width"],
             ),
-            slice_range
+            slice_range,
         ),
-        dtype=_get_ole_data_type(metadata)
+        dtype=_get_ole_data_type(metadata),
     )
 
     if slice_range is None:
@@ -50,17 +51,21 @@ def read_txrm(file_name, slice_range=None):
     else:
         slice_range = _make_slice_object_a_tuple(slice_range)
 
-    for i, idx in enumerate(range(*slice_range[0].indices(metadata["number_of_images"]))):
+    for i, idx in enumerate(
+        range(*slice_range[0].indices(metadata["number_of_images"]))
+    ):
         img_string = "ImageData{}/Image{}".format(
-            int(np.ceil((idx + 1) / 100.0)), int(idx + 1))
+            int(np.ceil((idx + 1) / 100.0)), int(idx + 1)
+        )
         array_of_images[i] = _read_ole_image(ole, img_string, metadata)[slice_range[1:]]
 
-    reference = metadata['reference']
+    reference = metadata["reference"]
     if reference is not None:
-        metadata['reference'] = reference[slice_range[1:]]
+        metadata["reference"] = reference[slice_range[1:]]
 
     ole.close()
     return array_of_images, metadata
+
 
 def read_ole_metadata(ole):
     """
@@ -80,43 +85,54 @@ def read_ole_metadata(ole):
     number_of_images = _read_ole_value(ole, "ImageInfo/NoOfImages", "<I")
 
     metadata = {
-        'facility': _read_ole_value(ole, 'SampleInfo/Facility', '<50s'),
-        'image_width': _read_ole_value(ole, 'ImageInfo/ImageWidth', '<I'),
-        'image_height': _read_ole_value(ole, 'ImageInfo/ImageHeight', '<I'),
-        'data_type': _read_ole_value(ole, 'ImageInfo/DataType', '<1I'),
-        'number_of_images': number_of_images,
-        'pixel_size': _read_ole_value(ole, 'ImageInfo/pixelsize', '<f'),
-        'reference_filename': _read_ole_value(ole, 'ImageInfo/referencefile', '<260s'),
-        'reference_data_type': _read_ole_value(ole, 'referencedata/DataType', '<1I'),
+        "facility": _read_ole_value(ole, "SampleInfo/Facility", "<50s"),
+        "image_width": _read_ole_value(ole, "ImageInfo/ImageWidth", "<I"),
+        "image_height": _read_ole_value(ole, "ImageInfo/ImageHeight", "<I"),
+        "data_type": _read_ole_value(ole, "ImageInfo/DataType", "<1I"),
+        "number_of_images": number_of_images,
+        "pixel_size": _read_ole_value(ole, "ImageInfo/pixelsize", "<f"),
+        "reference_filename": _read_ole_value(ole, "ImageInfo/referencefile", "<260s"),
+        "reference_data_type": _read_ole_value(ole, "referencedata/DataType", "<1I"),
         # NOTE: converting theta to radians from degrees
-        'thetas': _read_ole_arr(
-            ole, 'ImageInfo/Angles', "<{0}f".format(number_of_images)) * np.pi / 180.,
-        'x_positions': _read_ole_arr(
-            ole, 'ImageInfo/XPosition', "<{0}f".format(number_of_images)),
-        'y_positions': _read_ole_arr(
-            ole, 'ImageInfo/YPosition', "<{0}f".format(number_of_images)),
-        'z_positions': _read_ole_arr(
-            ole, 'ImageInfo/ZPosition', "<{0}f".format(number_of_images)),
-        'x-shifts': _read_ole_arr(
-            ole, 'alignment/x-shifts', "<{0}f".format(number_of_images)),
-        'y-shifts': _read_ole_arr(
-            ole, 'alignment/y-shifts', "<{0}f".format(number_of_images))
+        "thetas": _read_ole_arr(
+            ole, "ImageInfo/Angles", "<{0}f".format(number_of_images)
+        )
+        * np.pi
+        / 180.0,
+        "x_positions": _read_ole_arr(
+            ole, "ImageInfo/XPosition", "<{0}f".format(number_of_images)
+        ),
+        "y_positions": _read_ole_arr(
+            ole, "ImageInfo/YPosition", "<{0}f".format(number_of_images)
+        ),
+        "z_positions": _read_ole_arr(
+            ole, "ImageInfo/ZPosition", "<{0}f".format(number_of_images)
+        ),
+        "x-shifts": _read_ole_arr(
+            ole, "alignment/x-shifts", "<{0}f".format(number_of_images)
+        ),
+        "y-shifts": _read_ole_arr(
+            ole, "alignment/y-shifts", "<{0}f".format(number_of_images)
+        ),
     }
     # special case to remove trailing null characters
-    reference_filename = _read_ole_value(ole, 'ImageInfo/referencefile', '<260s')
+    reference_filename = _read_ole_value(ole, "ImageInfo/referencefile", "<260s")
     if reference_filename is not None:
         for i in range(len(reference_filename)):
-            if reference_filename[i] == '\x00':
+            if reference_filename[i] == "\x00":
                 # null terminate
                 reference_filename = reference_filename[:i]
                 break
-    metadata['reference_filename'] = reference_filename
-    if ole.exists('referencedata/image'):
-        reference = _read_ole_image(ole, 'referencedata/image', metadata, metadata['reference_data_type'])
+    metadata["reference_filename"] = reference_filename
+    if ole.exists("referencedata/image"):
+        reference = _read_ole_image(
+            ole, "referencedata/image", metadata, metadata["reference_data_type"]
+        )
     else:
         reference = None
-    metadata['reference'] = reference
+    metadata["reference"] = reference
     return metadata
+
 
 def _get_ole_data_type(metadata, datatype=None):
     # 10 float; 5 uint16 (unsigned 16-bit (2-byte) integers)
@@ -128,6 +144,7 @@ def _get_ole_data_type(metadata, datatype=None):
         return np.dtype(np.uint16)
     else:
         raise Exception("Unsupport XRM datatype: %s" % str(datatype))
+
 
 def _make_slice_object_a_tuple(slc):
     """
@@ -158,6 +175,7 @@ def _make_slice_object_a_tuple(slc):
         fixed_slc.append(s)
     return tuple(fixed_slc)
 
+
 def _shape_after_slice(shape, slc):
     """
     Return the calculated shape of an array after it has been sliced.
@@ -184,6 +202,7 @@ def _shape_after_slice(shape, slc):
             new_shape[m] = 0
     return tuple(new_shape)
 
+
 def _read_ole_struct(ole, label, struct_fmt):
     """
     Reads the struct associated with label in an ole file
@@ -195,6 +214,7 @@ def _read_ole_struct(ole, label, struct_fmt):
         value = struct.unpack(struct_fmt, data)
     return value
 
+
 def _read_ole_value(ole, label, struct_fmt):
     """
     Reads the value associated with label in an ole file
@@ -203,6 +223,7 @@ def _read_ole_value(ole, label, struct_fmt):
     if value is not None:
         value = value[0]
     return value
+
 
 def _read_ole_arr(ole, label, struct_fmt):
     """
@@ -213,13 +234,17 @@ def _read_ole_arr(ole, label, struct_fmt):
         arr = np.array(arr)
     return arr
 
+
 def _read_ole_image(ole, label, metadata, datatype=None):
     stream = ole.openstream(label)
     data = stream.read()
     data_type = _get_ole_data_type(metadata, datatype)
-    data_type = data_type.newbyteorder('<')
+    data_type = data_type.newbyteorder("<")
     image = np.reshape(
         np.frombuffer(data, data_type),
-        (metadata["image_height"], metadata["image_width"], )
+        (
+            metadata["image_height"],
+            metadata["image_width"],
+        ),
     )
     return image

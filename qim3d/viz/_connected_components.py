@@ -13,7 +13,7 @@ def plot_connected_components(
     overlay: np.ndarray = None,
     crop: bool = False,
     display_figure: bool = True,
-    colormap: str = 'viridis',
+    colormap: str = "viridis",
     min_value: float = None,
     max_value: float = None,
     **kwargs,
@@ -55,7 +55,7 @@ def plot_connected_components(
     if component_indexs is None:
         if len(connected_components) > max_cc_to_plot:
             log.warning(
-                f'More than {max_cc_to_plot} connected components found. Only the first {max_cc_to_plot} will be plotted. Change max_cc_to_plot to plot more components.'
+                f"More than {max_cc_to_plot} connected components found. Only the first {max_cc_to_plot} will be plotted. Change max_cc_to_plot to plot more components."
             )
         component_indexs = range(
             1, min(max_cc_to_plot + 1, len(connected_components) + 1)
@@ -64,9 +64,9 @@ def plot_connected_components(
     figs = []
     for component in component_indexs:
         if overlay is not None:
-            assert (
-                overlay.shape == connected_components.shape
-            ), f'Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}.'
+            assert overlay.shape == connected_components.shape, (
+                f"Overlay image must have the same shape as the connected components. overlay.shape=={overlay.shape} != connected_components.shape={connected_components.shape}."
+            )
 
             # plots overlay masked to connected component
             if crop:
@@ -89,8 +89,8 @@ def plot_connected_components(
             )
         else:
             # assigns discrete color map to each connected component if not given
-            if 'colormap' not in kwargs:
-                kwargs['colormap'] = qim3d.viz.colormaps.segmentation(
+            if "colormap" not in kwargs:
+                kwargs["colormap"] = qim3d.viz.colormaps.segmentation(
                     len(component_indexs)
                 )
 

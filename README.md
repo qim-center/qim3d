@@ -87,7 +87,7 @@ import qim3d
 
 # Generate synthetic collection of volumes
 num_volumes = 15
-volume_collection, labels = qim3d.generate.volume_collection(num_volumes = num_volumes)
+volume_collection, labels = qim3d.generate.volume_collection(num_volumes=num_volumes)
 
 # Visualize the collection
 qim3d.viz.volumetric(volume_collection)
@@ -100,7 +100,7 @@ qim3d.viz.volumetric(volume_collection)
 import qim3d
 
 vol = qim3d.examples.fibers_150x150x150
-val, vec = qim3d.processing.structure_tensor(vol, visualize = True, axis = 1)
+val, vec = qim3d.processing.structure_tensor(vol, visualize=True, axis=1)
 ```
 ![structure tensor](docs/assets/screenshots/structure_tensor_visualization_fibers.gif)
 

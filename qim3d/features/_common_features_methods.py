@@ -9,7 +9,7 @@ from qim3d.utils._logger import log
 def prepare_obj(
     obj: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
-    threshold: float | str = 'otsu',
+    threshold: float | str = "otsu",
     mesh_precision: float = 1.0,
     return_mesh: bool = True,
 ) -> np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh:
@@ -43,21 +43,21 @@ def prepare_obj(
 
     # Apply threshold if needed
     if not is_binary and threshold is not None:
-        if threshold == 'otsu':
+        if threshold == "otsu":
             threshold = threshold_otsu(volume)
 
         processed_volume = (volume > threshold).astype(np.uint8)
 
     else:
         if threshold is not None:
-            log.info('The volume is already binarized, threshold will be ignored.')
+            log.info("The volume is already binarized, threshold will be ignored.")
 
     # Apply mask if provided (set voxels outside of mask to 0)
     if mask is not None:
         mask = np.asarray(mask, dtype=bool)
 
         if mask.shape != processed_volume.shape:
-            msg = f'Mask shape {mask.shape} must match volume shape {processed_volume.shape}.'
+            msg = f"Mask shape {mask.shape} must match volume shape {processed_volume.shape}."
             raise ValueError(msg)
 
         processed_volume = np.where(mask, processed_volume, 0)
@@ -73,7 +73,7 @@ def prepare_obj(
 def volume(
     object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
-    threshold: float | str = 'otsu',
+    threshold: float | str = "otsu",
 ) -> float:
     """
     Computes the enclosed physical volume of a 3D object.
@@ -129,7 +129,7 @@ def volume(
 def area(
     object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
-    threshold: float | str = 'otsu',
+    threshold: float | str = "otsu",
 ) -> float:
     """
     Calculates the total surface area of a 3D object.
@@ -198,7 +198,7 @@ def area(
 def sphericity(
     object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
-    threshold: float | str = 'otsu',
+    threshold: float | str = "otsu",
 ) -> float:
     """
     Computes the sphericity (compactness) of a 3D object.
@@ -270,7 +270,7 @@ def sphericity(
     volume = qim3d.features.volume(mesh)
 
     if area == 0 or volume == 0:
-        log.warning('Surface area or volume is zero, sphericity is undefined.')
+        log.warning("Surface area or volume is zero, sphericity is undefined.")
         return np.nan
 
     # Compute sphericity
@@ -342,7 +342,7 @@ def mean_std_intensity(
 def size(
     object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
-    threshold: float | str = 'otsu',
+    threshold: float | str = "otsu",
 ) -> float:
     """
     Calculates the maximum dimension (size) of the object's bounding box.
@@ -413,7 +413,7 @@ def size(
 def roughness(
     object: np.ndarray | hmesh.Manifold | qim3d.mesh.SurfaceMesh,
     mask: np.ndarray | None = None,
-    threshold: float | str = 'otsu',
+    threshold: float | str = "otsu",
 ) -> float:
     """
     Computes the roughness (Surface-Area-to-Volume ratio) of a 3D object.
@@ -487,7 +487,7 @@ def roughness(
     volume = qim3d.features.volume(mesh)
 
     if area == 0 or volume == 0:
-        log.warning('Surface area or volume is zero, roughness is undefined.')
+        log.warning("Surface area or volume is zero, roughness is undefined.")
         return np.nan
 
     # Compute roughness

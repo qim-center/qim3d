@@ -79,7 +79,7 @@ def structure_tensor(
     logging.getLogger().setLevel(previous_logging_level)
 
     if volume.ndim != 3:
-        msg = 'The input volume must be 3D'
+        msg = "The input volume must be 3D"
         raise ValueError(msg)
 
     # Ensure volume is a float
@@ -104,9 +104,9 @@ def structure_tensor(
     # Compute the eigenvalues and eigenvectors of the structure tensor
     full = not smallest
     print(
-        f'Computing eigenvalues and eigenvectors of the structure tensor, full = {full}'
+        f"Computing eigenvalues and eigenvectors of the structure tensor, full = {full}"
     )
-    val, vec = st.eig_special_3d(s_vol, full=full, eigenvalue_order='asc')
+    val, vec = st.eig_special_3d(s_vol, full=full, eigenvalue_order="asc")
 
     if visualize:
         from qim3d.viz import vectors

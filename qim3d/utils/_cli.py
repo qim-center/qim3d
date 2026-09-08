@@ -4,28 +4,28 @@ from qim3d.gui import annotation_tool, data_explorer, iso3d, layers2d, local_thi
 
 
 def main():
-    parser = argparse.ArgumentParser(description='qim3d command-line interface.')
-    subparsers = parser.add_subparsers(title='Subcommands', dest='subcommand')
+    parser = argparse.ArgumentParser(description="qim3d command-line interface.")
+    subparsers = parser.add_subparsers(title="Subcommands", dest="subcommand")
 
     # subcommands
-    gui_parser = subparsers.add_parser('gui', help='Graphical User Interfaces.')
+    gui_parser = subparsers.add_parser("gui", help="Graphical User Interfaces.")
 
     gui_parser.add_argument(
-        '--data-explorer', action='store_true', help='Run data explorer.'
+        "--data-explorer", action="store_true", help="Run data explorer."
     )
-    gui_parser.add_argument('--iso3d', action='store_true', help='Run iso3d.')
+    gui_parser.add_argument("--iso3d", action="store_true", help="Run iso3d.")
     gui_parser.add_argument(
-        '--annotation-tool', action='store_true', help='Run annotation tool.'
+        "--annotation-tool", action="store_true", help="Run annotation tool."
     )
     gui_parser.add_argument(
-        '--local-thickness', action='store_true', help='Run local thickness tool.'
+        "--local-thickness", action="store_true", help="Run local thickness tool."
     )
-    gui_parser.add_argument('--layers2d', action='store_true', help='Run layers2d.')
-    gui_parser.add_argument('--host', default='0.0.0.0', help='Desired host.')
+    gui_parser.add_argument("--layers2d", action="store_true", help="Run layers2d.")
+    gui_parser.add_argument("--host", default="0.0.0.0", help="Desired host.")
 
     args = parser.parse_args()
 
-    if args.subcommand == 'gui':
+    if args.subcommand == "gui":
         arghost = args.host
         if args.data_explorer:
             data_explorer.run_interface(arghost)
@@ -43,5 +43,5 @@ def main():
             layers2d.run_interface(arghost)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

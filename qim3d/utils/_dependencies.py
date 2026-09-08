@@ -12,7 +12,7 @@ def optional_import(
     except ModuleNotFoundError as e:  # Catch the ModuleNotFoundError
         msg = f"Missing dependency '{module_name}'."
         if extra:
-            msg += f' Install via: pip install qim3d[{extra}]'
+            msg += f" Install via: pip install qim3d[{extra}]"
 
         # --- CRITICAL CHANGE HERE ---
         # Raise your custom error, suppressing the original exception traceback.

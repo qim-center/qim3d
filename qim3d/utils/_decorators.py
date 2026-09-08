@@ -31,12 +31,12 @@ def coarseness(*volumes: str) -> Callable:
         def wrapper(*args, **kwargs) -> Any:
             # Handle if the original function does not have coarseness nor kwargs
             if (
-                'coarseness' in kwargs
-                and 'coarseness' not in sig.parameters
+                "coarseness" in kwargs
+                and "coarseness" not in sig.parameters
                 and not kwargs_pname
             ):
                 coarseness = kwargs.pop(
-                    'coarseness'
+                    "coarseness"
                 )  # remove it from kwargs, otherwise bind wont work
             else:
                 coarseness = None
@@ -45,12 +45,12 @@ def coarseness(*volumes: str) -> Callable:
             boundargs.apply_defaults()
             mapping = boundargs.arguments
 
-            if 'coarseness' in mapping:
-                coarseness = mapping.pop('coarseness')
-            elif kwargs_pname and 'coarseness' in mapping[kwargs_pname]:
+            if "coarseness" in mapping:
+                coarseness = mapping.pop("coarseness")
+            elif kwargs_pname and "coarseness" in mapping[kwargs_pname]:
                 # Handle if the original function has a **kwargs parameter.
                 # Have to modify mapping since boundargs.kwargs is dynamically computed from it.
-                coarseness = mapping[kwargs_pname].pop('coarseness')
+                coarseness = mapping[kwargs_pname].pop("coarseness")
 
             if coarseness:
                 for pname in volumes:

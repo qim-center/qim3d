@@ -9,7 +9,7 @@ import qim3d
 def test_filter_base_initialization():
     filter_base = qim3d.filters.FilterBase(3, size=2)
     assert filter_base.args == (3,)
-    assert filter_base.kwargs == {'size': 2}
+    assert filter_base.kwargs == {"size": 2}
 
 
 def test_gaussian_filter():
@@ -140,11 +140,13 @@ def test_type_error_not_filterbase_or_callable():
     ]
 
     # Create invalid object
-    invalid_filter = object()  # An object that is not an instance of FilterBase or callable
+    invalid_filter = (
+        object()
+    )  # An object that is not an instance of FilterBase or callable
 
     # Construct error message
     message = (
-        f'filters should be instances of one of the following classes: {valid_filters}'
+        f"filters should be instances of one of the following classes: {valid_filters}"
     )
 
     # Use pytest.raises to catch the TypeError

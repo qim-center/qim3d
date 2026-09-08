@@ -11,7 +11,7 @@ import qim3d
 vol = qim3d.examples.bone_128x128x128
 
 # Ceate memory map to blobs
-volume_path = Path(qim3d.__file__).parents[0] / 'examples' / 'bone_128x128x128.tif'
+volume_path = Path(qim3d.__file__).parents[0] / "examples" / "bone_128x128x128.tif"
 vol_memmap = qim3d.io.load(volume_path, virtual_stack=True)
 
 
@@ -28,9 +28,9 @@ def test_load_type_memmap():
 
 
 def test_invalid_path():
-    invalid_path = os.path.join('this', 'path', 'doesnt', 'exist.tif')
+    invalid_path = os.path.join("this", "path", "doesnt", "exist.tif")
 
-    with pytest.raises(ValueError, match='Invalid path'):
+    with pytest.raises(ValueError, match="Invalid path"):
         qim3d.io.load(invalid_path)
 
 

@@ -4,6 +4,7 @@ from scipy.ndimage import find_objects, label, generate_binary_structure
 
 from qim3d.utils._logger import log
 
+
 class LabeledVolume:
     def __init__(self, labels: np.ndarray):
         self.labels = labels
@@ -32,7 +33,9 @@ class LabeledVolume:
         """
         keep = np.zeros(len(self) + 1, dtype=bool)
         for i, size in enumerate(self.sizes[1:], start=1):
-            if (min_size is None or size >= min_size) and (max_size is None or size <= max_size):
+            if (min_size is None or size >= min_size) and (
+                max_size is None or size <= max_size
+            ):
                 keep[i] = True
         mapping = np.arange(len(keep))
         mapping[~keep] = 0
@@ -51,11 +54,11 @@ class LabeledVolume:
         """Plot the distribution of the sizes of the labels."""
         vals = self.sizes[1:]
         bins = np.logspace(np.log10(vals.min()), np.log10(vals.max()), 50)
-        plt.hist(vals, bins=bins, edgecolor='white', color='orange')
-        plt.xscale('log')
-        plt.xlabel('Size (number of pixels)')
-        plt.ylabel('Frequency')
-        plt.title('Histogram over the label sizes')
+        plt.hist(vals, bins=bins, edgecolor="white", color="orange")
+        plt.xscale("log")
+        plt.xlabel("Size (number of pixels)")
+        plt.ylabel("Frequency")
+        plt.title("Histogram over the label sizes")
         plt.show()
 
 
@@ -69,7 +72,9 @@ class ConnectedComponents(LabeledVolume):
             connectivity (int, optional): Controls the squared distance of connectivity. Can range from 1 to 3.
 
         """
-        labels, count = label(vol, structure=generate_binary_structure(rank=3, connectivity=connectivity))
+        labels, count = label(
+            vol, structure=generate_binary_structure(rank=3, connectivity=connectivity)
+        )
         super().__init__(labels)
 
     def get_cc(self, index: int | None = None, crop: bool = False) -> np.ndarray:
@@ -88,13 +93,13 @@ class ConnectedComponents(LabeledVolume):
         """
         if index is None:
             volume = self.labels
-        elif index == 'random':
+        elif index == "random":
             index = np.random.randint(1, len(self) + 1)
             volume = self.labels == index
         else:
-            assert (
-                1 <= index <= len(self)
-            ), 'Index out of range. Needs to be in range [1, cc_count].'
+            assert 1 <= index <= len(self), (
+                "Index out of range. Needs to be in range [1, cc_count]."
+            )
             volume = self.labels == index
 
         if crop:
@@ -117,12 +122,15 @@ class ConnectedComponents(LabeledVolume):
         """
 
         if index:
-            assert 1 <= index <= len(self), 'Index out of range.'
+            assert 1 <= index <= len(self), "Index out of range."
             return find_objects((self.labels == index).astype(int))
         else:
             return find_objects(self.labels)
 
-def connected_components(volume: np.ndarray, connectivity: int = 1) -> ConnectedComponents:
+
+def connected_components(
+    volume: np.ndarray, connectivity: int = 1
+) -> ConnectedComponents:
     """
     Identifies and labels discrete objects (connected components) in a binary volume.
 

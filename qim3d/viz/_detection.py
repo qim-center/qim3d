@@ -10,7 +10,7 @@ def circles(
     blobs: tuple[float, float, float, float],
     volume: np.ndarray,
     alpha: float = 0.5,
-    color: str = '#ff9900',
+    color: str = "#ff9900",
     **kwargs,
 ) -> widgets.interactive:
     """
@@ -58,7 +58,7 @@ def circles(
         fig = qim3d.viz.slices_grid(
             volume[z_slice : z_slice + 1],
             n_slices=1,
-            colormap='gray',
+            colormap="gray",
             display_figure=False,
             display_positions=False,
             **kwargs,
@@ -92,10 +92,10 @@ def circles(
         value=volume.shape[0] // 2,
         min=0,
         max=volume.shape[0] - 1,
-        description='Slice',
+        description="Slice",
         continuous_update=True,
     )
     slicer_obj = widgets.interactive(_slicer, z_slice=position_slider)
-    slicer_obj.layout = widgets.Layout(align_items='flex-start')
+    slicer_obj.layout = widgets.Layout(align_items="flex-start")
 
     return slicer_obj

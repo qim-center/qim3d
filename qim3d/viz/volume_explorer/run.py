@@ -21,7 +21,7 @@ from .helpers import (
 from .installation import Installer
 
 # CLI entry point provided by @qim3d/volume-explorer
-START_COMMAND = 'volume-explorer --no-open'
+START_COMMAND = "volume-explorer --no-open"
 DEFAULT_VIEWER_PORT = 4173
 DEFAULT_FILE_SERVER_PORT = 8042
 
@@ -37,7 +37,7 @@ def run_global(port: int = DEFAULT_VIEWER_PORT):
 
     # First sourcing the node.js, if sourcing via fnm doesnt help and user would have to do it any other way, it would throw an error and suggest to install viewer to qim library
     windows_func = lambda: subprocess.run(
-        ['powershell.exe', SOURCE_FNM, f"{START_COMMAND} -p {port}"],
+        ["powershell.exe", SOURCE_FNM, f"{START_COMMAND} -p {port}"],
         shell=True,
         stderr=subprocess.DEVNULL,
     )
@@ -57,7 +57,7 @@ def run_within_qim_dir(port: int = DEFAULT_VIEWER_PORT):
         node_bin = get_node_binaries_dir(get_nvm_dir(base_dir))
         if node_bin is None:
             # Didn't find node binaries there so it looks for environment variable to tell it where is nvm folder
-            node_bin = get_node_binaries_dir(Path(str(os.getenv('NVM_DIR'))))
+            node_bin = get_node_binaries_dir(Path(str(os.getenv("NVM_DIR"))))
 
         if node_bin is not None:
             subprocess.run(
@@ -71,7 +71,7 @@ def run_within_qim_dir(port: int = DEFAULT_VIEWER_PORT):
         if node_bin is not None:
             subprocess.run(
                 [
-                    'powershell.exe',
+                    "powershell.exe",
                     f"$env:PATH = $env:PATH + ';{viewer_bin};{node_bin}';",
                     f"{START_COMMAND} -p {port}",
                 ],
@@ -113,12 +113,12 @@ def try_opening_volume_explorer(
                 os.path.dirname(filename_norm), port=file_server_port
             )
 
-            viz_url = f'http://localhost:{viewer_port}/?src=http://localhost:{file_server_port}/{os.path.basename(filename_norm)}'
+            viz_url = f"http://localhost:{viewer_port}/?src=http://localhost:{file_server_port}/{os.path.basename(filename_norm)}"
 
             if open_browser:
                 webbrowser.open_new_tab(viz_url)
 
-            log.info(f'\nVisualization url:\n{viz_url}\n')
+            log.info(f"\nVisualization url:\n{viz_url}\n")
         c.release()
 
     delayed_window = threading.Thread(target=delayed_open)
@@ -172,8 +172,8 @@ def volume_explorer(
             "Do you want qim3d to install volume-explorer now?"
         )
         print(message)
-        answer = input('[Y/n]:')
-        if answer in 'Yy':
+        answer = input("[Y/n]:")
+        if answer in "Yy":
             Installer().install()
             try_opening_volume_explorer(
                 filename,

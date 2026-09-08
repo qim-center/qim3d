@@ -19,22 +19,22 @@ from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
 
 
-@coarseness('volume')
+@coarseness("volume")
 def volumetric(
     volume: np.ndarray,
-    aspectmode: str = 'data',
+    aspectmode: str = "data",
     show: bool = True,
     save: bool = False,
     grid_visible: bool = False,
-    colormap: str = 'magma',
+    colormap: str = "magma",
     constant_opacity: bool = False,
     opacity_function: str | list = None,
     min_value: float | None = None,
     max_value: float | None = None,
-    samples: int | str = 'auto',
+    samples: int | str = "auto",
     max_voxels: int = 256**3,
-    data_type: str = 'scaled_float16',
-    camera_mode: str = 'orbit',
+    data_type: str = "scaled_float16",
+    camera_mode: str = "orbit",
     **kwargs,
 ) -> k3d.Plot | None:
     """
@@ -111,7 +111,7 @@ def volumetric(
 
     pixel_count = volume.shape[0] * volume.shape[1] * volume.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
-    if samples == 'auto':
+    if samples == "auto":
         y1, x1 = 256, 16777216  # 256 samples at res 256*256*256=16.777.216
         y2, x2 = 32, 134217728  # 32 samples at res 512*512*512=134.217.728
 
@@ -123,11 +123,11 @@ def volumetric(
     else:
         samples = int(samples)  # make sure it's an integer
 
-    if aspectmode.lower() not in ['data', 'cube']:
+    if aspectmode.lower() not in ["data", "cube"]:
         msg = "aspectmode should be either 'data' or 'cube'"
         raise ValueError(msg)
 
-    if camera_mode not in ['orbit', 'trackball', 'fly']:
+    if camera_mode not in ["orbit", "trackball", "fly"]:
         msg = "camera_mode should be either 'orbit', 'trackbal' or 'fly'"
         raise ValueError(msg)
 
@@ -139,7 +139,7 @@ def volumetric(
 
     if original_shape != new_shape:
         log.warning(
-            f'Downsampled image for visualization, from {original_shape} to {new_shape}'
+            f"Downsampled image for visualization, from {original_shape} to {new_shape}"
         )
 
     # Scale the image to float16 if needed
@@ -147,7 +147,7 @@ def volumetric(
         # When saving, we need float64
         volume = volume.astype(np.float64)
     else:
-        if data_type == 'scaled_float16':
+        if data_type == "scaled_float16":
             volume = scale_to_float16(volume)
         else:
             volume = volume.astype(data_type)
@@ -180,7 +180,7 @@ def volumetric(
         opacity_function = [0.0, float(constant_opacity), 1.0, float(constant_opacity)]
         interpolation = False
     else:
-        if opacity_function == 'constant':
+        if opacity_function == "constant":
             # without these settings, the plot will look bad when colormap is created with qim3d.viz.colormaps.objects
             opacity_function = [0.0, float(True), 1.0, float(True)]
             interpolation = False
@@ -192,7 +192,7 @@ def volumetric(
         volume,
         bounds=(
             [0, volume.shape[2], 0, volume.shape[1], 0, volume.shape[0]]
-            if aspectmode.lower() == 'data'
+            if aspectmode.lower() == "data"
             else None
         ),
         colormap=colormap,
@@ -206,7 +206,7 @@ def volumetric(
     plot.camera_mode = camera_mode
     if save:
         # Save html to disk
-        with open(str(save), 'w', encoding='utf-8') as fp:
+        with open(str(save), "w", encoding="utf-8") as fp:
             fp.write(plot.get_snapshot())
 
     if show:
@@ -217,7 +217,7 @@ def volumetric(
 
 def mesh(
     mesh,
-    backend: str = 'pygel3d',
+    backend: str = "pygel3d",
     wireframe: bool = True,
     flat_shading: bool = True,
     grid_visible: bool = False,
@@ -292,10 +292,10 @@ def mesh(
     """
 
     if len(mesh.vertices()) > 100000:
-        msg = f'The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh.'
+        msg = f"The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh."
         log.info(msg)
 
-    if backend not in ['k3d', 'pygel3d']:
+    if backend not in ["k3d", "pygel3d"]:
         msg = "Invalid backend. Choose 'pygel3d' or 'k3d'."
         raise ValueError(msg)
 
@@ -305,20 +305,20 @@ def mesh(
 
     # Extract face vertex indices
     face_vertices = [
-        list(mesh.circulate_face(int(fid), mode='v'))[:3] for fid in face_indices
+        list(mesh.circulate_face(int(fid), mode="v"))[:3] for fid in face_indices
     ]
     face_vertices = np.array(face_vertices, dtype=np.uint32)
 
     # Validate the mesh structure
     if vertices_array.shape[1] != 3 or face_vertices.shape[1] != 3:
-        msg = 'Vertices must have shape (N, 3) and faces (M, 3)'
+        msg = "Vertices must have shape (N, 3) and faces (M, 3)"
         raise ValueError(msg)
 
     # Separate valid kwargs for each backend
-    valid_k3d_kwargs = {k: v for k, v in kwargs.items() if k not in ['smooth', 'data']}
-    valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ['smooth', 'data']}
+    valid_k3d_kwargs = {k: v for k, v in kwargs.items() if k not in ["smooth", "data"]}
+    valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ["smooth", "data"]}
 
-    if backend == 'k3d':
+    if backend == "k3d":
         vertices_array = np.ascontiguousarray(vertices_array.astype(np.float32))
         face_vertices = np.ascontiguousarray(face_vertices)
 
@@ -335,7 +335,7 @@ def mesh(
 
         if save:
             # Save html to disk
-            with open(str(save), 'w', encoding='utf-8') as fp:
+            with open(str(save), "w", encoding="utf-8") as fp:
                 fp.write(plot.get_snapshot())
 
         if show:
@@ -343,6 +343,6 @@ def mesh(
         else:
             return plot
 
-    elif backend == 'pygel3d':
+    elif backend == "pygel3d":
         jd.set_export_mode(True)
         return jd.display(mesh, wireframe=wireframe, **valid_pygel_kwargs)

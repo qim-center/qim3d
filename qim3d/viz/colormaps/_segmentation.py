@@ -35,7 +35,7 @@ def rearrange_colors(randRGBcolors_old, min_dist=0.5):
 
 def segmentation(
     n_labels: int,
-    style: str = 'bright',
+    style: str = "bright",
     first_color_background: bool = True,
     last_color_background: bool = False,
     background_color: Union[Tuple[float, float, float], str] = (0.0, 0.0, 0.0),
@@ -114,13 +114,13 @@ def segmentation(
     from skimage import color
 
     # Check style
-    if style not in ('bright', 'soft', 'earth', 'ocean'):
+    if style not in ("bright", "soft", "earth", "ocean"):
         raise ValueError(
             f'Please choose "bright", "soft", "earth" or "ocean" for style in qim3dCmap not "{style}"'
         )
 
     # Translate strings to background color
-    color_dict = {'black': (0.0, 0.0, 0.0), 'white': (1.0, 1.0, 1.0)}
+    color_dict = {"black": (0.0, 0.0, 0.0), "white": (1.0, 1.0, 1.0)}
     if not isinstance(background_color, tuple):
         try:
             background_color = color_dict[background_color]
@@ -136,7 +136,7 @@ def segmentation(
     rng = np.random.default_rng(seed)
 
     # Generate color map for bright colors, based on hsv
-    if style == 'bright':
+    if style == "bright":
         randHSVcolors = [
             (
                 rng.uniform(low=0.0, high=1),
@@ -154,7 +154,7 @@ def segmentation(
             )
 
     # Generate soft pastel colors, by limiting the RGB spectrum
-    if style == 'soft':
+    if style == "soft":
         low = 0.6
         high = 0.95
         randRGBcolors = [
@@ -167,7 +167,7 @@ def segmentation(
         ]
 
     # Generate color map for earthy colors, based on LAB
-    if style == 'earth':
+    if style == "earth":
         randLABColors = [
             (
                 rng.uniform(low=25, high=110),
@@ -183,7 +183,7 @@ def segmentation(
             randRGBcolors.append(color.lab2rgb([[LabColor]])[0][0].tolist())
 
     # Generate color map for ocean colors, based on LAB
-    if style == 'ocean':
+    if style == "ocean":
         randLABColors = [
             (
                 rng.uniform(low=0, high=110),
@@ -209,6 +209,6 @@ def segmentation(
         randRGBcolors[-1] = background_color
 
     # Create colormap
-    objects = LinearSegmentedColormap.from_list('objects', randRGBcolors, N=n_labels)
+    objects = LinearSegmentedColormap.from_list("objects", randRGBcolors, N=n_labels)
 
     return objects

@@ -161,11 +161,11 @@ Sponge.Sponge                                     (1.12GB)
 ## Loading and saving files
 The qim3d library handles loading in volumetric data of many different file formats, like Tiff, HDF5, TXRM/TXM/XRM, NifTI, PIL, VOL/VGI, DICOM. Simply use the load function:
 ``` py
-vol = qim3d.io.load('./Mussel/ClosedMussel1_DOWNSAMPLED.tif')
+vol = qim3d.io.load("./Mussel/ClosedMussel1_DOWNSAMPLED.tif")
 ```
 Volumes can also be saved to specific file paths and in different file formats, like saving the mussel volume in the NIfTI format:
 ```py
-qim3d.io.save('./processed/ClosedMussel.nii')
+qim3d.io.save("./processed/ClosedMussel.nii")
 ```
 
 
@@ -173,7 +173,9 @@ qim3d.io.save('./processed/ClosedMussel.nii')
 ## OME-Zarr files
 The qim3d library can also be used for converting volumes to the OME-Zarr format to enable faster, more memory-efficient analysis by working with a chunked, multiscale version of the volume that is optimized for on-demand access:
 ``` py
-qim3d.io.export_ome_zarr("Mussel.zarr", data, chunk_size=100, downsample_rate=2, replace=True)
+qim3d.io.export_ome_zarr(
+    "Mussel.zarr", data, chunk_size=100, downsample_rate=2, replace=True
+)
 ```
 OME-Zarr volumes can easily be loaded in:
 ``` py
