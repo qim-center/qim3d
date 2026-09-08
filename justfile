@@ -31,6 +31,11 @@ alias pc-all := pre-commit-all
 # Formats the code using ruff
 [group: 'format']
 format:
+    uv run --group lint ruff format .
+
+# Formats the code using ruff and applies lint fixes
+[group: 'format']
+fix:
     uv run --group lint ruff check . --fix
     uv run --group lint ruff format .
 
