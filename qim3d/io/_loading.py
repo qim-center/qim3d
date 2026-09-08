@@ -30,7 +30,7 @@ from qim3d.utils import Memory, log
 from qim3d.utils._misc import find_similar_paths, get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
 
-dask.config.set(scheduler='processes')
+dask.config.set(scheduler="processes")
 
 
 class DataLoader:
@@ -74,18 +74,18 @@ class DataLoader:
                 dim_order (tuple, optional): The order of the dimensions in the volume. Default is (2,1,0) which corresponds to (z,y,x)
 
         """
-        self.virtual_stack = kwargs.get('virtual_stack', False)
-        self.dataset_name = kwargs.get('dataset_name', None)
-        self.return_metadata = kwargs.get('return_metadata', False)
-        self.contains = kwargs.get('contains', None)
-        self.force_load = kwargs.get('force_load', False)
-        self.dim_order = kwargs.get('dim_order', (2, 1, 0))
-        self.PIL_extensions = ('.jp2', '.jpg', 'jpeg', '.png', 'gif', '.bmp', '.webp')
+        self.virtual_stack = kwargs.get("virtual_stack", False)
+        self.dataset_name = kwargs.get("dataset_name", None)
+        self.return_metadata = kwargs.get("return_metadata", False)
+        self.contains = kwargs.get("contains", None)
+        self.force_load = kwargs.get("force_load", False)
+        self.dim_order = kwargs.get("dim_order", (2, 1, 0))
+        self.PIL_extensions = (".jp2", ".jpg", "jpeg", ".png", "gif", ".bmp", ".webp")
         # RAW settings (headerless files)
-        self.raw_shape = kwargs.get('raw_shape', None)  # expected in XYZ order
-        self.raw_dtype = kwargs.get('raw_dtype', None)  # e.g. "float32" or np.float32
-        self.raw_byteorder = kwargs.get('raw_byteorder', '<')  # '<' little, '>' big
-        self.raw_offset_bytes = kwargs.get('raw_offset_bytes', 0)
+        self.raw_shape = kwargs.get("raw_shape", None)  # expected in XYZ order
+        self.raw_dtype = kwargs.get("raw_dtype", None)  # e.g. "float32" or np.float32
+        self.raw_byteorder = kwargs.get("raw_byteorder", "<")  # '<' little, '>' big
+        self.raw_offset_bytes = kwargs.get("raw_offset_bytes", 0)
 
     def load_tiff(self, path: str | os.PathLike) -> np.ndarray:
         """
@@ -131,7 +131,7 @@ class DataLoader:
         import h5py
 
         # Read file
-        f = h5py.File(path, 'r')
+        f = h5py.File(path, "r")
         data_keys = _get_h5_dataset_keys(f)
         datasets = []
         metadata = {}
@@ -142,7 +142,7 @@ class DataLoader:
                 datasets.append(key)
             if f[key].attrs.keys():
                 metadata[key] = {
-                    'value': f[key][()],
+                    "value": f[key][()],
                     **dict(f[key].attrs),  # ruff: **{attr_key: val for attr_key, val in f[key].attrs.items()},
                 }
 
@@ -170,7 +170,7 @@ class DataLoader:
                         msg = f"Invalid dataset name. Did you mean '{suggestion}'?"
                         raise ValueError(msg)
                     else:
-                        msg = f'Invalid dataset name. Please choose between the following datasets: {datasets}'
+                        msg = f"Invalid dataset name. Please choose between the following datasets: {datasets}"
                         raise ValueError(msg)
                 else:
                     msg = f"Found multiple datasets: {datasets}. Please specify which of them that you want to load with the argument 'dataset_name'"
@@ -178,7 +178,7 @@ class DataLoader:
 
         # No datasets were found
         else:
-            msg = f'Did not find any data in the file: {path}'
+            msg = f"Did not find any data in the file: {path}"
             raise ValueError(msg)
 
         if not self.virtual_stack:
@@ -213,7 +213,7 @@ class DataLoader:
         tiff_stack = [
             file
             for file in os.listdir(path)
-            if (file.endswith(('.tif', '.tiff'))) and self.contains in file
+            if (file.endswith((".tif", ".tiff"))) and self.contains in file
         ]
         tiff_stack.sort()  # Ensure proper ordering
 
@@ -222,17 +222,17 @@ class DataLoader:
         for filename in tiff_stack:
             name = os.path.splitext(filename)[0]  # Remove file extension
             tiff_stack_only_letters.append(
-                ''.join(filter(str.isalpha, name))
+                "".join(filter(str.isalpha, name))
             )  # Remove everything else than letters from the name
 
         # Get unique elements from tiff_stack_only_letters
         unique_names = list(set(tiff_stack_only_letters))
         if len(unique_names) > 1:
-            msg = f'The provided part of the filename for the TIFF stack matches multiple TIFF stacks: {unique_names}.\nPlease provide a string that is unique for the TIFF stack that is intended to be loaded'
+            msg = f"The provided part of the filename for the TIFF stack matches multiple TIFF stacks: {unique_names}.\nPlease provide a string that is unique for the TIFF stack that is intended to be loaded"
             raise ValueError(msg)
 
         vol = tifffile.imread(
-            [os.path.join(path, file) for file in tiff_stack], out='memmap'
+            [os.path.join(path, file) for file in tiff_stack], out="memmap"
         )
 
         if not self.virtual_stack:
@@ -261,9 +261,9 @@ class DataLoader:
         import olefile
 
         if self.virtual_stack:
-            if not path.endswith('.txm'):
+            if not path.endswith(".txm"):
                 log.warning(
-                    'Virtual stack is only thoroughly tested for reconstructed volumes in TXM format and is thus not guaranteed to load TXRM and XRM files correctly'
+                    "Virtual stack is only thoroughly tested for reconstructed volumes in TXM format and is thus not guaranteed to load TXRM and XRM files correctly"
                 )
 
             # Get metadata
@@ -273,8 +273,8 @@ class DataLoader:
             # Compute data offsets in bytes for each slice
             offsets = _get_ole_offsets(ole)
 
-            if len(offsets) != metadata['number_of_images']:
-                msg = f'Metadata is erroneous: number of images {metadata['number_of_images']} is different from number of data offsets {len(offsets)}'
+            if len(offsets) != metadata["number_of_images"]:
+                msg = f"Metadata is erroneous: number of images {metadata['number_of_images']} is different from number of data offsets {len(offsets)}"
                 raise ValueError(msg)
 
             slices = []
@@ -282,16 +282,16 @@ class DataLoader:
                 slices.append(
                     np.memmap(
                         path,
-                        dtype=_get_ole_data_type(metadata).newbyteorder('<'),
-                        mode='r',
+                        dtype=_get_ole_data_type(metadata).newbyteorder("<"),
+                        mode="r",
                         offset=offset,
-                        shape=(1, metadata['image_height'], metadata['image_width']),
+                        shape=(1, metadata["image_height"], metadata["image_width"]),
                     )
                 )
 
             vol = da.concatenate(slices, axis=0)
             log.warning(
-                'Virtual stack volume will be returned as a dask array. To load certain slices into memory, use normal indexing followed by the compute() method, e.g. vol[:,0,:].compute()'
+                "Virtual stack volume will be returned as a dask array. To load certain slices into memory, use normal indexing followed by the compute() method, e.g. vol[:,0,:].compute()"
             )
 
         else:
@@ -384,13 +384,13 @@ class DataLoader:
         for filename in pil_stack:
             name = os.path.splitext(filename)[0]  # Remove file extension
             pil_stack_only_letters.append(
-                ''.join(filter(str.isalpha, name))
+                "".join(filter(str.isalpha, name))
             )  # Remove everything else than letters from the name
 
         # Get unique elements
         unique_names = list(set(pil_stack_only_letters))
         if len(unique_names) > 1:
-            msg = f'The provided part of the filename for the stack matches multiple stacks: {unique_names}.\nPlease provide a string that is unique for the image stack that is intended to be loaded'
+            msg = f"The provided part of the filename for the stack matches multiple stacks: {unique_names}.\nPlease provide a string that is unique for the image stack that is intended to be loaded"
             raise ValueError(msg)
 
         if self.virtual_stack:
@@ -449,7 +449,7 @@ class DataLoader:
             for line in f:
                 line = line.strip()
                 # {NAME} is start of a new object, so should indent
-                if line.startswith('{') and line.endswith('}'):
+                if line.startswith("{") and line.endswith("}"):
                     section_name = line[1:-1]
                     current_section[section_name] = {}
                     section_stack.append(current_section)
@@ -457,7 +457,7 @@ class DataLoader:
 
                     should_indent = True
                 # [NAME] is start of a section, so should not indent
-                elif line.startswith('[') and line.endswith(']'):
+                elif line.startswith("[") and line.endswith("]"):
                     section_name = line[1:-1]
 
                     if not should_indent and len(section_stack) > 1:
@@ -469,10 +469,10 @@ class DataLoader:
 
                     should_indent = False
                 # = is a key value pair
-                elif '=' in line:
-                    key, value = line.split('=', 1)
+                elif "=" in line:
+                    key, value = line.split("=", 1)
                     current_section[key.strip()] = value.strip()
-                elif line == '':
+                elif line == "":
                     if len(section_stack) > 1:
                         current_section = section_stack.pop()
 
@@ -494,40 +494,40 @@ class DataLoader:
 
         """
         # makes sure path point to .VGI metadata file and not the .VOL file
-        if path.endswith('.vol') and os.path.isfile(path.replace('.vol', '.vgi')):
-            path = path.replace('.vol', '.vgi')
-            log.warning('Corrected path to .vgi metadata file from .vol file')
-        elif path.endswith('.vol') and not os.path.isfile(path.replace('.vol', '.vgi')):
-            msg = f'Unsupported file format, should point to .vgi metadata file assumed to be in same folder as .vol file: {path}'
+        if path.endswith(".vol") and os.path.isfile(path.replace(".vol", ".vgi")):
+            path = path.replace(".vol", ".vgi")
+            log.warning("Corrected path to .vgi metadata file from .vol file")
+        elif path.endswith(".vol") and not os.path.isfile(path.replace(".vol", ".vgi")):
+            msg = f"Unsupported file format, should point to .vgi metadata file assumed to be in same folder as .vol file: {path}"
             raise ValueError(msg)
 
         meta_data = self._load_vgi_metadata(path)
 
         # Extracts relevant information from the metadata
-        file_name = meta_data['volume1']['file1']['Name']
-        path = path.rsplit('/', 1)[
+        file_name = meta_data["volume1"]["file1"]["Name"]
+        path = path.rsplit("/", 1)[
             0
         ]  # Remove characters after the last "/" to be replaced with .vol filename
         vol_path = os.path.join(
             path, file_name
         )  # .vol and .vgi files are assumed to be in the same directory
-        dims = meta_data['volume1']['file1']['Size']
+        dims = meta_data["volume1"]["file1"]["Size"]
         dims = [int(n) for n in dims.split() if n.isdigit()]
 
-        dt = meta_data['volume1']['file1']['Datatype']
+        dt = meta_data["volume1"]["file1"]["Datatype"]
         match dt:
-            case 'float':
+            case "float":
                 dt = np.float32
-            case 'float32':
+            case "float32":
                 dt = np.float32
-            case 'uint8':
+            case "uint8":
                 dt = np.uint8
-            case 'unsigned integer':
+            case "unsigned integer":
                 dt = np.uint16
-            case 'uint16':
+            case "uint16":
                 dt = np.uint16
             case _:
-                msg = f'Unsupported data type: {dt}'
+                msg = f"Unsupported data type: {dt}"
                 raise ValueError(msg)
 
         dims_order = (
@@ -536,7 +536,7 @@ class DataLoader:
             dims[self.dim_order[2]],
         )
         if self.virtual_stack:
-            vol = np.memmap(vol_path, dtype=dt, mode='r', shape=dims_order)
+            vol = np.memmap(vol_path, dtype=dt, mode="r", shape=dims_order)
         else:
             vol = np.fromfile(vol_path, dtype=dt, count=np.prod(dims))
             vol = np.reshape(vol, dims_order)
@@ -589,13 +589,13 @@ class DataLoader:
         for filename in dicom_stack:
             name = os.path.splitext(filename)[0]  # Remove file extension
             dicom_stack_only_letters.append(
-                ''.join(filter(str.isalpha, name))
+                "".join(filter(str.isalpha, name))
             )  # Remove everything else than letters from the name
 
         # Get unique elements from tiff_stack_only_letters
         unique_names = list(set(dicom_stack_only_letters))
         if len(unique_names) > 1:
-            f'The provided part of the filename for the DICOM stack matches multiple DICOM stacks: {unique_names}.\nPlease provide a string that is unique for the DICOM stack that is intended to be loaded'
+            f"The provided part of the filename for the DICOM stack matches multiple DICOM stacks: {unique_names}.\nPlease provide a string that is unique for the DICOM stack that is intended to be loaded"
             raise ValueError(msg)
 
         # dicom_list contains the dicom objects with metadata
@@ -646,7 +646,7 @@ class DataLoader:
         file_size = get_file_size(filename)
         available_memory = Memory().free
         if file_size > available_memory:
-            message = f'The file {filename} has {sizeof(file_size)} but only {sizeof(available_memory)} of memory is available.'
+            message = f"The file {filename} has {sizeof(file_size)} but only {sizeof(available_memory)} of memory is available."
             if self.force_load:
                 log.warning(message)
             else:
@@ -685,15 +685,15 @@ class DataLoader:
         actual = get_file_size(path)
         if actual != expected:
             msg = (
-                'RAW size mismatch. '
-                f'Expected {expected} bytes but file has {actual} bytes. '
-                f'(shape_xyz={shape_xyz}, dtype={dtype}, offset_bytes={offset})'
+                "RAW size mismatch. "
+                f"Expected {expected} bytes but file has {actual} bytes. "
+                f"(shape_xyz={shape_xyz}, dtype={dtype}, offset_bytes={offset})"
             )
             raise ValueError(msg)
 
         if self.virtual_stack:
             return np.memmap(
-                path, dtype=dtype, mode='r', offset=offset, shape=shape_out
+                path, dtype=dtype, mode="r", offset=offset, shape=shape_out
             )
         else:
             vol = np.fromfile(
@@ -728,37 +728,39 @@ class DataLoader:
         if os.path.isfile(path):
             # Choose the loader based on the file extension
             self.check_file_size(path)
-            if path.endswith(('.tif', '.tiff')):
+            if path.endswith((".tif", ".tiff")):
                 return self.load_tiff(path)
-            elif path.endswith('.h5'):
+            elif path.endswith(".h5"):
                 return self.load_h5(path)
-            elif path.endswith(('.txrm', '.txm', '.xrm')):
+            elif path.endswith((".txrm", ".txm", ".xrm")):
                 return self.load_txrm(path)
-            elif path.endswith(('.nii', '.nii.gz')):
+            elif path.endswith((".nii", ".nii.gz")):
                 return self.load_nifti(path)
-            elif path.endswith(('.vol', '.vgi')):
+            elif path.endswith((".vol", ".vgi")):
                 return self.load_vol(path)
-            elif path.endswith(('.dcm', '.DCM')):
+            elif path.endswith((".dcm", ".DCM")):
                 return self.load_dicom(path)
-            elif path.endswith('.raw'):
+            elif path.endswith(".raw"):
                 return self.load_raw(path)
 
             else:
                 try:
                     return self.load_pil(path)
                 except UnidentifiedImageError:
-                    msg = 'Unsupported file format'
+                    msg = "Unsupported file format"
                     raise ValueError(msg) from None
 
         # Load a directory
         elif os.path.isdir(path):
             # load tiff stack if folder contains tiff files else load dicom directory
-            if any(f.endswith(('.tif', '.tiff')) for f in os.listdir(path)):
+            if any(f.endswith((".tif", ".tiff")) for f in os.listdir(path)):
                 return self.load_tiff_stack(path)
 
             elif any(f.endswith(self.PIL_extensions) for f in os.listdir(path)):
                 return self.load_pil_stack(path)
-            elif path.endswith('.zarr') or path.split('/')[-2].endswith('.zarr'): # To load just a zarr group member
+            elif path.endswith(".zarr") or path.split("/")[-2].endswith(
+                ".zarr"
+            ):  # To load just a zarr group member
                 return self.load_zarr(path)
             else:
                 return self.load_dicom_dir(path)
@@ -773,11 +775,11 @@ class DataLoader:
                 message = f"Invalid path. Did you mean '{suggestion}'?"
                 raise ValueError(repr(message))
             else:
-                msg = 'Invalid path'
+                msg = "Invalid path"
                 raise ValueError(msg)
 
 
-def _get_h5_dataset_keys(f: 'h5py.File') -> list[str]:
+def _get_h5_dataset_keys(f: "h5py.File") -> list[str]:
     keys = []
     f.visit(lambda key: keys.append(key) if isinstance(f[key], h5py.Dataset) else None)
     return keys
@@ -786,18 +788,18 @@ def _get_h5_dataset_keys(f: 'h5py.File') -> list[str]:
 def _get_ole_offsets(ole: olefile.OleFileIO) -> dict[str, int]:
     slice_offset = {}
     for stream in ole.listdir():
-        if stream[0].startswith('ImageData'):
+        if stream[0].startswith("ImageData"):
             sid = ole._find(stream)  # noqa: SLF001
             direntry = ole.direntries[sid]
             sect_start = direntry.isectStart
             offset = ole.sectorsize * (sect_start + 1)
-            slice_offset[f'{stream[0]}/{stream[1]}'] = offset
+            slice_offset[f"{stream[0]}/{stream[1]}"] = offset
 
     # sort dictionary after natural sorting (https://blog.codinghorror.com/sorting-for-humans-natural-sort-order/)
     sorted_keys = sorted(
         slice_offset.keys(),
         key=lambda string_: [
-            int(s) if s.isdigit() else s for s in re.split(r'(\d+)', string_)
+            int(s) if s.isdigit() else s for s in re.split(r"(\d+)", string_)
         ],
     )
     slice_offset_sorted = {key: slice_offset[key] for key in sorted_keys}
@@ -817,7 +819,7 @@ def load(
     display_memory_usage: bool = False,
     raw_shape: tuple[int, int, int] | None = None,
     raw_dtype: str | np.dtype | None = None,
-    raw_byteorder: str = '<',
+    raw_byteorder: str = "<",
     raw_offset_bytes: int = 0,
     **kwargs,
 ) -> np.ndarray:
@@ -945,7 +947,7 @@ def load(
         **kwargs,
     )
 
-    if progress_bar and os.name == 'posix':
+    if progress_bar and os.name == "posix":
         with FileLoadingProgressBar(path):
             data = loader.load(path)
     else:
@@ -954,13 +956,13 @@ def load(
     def log_memory_info(data: np.ndarray) -> None:
         mem = Memory()
         log.info(
-            'Volume using %s of memory\n',
+            "Volume using %s of memory\n",
             sizeof(data[0].nbytes if isinstance(data, tuple) else data.nbytes),
         )
         mem.report()
 
     if return_metadata and not isinstance(data, tuple):
-        log.warning('The file format does not contain metadata')
+        log.warning("The file format does not contain metadata")
 
     if not virtual_stack:
         if display_memory_usage:
@@ -970,9 +972,9 @@ def load(
         if not isinstance(
             type(data[0]) if isinstance(data, tuple) else type(data), np.ndarray
         ):
-            log.info('Using virtual stack')
+            log.info("Using virtual stack")
         else:
-            log.warning('Virtual stack is not supported for this file format')
+            log.warning("Virtual stack is not supported for this file format")
             if display_memory_usage:
                 log_memory_info(data)
 

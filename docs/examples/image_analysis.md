@@ -5,6 +5,7 @@ The qim3d library offers many functionalities for image analysis.
 First, qim3d is imported:
 ``` py
 import qim3d
+
 downloader = qim3d.io.Downloader()
 volume = downloader.Mussel.ClosedMussel1_DOWNSAMPLED(load_file=True)
 ```
@@ -34,10 +35,7 @@ vol = qim3d.examples.fly_150x256x256
 fig1 = qim3d.viz.slices_grid(vol, num_slices=5, display_figure=True)
 
 # Create filter pipeline
-pipeline = Pipeline(
-    Median(size=5),
-    Gaussian(sigma=3, dask = True)
-)
+pipeline = Pipeline(Median(size=5), Gaussian(sigma=3, dask=True))
 
 # Append a third filter to the pipeline
 pipeline.append(Maximum(size=3))
@@ -69,11 +67,11 @@ blobs, binary_volume = qim3d.detection.blobs(
     max_sigma=8,
     threshold=0.001,
     overlap=0.1,
-    background="bright"
-    )
+    background="bright",
+)
 
 # Visualize detected blobs
-qim3d.viz.circles(blobs, vol, alpha=0.8, color='blue')
+qim3d.viz.circles(blobs, vol, alpha=0.8, color="blue")
 ```
 <div class="notebook-output-figure">
     <img src="../../assets/screenshots/blob_detection.gif" alt="blob_detection>
@@ -89,7 +87,7 @@ Binary volumes can be segmented using the watershed algorithm:
 import qim3d
 
 vol = qim3d.examples.cement_128x128x128
-bin_vol = qim3d.filters.gaussian(vol, sigma = 2)<60
+bin_vol = qim3d.filters.gaussian(vol, sigma=2) < 60
 
 fig1 = qim3d.viz.slices_grid(bin_vol, slice_axis=1, display_figure=True)
 ```
@@ -101,7 +99,9 @@ fig1 = qim3d.viz.slices_grid(bin_vol, slice_axis=1, display_figure=True)
 labeled_volume, num_labels = qim3d.segmentation.watershed(bin_vol)
 
 cmap = qim3d.viz.colormaps.segmentation(num_labels)
-fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, color_map=cmap, display_figure=True)
+fig2 = qim3d.viz.slices_grid(
+    labeled_volume, slice_axis=1, color_map=cmap, display_figure=True
+)
 ```
 <div class="notebook-output-figure">
     <img src="../../assets/screenshots/operations-watershed_after.png" alt="watershed_after">

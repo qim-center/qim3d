@@ -22,12 +22,12 @@ class Convert:
             chunk_shape (tuple, optional): chunk size for the zarr file. Defaults to (64, 64, 64).
 
         """
-        self.chunk_shape = kwargs.get('chunk_shape', (64, 64, 64))
+        self.chunk_shape = kwargs.get("chunk_shape", (64, 64, 64))
 
     def convert(self, input_path: str, output_path: str):
         def get_file_extension(file_path):
             root, ext = os.path.splitext(file_path)
-            if ext in ['.gz', '.bz2', '.xz']:  # handle common compressed extensions
+            if ext in [".gz", ".bz2", ".xz"]:  # handle common compressed extensions
                 root, ext2 = os.path.splitext(root)
                 ext = ext2 + ext
             return ext
@@ -40,30 +40,30 @@ class Convert:
 
         if os.path.isfile(input_path):
             match input_ext, output_ext:
-                case ('.tif', '.zarr') | ('.tiff', '.zarr'):
+                case (".tif", ".zarr") | (".tiff", ".zarr"):
                     return self.convert_tif_to_zarr(input_path, output_path)
-                case ('.nii', '.zarr') | ('.nii.gz', '.zarr'):
+                case (".nii", ".zarr") | (".nii.gz", ".zarr"):
                     return self.convert_nifti_to_zarr(input_path, output_path)
                 case _:
-                    raise ValueError('Unsupported file format')
+                    raise ValueError("Unsupported file format")
         # Load a directory
         elif os.path.isdir(input_path):
             match input_ext, output_ext:
-                case ('.zarr', '.tif') | ('.zarr', '.tiff'):
+                case (".zarr", ".tif") | (".zarr", ".tiff"):
                     return self.convert_zarr_to_tif(input_path, output_path)
-                case ('.zarr', '.nii'):
+                case (".zarr", ".nii"):
                     return self.convert_zarr_to_nifti(input_path, output_path)
-                case ('.zarr', '.nii.gz'):
+                case (".zarr", ".nii.gz"):
                     return self.convert_zarr_to_nifti(
                         input_path, output_path, compression=True
                     )
                 case _:
-                    raise ValueError('Unsupported file format')
+                    raise ValueError("Unsupported file format")
         # Fail
         else:
             # Find the closest matching path to warn the user
-            parent_dir = os.path.dirname(input_path) or '.'
-            parent_files = os.listdir(parent_dir) if os.path.isdir(parent_dir) else ''
+            parent_dir = os.path.dirname(input_path) or "."
+            parent_files = os.listdir(parent_dir) if os.path.isdir(parent_dir) else ""
             valid_paths = [os.path.join(parent_dir, file) for file in parent_files]
             similar_paths = difflib.get_close_matches(input_path, valid_paths)
             if similar_paths:
@@ -71,7 +71,7 @@ class Convert:
                 message = f"Invalid path. Did you mean '{suggestion}'?"
                 raise ValueError(repr(message))
             else:
-                raise ValueError('Invalid path')
+                raise ValueError("Invalid path")
 
     def convert_tif_to_zarr(self, tif_path: str, zarr_path: str) -> zarr.Array:
         """
@@ -88,7 +88,7 @@ class Convert:
         vol = tiff.memmap(tif_path)
         z = zarr.open(
             zarr_path,
-            mode='w',
+            mode="w",
             shape=vol.shape,
             chunks=self.chunk_shape,
             dtype=vol.dtype,
@@ -138,7 +138,7 @@ class Convert:
         vol = nib.load(nifti_path).dataobj
         z = zarr.open(
             zarr_path,
-            mode='w',
+            mode="w",
             shape=vol.shape,
             chunks=self.chunk_shape,
             dtype=vol.dtype,

@@ -21,39 +21,42 @@ def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
 
     """
     if isinstance(k, int):
-        log.debug('Using int to generate np.ones((k,k,k))')
+        log.debug("Using int to generate np.ones((k,k,k))")
         return np.ones((k, k, k), dtype=bool)
 
     elif isinstance(k, tuple):
         if len(k) == 1 and isinstance(k[0], int):
             log.debug(
-                'Using tuple with 1 element. Generating np.ones((k[0], k[0], k[0]))'
+                "Using tuple with 1 element. Generating np.ones((k[0], k[0], k[0]))"
             )
             return np.ones((k[0], k[0], k[0]), dtype=bool)
         elif len(k) == 3 and all(isinstance(x, int) for x in k):
             log.debug(
-                'Using tuple with 3 elements. Generating np.ones((k[0], k[1], k[2]))'
+                "Using tuple with 3 elements. Generating np.ones((k[0], k[1], k[2]))"
             )
             return np.ones((k[0], k[1], k[2]), dtype=bool)
         else:
-            err = 'Tuple input must be of length 1 or 3 with integer elements.'
+            err = "Tuple input must be of length 1 or 3 with integer elements."
             raise ValueError(err)
 
     elif isinstance(k, np.ndarray):
         if k.ndim == 3:
-            log.debug('Using provided ndarray with shape %s', k.shape)
+            log.debug("Using provided ndarray with shape %s", k.shape)
             return k
         else:
-            err = 'ndarray kernel must be 3-dimensional.'
+            err = "ndarray kernel must be 3-dimensional."
             raise ValueError(err)
 
     else:
-        err = 'Kernel input must be int, tuple, or 3D np.ndarray.'
+        err = "Kernel input must be int, tuple, or 3D np.ndarray."
         raise TypeError(err)
 
 
 def dilate(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = "pygorpho.linear",
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological dilation on a 3D volume using CPU or GPU-accelerated methods.
@@ -107,47 +110,50 @@ def dilate(
     try:
         volume = np.asarray(volume)
     except TypeError as e:
-        err = 'Input volume must be array-like.'
+        err = "Input volume must be array-like."
         raise TypeError(err) from e
 
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == 'pygorpho.flat':
+    if method == "pygorpho.flat":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         return pg.flat.dilate(volume, kernel, **kwargs)
 
-    elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+    elif method == "pygorpho.linear":
+        assert isinstance(kernel, int), (
+            "Kernel is generated within function and must therefore be an integer."
+        )
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         return pg.flat.linear_dilate(volume, linesteps, linelens)
 
-    elif method == 'scipy.ndimage':
+    elif method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_dilation(volume, footprint=kernel, **kwargs)
 
     else:
-        err = 'Unknown closing method.'
+        err = "Unknown closing method."
         raise ValueError(err)
 
 
 def erode(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = "pygorpho.linear",
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological erosion on a 3D volume using CPU or GPU-accelerated methods.
@@ -200,46 +206,49 @@ def erode(
     try:
         volume = np.asarray(volume)
     except TypeError as e:
-        err = 'Input volume must be array-like.'
+        err = "Input volume must be array-like."
         raise TypeError(err) from e
 
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == 'pygorpho.flat':
+    if method == "pygorpho.flat":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         return pg.flat.erode(volume, kernel, **kwargs)
 
-    elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+    elif method == "pygorpho.linear":
+        assert isinstance(kernel, int), (
+            "Kernel is generated within function and must therefore be an integer."
+        )
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
         return pg.flat.linear_erode(volume, linesteps, linelens, **kwargs)
 
-    elif method == 'scipy.ndimage':
+    elif method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_erosion(volume, footprint=kernel, **kwargs)
 
     else:
-        err = 'Unknown closing method.'
+        err = "Unknown closing method."
         raise ValueError(err)
 
 
 def opening(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = "pygorpho.linear",
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological opening on a 3D volume using CPU or GPU-accelerated methods.
@@ -301,46 +310,49 @@ def opening(
     try:
         volume = np.asarray(volume)
     except TypeError as e:
-        err = 'Input volume must be array-like.'
+        err = "Input volume must be array-like."
         raise TypeError(err) from e
 
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == 'pygorpho.flat':
+    if method == "pygorpho.flat":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         return pg.flat.open(volume, kernel, **kwargs)
 
-    elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+    elif method == "pygorpho.linear":
+        assert isinstance(kernel, int), (
+            "Kernel is generated within function and must therefore be an integer."
+        )
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
         return pg.flat.linear_open(volume, linesteps, linelens, **kwargs)
 
-    elif method == 'scipy.ndimage':
+    elif method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_opening(volume, footprint=kernel, **kwargs)
 
     else:
-        err = 'Unknown closing method.'
+        err = "Unknown closing method."
         raise ValueError(err)
 
 
 def closing(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = "pygorpho.linear",
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs morphological closing on a 3D volume using CPU or GPU-accelerated methods.
@@ -395,46 +407,49 @@ def closing(
     try:
         volume = np.asarray(volume)
     except TypeError as e:
-        err = 'Input volume must be array-like.'
+        err = "Input volume must be array-like."
         raise TypeError(err) from e
 
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == 'pygorpho.flat':
+    if method == "pygorpho.flat":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         return pg.flat.close(volume, kernel, **kwargs)
 
-    elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+    elif method == "pygorpho.linear":
+        assert isinstance(kernel, int), (
+            "Kernel is generated within function and must therefore be an integer."
+        )
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
         return pg.flat.linear_close(volume, linesteps, linelens, **kwargs)
 
-    elif method == 'scipy.ndimage':
+    elif method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_closing(volume, footprint=kernel, **kwargs)
 
     else:
-        err = 'Unknown closing method.'
+        err = "Unknown closing method."
         raise ValueError(err)
 
 
 def black_tophat(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = "pygorpho.linear",
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs the black top-hat transform on a 3D volume.
@@ -487,46 +502,49 @@ def black_tophat(
     try:
         volume = np.asarray(volume)
     except TypeError as e:
-        err = 'Input volume must be array-like.'
+        err = "Input volume must be array-like."
         raise TypeError(err) from e
 
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == 'pygorpho.flat':
+    if method == "pygorpho.flat":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         return pg.flat.bothat(volume, kernel, **kwargs)
 
-    elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+    elif method == "pygorpho.linear":
+        assert isinstance(kernel, int), (
+            "Kernel is generated within function and must therefore be an integer."
+        )
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
         return pg.flat.bothat(volume, linesteps, linelens, **kwargs)
 
-    elif method == 'scipy.ndimage':
+    elif method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.black_tophat(volume, footprint=kernel, **kwargs)
 
     else:
-        err = 'Unknown closing method.'
+        err = "Unknown closing method."
         raise ValueError(err)
 
 
 def white_tophat(
-    volume: np.ndarray, kernel: int | np.ndarray, method: str = 'pygorpho.linear', **kwargs
+    volume: np.ndarray,
+    kernel: int | np.ndarray,
+    method: str = "pygorpho.linear",
+    **kwargs,
 ) -> np.ndarray:
     """
     Performs the white top-hat transform on a 3D volume.
@@ -579,39 +597,39 @@ def white_tophat(
     try:
         volume = np.asarray(volume)
     except TypeError as e:
-        err = 'Input volume must be array-like.'
+        err = "Input volume must be array-like."
         raise TypeError(err) from e
 
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == 'pygorpho.flat':
+    if method == "pygorpho.flat":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         return pg.flat.tophat(volume, kernel, **kwargs)
 
-    elif method == 'pygorpho.linear':
-        assert isinstance(
-            kernel, int
-        ), 'Kernel is generated within function and must therefore be an integer.'
+    elif method == "pygorpho.linear":
+        assert isinstance(kernel, int), (
+            "Kernel is generated within function and must therefore be an integer."
+        )
 
         if not pg.cuda.get_device_count():
-            err = 'no CUDA device available. Use method=scipy.ndimage.'
+            err = "no CUDA device available. Use method=scipy.ndimage."
             raise RuntimeError(err)
 
         linesteps, linelens = pg.strel.flat_ball_approx(kernel)
         return pg.flat.tophat(volume, linesteps, linelens, **kwargs)
 
-    elif method == 'scipy.ndimage':
+    elif method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, 'Kernel must a 3D np.ndarray.'
+        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.white_tophat(volume, footprint=kernel, **kwargs)
 
     else:
-        err = 'Unknown closing method.'
+        err = "Unknown closing method."
         raise ValueError(err)

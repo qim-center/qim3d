@@ -9,7 +9,7 @@ Synthetic 3D blobs are generated using Perlin noise. The `noise_scale` parameter
 import qim3d
 
 # Generate a synthetic blob with Perlin noise
-vol = qim3d.generate.volume(noise_scale=0.03, noise_type='perlin')
+vol = qim3d.generate.volume(noise_scale=0.03, noise_type="perlin")
 
 # Visualize slices of the volume
 qim3d.viz.slices_grid(vol, n_slices=15)
@@ -79,10 +79,7 @@ Parameters such as `num_threads`, `twist_rate`, and `thread_thickness` allow exp
 ``` py
 # Generate a fiber bundle with a higher twist rate and instance labels
 rope_vol, thread_labels = qim3d.generate.rope(
-    num_threads=12,
-    twist_rate=4.0,
-    thread_thickness=12,
-    return_labels=True
+    num_threads=12, twist_rate=4.0, thread_thickness=12, return_labels=True
 )
 
 # Visualize labeled fibers with a segmentation colormap

@@ -9,7 +9,7 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = '1.5.3'
+__version__ = "1.5.3"
 
 
 import importlib as _importlib
@@ -34,25 +34,25 @@ class _LazyLoader:
 
 # List of submodules
 _submodules = [
-    'examples',
-    'generate',
-    'gui',
-    'io',
-    'ml',
-    'processing',
-    'tests',
-    'utils',
-    'viz',
-    'cli',
-    'filters',
-    'segmentation',
-    'mesh',
-    'features',
-    'operations',
-    'morphology',
-    'detection',
+    "examples",
+    "generate",
+    "gui",
+    "io",
+    "ml",
+    "processing",
+    "tests",
+    "utils",
+    "viz",
+    "cli",
+    "filters",
+    "segmentation",
+    "mesh",
+    "features",
+    "operations",
+    "morphology",
+    "detection",
 ]
 
 # Creating lazy loaders for each submodule
 for submodule in _submodules:
-    globals()[submodule] = _LazyLoader(f'qim3d.{submodule}')
+    globals()[submodule] = _LazyLoader(f"qim3d.{submodule}")

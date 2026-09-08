@@ -51,14 +51,14 @@ except ImportError:
     from tqdm import tqdm
 
 
-@coarseness('volume')
+@coarseness("volume")
 def slices_grid(
     volume: np.ndarray,
     slice_axis: int = 0,
     slice_positions: str | int | list[int] | None = None,
     n_slices: int = 15,
     max_columns: int = 5,
-    colormap: str = 'magma',
+    colormap: str = "magma",
     min_value: float = None,
     max_value: float = None,
     image_size: int = None,
@@ -68,10 +68,10 @@ def slices_grid(
     display_positions: bool = True,
     interpolation: str | None = None,
     colorbar: bool = False,
-    colorbar_style: str = 'small',
+    colorbar_style: str = "small",
     mask: np.ndarray = None,
     mask_alpha: float = 0.4,
-    mask_colormap: str = 'gray',
+    mask_colormap: str = "gray",
     row_range: tuple[int, int] | None = None,
     col_range: tuple[int, int] | None = None,
     **matplotlib_imshow_kwargs,
@@ -152,18 +152,18 @@ def slices_grid(
     # If we pass python None to the imshow function, it will set to
     # default value 'antialiased'
     if interpolation is None:
-        interpolation = 'none'
+        interpolation = "none"
 
     # Numpy array or Torch tensor input
     if not isinstance(volume, np.ndarray | da.Array):
-        msg = 'Data type not supported'
+        msg = "Data type not supported"
         raise ValueError(msg)
 
     if volume.ndim < 3:
-        msg = 'The provided object is not a volume as it has less than 3 dimensions.'
+        msg = "The provided object is not a volume as it has less than 3 dimensions."
         raise ValueError(msg)
 
-    colorbar_style_options = ['small', 'large']
+    colorbar_style_options = ["small", "large"]
     if colorbar_style not in colorbar_style_options:
         msg = f"Value '{colorbar_style}' is not valid for colorbar style. Please select from {colorbar_style_options}."
         raise ValueError(msg)
@@ -179,11 +179,11 @@ def slices_grid(
     # Here we deal with the case that the user wants to use the objects colormap directly
     if (
         isinstance(colormap, matplotlib.colors.LinearSegmentedColormap)
-        or colormap == 'segmentation'
+        or colormap == "segmentation"
     ):
         num_labels = int(volume.max())
 
-        if colormap == 'segmentation':
+        if colormap == "segmentation":
             colormap = qim3d.viz.colormaps.segmentation(num_labels)
         # If min_value and max_value are not set like this, then in case the
         # number of objects changes on new slice, objects might change
@@ -200,15 +200,15 @@ def slices_grid(
         slice_idxs = np.linspace(0, n_total - 1, n_slices, dtype=int)
     # Position is a string
     elif isinstance(slice_positions, str) and slice_positions.lower() in [
-        'start',
-        'mid',
-        'end',
+        "start",
+        "mid",
+        "end",
     ]:
-        if slice_positions.lower() == 'start':
+        if slice_positions.lower() == "start":
             slice_idxs = _get_slice_range(0, n_slices, n_total)
-        elif slice_positions.lower() == 'mid':
+        elif slice_positions.lower() == "mid":
             slice_idxs = _get_slice_range(n_total // 2, n_slices, n_total)
-        elif slice_positions.lower() == 'end':
+        elif slice_positions.lower() == "end":
             slice_idxs = _get_slice_range(n_total - 1, n_slices, n_total)
     #  Position is an integer
     elif isinstance(slice_positions, int):
@@ -307,25 +307,25 @@ def slices_grid(
                     ax.text(
                         0.0,
                         1.0,
-                        f'slice {slice_idxs[slice_idx]} ',
+                        f"slice {slice_idxs[slice_idx]} ",
                         transform=ax.transAxes,
-                        color='white',
+                        color="white",
                         fontsize=8,
-                        va='top',
-                        ha='left',
-                        bbox={'facecolor': '#303030', 'linewidth': 0, 'pad': 0},
+                        va="top",
+                        ha="left",
+                        bbox={"facecolor": "#303030", "linewidth": 0, "pad": 0},
                     )
 
                     ax.text(
                         1.0,
                         0.0,
-                        f'axis {slice_axis} ',
+                        f"axis {slice_axis} ",
                         transform=ax.transAxes,
-                        color='white',
+                        color="white",
                         fontsize=8,
-                        va='bottom',
-                        ha='right',
-                        bbox={'facecolor': '#303030', 'linewidth': 0, 'pad': 0},
+                        va="bottom",
+                        ha="right",
+                        bbox={"facecolor": "#303030", "linewidth": 0, "pad": 0},
                     )
 
             except IndexError:
@@ -333,11 +333,11 @@ def slices_grid(
                 pass
 
             # Hide the axis, so that we have a nice grid
-            ax.axis('off')
+            ax.axis("off")
 
     if colorbar:
         with warnings.catch_warnings():
-            warnings.simplefilter('ignore', category=UserWarning)
+            warnings.simplefilter("ignore", category=UserWarning)
             fig.tight_layout()
 
         norm = matplotlib.colors.Normalize(
@@ -345,15 +345,15 @@ def slices_grid(
         )
         mappable = matplotlib.cm.ScalarMappable(norm=norm, cmap=colormap)
 
-        if colorbar_style == 'small':
+        if colorbar_style == "small":
             # Figure coordinates of top-right axis
             tr_pos = np.atleast_1d(axs[0])[-1].get_position()
             # The width is divided by ncols to make it the same relative size to the images
             colorbar_ax = fig.add_axes(
                 [tr_pos.x1 + 0.05 / ncols, tr_pos.y0, 0.05 / ncols, tr_pos.height]
             )
-            fig.colorbar(mappable=mappable, cax=colorbar_ax, orientation='vertical')
-        elif colorbar_style == 'large':
+            fig.colorbar(mappable=mappable, cax=colorbar_ax, orientation="vertical")
+        elif colorbar_style == "large":
             # Figure coordinates of bottom- and top-right axis
             br_pos = np.atleast_1d(axs[-1])[-1].get_position()
             tr_pos = np.atleast_1d(axs[0])[-1].get_position()
@@ -366,7 +366,7 @@ def slices_grid(
                     (tr_pos.y1 - br_pos.y0) - 0.0015,
                 ]
             )
-            fig.colorbar(mappable=mappable, cax=colorbar_ax, orientation='vertical')
+            fig.colorbar(mappable=mappable, cax=colorbar_ax, orientation="vertical")
 
     if display_figure:
         plt.show()
@@ -402,11 +402,11 @@ def _range_to_slice(rng: tuple[int, int] | None) -> slice:
     return slice(lo, hi)
 
 
-@coarseness('volume')
+@coarseness("volume")
 def slicer(
     volume: np.ndarray,
     slice_axis: int = 0,
-    colormap: str = 'magma',
+    colormap: str = "magma",
     min_value: float = None,
     max_value: float = None,
     image_height: int = 3,
@@ -417,7 +417,7 @@ def slicer(
     colorbar: str = None,
     mask: np.ndarray = None,
     mask_alpha: float = 0.4,
-    mask_colormap: str = 'gray',
+    mask_colormap: str = "gray",
     default_position: float = 0.5,
     row_range: tuple[int, int] | None = None,
     col_range: tuple[int, int] | None = None,
@@ -497,7 +497,7 @@ def slicer(
     is_dask = isinstance(volume, da.Array)
     continuous_update = not is_dask
 
-    msg = 'The mask parameter is not currently supported for Dask-backed volumes.'
+    msg = "The mask parameter is not currently supported for Dask-backed volumes."
 
     if is_dask and mask is not None:
         raise NotImplementedError(msg)
@@ -506,20 +506,20 @@ def slicer(
         image_height = image_size
         image_width = image_size
 
-    colorbar_options = [None, 'slices', 'volume']
+    colorbar_options = [None, "slices", "volume"]
     if colorbar not in colorbar_options:
         msg = (
             f"Unrecognized value '{colorbar}' for parameter colorbar. "
-            f'Expected one of {colorbar_options}.'
+            f"Expected one of {colorbar_options}."
         )
         raise ValueError(msg)
     show_colorbar = colorbar is not None
-    if colorbar == 'slices' and not is_dask:
+    if colorbar == "slices" and not is_dask:
         # Precompute the minimum and maximum along each slice for faster widget sliding.
         non_slice_axes = tuple(i for i in range(volume.ndim) if i != slice_axis)
         slice_mins = np.min(volume, axis=non_slice_axes)
         slice_maxs = np.max(volume, axis=non_slice_axes)
-    elif colorbar == 'volume':
+    elif colorbar == "volume":
         get_min = lambda: volume.min().compute() if is_dask else np.min(volume)
         get_max = lambda: volume.max().compute() if is_dask else np.max(volume)
 
@@ -536,10 +536,10 @@ def slicer(
         lo, hi = row_range
         row_range = (n_rows - hi, n_rows - lo)
 
-        if colorbar == 'slices' and not is_dask:
+        if colorbar == "slices" and not is_dask:
             dynamic_min = slice_mins[slice_positions]
             dynamic_max = slice_maxs[slice_positions]
-        elif colorbar == 'volume':
+        elif colorbar == "volume":
             dynamic_min = vol_min
             dynamic_max = vol_max
         else:
@@ -603,7 +603,7 @@ def slicer(
         min=0,
         max=n_rows,
         step=1,
-        description='Row range',
+        description="Row range",
         continuous_update=continuous_update,
     )
 
@@ -612,8 +612,8 @@ def slicer(
         min=0,
         max=n_cols,
         step=1,
-        description='Column range',
-        style={'description_width': 'initial'},
+        description="Column range",
+        style={"description_width": "initial"},
         continuous_update=continuous_update,
     )
 
@@ -621,7 +621,7 @@ def slicer(
         value=default_position,
         min=0,
         max=volume.shape[slice_axis] - 1,
-        description='Slice',
+        description="Slice",
         continuous_update=continuous_update,
     )
     slicer_obj = widgets.interactive(
@@ -631,26 +631,26 @@ def slicer(
         col_range=col_slider,
     )
 
-    row_slider.orientation = 'vertical'
+    row_slider.orientation = "vertical"
     out = slicer_obj.children[-1]
 
     image_row = widgets.HBox(
         [row_slider, out],
         layout=widgets.Layout(
-            align_items='center',
-            justify_content='center',
+            align_items="center",
+            justify_content="center",
         ),
     )
     slicer_obj.children = (position_slider, image_row, col_slider)
-    slicer_obj.layout = widgets.Layout(align_items='center')
+    slicer_obj.layout = widgets.Layout(align_items="center")
 
     return slicer_obj
 
 
-@coarseness('volume')
+@coarseness("volume")
 def slicer_orthogonal(
     volume: np.ndarray,
-    colormap: str = 'magma',
+    colormap: str = "magma",
     min_value: float = None,
     max_value: float = None,
     image_height: int = 3,
@@ -661,7 +661,7 @@ def slicer_orthogonal(
     colorbar: str = None,
     mask: np.ndarray = None,
     mask_alpha: float = 0.4,
-    mask_colormap: str = 'gray',
+    mask_colormap: str = "gray",
     default_z: float = 0.5,
     default_y: float = 0.5,
     default_x: float = 0.5,
@@ -751,8 +751,8 @@ def slicer_orthogonal(
     ]
 
     def _find(panel: widgets.Widget, desc: str) -> widgets.Widget | None:
-        for c in getattr(panel, 'children', []):
-            if getattr(c, 'description', '') == desc:
+        for c in getattr(panel, "children", []):
+            if getattr(c, "description", "") == desc:
                 return c
             hit = _find(c, desc)
             if hit is not None:
@@ -760,17 +760,17 @@ def slicer_orthogonal(
         return None
 
     # Relabel each panel's position slider (locate by 'Slice' before renaming)
-    for p, name in zip(panels, ['Z', 'Y', 'X']):
-        _find(p, 'Slice').description = name
+    for p, name in zip(panels, ["Z", "Y", "X"]):
+        _find(p, "Slice").description = name
 
     return widgets.HBox(panels)
 
 
-@coarseness('volume')
+@coarseness("volume")
 def fade_mask(
     volume: np.ndarray,
     axis: int = 0,
-    colormap: str = 'magma',
+    colormap: str = "magma",
     min_value: float = None,
     max_value: float = None,
 ) -> widgets.interactive:
@@ -824,8 +824,8 @@ def fade_mask(
         )
 
         axes[0].imshow(slice_img, cmap=colormap, vmin=new_min_value, vmax=new_max_value)
-        axes[0].set_title('Original')
-        axes[0].axis('off')
+        axes[0].set_title("Original")
+        axes[0].axis("off")
 
         mask = qim3d.operations.fade_mask(
             np.ones_like(volume),
@@ -836,8 +836,8 @@ def fade_mask(
             invert=invert,
         )
         axes[1].imshow(mask[position, :, :], cmap=colormap)
-        axes[1].set_title('Mask')
-        axes[1].axis('off')
+        axes[1].set_title("Mask")
+        axes[1].axis("off")
 
         masked_volume = qim3d.operations.fade_mask(
             volume,
@@ -860,22 +860,22 @@ def fade_mask(
             else max_value
         )
         axes[2].imshow(slice_img, cmap=colormap, vmin=new_min_value, vmax=new_max_value)
-        axes[2].set_title('Masked')
-        axes[2].axis('off')
+        axes[2].set_title("Masked")
+        axes[2].axis("off")
 
         return fig
 
     shape_dropdown = widgets.Dropdown(
-        options=['spherical', 'cylindrical'],
-        value='spherical',  # default value
-        description='Geometry',
+        options=["spherical", "cylindrical"],
+        value="spherical",  # default value
+        description="Geometry",
     )
 
     position_slider = widgets.IntSlider(
         value=volume.shape[0] // 2,
         min=0,
         max=volume.shape[0] - 1,
-        description='Slice',
+        description="Slice",
         continuous_update=False,
     )
     decay_rate_slider = widgets.FloatSlider(
@@ -883,7 +883,7 @@ def fade_mask(
         min=1,
         max=50,
         step=1.0,
-        description='Decay Rate',
+        description="Decay Rate",
         continuous_update=False,
     )
     ratio_slider = widgets.FloatSlider(
@@ -891,14 +891,14 @@ def fade_mask(
         min=0.1,
         max=1,
         step=0.01,
-        description='Ratio',
+        description="Ratio",
         continuous_update=False,
     )
 
     # Create the Checkbox widget
     invert_checkbox = widgets.Checkbox(
         value=False,
-        description='Invert',  # default value
+        description="Invert",  # default value
     )
 
     slicer_obj = widgets.interactive(
@@ -909,7 +909,7 @@ def fade_mask(
         geometry=shape_dropdown,
         invert=invert_checkbox,
     )
-    slicer_obj.layout = widgets.Layout(align_items='flex-start')
+    slicer_obj.layout = widgets.Layout(align_items="flex-start")
 
     return slicer_obj
 
@@ -950,10 +950,10 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
 
     """
     # Opens the Zarr dataset - doesn't load to memory yet
-    zarr_data = zarr.open(zarr_path, mode='r')
+    zarr_data = zarr.open(zarr_path, mode="r")
 
-    title = widgets.HTML('<h2>Chunk Explorer</h2>')
-    info_label = widgets.HTML(value='Chunk info will be displayed here')
+    title = widgets.HTML("<h2>Chunk Explorer</h2>")
+    info_label = widgets.HTML(value="Chunk info will be displayed here")
 
     def get_num_chunks(shape: Sequence[int], chunk_size: Sequence[int]) -> list[int]:
         return [(s + chunk_size[i] - 1) // chunk_size[i] for i, s in enumerate(shape)]
@@ -968,7 +968,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     def load_and_visualize(
         key: int,
         *coords: int,
-        visualization_method: Literal['slicer', 'slices', 'volume'],
+        visualization_method: Literal["slicer", "slices", "volume"],
         **inner_kwargs: object,
     ) -> Widget | Figure | Output:
         key = _path_from_dropdown(key)
@@ -1016,30 +1016,30 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
             chunk = arr[slices].compute()
             chunk = chunk[0, 0, ...]
         else:
-            msg = f'Unsupported ndim={arr.ndim}'
+            msg = f"Unsupported ndim={arr.ndim}"
             raise ValueError(msg)
 
         mins, maxs, means = chunk.min(), chunk.max(), chunk.mean()
-        ranges = [f'{sl.start}-{sl.stop}' for sl in slices]
-        coords_str = ', '.join(str(c) for c in coords)
+        ranges = [f"{sl.start}-{sl.stop}" for sl in slices]
+        coords_str = ", ".join(str(c) for c in coords)
         info_html = (
             f"<div style='font-size:14px; margin-left:32px'>"
             f"<h3 style='margin:0'>Chunk Info</h3>"
-            f'<pre>'
-            f'shape      : {chunk.shape}\n'
-            f'coords     : ({coords_str})\n'
-            f'ranges     : {ranges}\n'
-            f'dtype      : {chunk.dtype}\n'
-            f'min / max  : {mins:.0f} / {maxs:.0f}\n'
-            f'mean value : {means:.0f}\n'
-            f'</pre></div>'
+            f"<pre>"
+            f"shape      : {chunk.shape}\n"
+            f"coords     : ({coords_str})\n"
+            f"ranges     : {ranges}\n"
+            f"dtype      : {chunk.dtype}\n"
+            f"min / max  : {mins:.0f} / {maxs:.0f}\n"
+            f"mean value : {means:.0f}\n"
+            f"</pre></div>"
         )
         info_label.value = info_html
 
-        if visualization_method == 'slicer':
+        if visualization_method == "slicer":
             kw = _filter_kwargs(qim3d.viz.slicer, inner_kwargs)
             return qim3d.viz.slicer(chunk, **kw)
-        if visualization_method == 'slices':
+        if visualization_method == "slices":
             out = widgets.Output()
             with out:
                 kw = _filter_kwargs(qim3d.viz.slices_grid, inner_kwargs)
@@ -1055,19 +1055,19 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         return out
 
     def _path_from_dropdown(string: str) -> str:
-        return string.split('(')[0].strip()
+        return string.split("(")[0].strip()
 
     if isinstance(zarr_data, zarr.Group):
         scale_opts = [
-            f'{key} {zarr_data[key].shape}' for key in sorted(zarr_data.keys())
+            f"{key} {zarr_data[key].shape}" for key in sorted(zarr_data.keys())
         ]
     elif isinstance(zarr_data, zarr.Array):
         scale_opts = [
-            f'{zarr_data.shape}',
+            f"{zarr_data.shape}",
         ]
-    drop_style = {'description_width': '120px'}
+    drop_style = {"description_width": "120px"}
     scale_dd = widgets.Dropdown(
-        options=scale_opts, description='Scale:', style=drop_style
+        options=scale_opts, description="Scale:", style=drop_style
     )
 
     if isinstance(zarr_data, zarr.Array):
@@ -1079,35 +1079,35 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         chunks = first_array.chunks
 
     if len(first_shape) == 3:
-        axis_names = ['Z', 'Y', 'X']
+        axis_names = ["Z", "Y", "X"]
     elif len(first_shape) == 5:
-        axis_names = ['T', 'C', 'Z', 'Y', 'X']
+        axis_names = ["T", "C", "Z", "Y", "X"]
     else:
-        msg = f'Only 3D or 5D supported, got ndim={len(first_shape)}'
+        msg = f"Only 3D or 5D supported, got ndim={len(first_shape)}"
         raise ValueError(msg)
 
     counts0 = get_num_chunks(first_shape, chunks)
     axis_dds = []
     for name, cnt in zip(axis_names, counts0):
         dd = widgets.Dropdown(
-            options=list(range(cnt)), value=0, description=f'{name}:', style=drop_style
+            options=list(range(cnt)), value=0, description=f"{name}:", style=drop_style
         )
         axis_dds.append(dd)
 
     method_dd = widgets.Dropdown(
-        options=['slicer', 'slices', 'volume'],
-        value='slicer',
-        description='Viz:',
+        options=["slicer", "slices", "volume"],
+        value="slicer",
+        description="Viz:",
         style=drop_style,
     )
 
     def disable_observers() -> None:
         for dd in (*axis_dds, method_dd):
-            dd.unobserve(_update_vis, names='value')
+            dd.unobserve(_update_vis, names="value")
 
     def enable_observers() -> None:
         for dd in (*axis_dds, method_dd):
-            dd.observe(_update_vis, names='value')
+            dd.observe(_update_vis, names="value")
 
     def _update_coords(key: str) -> None:
         disable_observers()
@@ -1128,7 +1128,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         )
         container.children = [title, controls_with_info, widget]
 
-    scale_dd.observe(lambda change: _update_coords(scale_dd.value), names='value')
+    scale_dd.observe(lambda change: _update_coords(scale_dd.value), names="value")
     enable_observers()
 
     initial = load_and_visualize(
@@ -1144,24 +1144,24 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
     return container
 
 
-@coarseness('volume')
+@coarseness("volume")
 def histogram(
     volume: np.ndarray,
     coarseness: int | list[int] = 1,
     ignore_zero: bool = True,
-    bins: int | str = 'auto',
+    bins: int | str = "auto",
     slice_index: int | str | None = None,
     slice_axis: int = 0,
     vertical_line: int | Iterable = None,
-    vertical_line_colormap: str | Iterable = 'qim',
+    vertical_line_colormap: str | Iterable = "qim",
     kde: bool = False,
     log_scale: bool = False,
     despine: bool = True,
     show_title: bool = True,
-    color: str = 'qim3d',
+    color: str = "qim3d",
     edgecolor: str | None = None,
     figsize: tuple[float, float] = (8, 4.5),
-    bin_style: Literal['bars', 'step', 'poly'] = 'step',
+    bin_style: Literal["bars", "step", "poly"] = "step",
     return_fig: bool = False,
     show: bool = True,
     ax: plt.Axes | None = None,
@@ -1234,32 +1234,32 @@ def histogram(
 
     """
     if not (0 <= slice_axis < volume.ndim):
-        msg = f'Axis must be an integer between 0 and {volume.ndim - 1}.'
+        msg = f"Axis must be an integer between 0 and {volume.ndim - 1}."
         raise ValueError(msg)
 
     title_suffixes = []
 
-    if slice_index == 'middle':
+    if slice_index == "middle":
         slice_index = volume.shape[slice_axis] // 2
 
     if slice_index is not None:
         if 0 <= slice_index < volume.shape[slice_axis]:
             img_slice = np.take(volume, indices=slice_index, axis=slice_axis)
             data = img_slice.ravel()
-            title = f'Intensity histogram of slice #{slice_index} {img_slice.shape} along axis {slice_axis}'
+            title = f"Intensity histogram of slice #{slice_index} {img_slice.shape} along axis {slice_axis}"
         else:
-            msg = f'Slice index out of range. Must be between 0 and {volume.shape[slice_axis] - 1}.'
+            msg = f"Slice index out of range. Must be between 0 and {volume.shape[slice_axis] - 1}."
             raise ValueError(msg)
     else:
         data = volume.ravel()
-        title = f'Intensity histogram for volume {volume.shape}'
+        title = f"Intensity histogram for volume {volume.shape}"
 
     if ignore_zero:
         data = data[data > 0]
-        title_suffixes.append('zero-values ignored')
+        title_suffixes.append("zero-values ignored")
 
     if title_suffixes:
-        title += ' (' + ', '.join(title_suffixes) + ')'
+        title += " (" + ", ".join(title_suffixes) + ")"
 
     # Use provided Axes or create new figure
     if ax is None:
@@ -1268,9 +1268,9 @@ def histogram(
         fig = None
 
     if log_scale:
-        ax.set_yscale('log')
+        ax.set_yscale("log")
 
-    if color == 'qim3d':
+    if color == "qim3d":
         color = qim3d.viz.colormaps.qim(1.0)
 
     sns.histplot(
@@ -1294,7 +1294,7 @@ def histogram(
             ax.axvline(
                 x=vertical_line,
                 color=colors(0),
-                linestyle='--',
+                linestyle="--",
                 linewidth=2,
             )
         elif isinstance(vertical_line, Iterable):
@@ -1304,7 +1304,7 @@ def histogram(
                 ax.axvline(
                     x=line_position,
                     color=colors(index),
-                    linestyle='--',
+                    linestyle="--",
                     linewidth=2,
                 )
 
@@ -1316,12 +1316,12 @@ def histogram(
             right=True,
             left=False,
             bottom=False,
-            offset={'left': 0, 'bottom': 18},
+            offset={"left": 0, "bottom": 18},
             trim=True,
         )
 
-    ax.set_xlabel('Voxel Intensity')
-    ax.set_ylabel('Frequency')
+    ax.set_xlabel("Voxel Intensity")
+    ax.set_ylabel("Frequency")
 
     if show_title:
         ax.set_title(title, fontsize=10)
@@ -1346,7 +1346,7 @@ class _LineProfile:
         horizontal_position: int,
         angle: float,
         fraction_range: tuple[float, float],
-        ylim: Literal['auto', 'full', 'manual'] | tuple[float, float],
+        ylim: Literal["auto", "full", "manual"] | tuple[float, float],
     ):
         self.volume = volume
         self.slice_axis = slice_axis
@@ -1358,7 +1358,7 @@ class _LineProfile:
             self.ylim_style = ylim
             self.ylim = [self.data_min, self.data_max]
         else:
-            self.ylim_style = 'manual'
+            self.ylim_style = "manual"
             self.ylim = ylim
 
         self.dims = np.array(volume.shape)
@@ -1385,69 +1385,69 @@ class _LineProfile:
         self.y_widget.value = self.y_max // 2
 
     def update_ylim(self, ax: plt.Axes, ylim_style: str) -> None:
-        self.ylim_widget.layout.display = 'none'
-        if ylim_style == 'full':
+        self.ylim_widget.layout.display = "none"
+        if ylim_style == "full":
             pad = 0.05
             ax.set_ylim(
                 self.data_min - pad * self.data_span,
                 self.data_max + pad * self.data_span,
             )
-        elif ylim_style == 'manual':
+        elif ylim_style == "manual":
             ax.set_ylim(self.ylim[0], self.ylim[1])
-            self.ylim_widget.layout.display = 'flex'
+            self.ylim_widget.layout.display = "flex"
 
     def initialize_widgets(self) -> None:
-        layout = widgets.Layout(width='300px', height='auto')
+        layout = widgets.Layout(width="300px", height="auto")
 
         # Line options
         self.x_widget = widgets.IntSlider(
-            min=self.pad, step=1, description='', layout=layout
+            min=self.pad, step=1, description="", layout=layout
         )
         self.y_widget = widgets.IntSlider(
-            min=self.pad, step=1, description='', layout=layout
+            min=self.pad, step=1, description="", layout=layout
         )
         self.angle_widget = widgets.IntSlider(
-            min=0, max=360, step=1, value=0, description='', layout=layout
+            min=0, max=360, step=1, value=0, description="", layout=layout
         )
         self.line_fraction_widget = widgets.FloatRangeSlider(
-            min=0, max=1, step=0.01, value=[0, 1], description='', layout=layout
+            min=0, max=1, step=0.01, value=[0, 1], description="", layout=layout
         )
 
         # Slice options
         self.slice_axis_widget = widgets.Dropdown(
-            options=[0, 1, 2], value=self.slice_axis, description='Slice axis'
+            options=[0, 1, 2], value=self.slice_axis, description="Slice axis"
         )
-        self.slice_axis_widget.layout.width = '250px'
+        self.slice_axis_widget.layout.width = "250px"
 
         self.slice_index_widget = widgets.IntSlider(
-            min=0, step=1, description='Slice index', layout=layout
+            min=0, step=1, description="Slice index", layout=layout
         )
-        self.slice_index_widget.layout.width = '400px'
+        self.slice_index_widget.layout.width = "400px"
 
         # y-limit
         self.ylim_style_widget = widgets.Dropdown(
-            options=['auto', 'full', 'manual'],
+            options=["auto", "full", "manual"],
             value=self.ylim_style,
-            description='y-limit style',
+            description="y-limit style",
         )
 
         num_steps = 30
         self.ymin_widget = widgets.FloatText(
-            description='y-min',
+            description="y-min",
             value=self.ylim[0],
-            layout=widgets.Layout(width='150px'),
+            layout=widgets.Layout(width="150px"),
             step=self.data_span / num_steps,
         )
         self.ymax_widget = widgets.FloatText(
-            description='y-max',
+            description="y-max",
             value=self.ylim[1],
-            layout=widgets.Layout(width='150px'),
+            layout=widgets.Layout(width="150px"),
             step=self.data_span / num_steps,
         )
         self.ylim_widget = widgets.HBox([self.ymin_widget, self.ymax_widget])
-        self.ylim_widget.layout = widgets.Layout(width='310px')
-        if self.ylim_style != 'manual':
-            self.ylim_widget.layout.display = 'none'
+        self.ylim_widget.layout = widgets.Layout(width="310px")
+        if self.ylim_style != "manual":
+            self.ylim_widget.layout.display = "none"
 
     def calculate_line_endpoints(
         self, x: float, y: float, angle: float
@@ -1502,7 +1502,7 @@ class _LineProfile:
         image = np.take(self.volume, slice_index, slice_axis)
         angle = np.radians(angle_deg)
         src, dst = (
-            np.array(point, dtype='float32')
+            np.array(point, dtype="float32")
             for point in self.calculate_line_endpoints(x, y, angle)
         )
 
@@ -1530,12 +1530,12 @@ class _LineProfile:
         colors = self.cmap(norm(np.arange(num_segments - 1)))
         lc = matplotlib.collections.LineCollection(segments, colors=colors, linewidth=2)
 
-        ax[0].imshow(image, cmap='gray')
+        ax[0].imshow(image, cmap="gray")
         ax[0].add_collection(lc)
         # pivot point
-        ax[0].plot(y, x, marker='s', linestyle='', color='cyan', markersize=4)
-        ax[0].set_xlabel(f'axis {np.delete(np.arange(3), self.slice_axis)[1]}')
-        ax[0].set_ylabel(f'axis {np.delete(np.arange(3), self.slice_axis)[0]}')
+        ax[0].plot(y, x, marker="s", linestyle="", color="cyan", markersize=4)
+        ax[0].set_xlabel(f"axis {np.delete(np.arange(3), self.slice_axis)[1]}")
+        ax[0].set_ylabel(f"axis {np.delete(np.arange(3), self.slice_axis)[0]}")
 
         # Profile intensity plot
         norm = plt.Normalize(0, vmax=len(y_pline) - 1)
@@ -1549,7 +1549,7 @@ class _LineProfile:
         ax[1].add_collection(lc)
         ax[1].autoscale()
         self.update_ylim(ax[1], ylim_style)
-        ax[1].set_xlabel('Distance along line')
+        ax[1].set_xlabel("Distance along line")
         ax[1].grid(True)
         plt.tight_layout()
         plt.show()
@@ -1557,7 +1557,7 @@ class _LineProfile:
     def build_interactive(self) -> widgets.VBox:
         # Group widgets into two columns
         title_style = (
-            'text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;'
+            "text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;"
         )
         title_column1 = widgets.HTML(
             f"<div style='{title_style}'>Line parameterization</div>"
@@ -1567,11 +1567,11 @@ class _LineProfile:
         )
 
         # Make label widgets instead of descriptions which have different lengths.
-        label_layout = widgets.Layout(width='120px')
-        label_x = widgets.Label('Vertical position', layout=label_layout)
-        label_y = widgets.Label('Horizontal position', layout=label_layout)
-        label_angle = widgets.Label('Angle (°)', layout=label_layout)
-        label_fraction = widgets.Label('Fraction range', layout=label_layout)
+        label_layout = widgets.Layout(width="120px")
+        label_x = widgets.Label("Vertical position", layout=label_layout)
+        label_y = widgets.Label("Horizontal position", layout=label_layout)
+        label_angle = widgets.Label("Angle (°)", layout=label_layout)
+        label_fraction = widgets.Label("Fraction range", layout=label_layout)
 
         row_x = widgets.HBox([label_x, self.x_widget])
         row_y = widgets.HBox([label_y, self.y_widget])
@@ -1595,31 +1595,31 @@ class _LineProfile:
         interactive_plot = widgets.interactive_output(
             self.update,
             {
-                'slice_axis': self.slice_axis_widget,
-                'slice_index': self.slice_index_widget,
-                'x': self.x_widget,
-                'y': self.y_widget,
-                'angle_deg': self.angle_widget,
-                'fraction_range': self.line_fraction_widget,
-                'ylim_style': self.ylim_style_widget,
-                'ymin': self.ymin_widget,
-                'ymax': self.ymax_widget,
+                "slice_axis": self.slice_axis_widget,
+                "slice_index": self.slice_index_widget,
+                "x": self.x_widget,
+                "y": self.y_widget,
+                "angle_deg": self.angle_widget,
+                "fraction_range": self.line_fraction_widget,
+                "ylim_style": self.ylim_style_widget,
+                "ymin": self.ymin_widget,
+                "ymax": self.ymax_widget,
             },
         )
 
         return widgets.VBox([controls, interactive_plot])
 
 
-@coarseness('volume')
+@coarseness("volume")
 def line_profile(
     volume: np.ndarray,
     slice_axis: int = 0,
-    slice_index: int | str = 'middle',
-    vertical_position: int | str = 'middle',
-    horizontal_position: int | str = 'middle',
+    slice_index: int | str = "middle",
+    vertical_position: int | str = "middle",
+    horizontal_position: int | str = "middle",
     angle: int = 0,
     fraction_range: tuple[float, float] = (0.00, 1.00),
-    y_limits: str | tuple[float, float] = 'auto',
+    y_limits: str | tuple[float, float] = "auto",
 ) -> widgets.interactive:
     """
     Creates an interactive tool to visualize intensity profiles along a line segment within a 3D volume.
@@ -1670,17 +1670,17 @@ def line_profile(
         if isinstance(pos, int):
             if not pos_range[0] <= pos < pos_range[1]:
                 msg = (
-                    f'Value for {name} must be inside [{pos_range[0]}, {pos_range[1]}]'
+                    f"Value for {name} must be inside [{pos_range[0]}, {pos_range[1]}]"
                 )
                 raise ValueError(msg)
             return pos
         elif isinstance(pos, str):
             pos = pos.lower()
-            if pos == 'start':
+            if pos == "start":
                 return pos_range[0]
-            elif pos == 'middle':
+            elif pos == "middle":
                 return pos_range[0] + (pos_range[1] - pos_range[0]) // 2
-            elif pos == 'end':
+            elif pos == "end":
                 return pos_range[1]
             else:
                 msg = (
@@ -1689,30 +1689,30 @@ def line_profile(
                 )
                 raise ValueError(msg)
         else:
-            msg = 'Axis position must be of type int or str.'
+            msg = "Axis position must be of type int or str."
             raise TypeError(msg)
 
     if not isinstance(volume, np.ndarray | da.Array):
-        msg = 'Data type for volume not supported.'
+        msg = "Data type for volume not supported."
         raise ValueError(msg)
     if volume.ndim != 3:
-        msg = 'Volume must be 3D.'
+        msg = "Volume must be 3D."
         raise ValueError(msg)
 
     dims = volume.shape
-    slice_index = parse_position(slice_index, (0, dims[slice_axis] - 1), 'slice_index')
+    slice_index = parse_position(slice_index, (0, dims[slice_axis] - 1), "slice_index")
     # the omission of the ends for the pivot point is due to border issues.
     vertical_position = parse_position(
-        vertical_position, (1, np.delete(dims, slice_axis)[0] - 2), 'vertical_position'
+        vertical_position, (1, np.delete(dims, slice_axis)[0] - 2), "vertical_position"
     )
     horizontal_position = parse_position(
         horizontal_position,
         (1, np.delete(dims, slice_axis)[1] - 2),
-        'horizontal_position',
+        "horizontal_position",
     )
 
     if not isinstance(angle, float | int):
-        msg = 'Invalid type for angle.'
+        msg = "Invalid type for angle."
         raise ValueError(msg)
     angle = round(angle) % 360
 
@@ -1721,12 +1721,12 @@ def line_profile(
         and 0.0 <= fraction_range[1] <= 1.0
         and fraction_range[0] <= fraction_range[1]
     ):
-        msg = 'Invalid values for fraction_range.'
+        msg = "Invalid values for fraction_range."
         raise ValueError(msg)
 
     if isinstance(y_limits, str):
-        if y_limits not in ['auto', 'full']:
-            msg = 'Invalid string value for y_limits.'
+        if y_limits not in ["auto", "full"]:
+            msg = "Invalid string value for y_limits."
             raise ValueError(msg)
     else:
         y_limits = [*y_limits]
@@ -1744,10 +1744,10 @@ def line_profile(
     return lp.build_interactive()
 
 
-@coarseness('volume')
+@coarseness("volume")
 def threshold(
     volume: np.ndarray,
-    colormap: str = 'magma',
+    colormap: str = "magma",
     min_value: float = None,
     max_value: float = None,
 ) -> widgets.VBox:
@@ -1789,27 +1789,27 @@ def threshold(
 
     # Centralized state dictionary to track current parameters
     state = {
-        'position': volume.shape[0] // 2,
-        'method': 'Manual',
+        "position": volume.shape[0] // 2,
+        "method": "Manual",
     }
 
     if np.issubdtype(volume.dtype, np.integer):
         step = 1
-        state['threshold'] = int((volume.min() + volume.max()) / 2)
+        state["threshold"] = int((volume.min() + volume.max()) / 2)
     elif np.issubdtype(volume.dtype, np.floating):
         step = (volume.max() - volume.min()) / 1000
-        state['threshold'] = (volume.min() + volume.max()) / 2
+        state["threshold"] = (volume.min() + volume.max()) / 2
     else:
         pass
 
     threshold_methods = {
-        'Otsu': threshold_otsu,
-        'Isodata': threshold_isodata,
-        'Li': threshold_li,
-        'Mean': threshold_mean,
-        'Minimum': threshold_minimum,
-        'Triangle': threshold_triangle,
-        'Yen': threshold_yen,
+        "Otsu": threshold_otsu,
+        "Isodata": threshold_isodata,
+        "Li": threshold_li,
+        "Mean": threshold_mean,
+        "Minimum": threshold_minimum,
+        "Triangle": threshold_triangle,
+        "Yen": threshold_yen,
     }
 
     # Create an output widget to display the plot
@@ -1818,26 +1818,26 @@ def threshold(
     # Function to update the state and trigger visualization
     def update_state(change: dict[str, Any]) -> None:
         # Update state based on widget values
-        state['position'] = position_slider.value
-        state['method'] = method_dropdown.value
+        state["position"] = position_slider.value
+        state["method"] = method_dropdown.value
 
-        if state['method'] == 'Manual':
-            state['threshold'] = threshold_slider.value
+        if state["method"] == "Manual":
+            state["threshold"] = threshold_slider.value
             threshold_slider.disabled = False
         else:
-            threshold_func = threshold_methods.get(state['method'])
+            threshold_func = threshold_methods.get(state["method"])
             if threshold_func:
-                slice_img = volume[state['position'], :, :]
+                slice_img = volume[state["position"], :, :]
                 computed_threshold = threshold_func(slice_img)
-                state['threshold'] = computed_threshold
+                state["threshold"] = computed_threshold
 
                 # Programmatically update the slider without triggering callbacks
                 threshold_slider.unobserve_all()
                 threshold_slider.value = computed_threshold
                 threshold_slider.disabled = True
-                threshold_slider.observe(update_state, names='value')
+                threshold_slider.observe(update_state, names="value")
             else:
-                msg = f'Unsupported thresholding method: {state["method"]}'
+                msg = f"Unsupported thresholding method: {state['method']}"
                 raise ValueError(msg)
 
         # Trigger visualization
@@ -1845,7 +1845,7 @@ def threshold(
 
     # Visualization function
     def update_visualization() -> None:
-        slice_img = volume[state['position'], :, :]
+        slice_img = volume[state["position"], :, :]
         with output:
             output.clear_output(wait=True)  # Clear previous plot
             fig, axes = plt.subplots(1, 4, figsize=(25, 5))
@@ -1868,32 +1868,32 @@ def threshold(
             axes[0].imshow(
                 slice_img, cmap=colormap, vmin=new_min_value, vmax=new_max_value
             )
-            axes[0].set_title('Original')
-            axes[0].axis('off')
+            axes[0].set_title("Original")
+            axes[0].axis("off")
 
             # Histogram
             histogram(
                 volume=volume,
                 bins=32,
-                slice_index=state['position'],
-                vertical_line=state['threshold'],
+                slice_index=state["position"],
+                vertical_line=state["threshold"],
                 kde=False,
                 ax=axes[1],
                 show=False,
             )
-            thr = state['threshold']
+            thr = state["threshold"]
             thr = (
-                f'{state["threshold"]:.3f}'
+                f"{state['threshold']:.3f}"
                 if isinstance(step, float)
-                else int(state['threshold'])
+                else int(state["threshold"])
             )
-            axes[1].set_title(f'Histogram with Threshold = {thr}')
+            axes[1].set_title(f"Histogram with Threshold = {thr}")
 
             # Binary mask
-            mask = slice_img >= state['threshold']
-            axes[2].imshow(mask, cmap='gray')
-            axes[2].set_title('Binary mask')
-            axes[2].axis('off')
+            mask = slice_img >= state["threshold"]
+            axes[2].imshow(mask, cmap="gray")
+            axes[2].set_title("Binary mask")
+            axes[2].axis("off")
 
             # Overlay
             mask_rgb = np.zeros((mask.shape[0], mask.shape[1], 3), dtype=np.uint8)
@@ -1903,54 +1903,54 @@ def threshold(
                 foreground=mask_rgb,
             )
             axes[3].imshow(masked_volume, vmin=new_min_value, vmax=new_max_value)
-            axes[3].set_title('Overlay')
-            axes[3].axis('off')
+            axes[3].set_title("Overlay")
+            axes[3].axis("off")
 
             plt.show()
 
     # Widgets
     position_slider = widgets.IntSlider(
-        value=state['position'],
+        value=state["position"],
         min=0,
         max=volume.shape[0] - 1,
-        description='Slice',
+        description="Slice",
     )
 
     threshold_slider = widgets.FloatSlider(
-        value=state['threshold'],
+        value=state["threshold"],
         min=volume.min(),
         max=volume.max(),
         step=step,
-        description='Threshold',
-        readout_format='d' if step == 1 else '.3f',
+        description="Threshold",
+        readout_format="d" if step == 1 else ".3f",
     )
 
     method_dropdown = widgets.Dropdown(
         options=[
-            'Manual',
-            'Otsu',
-            'Isodata',
-            'Li',
-            'Mean',
-            'Minimum',
-            'Triangle',
-            'Yen',
+            "Manual",
+            "Otsu",
+            "Isodata",
+            "Li",
+            "Mean",
+            "Minimum",
+            "Triangle",
+            "Yen",
         ],
-        value=state['method'],
-        description='Method',
+        value=state["method"],
+        description="Method",
     )
 
     # Attach the state update function to widgets
-    position_slider.observe(update_state, names='value')
-    threshold_slider.observe(update_state, names='value')
-    method_dropdown.observe(update_state, names='value')
+    position_slider.observe(update_state, names="value")
+    threshold_slider.observe(update_state, names="value")
+    method_dropdown.observe(update_state, names="value")
 
     # Layout
     controls_left = widgets.VBox([position_slider, threshold_slider])
     controls_right = widgets.VBox([method_dropdown])
     controls_layout = widgets.HBox(
         [controls_left, controls_right],
-        layout=widgets.Layout(justify_content='flex-start'),
+        layout=widgets.Layout(justify_content="flex-start"),
     )
     interactive_ui = widgets.VBox([controls_layout, output])
     update_visualization()
@@ -1982,7 +1982,7 @@ class _VolumeComparison:
 
         self.update_comp_plot = False
         self.update_plots = False
-        self.comparison_type = 'difference'  # Default comparison type
+        self.comparison_type = "difference"  # Default comparison type
 
         self.create_colormap()
         self.initialize_widgets()
@@ -1996,12 +1996,12 @@ class _VolumeComparison:
         blues = plt.cm.Blues_r(np.linspace(0.0, 1, 256))
         reds = plt.cm.Reds(np.linspace(0.0, 1, 256))
         colors = np.vstack((blues, reds))
-        self.diff_cmap = LinearSegmentedColormap.from_list('blue_red', colors)
+        self.diff_cmap = LinearSegmentedColormap.from_list("blue_red", colors)
 
     def initialize_k3d_plots(self) -> None:
-        self.k3d_plot1 = qim3d.viz.volumetric(self.volume1, show=False, colormap='Reds')
+        self.k3d_plot1 = qim3d.viz.volumetric(self.volume1, show=False, colormap="Reds")
         self.k3d_plot2 = qim3d.viz.volumetric(
-            self.volume2, show=False, colormap='Blues'
+            self.volume2, show=False, colormap="Blues"
         )
         alpha = [
             [0.0, 1.0],
@@ -2022,25 +2022,25 @@ class _VolumeComparison:
         self.slice_index_widget.value = self.volume1.shape[slice_axis] // 2
 
     def initialize_widgets(self) -> None:
-        layout = widgets.Layout(width='300px', height='auto')
+        layout = widgets.Layout(width="300px", height="auto")
         self.color_range_widget = widgets.FloatRangeSlider(
             min=0, max=1, step=0.01, value=[0, 1], layout=layout
         )
         self.comparison_type_widget = widgets.Dropdown(
-            options=['difference', 'absolute difference', 'quadratic difference'],
+            options=["difference", "absolute difference", "quadratic difference"],
             value=self.comparison_type,
         )
 
         # Slice related
         self.slice_axis_widget = widgets.Dropdown(
-            options=[0, 1, 2], value=self.slice_axis, description='Slice axis'
+            options=[0, 1, 2], value=self.slice_axis, description="Slice axis"
         )
-        self.slice_axis_widget.layout.width = '250px'
+        self.slice_axis_widget.layout.width = "250px"
 
         self.slice_index_widget = widgets.IntSlider(
-            min=0, step=1, description='Slice index', layout=layout
+            min=0, step=1, description="Slice index", layout=layout
         )
-        self.slice_index_widget.layout.width = '400px'
+        self.slice_index_widget.layout.width = "400px"
 
     def slice_cmap(
         self, colormap: str | LinearSegmentedColormap, color_range: tuple[float, float]
@@ -2072,10 +2072,10 @@ class _VolumeComparison:
             vmin=min(slice1.min(), slice2.min()), vmax=max(slice1.max(), slice2.max())
         )
 
-        if comparison_type == 'difference':
+        if comparison_type == "difference":
             newcmp = self.slice_cmap(self.diff_cmap, color_range)
-            cmap1 = self.slice_cmap('Reds', color_range)
-            cmap2 = self.slice_cmap('Blues', color_range)
+            cmap1 = self.slice_cmap("Reds", color_range)
+            cmap2 = self.slice_cmap("Blues", color_range)
 
             comparison = slice1 - slice2
             vrange = [comparison.min(), comparison.max()]
@@ -2098,17 +2098,17 @@ class _VolumeComparison:
                 comparison_k3d = self.volume1 - self.volume2
 
         else:
-            newcmp = self.slice_cmap('magma', color_range)
+            newcmp = self.slice_cmap("magma", color_range)
             cmap1 = newcmp
             cmap2 = newcmp
             alpha = []
 
-            if comparison_type == 'absolute difference':
+            if comparison_type == "absolute difference":
                 comparison = np.abs(slice1 - slice2)
                 if self.comparison_type != comparison_type and self.k3d:
                     comparison_k3d = np.abs(self.volume1 - self.volume2)
 
-            elif comparison_type == 'quadratic difference':
+            elif comparison_type == "quadratic difference":
                 comparison = (slice1 - slice2) ** 2
                 if self.comparison_type != comparison_type and self.k3d:
                     comparison_k3d = (self.volume1 - self.volume2) ** 2
@@ -2121,32 +2121,32 @@ class _VolumeComparison:
             self.k3d_plot3 = qim3d.viz.volumetric(
                 comparison_k3d,
                 show=False,
-                colormap=self.diff_cmap if comparison_type == 'difference' else 'magma',
+                colormap=self.diff_cmap if comparison_type == "difference" else "magma",
                 opacity_function=alpha,
             )
             self.update_comp_plot = True
 
             if (
-                comparison_type == 'difference'
+                comparison_type == "difference"
                 or (
-                    'quadratic' in comparison_type
-                    and 'absolute' not in self.comparison_type
+                    "quadratic" in comparison_type
+                    and "absolute" not in self.comparison_type
                 )
                 or (
-                    'absolute' in comparison_type
-                    and 'quadratic' not in self.comparison_type
+                    "absolute" in comparison_type
+                    and "quadratic" not in self.comparison_type
                 )
             ):
                 # Update k3d plots 1 and 2 if colormap change is necessary (difference <-> quadratic/absolute)
                 self.k3d_plot1 = qim3d.viz.volumetric(
                     self.volume1,
                     show=False,
-                    colormap='Blues' if comparison_type == 'difference' else 'magma',
+                    colormap="Blues" if comparison_type == "difference" else "magma",
                 )
                 self.k3d_plot2 = qim3d.viz.volumetric(
                     self.volume2,
                     show=False,
-                    colormap='Reds' if comparison_type == 'difference' else 'magma',
+                    colormap="Reds" if comparison_type == "difference" else "magma",
                 )
                 self.update_plots = True
 
@@ -2156,20 +2156,20 @@ class _VolumeComparison:
         # Create plots
         fig_1, ax_1 = plt.subplots(figsize=(4, 4))
         im1 = ax_1.imshow(slice1, norm=norm1, cmap=cmap1)
-        ax_1.set_title('Volume1')
+        ax_1.set_title("Volume1")
         divider1 = make_axes_locatable(ax_1)
-        cax1 = divider1.append_axes('bottom', size='5%', pad=0.3)
-        fig_1.colorbar(im1, cax=cax1, orientation='horizontal')
+        cax1 = divider1.append_axes("bottom", size="5%", pad=0.3)
+        fig_1.colorbar(im1, cax=cax1, orientation="horizontal")
         fig_1.tight_layout()
         self.fig1 = fig_1
         plt.close(fig_1)
 
         fig_2, ax_2 = plt.subplots(figsize=(4, 4))
         im2 = ax_2.imshow(slice2, norm=norm1, cmap=cmap2)
-        ax_2.set_title('Volume2')
+        ax_2.set_title("Volume2")
         divider2 = make_axes_locatable(ax_2)
-        cax2 = divider2.append_axes('bottom', size='5%', pad=0.3)
-        fig_2.colorbar(im2, cax=cax2, orientation='horizontal')
+        cax2 = divider2.append_axes("bottom", size="5%", pad=0.3)
+        fig_2.colorbar(im2, cax=cax2, orientation="horizontal")
         fig_2.tight_layout()
         self.fig2 = fig_2
         plt.close(fig_2)
@@ -2178,8 +2178,8 @@ class _VolumeComparison:
         im3 = ax_3.imshow(comparison, norm=norm2, cmap=newcmp)
         ax_3.set_title(comparison_type)
         divider3 = make_axes_locatable(ax_3)
-        cax3 = divider3.append_axes('bottom', size='5%', pad=0.3)
-        fig_3.colorbar(im3, cax=cax3, orientation='horizontal')
+        cax3 = divider3.append_axes("bottom", size="5%", pad=0.3)
+        fig_3.colorbar(im3, cax=cax3, orientation="horizontal")
         fig_3.tight_layout()
         self.fig3 = fig_3
         plt.close(fig_3)
@@ -2223,7 +2223,7 @@ class _VolumeComparison:
     def build_interactive(self) -> widgets.VBox:
         # Group widgets into two columns
         title_style = (
-            'text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;'
+            "text-align:center; font-size:16px; font-weight:bold; margin-bottom:5px;"
         )
         title_column1 = widgets.HTML(
             f"<div style='{title_style}'>Comparison options</div>"
@@ -2233,9 +2233,9 @@ class _VolumeComparison:
         )
 
         # Make label widgets instead of descriptions which have different lengths.
-        label_layout = widgets.Layout(width='120px')
-        label_comparison_type = widgets.Label('Comparison type', layout=label_layout)
-        label_color_range = widgets.Label('Color range fraction', layout=label_layout)
+        label_layout = widgets.Layout(width="120px")
+        label_comparison_type = widgets.Label("Comparison type", layout=label_layout)
+        label_color_range = widgets.Label("Color range fraction", layout=label_layout)
 
         row_comparison_type = widgets.HBox(
             [label_comparison_type, self.comparison_type_widget]
@@ -2253,27 +2253,27 @@ class _VolumeComparison:
         interactive_plot = widgets.interactive_output(
             self.update,
             {
-                'slice_axis': self.slice_axis_widget,
-                'slice_index': self.slice_index_widget,
-                'comparison_type': self.comparison_type_widget,
-                'color_range': self.color_range_widget,
+                "slice_axis": self.slice_axis_widget,
+                "slice_index": self.slice_index_widget,
+                "comparison_type": self.comparison_type_widget,
+                "color_range": self.color_range_widget,
             },
         )
 
         # Create height on plt outputs to prevent flickering
         plt_layout = widgets.Layout(
-            height='400px',
-            width='99%',
-            overflow='hidden',
+            height="400px",
+            width="99%",
+            overflow="hidden",
         )
 
         fig_layout = widgets.Layout(
-            width='400px',
-            height='100%',
-            display='flex',
-            flex_flow='column',
-            align_items='stretch',
-            justify_content='space-between',
+            width="400px",
+            height="100%",
+            display="flex",
+            flex_flow="column",
+            align_items="stretch",
+            justify_content="space-between",
         )
         self.plt_output1.layout = plt_layout
         self.plt_output2.layout = plt_layout
@@ -2281,10 +2281,10 @@ class _VolumeComparison:
 
         if self.k3d:
             k3d_layout = widgets.Layout(
-                width='99%',  # Slightly smaller
-                height='400px',
-                overflow='hidden',
-                flex='1 1 0%',
+                width="99%",  # Slightly smaller
+                height="400px",
+                overflow="hidden",
+                flex="1 1 0%",
             )
 
             self.k3d_output1.layout = k3d_layout
@@ -2342,7 +2342,7 @@ class _VolumeComparison:
         return widgets.VBox([controls, interactive_plot, figs])
 
 
-@coarseness('volume1', 'volume2')
+@coarseness("volume1", "volume2")
 def compare_volumes(
     volume1: np.ndarray,
     volume2: np.ndarray,
@@ -2382,27 +2382,27 @@ def compare_volumes(
     """
 
     if volume1.ndim != 3:
-        msg = 'Volume must be 3D.'
+        msg = "Volume must be 3D."
         raise ValueError(msg)
     if volume1.shape != volume2.shape:
-        msg = 'Volumes must have the same shape.'
+        msg = "Volumes must have the same shape."
         raise ValueError(msg)
 
     if np.issubdtype(volume1.dtype, np.unsignedinteger) and np.issubdtype(
         volume2.dtype, np.unsignedinteger
     ):
         log.warning(
-            'Volumes have unsigned integer datatypes. Beware of over-/underflow.'
+            "Volumes have unsigned integer datatypes. Beware of over-/underflow."
         )
 
     if slice_axis not in (0, 1, 2):
-        msg = 'Invalid slice_axis.'
+        msg = "Invalid slice_axis."
         raise ValueError(msg)
 
     if slice_index is None:
         slice_index = volume1.shape[slice_axis] // 2
     if not isinstance(slice_index, int):
-        msg = 'slice_index must be an integer.'
+        msg = "slice_index must be an integer."
         raise ValueError(msg)
 
     vc = _VolumeComparison(
@@ -2412,7 +2412,7 @@ def compare_volumes(
 
 
 class IsoSurface:
-    def __init__(self, volume: np.ndarray, colormap: str = 'magma') -> None:
+    def __init__(self, volume: np.ndarray, colormap: str = "magma") -> None:
         # keep a float32 copy to save half the RAM up front
         self.vol_full = np.transpose(volume, (1, 2, 0)).astype(np.float32)
         self.min_value = self.vol_full.min()
@@ -2432,7 +2432,7 @@ class IsoSurface:
             min=self.min_value,
             max=self.max_value,
             step=1,
-            description='Threshold',
+            description="Threshold",
             continuous_update=False,
         )
         self.resolution = widgets.IntSlider(
@@ -2440,7 +2440,7 @@ class IsoSurface:
             min=32,
             max=96,
             step=1,
-            description='Resolution',
+            description="Resolution",
             continuous_update=False,
         )
         self.trans = widgets.FloatSlider(
@@ -2448,39 +2448,39 @@ class IsoSurface:
             min=0,
             max=1,
             step=0.1,
-            description='Transparency',
+            description="Transparency",
             continuous_update=False,
         )
         self.cmapw = widgets.Dropdown(
             options=[
-                'Blackbody',
-                'Bluered',
-                'Blues',
-                'Cividis',
-                'Earth',
-                'Electric',
-                'Greens',
-                'Greys',
-                'Hot',
-                'Jet',
-                'Magma',
-                'Picnic',
-                'Portland',
-                'Rainbow',
-                'RdBu',
-                'Reds',
-                'Viridis',
-                'YlGnBu',
-                'YlOrRd',
+                "Blackbody",
+                "Bluered",
+                "Blues",
+                "Cividis",
+                "Earth",
+                "Electric",
+                "Greens",
+                "Greys",
+                "Hot",
+                "Jet",
+                "Magma",
+                "Picnic",
+                "Portland",
+                "Rainbow",
+                "RdBu",
+                "Reds",
+                "Viridis",
+                "YlGnBu",
+                "YlOrRd",
             ],
             value=self.cmap,
-            description='Colormap',
+            description="Colormap",
         )
-        self.grid = widgets.Checkbox(value=True, description='Grid')
+        self.grid = widgets.Checkbox(value=True, description="Grid")
 
-        self.wireframe = widgets.Checkbox(value=False, description='Wireframe')
+        self.wireframe = widgets.Checkbox(value=False, description="Wireframe")
 
-        self.colorbar = widgets.Checkbox(value=False, description='Colorbar')
+        self.colorbar = widgets.Checkbox(value=False, description="Colorbar")
 
         for w in (
             self.thr,
@@ -2491,7 +2491,7 @@ class IsoSurface:
             self.wireframe,
             self.colorbar,
         ):
-            w.observe(self._refresh, names='value')
+            w.observe(self._refresh, names="value")
 
     # ---------- data prep ----------
     def _resize_vol(self, resolution: int) -> dict:
@@ -2533,7 +2533,7 @@ class IsoSurface:
                     isomax=isoval,
                     opacity=1 - self.trans.value,
                     surface_count=1,
-                    caps={'x_show': False, 'y_show': False, 'z_show': False},
+                    caps={"x_show": False, "y_show": False, "z_show": False},
                     showscale=self.colorbar.value,  # self.cbar.value,
                     colorscale=self.cmapw.value,
                 )
@@ -2545,12 +2545,12 @@ class IsoSurface:
 
     def _layout_axes(self) -> None:
         self.fig.update_layout(
-            scene_aspectmode='data',
-            margin={'l': 0, 'r': 0, 'b': 0, 't': 0},
+            scene_aspectmode="data",
+            margin={"l": 0, "r": 0, "b": 0, "t": 0},
             scene={
-                'xaxis': {'visible': self.grid.value},
-                'yaxis': {'visible': self.grid.value},
-                'zaxis': {'visible': self.grid.value},
+                "xaxis": {"visible": self.grid.value},
+                "yaxis": {"visible": self.grid.value},
+                "zaxis": {"visible": self.grid.value},
             },
         )
 
@@ -2569,7 +2569,7 @@ class IsoSurface:
             tr.update(
                 isomin=isoval,
                 isomax=isoval,
-                surface={'fill': surface_fill},
+                surface={"fill": surface_fill},
             )
             tr.colorscale = self.cmapw.value
             tr.showscale = self.colorbar.value
@@ -2586,7 +2586,7 @@ class IsoSurface:
                 opacity=1 - self.trans.value,
                 showscale=self.colorbar.value,
                 colorscale=self.cmapw.value,
-                surface={'fill': surface_fill},
+                surface={"fill": surface_fill},
             )
 
             self._last_resolution = resolution
@@ -2608,19 +2608,19 @@ class IsoSurface:
                 self.wireframe,
             ],
             layout=widgets.Layout(
-                min_width='200px',
+                min_width="200px",
             ),
         )
 
         ui = widgets.HBox(
-            [controls, self.fig], layout=widgets.Layout(width='100%', height='640px')
+            [controls, self.fig], layout=widgets.Layout(width="100%", height="640px")
         )
 
         display(ui)
 
 
-@coarseness('volume')
-def iso_surface(volume: np.ndarray, colormap: str = 'Magma') -> None:
+@coarseness("volume")
+def iso_surface(volume: np.ndarray, colormap: str = "Magma") -> None:
     """
     Creates an interactive tool to visualize 3D iso-surfaces (surfaces of constant value).
 
@@ -2649,7 +2649,7 @@ def iso_surface(volume: np.ndarray, colormap: str = 'Magma') -> None:
     IsoSurface(volume, colormap)
 
 
-def _get_save_path(user_input: str, default_dir: str = '.') -> Path:
+def _get_save_path(user_input: str, default_dir: str = ".") -> Path:
     input_path = Path(user_input)
 
     if input_path.is_absolute():
@@ -2665,10 +2665,10 @@ def export_rotation(
     n_frames: int = 180,
     fps: int = 30,
     image_size: tuple[int, int] | None = (256, 256),
-    colormap: ColormapLike = 'magma',
+    colormap: ColormapLike = "magma",
     camera_height: float = 2.0,
-    camera_distance: float | str = 'auto',
-    camera_focus: list | str = 'center',
+    camera_distance: float | str = "auto",
+    camera_focus: list | str = "center",
     show: bool = False,
 ) -> None:
     """
@@ -2738,7 +2738,7 @@ def export_rotation(
 
     """
     if not (
-        camera_focus == 'center'
+        camera_focus == "center"
         or (
             isinstance(camera_focus, list | np.ndarray)
             and not isinstance(camera_focus, str)
@@ -2747,7 +2747,7 @@ def export_rotation(
     ):
         msg = f'Value "{camera_focus}" for camera focus is invalid. Use "center" or a list of three values.'
         raise TypeError(msg)
-    if not (isinstance(camera_distance, float) or camera_distance == 'auto'):
+    if not (isinstance(camera_distance, float) or camera_distance == "auto"):
         msg = f'Value "{camera_distance}" for camera distance is invalid. Use "auto" or a float value.'
         raise TypeError(msg)
 
@@ -2759,24 +2759,24 @@ def export_rotation(
     grid.dimensions = np.array(vol.shape) + 1  # PyVista dims are +1 from volume shape
     grid.spacing = (1, 1, 1)
     grid.origin = (0, 0, 0)
-    grid.cell_data['values'] = vol.flatten(order='F')  # Fortran order
+    grid.cell_data["values"] = vol.flatten(order="F")  # Fortran order
 
     # Initialize plotter
     plotter = pv.Plotter(off_screen=True)
-    plotter.add_volume(grid, opacity='linear', cmap=colormap)
+    plotter.add_volume(grid, opacity="linear", cmap=colormap)
     plotter.remove_scalar_bar()  # Remove colorbar
 
     frames = []
     camera_height = vol.shape[1] * camera_height
 
-    if camera_distance == 'auto':
+    if camera_distance == "auto":
         bounds = np.array(plotter.bounds)  # (xmin, xmax, ymin, ymax, zmin, zmax)
         diag = np.linalg.norm(
             [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
         )
         camera_distance = diag * 2.0
 
-    if camera_focus == 'center':
+    if camera_focus == "center":
         _, center, _ = plotter.camera_position
     else:
         center = camera_focus
@@ -2789,7 +2789,7 @@ def export_rotation(
     # Set up orbit radius and fixed up
     radius = camera_distance
     fixed_up = [0, 1, 0]
-    for i in tqdm(range(n_frames), desc='Rendering'):
+    for i in tqdm(range(n_frames), desc="Rendering"):
         theta = radians_per_frame * i
         x = radius * np.sin(theta)
         z = radius * np.cos(theta)
@@ -2804,31 +2804,31 @@ def export_rotation(
 
     path = Path(path)
     match path.suffix.lower():
-        case '.gif':
+        case ".gif":
             imageio.mimsave(path, frames, fps=fps, loop=0)
-        case '.avi' | '.mp4':
+        case ".avi" | ".mp4":
             writer = imageio.get_writer(path, fps=fps)
             for frame in frames:
                 writer.append_data(frame)
             writer.close()
-        case '.webm':
+        case ".webm":
             writer = imageio.get_writer(
-                path, fps=fps, codec='vp9', ffmpeg_params=['-crf', '32']
+                path, fps=fps, codec="vp9", ffmpeg_params=["-crf", "32"]
             )
             for frame in frames:
                 writer.append_data(frame)
             writer.close()
         case _:
-            msg = 'Invalid file extension. Please use .gif, .avi, .mp4 or .webm'
+            msg = "Invalid file extension. Please use .gif, .avi, .mp4 or .webm"
             raise ValueError(msg)
 
-    log.info('File saved to ' + str(path.resolve()))
+    log.info("File saved to " + str(path.resolve()))
 
     if show:
-        if path.suffix == '.gif':
+        if path.suffix == ".gif":
             display(Image(filename=path))
-        elif path.suffix in ['.avi', '.mp4', '.webm']:
-            display(Video(filename=path, html_attributes='controls autoplay loop'))
+        elif path.suffix in [".avi", ".mp4", ".webm"]:
+            display(Video(filename=path, html_attributes="controls autoplay loop"))
 
 
 class VolumePlaneSlicer:
@@ -2850,7 +2850,7 @@ class VolumePlaneSlicer:
     def __init__(
         self,
         volume: np.ndarray,
-        colormap: str | matplotlib.colors.Colormap = 'magma',
+        colormap: str | matplotlib.colors.Colormap = "magma",
         color_range: list[float | None, float | None] = None,
         showscale: bool = True,
         opacity: float = 1.0,
@@ -2889,12 +2889,12 @@ class VolumePlaneSlicer:
 
     def _init_controls(self) -> None:
         # Slice controls
-        slider_layout = widgets.Layout(width='400px')
+        slider_layout = widgets.Layout(width="400px")
         self.x_slider = widgets.IntSlider(
             value=self.x_max // 2,
             min=0,
             max=self.x_max - 1,
-            description='X',
+            description="X",
             layout=slider_layout,
             continuous_update=self.continuous_update,
         )
@@ -2902,7 +2902,7 @@ class VolumePlaneSlicer:
             value=self.y_max // 2,
             min=0,
             max=self.y_max - 1,
-            description='Y',
+            description="Y",
             layout=slider_layout,
             continuous_update=self.continuous_update,
         )
@@ -2910,23 +2910,23 @@ class VolumePlaneSlicer:
             value=self.z_max // 2,
             min=0,
             max=self.z_max - 1,
-            description='Z',
+            description="Z",
             layout=slider_layout,
             continuous_update=self.continuous_update,
         )
 
-        checkbox_layout = widgets.Layout(width='20px')
+        checkbox_layout = widgets.Layout(width="20px")
         self.show_x = widgets.Checkbox(
-            value=True, description='', indent=False, layout=checkbox_layout
+            value=True, description="", indent=False, layout=checkbox_layout
         )
         self.show_y = widgets.Checkbox(
-            value=True, description='', indent=False, layout=checkbox_layout
+            value=True, description="", indent=False, layout=checkbox_layout
         )
         self.show_z = widgets.Checkbox(
-            value=True, description='', indent=False, layout=checkbox_layout
+            value=True, description="", indent=False, layout=checkbox_layout
         )
 
-        hbox_layout = widgets.Layout(width='420px')
+        hbox_layout = widgets.Layout(width="420px")
         z_controls = widgets.HBox([self.z_slider, self.show_z], layout=hbox_layout)
         y_controls = widgets.HBox([self.y_slider, self.show_y], layout=hbox_layout)
         x_controls = widgets.HBox([self.x_slider, self.show_x], layout=hbox_layout)
@@ -2938,8 +2938,8 @@ class VolumePlaneSlicer:
             min=0.0,
             max=1.0,
             step=0.05,
-            description='Opacity',
-            layout=widgets.Layout(width='350px'),
+            description="Opacity",
+            layout=widgets.Layout(width="350px"),
             continuous_update=self.continuous_update,
         )
         is_int = np.issubdtype(self.volume.dtype, np.integer)
@@ -2951,30 +2951,30 @@ class VolumePlaneSlicer:
             min=self.color_range[0],
             max=self.color_range[1],
             step=1 if is_int else (self.color_range[1] - self.color_range[0]) / 100,
-            description='Color range',
+            description="Color range",
             continuous_update=self.continuous_update,
-            layout=widgets.Layout(width='400px'),
+            layout=widgets.Layout(width="400px"),
         )
 
         self.cmaps = [
-            'Blues',
-            'cividis',
-            'cool',
-            'gray',
-            'Greys',
-            'hot',
-            'hsv',
-            'inferno',
-            'magma',
-            'plasma',
-            'spring',
-            'viridis',
-            'tab10',
-            'turbo',
-            'nipy_spectral',
+            "Blues",
+            "cividis",
+            "cool",
+            "gray",
+            "Greys",
+            "hot",
+            "hsv",
+            "inferno",
+            "magma",
+            "plasma",
+            "spring",
+            "viridis",
+            "tab10",
+            "turbo",
+            "nipy_spectral",
         ]
         if isinstance(self.colormap, matplotlib.colors.Colormap):
-            cmap_value = 'Custom'
+            cmap_value = "Custom"
             cmap_options = [cmap_value] + self.cmaps
         elif isinstance(self.colormap, str):
             if self.colormap in self.cmaps:
@@ -2987,17 +2987,17 @@ class VolumePlaneSlicer:
         self.cmap_dropdown = widgets.Dropdown(
             options=cmap_options,
             value=cmap_value,
-            description='Colormap',
-            layout=widgets.Layout(width='300px'),
+            description="Colormap",
+            layout=widgets.Layout(width="300px"),
         )
 
         visual_controls = widgets.VBox(
             [self.opacity_slider, self.crange_slider, self.cmap_dropdown],
-            layout=widgets.Layout(width='450px'),
+            layout=widgets.Layout(width="450px"),
         )
 
         # Combined controls
-        whitespace = widgets.Box(layout=widgets.Layout(width='100px'))
+        whitespace = widgets.Box(layout=widgets.Layout(width="100px"))
         self.controls = widgets.HBox([slice_controls, whitespace, visual_controls])
 
     def _init_surfaces(self) -> None:
@@ -3017,7 +3017,7 @@ class VolumePlaneSlicer:
         surfaces = [
             # Z plane
             go.Surface(
-                name='Z',
+                name="Z",
                 x=self.x_axis,  # 1-D
                 y=self.y_axis,  # 1-D
                 z=z_plane,  # 2-D constant (updated when Z changes)
@@ -3031,7 +3031,7 @@ class VolumePlaneSlicer:
             ),
             # Y plane (vertical): needs full 2-D x,y,z
             go.Surface(
-                name='Y',
+                name="Y",
                 x=self._x_grid_zx,  # 2-D static
                 y=y_plane,  # 2-D constant (updated when Y changes)
                 z=self._z_grid_zx,  # 2-D static
@@ -3045,7 +3045,7 @@ class VolumePlaneSlicer:
             ),
             # X plane (vertical): needs full 2-D x,y,z
             go.Surface(
-                name='X',
+                name="X",
                 x=x_plane,  # 2-D constant (updated when X changes)
                 y=self._y_grid_zy,  # 2-D static
                 z=self._z_grid_zy,  # 2-D static
@@ -3069,7 +3069,7 @@ class VolumePlaneSlicer:
             cmin=self.color_range[0],
             cmax=self.color_range[1],
             showscale=True,
-            hoverinfo='skip',
+            hoverinfo="skip",
             showlegend=False,
         )
         self.fig.add_trace(colorbar_surface)
@@ -3077,16 +3077,16 @@ class VolumePlaneSlicer:
         self.fig.update_layout(
             width=1000,
             height=500,
-            margin={'l': 0, 'r': 0, 't': 0, 'b': 0},
+            margin={"l": 0, "r": 0, "t": 0, "b": 0},
             scene={
-                'xaxis': {'title': 'X', 'range': [0, self.x_max]},
-                'yaxis': {'title': 'Y', 'range': [0, self.y_max]},
-                'zaxis': {'title': 'Z', 'range': [0, self.z_max]},
-                'aspectmode': 'manual',
-                'aspectratio': {
+                "xaxis": {"title": "X", "range": [0, self.x_max]},
+                "yaxis": {"title": "Y", "range": [0, self.y_max]},
+                "zaxis": {"title": "Z", "range": [0, self.z_max]},
+                "aspectmode": "manual",
+                "aspectratio": {
                     axis: (size / max(self.volume.shape)) * 1.3
                     for axis, size in zip(
-                        ['x', 'y', 'z'], [self.x_max, self.y_max, self.z_max]
+                        ["x", "y", "z"], [self.x_max, self.y_max, self.z_max]
                     )
                 },
             },
@@ -3096,11 +3096,11 @@ class VolumePlaneSlicer:
         for tr in self.fig.data[:3]:
             tr.update(
                 lighting={
-                    'ambient': 1,
-                    'diffuse': 0,
-                    'specular': 0,
-                    'roughness': 1,
-                    'fresnel': 0,
+                    "ambient": 1,
+                    "diffuse": 0,
+                    "specular": 0,
+                    "roughness": 1,
+                    "fresnel": 0,
                 }
             )
 
@@ -3116,80 +3116,80 @@ class VolumePlaneSlicer:
         out = np.clip(out, 0.0, 255.0).astype(np.uint8, copy=False)
         return np.ascontiguousarray(out)
 
-    def _update_plane(self, plane: Literal['X', 'Y', 'Z']) -> None:
+    def _update_plane(self, plane: Literal["X", "Y", "Z"]) -> None:
         key = (
-            ('Z', self.z_slider.value)
-            if plane == 'Z'
-            else ('Y', self.y_slider.value)
-            if plane == 'Y'
-            else ('X', self.x_slider.value)
+            ("Z", self.z_slider.value)
+            if plane == "Z"
+            else ("Y", self.y_slider.value)
+            if plane == "Y"
+            else ("X", self.x_slider.value)
         )
-        if getattr(self, '_last_key', None) == key:
+        if getattr(self, "_last_key", None) == key:
             return
         self._last_key = key
 
         with self.fig.batch_update():
             opacity = self.opacity_slider.value
 
-            if plane == 'Z':
+            if plane == "Z":
                 k = self.z_slider.value
                 data = np.take(self.volume, k, axis=0)
-                if not data.flags['C_CONTIGUOUS']:  # ensure contiguous
+                if not data.flags["C_CONTIGUOUS"]:  # ensure contiguous
                     data = np.ascontiguousarray(data)
                 data = data.astype(np.float32, copy=False)
                 s = self.fig.data[0]
                 # Update constant Z-plane only if index changed
-                if self._last_indices.get('k') != k:
+                if self._last_indices.get("k") != k:
                     s.z = np.full(
                         (self.y_max, self.x_max), self.z_axis[k], dtype=np.float32
                     )
-                    self._last_indices['k'] = k
+                    self._last_indices["k"] = k
                 q = self._quantize_to_u8(data)
                 s.surfacecolor = q
                 s.opacity = opacity
 
-            elif plane == 'Y':
+            elif plane == "Y":
                 j = self.y_slider.value
                 data = np.take(self.volume, j, axis=1)
-                if not data.flags['C_CONTIGUOUS']:  # ensure contiguous
+                if not data.flags["C_CONTIGUOUS"]:  # ensure contiguous
                     data = np.ascontiguousarray(data)
                 data = data.astype(np.float32, copy=False)
                 s = self.fig.data[1]
-                if self._last_indices.get('j') != j:
+                if self._last_indices.get("j") != j:
                     s.y = np.full(
                         (self.z_max, self.x_max), self.y_axis[j], dtype=np.float32
                     )
-                    self._last_indices['j'] = j
+                    self._last_indices["j"] = j
                 q = self._quantize_to_u8(data)
                 s.surfacecolor = q
                 s.opacity = opacity
 
-            elif plane == 'X':
+            elif plane == "X":
                 i = self.x_slider.value
                 data = np.take(self.volume, i, axis=2)
-                if not data.flags['C_CONTIGUOUS']:  # ensure contiguous
+                if not data.flags["C_CONTIGUOUS"]:  # ensure contiguous
                     data = np.ascontiguousarray(data)
                 data = data.astype(np.float32, copy=False)
                 s = self.fig.data[2]
-                if self._last_indices.get('i') != i:
+                if self._last_indices.get("i") != i:
                     s.x = np.full(
                         (self.z_max, self.y_max), self.x_axis[i], dtype=np.float32
                     )
-                    self._last_indices['i'] = i
+                    self._last_indices["i"] = i
                 q = self._quantize_to_u8(data)
                 s.surfacecolor = q
                 s.opacity = opacity
 
             else:
-                msg = f'Invalid plane: {plane}'
+                msg = f"Invalid plane: {plane}"
                 raise ValueError(msg)
 
-    def _toggle_visibility(self, plane: Literal['X', 'Y', 'Z']) -> None:
-        if plane == 'X':
+    def _toggle_visibility(self, plane: Literal["X", "Y", "Z"]) -> None:
+        if plane == "X":
             self.fig.data[2].visible = self.show_x.value
-        elif plane == 'Y':
+        elif plane == "Y":
             self.fig.data[1].visible = self.show_y.value
-        elif plane == 'Z':
+        elif plane == "Z":
             self.fig.data[0].visible = self.show_z.value
 
     def _update_opacity(self) -> None:
@@ -3205,7 +3205,7 @@ class VolumePlaneSlicer:
 
     def _update_cmap(self) -> None:
         cmap = self.cmap_dropdown.value
-        if cmap == 'Custom':
+        if cmap == "Custom":
             colorscale = self.initial_colorscale
         else:
             colorscale = self.matplotlib_to_plotly_cmap(cmap)
@@ -3215,18 +3215,18 @@ class VolumePlaneSlicer:
 
     def _update_figure(self, change: dict = None) -> None:
         if change is None:
-            for plane in ['X', 'Y', 'Z']:
+            for plane in ["X", "Y", "Z"]:
                 self._update_plane(plane)
             return
 
-        owner = change['owner']
+        owner = change["owner"]
         owner_action_map = {
-            self.x_slider: lambda: self._update_plane('X'),
-            self.y_slider: lambda: self._update_plane('Y'),
-            self.z_slider: lambda: self._update_plane('Z'),
-            self.show_x: lambda: self._toggle_visibility('X'),
-            self.show_y: lambda: self._toggle_visibility('Y'),
-            self.show_z: lambda: self._toggle_visibility('Z'),
+            self.x_slider: lambda: self._update_plane("X"),
+            self.y_slider: lambda: self._update_plane("Y"),
+            self.z_slider: lambda: self._update_plane("Z"),
+            self.show_x: lambda: self._toggle_visibility("X"),
+            self.show_y: lambda: self._toggle_visibility("Y"),
+            self.show_z: lambda: self._toggle_visibility("Z"),
             self.opacity_slider: self._update_opacity,
             self.crange_slider: self._update_crange,
             self.cmap_dropdown: self._update_cmap,
@@ -3235,7 +3235,7 @@ class VolumePlaneSlicer:
         try:
             owner_action_map[owner]()
         except KeyError as err:
-            msg = f'Unhandled slider or control: {owner}'
+            msg = f"Unhandled slider or control: {owner}"
             raise ValueError(msg) from err
 
     def _update_surface(
@@ -3265,16 +3265,16 @@ class VolumePlaneSlicer:
             self.crange_slider,
             self.cmap_dropdown,
         ]:
-            control.observe(self._update_figure, names='value')
+            control.observe(self._update_figure, names="value")
 
     def show(self) -> None:
         display(self.controls, self.fig)
 
 
-@coarseness('volume')
+@coarseness("volume")
 def planes(
     volume: np.ndarray,
-    colormap: str | matplotlib.colors.Colormap = 'magma',
+    colormap: str | matplotlib.colors.Colormap = "magma",
     min_value: float = None,
     max_value: float = None,
 ) -> None:
@@ -3323,7 +3323,7 @@ class OverlaySlicer:
         vol1: np.ndarray,
         vol2: np.ndarray,
         display_size: int = 512,
-        cmaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
+        cmaps: ColormapLike | tuple[ColormapLike, ColormapLike] = "gray",
         volume1_values: tuple[float, float] = (None, None),
         volume2_values: tuple[float, float] = (None, None),
     ):
@@ -3334,7 +3334,7 @@ class OverlaySlicer:
         if isinstance(cmaps, str | matplotlib.colors.Colormap):
             cmaps = (cmaps, cmaps)
         self.cmaps = tuple(matplotlib.colormaps.get_cmap(c) for c in cmaps)
-        self.img_format = 'png'
+        self.img_format = "png"
 
         self.slice_axis = 0
         self.slice_index = vol1.shape[self.slice_axis] // 2
@@ -3371,41 +3371,41 @@ class OverlaySlicer:
             min=0.0,
             max=1.0,
             step=0.01,
-            description='',
+            description="",
             continuous_update=True,
             readout=False,
         )
-        self.fade_slider.layout.width = f'{self.display_size}px'
-        self.fade_slider.style = {'handle_color': None, 'description_width': '0px'}
+        self.fade_slider.layout.width = f"{self.display_size}px"
+        self.fade_slider.style = {"handle_color": None, "description_width": "0px"}
 
         self.slice_axis_widget = widgets.Dropdown(
-            options=[0, 1, 2], value=self.slice_axis, description='Slice axis'
+            options=[0, 1, 2], value=self.slice_axis, description="Slice axis"
         )
-        self.slice_axis_widget.layout.width = '250px'
+        self.slice_axis_widget.layout.width = "250px"
 
         self.slice_index_widget = widgets.IntSlider(
             min=0,
             step=1,
-            description='Slice index',
-            layout=widgets.Layout(width='400px', height='auto'),
+            description="Slice index",
+            layout=widgets.Layout(width="400px", height="auto"),
         )
 
         # image + centering container
         self.img_widget = widgets.Image(format=self.img_format)
-        self.img_widget.add_class('pixelated')  # ensures nearest-neighbor
+        self.img_widget.add_class("pixelated")  # ensures nearest-neighbor
         self.img_box = widgets.Box(
             [self.img_widget],
             layout=widgets.Layout(
-                width=f'{self.display_size}px',
-                justify_content='center',
-                align_items='center',
+                width=f"{self.display_size}px",
+                justify_content="center",
+                align_items="center",
             ),
         )
 
     def _set_observers(self) -> None:
-        self.fade_slider.observe(self._on_change, names='value')
-        self.slice_axis_widget.observe(self._on_change, names='value')
-        self.slice_index_widget.observe(self._on_change, names='value')
+        self.fade_slider.observe(self._on_change, names="value")
+        self.slice_axis_widget.observe(self._on_change, names="value")
+        self.slice_index_widget.observe(self._on_change, names="value")
 
     def _on_change(self, _change: dict) -> None:
         self._update(
@@ -3455,7 +3455,7 @@ class OverlaySlicer:
         arr = (arr * 255).astype(np.uint8)
 
         buf = io.BytesIO()
-        PIL.Image.fromarray(arr, mode='RGB').save(buf, format=self.img_format.upper())
+        PIL.Image.fromarray(arr, mode="RGB").save(buf, format=self.img_format.upper())
         return buf.getvalue()
 
     def _update(self, slice_axis: int, slice_index: int, fade: float) -> None:
@@ -3469,27 +3469,27 @@ class OverlaySlicer:
         # --- make display_size the maximum dimension ---
         h, w = blended.shape[:2]
         if w >= h:
-            self.img_widget.layout.width = f'{self.display_size}px'
-            self.img_widget.layout.height = 'auto'
+            self.img_widget.layout.width = f"{self.display_size}px"
+            self.img_widget.layout.height = "auto"
         else:
-            self.img_widget.layout.width = 'auto'
-            self.img_widget.layout.height = f'{self.display_size}px'
+            self.img_widget.layout.width = "auto"
+            self.img_widget.layout.height = f"{self.display_size}px"
 
         # ensure the centering box and slider share the same width
-        self.img_box.layout.width = f'{self.display_size}px'
-        self.fade_slider.layout.width = f'{self.display_size}px'
+        self.img_box.layout.width = f"{self.display_size}px"
+        self.fade_slider.layout.width = f"{self.display_size}px"
 
     # ---------- public builder ----------
     def build_interactive(self) -> widgets.VBox:
-        left_label = widgets.Label('volume1', layout=widgets.Layout(width='auto'))
-        right_label = widgets.Label('volume2', layout=widgets.Layout(width='auto'))
+        left_label = widgets.Label("volume1", layout=widgets.Layout(width="auto"))
+        right_label = widgets.Label("volume2", layout=widgets.Layout(width="auto"))
         labels_row = widgets.HBox(
             [
                 left_label,
-                widgets.Box(layout=widgets.Layout(flex='1 1 auto')),
+                widgets.Box(layout=widgets.Layout(flex="1 1 auto")),
                 right_label,
             ],
-            layout=widgets.Layout(width=f'{self.display_size}px'),
+            layout=widgets.Layout(width=f"{self.display_size}px"),
         )
 
         return widgets.VBox(
@@ -3508,7 +3508,7 @@ def overlay(
     volume2: np.ndarray,
     volume1_values: tuple[float, float] = (None, None),
     volume2_values: tuple[float, float] = (None, None),
-    colormaps: ColormapLike | tuple[ColormapLike, ColormapLike] = 'gray',
+    colormaps: ColormapLike | tuple[ColormapLike, ColormapLike] = "gray",
     display_size: int = 512,
 ) -> widgets.interactive:
     """
@@ -3544,10 +3544,10 @@ def overlay(
 
     """
     if volume1.ndim != 3:
-        msg = 'Volume must be 3D.'
+        msg = "Volume must be 3D."
         raise ValueError(msg)
     if volume1.shape != volume2.shape:
-        msg = 'Volumes must have the same shape.'
+        msg = "Volumes must have the same shape."
         raise ValueError(msg)
 
     interactive_widget = OverlaySlicer(

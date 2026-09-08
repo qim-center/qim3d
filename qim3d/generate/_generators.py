@@ -10,12 +10,12 @@ from qim3d.utils import log, scale_to_float16
 from qim3d.utils._dependencies import optional_import
 
 # Import noise as optional dependency
-noise = optional_import('noise', extra='synthetic-data')
+noise = optional_import("noise", extra="synthetic-data")
 
 pnoise3 = noise.pnoise3
 snoise3 = noise.snoise3
 
-__all__ = ['volume', 'background']
+__all__ = ["volume", "background"]
 
 
 def background(
@@ -23,10 +23,10 @@ def background(
     baseline_value: float = 0,
     min_noise_value: float = 0,
     max_noise_value: float = 20,
-    generate_method: str = 'add',
+    generate_method: str = "add",
     apply_method: str = None,
     seed: int = 0,
-    dtype: str = 'uint8',
+    dtype: str = "uint8",
     apply_to: np.ndarray = None,
 ) -> np.ndarray:
     """
@@ -159,17 +159,17 @@ def background(
 
     # Define supported apply methods
     apply_operations = {
-        'add': lambda a, b: a + b,
-        'subtract': lambda a, b: a - b,
-        'multiply': lambda a, b: a * b,
-        'divide': lambda a, b: a / (b + 1e-8),  # Avoid division by zero
+        "add": lambda a, b: a + b,
+        "subtract": lambda a, b: a - b,
+        "multiply": lambda a, b: a * b,
+        "divide": lambda a, b: a / (b + 1e-8),  # Avoid division by zero
     }
 
     # Check if apply_method is provided without apply_to volume, or vice versa
     if (apply_to is None and apply_method is not None) or (
         apply_to is not None and apply_method is None
     ):
-        msg = 'Supply both apply_method and apply_to when applying background to a volume.'
+        msg = "Supply both apply_method and apply_to when applying background to a volume."
         # Validate apply_method
         raise ValueError(msg)
 
@@ -185,7 +185,7 @@ def background(
 
     # Check for shape mismatch
     if (apply_to is not None) and (apply_to.shape != background_shape):
-        msg = f'Shape of input volume {apply_to.shape} does not match requested background_shape {background_shape}. Using input shape instead.'
+        msg = f"Shape of input volume {apply_to.shape} does not match requested background_shape {background_shape}. Using input shape instead."
         background_shape = apply_to.shape
         log.info(msg)
 
@@ -200,7 +200,7 @@ def background(
 
     # Return error if multiplying or dividing with 0
     if baseline_value == 0.0 and (
-        generate_method == 'multiply' or generate_method == 'divide'
+        generate_method == "multiply" or generate_method == "divide"
     ):
         msg = f'Selection of baseline_value=0 and generate_method="{generate_method}" will not generate background noise. Either add baseline_value>0 or change generate_method.'
         raise ValueError(msg)
@@ -210,7 +210,7 @@ def background(
 
     # Warn user if the background noise is constant or none
     if np.min(background_volume) == np.max(background_volume):
-        msg = 'Warning: The used settings have generated a background with a uniform value.'
+        msg = "Warning: The used settings have generated a background with a uniform value."
         log.info(msg)
 
     # Apply method to the target volume if specified
@@ -230,7 +230,7 @@ def volume(
     base_shape: tuple = (128, 128, 128),
     final_shape: tuple = None,
     noise_scale: float = 0.02,
-    noise_type: str = 'perlin',
+    noise_type: str = "perlin",
     decay_rate: float = 10,
     gamma: float = 1,
     threshold: float = 0.5,
@@ -239,7 +239,7 @@ def volume(
     tube_hole_ratio: float = 0.5,
     axis: int = 0,
     order: int = 1,
-    dtype: str = 'uint8',
+    dtype: str = "uint8",
     hollow: int = 0,
     seed: int = 0,
 ) -> np.ndarray:
@@ -381,27 +381,27 @@ def volume(
 
     """
     # Control
-    shape_types = ['cylinder', 'tube']
+    shape_types = ["cylinder", "tube"]
     if shape and shape not in shape_types:
-        err = f'shape should be one of: {shape_types}'
+        err = f"shape should be one of: {shape_types}"
         raise ValueError(err)
-    noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's']
+    noise_types = ["pnoise", "perlin", "p", "snoise", "simplex", "s"]
     if noise_type not in noise_types:
-        err = f'noise_type should be one of: {noise_types}'
+        err = f"noise_type should be one of: {noise_types}"
         raise ValueError(err)
 
     if not isinstance(base_shape, tuple) or len(base_shape) != 3:
-        message = 'base_shape must be a tuple with three dimensions (z, y, x)'
+        message = "base_shape must be a tuple with three dimensions (z, y, x)"
         raise TypeError(message)
 
     if final_shape and (not isinstance(final_shape, tuple) or len(final_shape) != 3):
-        message = 'final_shape must be a tuple with three dimensions (z, y, x)'
+        message = "final_shape must be a tuple with three dimensions (z, y, x)"
         raise TypeError(message)
 
     try:
         d = np.dtype(dtype)
     except TypeError as e:
-        err = f'Datatype {dtype} is not a valid dtype.'
+        err = f"Datatype {dtype} is not a valid dtype."
         raise TypeError(err) from e
 
     if hollow < 0 or isinstance(hollow, float):
@@ -461,7 +461,7 @@ def volume(
         )
         ratio = miin / max_distance  # 0.577
 
-    elif shape == 'cylinder' or shape == 'tube':
+    elif shape == "cylinder" or shape == "tube":
         distance_list = np.array(
             [
                 (z - center[0]) / center[0],
@@ -509,10 +509,10 @@ def volume(
     generated_vol[generated_vol < threshold * max_value] = 0
 
     # Apply fade mask for creation of tube
-    if shape == 'tube':
+    if shape == "tube":
         generated_vol = qim3d.operations.fade_mask(
             generated_vol,
-            geometry='cylindrical',
+            geometry="cylindrical",
             axis=axis,
             ratio=tube_hole_ratio,
             decay_rate=5,
@@ -597,12 +597,12 @@ class ParameterVisualizer:
     ):
         # Error checking:
         if not isinstance(base_shape, tuple) or len(base_shape) != 3:
-            err = 'base_shape should be a tuple of three sizes.'
+            err = "base_shape should be a tuple of three sizes."
             raise ValueError(err)
 
         if final_shape is not None:
             if not isinstance(final_shape, tuple) or len(final_shape) != 3:
-                err = 'final_shape should be a tuple of three sizes or None.'
+                err = "final_shape should be a tuple of three sizes or None."
                 raise ValueError(err)
 
         if hollow < 0 or isinstance(hollow, float):
@@ -610,19 +610,19 @@ class ParameterVisualizer:
             raise ValueError(err)
 
         if nsmin > nsmax:
-            err = f'Minimum slider value for noise must be less than or equal to the maximum. Given: min = {nsmin}, max = {nsmax}.'
+            err = f"Minimum slider value for noise must be less than or equal to the maximum. Given: min = {nsmin}, max = {nsmax}."
             raise ValueError(err)
 
         if dsmin > dsmax:
-            err = f'Minimum decay rate value must be less than or equal to the maximum. Given: min = {dsmin}, max = {dsmax}.'
+            err = f"Minimum decay rate value must be less than or equal to the maximum. Given: min = {dsmin}, max = {dsmax}."
             raise ValueError(err)
 
         if gsmin > gsmax:
-            err = f'Minimum gamma value must be less than or equal to the maximum. Given: min = {gsmin}, max = {gsmax}.'
+            err = f"Minimum gamma value must be less than or equal to the maximum. Given: min = {gsmin}, max = {gsmax}."
             raise ValueError(err)
 
         if tsmin > tsmax:
-            err = f'Minimum threshold value must be less than or equal to the maximum. Given: min = {tsmin}, max = {tsmax}.'
+            err = f"Minimum threshold value must be less than or equal to the maximum. Given: min = {tsmin}, max = {tsmax}."
             raise ValueError(err)
 
         self.base_shape = base_shape
@@ -644,13 +644,13 @@ class ParameterVisualizer:
 
         self.grid_visible = grid_visible
         self.config = {
-            'noise_scale': 0.02,
-            'decay_rate': 10,
-            'gamma': 1.0,
-            'threshold': 0.5,
-            'tube_hole_ratio': 0.5,
-            'shape': None,
-            'noise_type': 'perlin',
+            "noise_scale": 0.02,
+            "decay_rate": 10,
+            "gamma": 1.0,
+            "threshold": 0.5,
+            "tube_hole_ratio": 0.5,
+            "shape": None,
+            "noise_type": "perlin",
         }
         if initial_config:
             self.config.update(initial_config)
@@ -664,13 +664,13 @@ class ParameterVisualizer:
         vol = volume(
             base_shape=self.base_shape,
             final_shape=self.final_shape,
-            noise_type=self.config['noise_type'],
-            noise_scale=self.config['noise_scale'],
-            decay_rate=self.config['decay_rate'],
-            gamma=self.config['gamma'],
-            threshold=self.config['threshold'],
-            shape=self.config['shape'],
-            tube_hole_ratio=self.config['tube_hole_ratio'],
+            noise_type=self.config["noise_type"],
+            noise_scale=self.config["noise_scale"],
+            decay_rate=self.config["decay_rate"],
+            gamma=self.config["gamma"],
+            threshold=self.config["threshold"],
+            shape=self.config["shape"],
+            tube_hole_ratio=self.config["tube_hole_ratio"],
             seed=self.seed,
             hollow=self.hollow,
         )
@@ -679,51 +679,51 @@ class ParameterVisualizer:
     def _build_widgets(self) -> None:
         # Widgets
         self.noise_slider = widgets.FloatSlider(
-            value=self.config['noise_scale'],
+            value=self.config["noise_scale"],
             min=self.nsmin,
             max=self.nsmax,
             step=0.001,
-            description='Noise',
-            readout_format='.3f',
+            description="Noise",
+            readout_format=".3f",
             continuous_update=False,
         )
         self.decay_slider = widgets.FloatSlider(
-            value=self.config['decay_rate'],
+            value=self.config["decay_rate"],
             min=self.dsmin,
             max=self.dsmax,
             step=0.1,
-            description='Decay',
+            description="Decay",
             continuous_update=False,
         )
         self.gamma_slider = widgets.FloatSlider(
-            value=self.config['gamma'],
+            value=self.config["gamma"],
             min=self.gsmin,
             max=self.gsmax,
             step=0.1,
-            description='Gamma',
+            description="Gamma",
             continuous_update=False,
         )
         self.threshold_slider = widgets.FloatSlider(
-            value=self.config['threshold'],
+            value=self.config["threshold"],
             min=self.tsmin,
             max=self.tsmax,
             step=0.05,
-            description='Threshold',
+            description="Threshold",
             continuous_update=False,
         )
         self.noise_type_dropdown = widgets.Dropdown(
-            options=['perlin', 'simplex'], value='perlin', description='Noise Type'
+            options=["perlin", "simplex"], value="perlin", description="Noise Type"
         )
         self.shape_dropdown = widgets.Dropdown(
-            options=[None, 'cylinder', 'tube'], value=None, description='Shape'
+            options=[None, "cylinder", "tube"], value=None, description="Shape"
         )
         self.tube_hole_ratio_slider = widgets.FloatSlider(
-            value=self.config['tube_hole_ratio'],
+            value=self.config["tube_hole_ratio"],
             min=0.0,
             max=1.0,
             step=0.05,
-            description='Tube hole ratio',
-            style={'description_width': 'initial'},
+            description="Tube hole ratio",
+            style={"description_width": "initial"},
             continuous_update=False,
         )
         self.base_shape_x_text = widgets.IntText(
@@ -736,7 +736,7 @@ class ParameterVisualizer:
             value=self.base_shape[2],
         )
         self.final_same_as_base_checkbox = widgets.Checkbox(
-            value=True, description='Same as base_shape'
+            value=True, description="Same as base_shape"
         )
         self.final_shape_x_text = widgets.IntText(
             value=self.base_shape[0],
@@ -752,43 +752,43 @@ class ParameterVisualizer:
             min=0,
             max=1000,  # chosen arbitrarily atm.
             step=1,
-            description='Hollow',
+            description="Hollow",
         )
         self.colormap_dropdown = widgets.Dropdown(
-            options=['magma', 'viridis', 'gray', 'plasma'],
-            value='magma',
-            description='Colormap',
+            options=["magma", "viridis", "gray", "plasma"],
+            value="magma",
+            description="Colormap",
         )
         self.grid_checkbox = widgets.Checkbox(
-            value=self.grid_visible, description='Show grid'
+            value=self.grid_visible, description="Show grid"
         )
 
         # Observers
-        self.noise_slider.observe(self._on_change, names='value')
-        self.noise_type_dropdown.observe(self._on_change, names='value')
-        self.decay_slider.observe(self._on_change, names='value')
-        self.gamma_slider.observe(self._on_change, names='value')
-        self.threshold_slider.observe(self._on_change, names='value')
-        self.shape_dropdown.observe(self._on_change, names='value')
-        self.tube_hole_ratio_slider.observe(self._on_change, names='value')
-        self.base_shape_x_text.observe(self._on_change, names='value')
-        self.base_shape_y_text.observe(self._on_change, names='value')
-        self.base_shape_z_text.observe(self._on_change, names='value')
-        self.final_shape_x_text.observe(self._on_change, names='value')
-        self.final_shape_y_text.observe(self._on_change, names='value')
-        self.final_shape_z_text.observe(self._on_change, names='value')
-        self.hollow_text.observe(self._on_change, names='value')
-        self.colormap_dropdown.observe(self._on_change, names='value')
-        self.grid_checkbox.observe(self._on_change, names='value')
+        self.noise_slider.observe(self._on_change, names="value")
+        self.noise_type_dropdown.observe(self._on_change, names="value")
+        self.decay_slider.observe(self._on_change, names="value")
+        self.gamma_slider.observe(self._on_change, names="value")
+        self.threshold_slider.observe(self._on_change, names="value")
+        self.shape_dropdown.observe(self._on_change, names="value")
+        self.tube_hole_ratio_slider.observe(self._on_change, names="value")
+        self.base_shape_x_text.observe(self._on_change, names="value")
+        self.base_shape_y_text.observe(self._on_change, names="value")
+        self.base_shape_z_text.observe(self._on_change, names="value")
+        self.final_shape_x_text.observe(self._on_change, names="value")
+        self.final_shape_y_text.observe(self._on_change, names="value")
+        self.final_shape_z_text.observe(self._on_change, names="value")
+        self.hollow_text.observe(self._on_change, names="value")
+        self.colormap_dropdown.observe(self._on_change, names="value")
+        self.grid_checkbox.observe(self._on_change, names="value")
         self.final_same_as_base_checkbox.observe(
-            self._on_checkbox_change, names='value'
+            self._on_checkbox_change, names="value"
         )
-        self.final_same_as_base_checkbox.observe(self._on_change, names='value')
+        self.final_same_as_base_checkbox.observe(self._on_change, names="value")
         # Initial state
-        self._on_checkbox_change({'new': self.final_same_as_base_checkbox.value})
+        self._on_checkbox_change({"new": self.final_same_as_base_checkbox.value})
 
     def _on_checkbox_change(self, change) -> None:
-        disabled = change['new']
+        disabled = change["new"]
         self.final_shape_x_text.disabled = disabled
         self.final_shape_y_text.disabled = disabled
         self.final_shape_z_text.disabled = disabled
@@ -846,13 +846,13 @@ class ParameterVisualizer:
         self.plot += self.plt_volume
 
     def _on_change(self, change: None = None) -> None:
-        self.config['noise_type'] = self.noise_type_dropdown.value
-        self.config['noise_scale'] = self.noise_slider.value
-        self.config['decay_rate'] = self.decay_slider.value
-        self.config['gamma'] = self.gamma_slider.value
-        self.config['threshold'] = self.threshold_slider.value
-        self.config['shape'] = self.shape_dropdown.value
-        self.config['tube_hole_ratio'] = self.tube_hole_ratio_slider.value
+        self.config["noise_type"] = self.noise_type_dropdown.value
+        self.config["noise_scale"] = self.noise_slider.value
+        self.config["decay_rate"] = self.decay_slider.value
+        self.config["gamma"] = self.gamma_slider.value
+        self.config["threshold"] = self.threshold_slider.value
+        self.config["shape"] = self.shape_dropdown.value
+        self.config["tube_hole_ratio"] = self.tube_hole_ratio_slider.value
         self.base_shape = self._get_base_shape()
         self.final_shape = self._get_final_shape()
         self.hollow = self.hollow_text.value
@@ -903,7 +903,7 @@ class ParameterVisualizer:
             ]
 
     def _display_ui(self) -> None:
-        small_box = widgets.Layout(width='65px')
+        small_box = widgets.Layout(width="65px")
         for box in [
             self.base_shape_x_text,
             self.base_shape_y_text,
@@ -916,23 +916,23 @@ class ParameterVisualizer:
 
         self.base_shape_box = widgets.HBox(
             [
-                widgets.Label('Base shape  '),
-                widgets.Label('x'),
+                widgets.Label("Base shape  "),
+                widgets.Label("x"),
                 self.base_shape_x_text,
-                widgets.Label('y'),
+                widgets.Label("y"),
                 self.base_shape_y_text,
-                widgets.Label('z'),
+                widgets.Label("z"),
                 self.base_shape_z_text,
             ]
         )
         self.final_shape_box = widgets.HBox(
             [
-                widgets.Label('Final shape  '),
-                widgets.Label('x'),
+                widgets.Label("Final shape  "),
+                widgets.Label("x"),
                 self.final_shape_x_text,
-                widgets.Label('y'),
+                widgets.Label("y"),
                 self.final_shape_y_text,
-                widgets.Label('z'),
+                widgets.Label("z"),
                 self.final_shape_z_text,
             ]
         )
@@ -955,15 +955,15 @@ class ParameterVisualizer:
 
         # Controls styling
         parameters_controls.layout = widgets.Layout(
-            display='flex',
-            flex_flow='column',
-            flex='0 1',
-            min_width='350px',  # Ensure it doesn't get too small
-            height='auto',
-            overflow_y='auto',
-            border='1px solid lightgray',
-            padding='10px',
-            margin='0 1em 0 0',
+            display="flex",
+            flex_flow="column",
+            flex="0 1",
+            min_width="350px",  # Ensure it doesn't get too small
+            height="auto",
+            overflow_y="auto",
+            border="1px solid lightgray",
+            padding="10px",
+            margin="0 1em 0 0",
         )
 
         visualization_controls = widgets.VBox(
@@ -971,28 +971,28 @@ class ParameterVisualizer:
         )
 
         visualization_controls.layout = widgets.Layout(
-            display='flex',
-            flex_flow='column',
-            flex='0 1',
-            min_width='350px',  # Ensure it doesn't get too small
-            height='auto',
-            overflow_y='auto',
-            border='1px solid lightgray',
-            padding='10px',
-            margin='0 1em 0 0',
+            display="flex",
+            flex_flow="column",
+            flex="0 1",
+            min_width="350px",  # Ensure it doesn't get too small
+            height="auto",
+            overflow_y="auto",
+            border="1px solid lightgray",
+            padding="10px",
+            margin="0 1em 0 0",
         )
 
         tabs = widgets.Tab(children=[parameters_controls, visualization_controls])
-        tabs.set_title(0, 'Parameters')
-        tabs.set_title(1, 'Visualization')
+        tabs.set_title(0, "Parameters")
+        tabs.set_title(1, "Visualization")
 
         plot_output = widgets.Output()
         plot_output.layout = widgets.Layout(
-            flex='1 1 auto',
-            height='auto',
-            border='1px solid lightgray',
-            overflow='auto',
-            min_width='500px',
+            flex="1 1 auto",
+            height="auto",
+            border="1px solid lightgray",
+            overflow="auto",
+            min_width="500px",
         )
         with plot_output:
             display(self.plot)
@@ -1000,7 +1000,7 @@ class ParameterVisualizer:
         ui = widgets.HBox(
             [tabs, plot_output],
             layout=widgets.Layout(
-                width='100%', display='flex', flex_flow='row', align_items='stretch'
+                width="100%", display="flex", flex_flow="row", align_items="stretch"
             ),
         )
 

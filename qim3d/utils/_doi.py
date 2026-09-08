@@ -10,15 +10,15 @@ from qim3d.utils._logger import log
 def _validate_response(response: requests.Response) -> bool:
     # Check if we got a good response
     if not response.ok:
-        log.error(f'Could not read the provided DOI ({response.reason})')
+        log.error(f"Could not read the provided DOI ({response.reason})")
         return False
 
     return True
 
 
 def _doi_to_url(doi: str) -> str:
-    if doi[:3] != 'http':
-        url = 'https://doi.org/' + doi
+    if doi[:3] != "http":
+        url = "https://doi.org/" + doi
     else:
         url = doi
 
@@ -55,7 +55,7 @@ def _log_and_get_text(doi, header) -> str:
 
 def get_bibtex(doi: str):
     """Generates bibtex from doi"""
-    header = {'Accept': 'application/x-bibtex'}
+    header = {"Accept": "application/x-bibtex"}
 
     return _log_and_get_text(doi, header)
 
@@ -76,7 +76,7 @@ def custom_header(doi: str, header: str) -> str:
 
 def get_metadata(doi: str) -> dict:
     """Generates a metadata dictionary from doi"""
-    header = {'Accept': 'application/vnd.citationstyles.csl+json'}
+    header = {"Accept": "application/vnd.citationstyles.csl+json"}
     response = _make_request(doi, header)
 
     metadata = json.loads(response.text)
@@ -95,15 +95,15 @@ def get_reference(doi: str) -> str:
 
 def build_reference_string(metadata: dict) -> str:
     """Generates a reference string from metadata"""
-    authors = ', '.join(
-        [f"{author['family']} {author['given']}" for author in metadata['author']]
+    authors = ", ".join(
+        [f"{author['family']} {author['given']}" for author in metadata["author"]]
     )
-    year = metadata['issued']['date-parts'][0][0]
-    title = metadata['title']
-    publisher = metadata['publisher']
-    url = metadata['URL']
-    doi = metadata['DOI']
+    year = metadata["issued"]["date-parts"][0][0]
+    title = metadata["title"]
+    publisher = metadata["publisher"]
+    url = metadata["URL"]
+    doi = metadata["DOI"]
 
-    reference_string = f'{authors} ({year}). {title}. {publisher} ({url}). DOI: {doi}'
+    reference_string = f"{authors} ({year}). {title}. {publisher} ({url}). DOI: {doi}"
 
     return reference_string

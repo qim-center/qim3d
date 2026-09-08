@@ -5,7 +5,7 @@ from tqdm.notebook import tqdm
 import qim3d.generate
 from qim3d.utils._logger import log
 
-__all__ = ['volume_collection']
+__all__ = ["volume_collection"]
 
 
 def random_placement(
@@ -309,13 +309,13 @@ def _volume_collection(
         elif isinstance(data, list):  # a list of volumes
             data_list = data
         else:
-            msg = '`data` must be a numpy array or list of arrays'
+            msg = "`data` must be a numpy array or list of arrays"
             raise TypeError(msg)
         for idx, arr in enumerate(data_list):
             if not (
                 isinstance(arr, np.ndarray) and arr.ndim == 3
             ):  # check that they must be numpy arrays and 3D
-                msg = f'data[{idx}] must be a 3D numpy array'
+                msg = f"data[{idx}] must be a 3D numpy array"
                 raise ValueError(msg)
     else:
         data_list = None
@@ -327,12 +327,12 @@ def _volume_collection(
             if all(v <= c for v, c in zip(vol.shape, collection_shape)):
                 valid.append(vol)
             else:
-                msg = f'Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}'
+                msg = f"Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}"
                 log.warning(msg)
         data_list = valid
         # if none remain, we can't build anything
         if not data_list:
-            msg = f'No custom volumes fit within collection size {collection_shape}.'
+            msg = f"No custom volumes fit within collection size {collection_shape}."
             raise ValueError(msg)
 
     if rotation_axes is None:
@@ -340,23 +340,23 @@ def _volume_collection(
 
     if verbose:
         original_log_level = log.getEffectiveLevel()
-        log.setLevel('DEBUG')
+        log.setLevel("DEBUG")
 
     # Check valid input types
     if not isinstance(collection_shape, tuple) or len(collection_shape) != 3:
-        message = 'Shape of collection must be a tuple with three dimensions (z, y, x)'
+        message = "Shape of collection must be a tuple with three dimensions (z, y, x)"
         raise TypeError(message)
 
     if len(min_shape) != len(max_shape):
-        message = 'Object shapes must be tuples of the same length'
+        message = "Object shapes must be tuples of the same length"
         raise ValueError(message)
 
     if (positions is not None) and (len(positions) != n_volumes):
-        message = 'Number of volumes must match number of positions, otherwise set positions = None'
+        message = "Number of volumes must match number of positions, otherwise set positions = None"
         raise ValueError(message)
 
     if (positions is not None) and return_positions:
-        log.debug('positions are given and thus not returned')
+        log.debug("positions are given and thus not returned")
         return_positions = False
 
     # Set seed for random number generator
@@ -375,8 +375,8 @@ def _volume_collection(
     placed_positions = []
 
     # Fill the 3D array with synthetic blobs
-    for i in tqdm(range(n_volumes), desc='Objects placed'):
-        log.debug(f'\nObject #{i+1}')
+    for i in tqdm(range(n_volumes), desc="Objects placed"):
+        log.debug(f"\nObject #{i + 1}")
 
         # Sample from blob parameter ranges
         if min_shape == max_shape:
@@ -385,7 +385,7 @@ def _volume_collection(
             blob_shape = tuple(
                 rng.integers(low=min_shape[i], high=max_shape[i]) for i in range(3)
             )
-        log.debug(f'- Blob shape: {blob_shape}')
+        log.debug(f"- Blob shape: {blob_shape}")
 
         # Scale volume shape
         final_shape = tuple(
@@ -395,19 +395,19 @@ def _volume_collection(
 
         # Sample noise scale
         noise_scale = rng.uniform(low=min_volume_noise, high=max_volume_noise)
-        log.debug(f'- Object noise scale: {noise_scale:.4f}')
+        log.debug(f"- Object noise scale: {noise_scale:.4f}")
 
         gamma = rng.uniform(low=min_gamma, high=max_gamma)
-        log.debug(f'- Gamma correction: {gamma:.3f}')
+        log.debug(f"- Gamma correction: {gamma:.3f}")
 
         if max_high_value > min_high_value:
             max_value = rng.integers(low=min_high_value, high=max_high_value)
         else:
             max_value = min_high_value
-        log.debug(f'- Max value: {max_value}')
+        log.debug(f"- Max value: {max_value}")
 
         threshold = rng.uniform(low=min_threshold, high=max_threshold)
-        log.debug(f'- Threshold: {threshold:.3f}')
+        log.debug(f"- Threshold: {threshold:.3f}")
 
         # Pick volume from the list if provided, otherwise generate synthetic volume
         if data_list is not None:
@@ -431,7 +431,7 @@ def _volume_collection(
                 low=min_rotation_degrees, high=max_rotation_degrees
             )  # Sample rotation angle
             axes = rng.choice(rotation_axes)  # Sample the two axes to rotate around
-            log.debug(f'- Rotation angle: {angle:.2f} at axes: {axes}')
+            log.debug(f"- Rotation angle: {angle:.2f} at axes: {axes}")
 
             blob = scipy.ndimage.rotate(blob, angle, axes, order=1)
 
@@ -464,7 +464,7 @@ def _volume_collection(
     if not placed:
         # Log error if not all n_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
         log.error(
-            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{n_volumes} volumes.'
+            f"Object #{i + 1} could not be placed in the collection, no space found. Collection contains {i}/{n_volumes} volumes."
         )
 
     if verbose:
@@ -483,7 +483,7 @@ def volume_collection(
     positions: list[tuple] = None,
     shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
     shape_magnification_range: tuple[float] = (1.0, 1.0),
-    noise_type: str = 'perlin',
+    noise_type: str = "perlin",
     noise_range: tuple[float] = (0.02, 0.03),
     rotation_degree_range: tuple[int] = (0, 360),
     rotation_axes: list[tuple] = None,
@@ -498,7 +498,7 @@ def volume_collection(
     same_seed: bool = False,
     hollow: bool = False,
     seed: int = 0,
-    dtype: str = 'uint8',
+    dtype: str = "uint8",
     return_positions: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
     """
@@ -681,11 +681,11 @@ def volume_collection(
         elif isinstance(data, list):
             data_list = data
         else:
-            msg = '`data` must be a numpy array or list of arrays'
+            msg = "`data` must be a numpy array or list of arrays"
             raise TypeError(msg)
         for idx, arr in enumerate(data_list):
             if not (isinstance(arr, np.ndarray) and arr.ndim == 3):
-                msg = f'data[{idx}] must be a 3D numpy array'
+                msg = f"data[{idx}] must be a 3D numpy array"
                 raise ValueError(msg)
     else:
         data_list = None
@@ -697,36 +697,36 @@ def volume_collection(
             if all(v <= c for v, c in zip(vol.shape, collection_shape)):
                 valid.append(vol)
             else:
-                msg = f'Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}'
+                msg = f"Skipping custom volume {idx} with shape {vol.shape} — larger than collection {collection_shape}"
                 log.warning(msg)
         data_list = valid
         # if none remain, we can't build anything
         if not data_list:
-            msg = f'No custom volumes fit within collection size {collection_shape}.'
+            msg = f"No custom volumes fit within collection size {collection_shape}."
             raise ValueError(msg)
 
-    noise_types = ['pnoise', 'perlin', 'p', 'snoise', 'simplex', 's', 'mixed', 'm']
+    noise_types = ["pnoise", "perlin", "p", "snoise", "simplex", "s", "mixed", "m"]
     if noise_type not in noise_types:
-        err = f'noise_type should be one of: {noise_types}'
+        err = f"noise_type should be one of: {noise_types}"
         raise ValueError(err)
 
     if not isinstance(collection_shape, tuple) or len(collection_shape) != 3:
-        message = 'Shape of collection must be a tuple with three dimensions (z, y, x)'
+        message = "Shape of collection must be a tuple with three dimensions (z, y, x)"
         raise TypeError(message)
 
     if len(shape_range[0]) != len(shape_range[1]):
-        message = 'Object shapes must be tuples of the same length'
+        message = "Object shapes must be tuples of the same length"
         raise ValueError(message)
     if len(shape_range[0]) != 3 or len(shape_range[1]) != 3 or len(shape_range) != 2:
-        message = 'shape_range should be defined as a tuple with two elements, each containing a tuple with three elements.'
+        message = "shape_range should be defined as a tuple with two elements, each containing a tuple with three elements."
         raise ValueError(message)
 
     if (positions is not None) and (len(positions) != n_volumes):
-        message = 'Number of volumes must match number of positions, otherwise set positions = None'
+        message = "Number of volumes must match number of positions, otherwise set positions = None"
         raise ValueError(message)
 
     if (positions is not None) and return_positions:
-        log.debug('positions are given and thus not returned')
+        log.debug("positions are given and thus not returned")
         return_positions = False
 
     if rotation_axes is None:
@@ -734,7 +734,7 @@ def volume_collection(
 
     if verbose:
         original_log_level = log.getEffectiveLevel()
-        log.setLevel('DEBUG')
+        log.setLevel("DEBUG")
 
     # Set seed for random number generator
     rng = np.random.default_rng(seed)
@@ -758,8 +758,8 @@ def volume_collection(
     nt = rng.random(size=1000)
 
     # Fill the 3D array with synthetic blobs
-    for i in tqdm(range(n_volumes), desc='Objects placed'):
-        log.debug(f'\nObject #{i+1}')
+    for i in tqdm(range(n_volumes), desc="Objects placed"):
+        log.debug(f"\nObject #{i + 1}")
 
         # Sample from blob parameter ranges
         if shape_range[0] == shape_range[1]:
@@ -775,34 +775,34 @@ def volume_collection(
         )
 
         final_shape = tuple(int(dim * magnification) for dim in blob_shape)
-        log.debug(f'- Blob shape: {final_shape}')
+        log.debug(f"- Blob shape: {final_shape}")
         # Check if should keep final_shape separate from base_shape
         # Sample noise scale
         noise_scale = rng.uniform(low=noise_range[0], high=noise_range[1])
-        log.debug(f'- Object noise scale: {noise_scale:.4f}')
+        log.debug(f"- Object noise scale: {noise_scale:.4f}")
 
         gamma = rng.uniform(low=gamma_range[0], high=gamma_range[1])
-        log.debug(f'- Gamma correction: {gamma:.3f}')
+        log.debug(f"- Gamma correction: {gamma:.3f}")
 
         threshold = rng.uniform(low=threshold_range[0], high=threshold_range[1])
-        log.debug(f'- Threshold: {threshold:.3f}')
+        log.debug(f"- Threshold: {threshold:.3f}")
 
         decay_rate = rng.uniform(low=decay_rate_range[0], high=decay_rate_range[1])
-        log.debug(f'- Decay rate: {decay_rate:.3f}')
+        log.debug(f"- Decay rate: {decay_rate:.3f}")
 
         if value_range[1] > value_range[0]:
             max_value = rng.integers(low=value_range[0], high=value_range[1])
         else:
             max_value = value_range[0]
-        log.debug(f'- Max value: {max_value}')
+        log.debug(f"- Max value: {max_value}")
 
-        if noise_type == 'mixed' or noise_type == 'm':
-            nti = 'perlin' if nt[i] >= 0.5 else 'simplex'
+        if noise_type == "mixed" or noise_type == "m":
+            nti = "perlin" if nt[i] >= 0.5 else "simplex"
         else:
             nti = noise_type
-        log.debug(f'- Noise type: {nti}')
+        log.debug(f"- Noise type: {nti}")
 
-        log.debug(f'- Seed: {seeds[i]}')
+        log.debug(f"- Seed: {seeds[i]}")
 
         # Pick volume from the list if provided, otherwise generate synthetic volume
         if data_list is not None:
@@ -834,7 +834,7 @@ def volume_collection(
                 low=rotation_degree_range[0], high=rotation_degree_range[1]
             )  # Sample rotation angle
             axes = rng.choice(rotation_axes)  # Sample the two axes to rotate around
-            log.debug(f'- Rotation angle: {angle:.2f} at axes: {axes}')
+            log.debug(f"- Rotation angle: {angle:.2f} at axes: {axes}")
 
             blob = scipy.ndimage.rotate(blob, angle, axes, order=1)
 
@@ -854,7 +854,7 @@ def volume_collection(
             if return_positions and placed:
                 placed_positions.append(tuple(pos))
 
-            log.debug(f'- Center placement (z,y,x): {pos}')
+            log.debug(f"- Center placement (z,y,x): {pos}")
         # Break if volume could not be placed
         if not placed:
             break
@@ -868,7 +868,7 @@ def volume_collection(
     if not placed:
         # Log error if not all n_volumes could be placed (this line of code has to be here, otherwise it will interfere with tqdm progress bar)
         log.error(
-            f'Object #{i+1} could not be placed in the collection, no space found. Collection contains {i}/{n_volumes} volumes.'
+            f"Object #{i + 1} could not be placed in the collection, no space found. Collection contains {i}/{n_volumes} volumes."
         )
     if verbose:
         log.setLevel(original_log_level)

@@ -1,4 +1,3 @@
-
 from pygel3d import jupyter_display as jd
 import pygel3d
 import pyvista as pv
@@ -7,20 +6,19 @@ from qim3d.mesh._common_mesh_methods import SurfaceMesh, VolumeMesh
 from qim3d.utils._logger import log
 
 
-
 def mesh(
     mesh: pygel3d.hmesh.Manifold | SurfaceMesh | VolumeMesh,
     wireframe: bool = False,
     show_edges: bool = True,
     show: bool = True,
-    save_screenshot: str = '',
-    export_html:str = '',
+    save_screenshot: str = "",
+    export_html: str = "",
     explode: int = 0,
     smooth_shading: bool = False,
-    face_color = '#cccccc',
-    edge_color = '#993333',
+    face_color="#cccccc",
+    edge_color="#993333",
     **kwargs,
-) ->  None:
+) -> None:
     """
     Visualize a 3D mesh using `pygel3d` or `pyvista`. If you need more advanced tools, use pyvista directly.
 
@@ -86,35 +84,39 @@ def mesh(
             mesh = mesh.explode(explode)
 
         if wireframe:
-            kwargs['style'] =  'wireframe'
-        plotter.add_mesh(mesh,
-                         show_edges = show_edges,
-                         smooth_shading = smooth_shading,
-                         show_scalar_bar=False,
-                         color = face_color,
-                         edge_color=edge_color,
-                         **kwargs)
+            kwargs["style"] = "wireframe"
+        plotter.add_mesh(
+            mesh,
+            show_edges=show_edges,
+            smooth_shading=smooth_shading,
+            show_scalar_bar=False,
+            color=face_color,
+            edge_color=edge_color,
+            **kwargs,
+        )
 
         if show:
             plotter.show()
 
         if save_screenshot:
-            if not save_screenshot.endswith('png'):
-                save_screenshot = save_screenshot + '.png'
+            if not save_screenshot.endswith("png"):
+                save_screenshot = save_screenshot + ".png"
             plotter.screenshot(save_screenshot)
 
         if export_html:
-            if not export_html.endswith('.html'):
-                export_html = export_html + '.html'
+            if not export_html.endswith(".html"):
+                export_html = export_html + ".html"
             plotter.export_html(export_html)
 
         return
 
     if isinstance(mesh, pygel3d.hmesh.Manifold):
         if len(mesh.vertices()) > 100000:
-            msg = f'The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh.'
+            msg = f"The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh."
             log.info(msg)
 
         jd.set_export_mode(True)
-        valid_pygel_kwargs = {k: v for k, v in kwargs.items() if k in ['smooth', 'data']}
+        valid_pygel_kwargs = {
+            k: v for k, v in kwargs.items() if k in ["smooth", "data"]
+        }
         return jd.display(mesh, wireframe=show_edges, **valid_pygel_kwargs)

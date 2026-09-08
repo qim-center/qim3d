@@ -18,7 +18,7 @@ class FilterBase:
         self,
         *args,
         dask: bool = False,
-        chunks: str = 'auto',
+        chunks: str = "auto",
         save_output: bool = False,
         **kwargs,
     ):
@@ -347,7 +347,7 @@ class Pipeline:
             signature = inspect.signature(fn)
             if signature.parameters != 1:
                 raise TypeError(
-                    f'Pipeline only accepts callables that take one argument. Yours takes {signature.parameters}.'
+                    f"Pipeline only accepts callables that take one argument. Yours takes {signature.parameters}."
                 )
         self.filters.append(fn)
 
@@ -389,7 +389,7 @@ class Pipeline:
         self.saved_outputs = []
         for fn in self.filters:
             input = fn(input)
-            if hasattr(fn, 'save_output') and fn.save_output:
+            if hasattr(fn, "save_output") and fn.save_output:
                 self.saved_outputs.append(input)
         return input
 
@@ -399,7 +399,7 @@ def normalize(vol: np.ndarray) -> np.ndarray:
 
 
 def gaussian(
-    volume: np.ndarray, sigma: float, dask: bool = False, chunks: str = 'auto', **kwargs
+    volume: np.ndarray, sigma: float, dask: bool = False, chunks: str = "auto", **kwargs
 ) -> np.ndarray:
     """
     Applies a Gaussian blur to smooth the 3D volume and reduce noise.
@@ -493,7 +493,7 @@ def median(
     size: float = None,
     footprint: np.ndarray = None,
     dask: bool = False,
-    chunks: str = 'auto',
+    chunks: str = "auto",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -537,7 +537,7 @@ def median(
     """
     if size is None:
         if footprint is None:
-            raise RuntimeError('no footprint or filter size provided')
+            raise RuntimeError("no footprint or filter size provided")
 
     if dask:
         if not isinstance(volume, da.Array):
@@ -555,7 +555,7 @@ def maximum(
     size: float = None,
     footprint: np.ndarray = None,
     dask: bool = False,
-    chunks: str = 'auto',
+    chunks: str = "auto",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -595,7 +595,7 @@ def maximum(
     """
     if size is None:
         if footprint is None:
-            raise RuntimeError('no footprint or filter size provided')
+            raise RuntimeError("no footprint or filter size provided")
 
     if dask:
         if not isinstance(volume, da.Array):
@@ -613,7 +613,7 @@ def minimum(
     size: float = None,
     footprint: np.ndarray = None,
     dask: bool = False,
-    chunks: str = 'auto',
+    chunks: str = "auto",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -652,7 +652,7 @@ def minimum(
     """
     if size is None:
         if footprint is None:
-            raise RuntimeError('no footprint or filter size provided')
+            raise RuntimeError("no footprint or filter size provided")
 
     if dask:
         if not isinstance(volume, da.Array):
@@ -702,22 +702,22 @@ def tophat(volume: np.ndarray, dask: bool = False, **kwargs):
 
     """
 
-    radius = kwargs['radius'] if 'radius' in kwargs else 3
-    background = kwargs['background'] if 'background' in kwargs else 'dark'
+    radius = kwargs["radius"] if "radius" in kwargs else 3
+    background = kwargs["background"] if "background" in kwargs else "dark"
 
     if dask:
-        log.info('Dask not supported for tophat filter, switching to scipy.')
+        log.info("Dask not supported for tophat filter, switching to scipy.")
 
-    if background == 'bright':
+    if background == "bright":
         log.info(
-            'Bright background selected, volume will be temporarily inverted when applying white_tophat'
+            "Bright background selected, volume will be temporarily inverted when applying white_tophat"
         )
         volume = np.invert(volume)
 
     selem = morphology.ball(radius)
     volume = volume - morphology.white_tophat(volume, selem)
 
-    if background == 'bright':
+    if background == "bright":
         volume = np.invert(volume)
 
     return volume

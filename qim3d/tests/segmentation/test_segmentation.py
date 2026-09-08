@@ -6,10 +6,17 @@ from qim3d.segmentation._connected_components import connected_components
 
 
 # Unit tests for connected_components()
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def setup_data():
     components = np.array(
-        [[[0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0], [1, 1, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0]]]
+        [
+            [
+                [0, 0, 1, 1, 0, 0],
+                [0, 0, 0, 1, 0, 0],
+                [1, 1, 0, 0, 1, 0],
+                [0, 0, 0, 1, 0, 0],
+            ]
+        ]
     )
     num_components = 4
     connected_components_ = connected_components(components)
@@ -19,7 +26,14 @@ def setup_data():
 def test_connected_components_property(setup_data):
     connected_components_, _, _ = setup_data
     components = np.array(
-        [[[0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0], [2, 2, 0, 0, 3, 0], [0, 0, 0, 4, 0, 0]]]
+        [
+            [
+                [0, 0, 1, 1, 0, 0],
+                [0, 0, 0, 1, 0, 0],
+                [2, 2, 0, 0, 3, 0],
+                [0, 0, 0, 4, 0, 0],
+            ]
+        ]
     )
     assert np.array_equal(connected_components_.get_cc(), components)
 
@@ -32,12 +46,14 @@ def test_num_connected_components_property(setup_data):
 def test_get_connected_component_with_index(setup_data):
     connected_components, _, _ = setup_data
     expected_component = np.array(
-        [[
-            [0, 0, 1, 1, 0, 0],
-            [0, 0, 0, 1, 0, 0],
-            [0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0],
-        ]],
+        [
+            [
+                [0, 0, 1, 1, 0, 0],
+                [0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0],
+            ]
+        ],
         dtype=bool,
     )
     print(connected_components.get_cc(index=1))
@@ -58,6 +74,7 @@ def test_get_connected_component_with_invalid_index(setup_data):
     with pytest.raises(AssertionError):
         connected_components.get_cc(index=num_components + 1)
 
+
 # Unit tests for watershed()
 def test_watershed():
     # Create a small 3D binary volume with distinct objects
@@ -73,12 +90,18 @@ def test_watershed():
     assert num_labels == 2, f"Expected 2 objects, but found {num_labels}"
 
     # Check that the objects are correctly labeled
-    assert np.unique(labeled_volume[2:4, 2:4, 2:4]) == [1], "Object 1 not labeled correctly"
-    assert np.unique(labeled_volume[6:8, 6:8, 6:8]) == [2], "Object 2 not labeled correctly"
+    assert np.unique(labeled_volume[2:4, 2:4, 2:4]) == [1], (
+        "Object 1 not labeled correctly"
+    )
+    assert np.unique(labeled_volume[6:8, 6:8, 6:8]) == [2], (
+        "Object 2 not labeled correctly"
+    )
 
     # Check that the background is labeled as 0
     assert np.unique(labeled_volume[0, 0, 0]) == [0], "Background not labeled as 0"
 
     # Check that the labels are unique and consecutive
     unique_labels = np.unique(labeled_volume)
-    assert np.array_equal(unique_labels, np.arange(num_labels + 1)), "Labels are not unique and consecutive"
+    assert np.array_equal(unique_labels, np.arange(num_labels + 1)), (
+        "Labels are not unique and consecutive"
+    )

@@ -7,7 +7,7 @@ import qim3d
 def test_starting_unet():
     unet = qim3d.ml.models.UNet()
 
-    assert unet.size == 'medium'
+    assert unet.size == "medium"
 
 
 def test_forward_pass():

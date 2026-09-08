@@ -7,7 +7,7 @@ def remove_background(
     volume: np.ndarray,
     median_filter_size: int = 2,
     min_object_radius: int = 3,
-    background: str = 'dark',
+    background: str = "dark",
     **median_kwargs,
 ) -> np.ndarray:
     """
@@ -65,7 +65,7 @@ def fade_mask(
     volume: np.ndarray,
     decay_rate: float = 10,
     ratio: float = 0.5,
-    geometry: str = 'spherical',
+    geometry: str = "spherical",
     invert: bool = False,
     axis: int = 0,
     **kwargs,
@@ -112,7 +112,7 @@ def fade_mask(
         <iframe src="https://platform.qim.dk/k3d/fly_faded.html" width="100%" height="500" frameborder="0"></iframe>
     """
     if axis < 0 or axis >= volume.ndim:
-        error = 'Axis must be between 0 and the number of dimensions of the volume'
+        error = "Axis must be between 0 and the number of dimensions of the volume"
         raise ValueError(error)
 
     # Generate the coordinates of each point in the array
@@ -126,9 +126,9 @@ def fade_mask(
     center = np.array([(s - 1) / 2 for s in shape])
 
     # Calculate the distance of each point from the center
-    if geometry == 'spherical':
+    if geometry == "spherical":
         distance = np.linalg.norm([z - center[0], y - center[1], x - center[2]], axis=0)
-    elif geometry == 'cylindrical':
+    elif geometry == "cylindrical":
         distance_list = np.array([z - center[0], y - center[1], x - center[2]])
         # remove the axis along which the fading is not applied
         distance_list = np.delete(distance_list, axis, axis=0)
@@ -142,8 +142,8 @@ def fade_mask(
 
     # Compute ratio to make synthetic blobs exactly cylindrical
     # target_max_normalized_distance = 1.4 works well to make the blobs cylindrical
-    if 'target_max_normalized_distance' in kwargs:
-        target_max_normalized_distance = kwargs['target_max_normalized_distance']
+    if "target_max_normalized_distance" in kwargs:
+        target_max_normalized_distance = kwargs["target_max_normalized_distance"]
         ratio = np.max(distance) / (target_max_normalized_distance * max_distance)
 
     # Normalize the distances so that they go from 0 at the center to 1 at the farthest point
@@ -208,7 +208,7 @@ def overlay_rgb_images(
         elif image.ndim == 3:
             image = image[..., :3]  # Ignoring alpha channel
         else:
-            error = f'Input image can not have higher dimension than 3. Yours have {image.ndim}'
+            error = f"Input image can not have higher dimension than 3. Yours have {image.ndim}"
             raise ValueError(error)
 
         return image.astype(np.uint8)
@@ -218,7 +218,7 @@ def overlay_rgb_images(
 
     # Ensure both images have the same shape
     if background.shape != foreground.shape:
-        error = f'Input images must have the same first two dimensions. But background is of shape {background.shape} and foreground is of shape {foreground.shape}'
+        error = f"Input images must have the same first two dimensions. But background is of shape {background.shape} and foreground is of shape {foreground.shape}"
         raise ValueError(error)
 
     # Perform alpha blending
@@ -232,7 +232,7 @@ def overlay_rgb_images(
         )
     # Check alpha validity
     if alpha < 0:
-        error = f'Alpha has to be positive number. You used {alpha}'
+        error = f"Alpha has to be positive number. You used {alpha}"
         raise ValueError(error)
     elif alpha > 1:
         alpha = 1
@@ -247,9 +247,9 @@ def overlay_rgb_images(
         ] = 0
 
     composite = background * (1 - alpha) + foreground * alpha
-    composite = np.clip(composite, 0, 255).astype('uint8')
+    composite = np.clip(composite, 0, 255).astype("uint8")
 
-    return composite.astype('uint8')
+    return composite.astype("uint8")
 
 
 def make_hollow(

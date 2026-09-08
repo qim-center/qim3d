@@ -10,7 +10,6 @@ from qim3d.utils._misc import get_file_size
 
 
 class RepeatTimer(Timer):
-
     """
     If the memory check is set as a normal thread, there is no garuantee it will switch
         resulting in not enough memory checks to create smooth progress bar or to make it
@@ -87,13 +86,13 @@ class FileLoadingProgressBar(ProgressBar):
         """
         tqdm_kwargs = dict(
             total=get_file_size(filename),
-            desc='Loading: ',
-            unit='B',
+            desc="Loading: ",
+            unit="B",
             file=sys.stdout,
             unit_scale=True,
             unit_divisor=1024,
-            bar_format='{l_bar}{bar}| {n_fmt}{unit}/{total_fmt}{unit}  [{elapsed}<{remaining}, '
-            '{rate_fmt}{postfix}]',
+            bar_format="{l_bar}{bar}| {n_fmt}{unit}/{total_fmt}{unit}  [{elapsed}<{remaining}, "
+            "{rate_fmt}{postfix}]",
         )
         super().__init__(tqdm_kwargs, repeat_time)
         self.process = psutil.Process()
@@ -108,7 +107,7 @@ class FileLoadingProgressBar(ProgressBar):
 
 
 class OmeZarrExportProgressBar(ProgressBar):
-    def __init__(self, path: str, n_chunks: int, reapeat_time: str = 'auto'):
+    def __init__(self, path: str, n_chunks: int, reapeat_time: str = "auto"):
         """
         Context manager to track the exporting of OmeZarr files.
 
@@ -125,7 +124,7 @@ class OmeZarrExportProgressBar(ProgressBar):
         """
 
         # Calculate the repeat time for the progress bar
-        if reapeat_time == 'auto':
+        if reapeat_time == "auto":
             # Approximate the repeat time based on the number of chunks
             # This ratio is based on reading the HOA dataset over the network:
             # 620,000 files took 300 seconds to read
@@ -142,7 +141,7 @@ class OmeZarrExportProgressBar(ProgressBar):
 
         self.path = path
         tqdm_kwargs = dict(
-            total=n_chunks, unit='Chunks', desc='Saving', unit_scale=True
+            total=n_chunks, unit="Chunks", desc="Saving", unit_scale=True
         )
         super().__init__(tqdm_kwargs, reapeat_time)
         self.last_update = 0
@@ -158,7 +157,7 @@ class OmeZarrExportProgressBar(ProgressBar):
                 new_path = os.path.join(folder_path, path)
                 if os.path.isfile(new_path):
                     filename = os.path.basename(os.path.normpath(new_path))
-                    if not filename.startswith('.'):
+                    if not filename.startswith("."):
                         count += 1
                 else:
                     count += file_count(new_path)

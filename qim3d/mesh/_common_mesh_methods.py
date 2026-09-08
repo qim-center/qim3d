@@ -10,37 +10,37 @@ from pyvista import PolyData, UnstructuredGrid
 
 
 class VolumeMesh(UnstructuredGrid):
-    def export_to_comsol(self, filename: str = 'mesh1.mphtxt') -> None:
-        if not filename.endswith('.mphtxt'):
+    def export_to_comsol(self, filename: str = "mesh1.mphtxt") -> None:
+        if not filename.endswith(".mphtxt"):
             msg = f"Filename needs to have extension '.mphtxt. Your filename is {filename}"
             raise ValueError(msg)
 
         # These to can be arguments in the future if the feature is required
-        tags = ('mesh1',)
-        types = ('obj',)
+        tags = ("mesh1",)
+        types = ("obj",)
 
         vertices_str = io.StringIO()
         np.savetxt(
-            vertices_str, self.points.astype(np.float64, copy=False), fmt='%.12f'
+            vertices_str, self.points.astype(np.float64, copy=False), fmt="%.12f"
         )
 
         tetras_str = io.StringIO()
         tetras = self.cells.reshape((-1, 5))[:, 1:]
-        np.savetxt(tetras_str, tetras, fmt='%d')
+        np.savetxt(tetras_str, tetras, fmt="%d")
 
-        with open(filename, 'w') as f:
-            writeline = lambda s: f.write(str(s) + '\n')
+        with open(filename, "w") as f:
+            writeline = lambda s: f.write(str(s) + "\n")
             # Some lines require number of characters before the actual string
-            write_num_line = lambda s: writeline(str(len(s)) + ' ' + s)
+            write_num_line = lambda s: writeline(str(len(s)) + " " + s)
             start_object = lambda obj_num: writeline(
-                f'#--------------- Object {obj_num} ---------------\n\n0 0 1'
+                f"#--------------- Object {obj_num} ---------------\n\n0 0 1"
             )
 
             #####################################
             #           HEADER
             #####################################
             writeline(
-                '# Created by COMSOL Multiphysics.\n\n# Major & minor version\n0 1'
+                "# Created by COMSOL Multiphysics.\n\n# Major & minor version\n0 1"
             )
             writeline(len(tags))
             for tag in tags:
@@ -53,7 +53,7 @@ class VolumeMesh(UnstructuredGrid):
             #           VERTICES
             #####################################
             start_object(0)
-            write_num_line('Mesh')  # class
+            write_num_line("Mesh")  # class
             writeline(4)  # version
             writeline(3)  # sdim
 
@@ -66,7 +66,7 @@ class VolumeMesh(UnstructuredGrid):
             #           TETRAS
             #####################################
             writeline(1)  # number of element types
-            write_num_line('tet')
+            write_num_line("tet")
             writeline(4)  # number of vertices per element (tetrahedra)
             writeline(tetras.shape[0])
             writeline(tetras_str.getvalue())
@@ -80,25 +80,25 @@ class SurfaceMesh(PolyData):
             return super().__new__(cls, mesh.points, mesh.faces)
 
     @classmethod
-    def from_pygel(cls: 'SurfaceMesh', mesh: hmesh.Manifold) -> 'SurfaceMesh':
+    def from_pygel(cls: "SurfaceMesh", mesh: hmesh.Manifold) -> "SurfaceMesh":
         points = np.array(mesh.positions())
         faces_list = []
         for face in mesh.faces():
-            verts = list(mesh.circulate_face(face, mode='v'))
+            verts = list(mesh.circulate_face(face, mode="v"))
             faces_list.extend([len(verts)] + verts)
         return cls(pv.PolyData(points, np.array(faces_list)))
 
     def tetrahedralize(
         self, optimize: bool = True, edge_length_fac: float = 0.05
-    ) -> 'VolumeMesh':
+    ) -> "VolumeMesh":
         return VolumeMesh(tetrahedralize_pv(self, edge_length_fac, optimize))
 
 
 def from_volume(
     volume: np.ndarray,
     mesh_precision: float = 1.0,
-    backend: str = 'pyvista',
-    method: str = 'marching_cubes',
+    backend: str = "pyvista",
+    method: str = "marching_cubes",
     isovalue: float = 0.5,
     return_pygel3d: bool = False,
     **kwargs: any,
@@ -154,33 +154,33 @@ def from_volume(
     """
 
     if volume.ndim != 3:
-        msg = 'The input volume must be a 3D numpy array.'
+        msg = "The input volume must be a 3D numpy array."
         raise ValueError(msg)
 
     if volume.size == 0:
-        msg = 'The input volume must not be empty.'
+        msg = "The input volume must not be empty."
         raise ValueError(msg)
 
     if not (0 < mesh_precision <= 1):
-        msg = 'The mesh precision must be between 0 and 1.'
+        msg = "The mesh precision must be between 0 and 1."
         raise ValueError(msg)
 
-    if backend not in ('pyvista', 'pygel'):
+    if backend not in ("pyvista", "pygel"):
         msg = f"Backend has to be either 'pyvista' or 'pygel'. Yours is {backend}"
         raise ValueError(msg)
 
-    if 'tau' in kwargs:
-        msg = 'Use `isovalue` instead of passing `tau` through kwargs.'
+    if "tau" in kwargs:
+        msg = "Use `isovalue` instead of passing `tau` through kwargs."
         raise ValueError(msg)
 
     # Apply scaling to adjust mesh resolution
     volume = scipy.ndimage.zoom(volume, zoom=mesh_precision, order=0)
 
-    if backend == 'pyvista':
+    if backend == "pyvista":
         grid = pv.ImageData(dimensions=volume.shape)
         mesh = grid.contour(
             [isovalue],
-            volume.flatten(order='F'),
+            volume.flatten(order="F"),
             method=method,
         )
         if return_pygel3d:
@@ -188,7 +188,7 @@ def from_volume(
             faces = mesh.faces.reshape(-1, 4)[:, 1:]
             return hmesh.Manifold.from_triangles(np.asarray(mesh.points), faces)
 
-    elif backend == 'pygel':
+    elif backend == "pygel":
         mesh = hmesh.volumetric_isocontour(volume, tau=isovalue, **kwargs)
         if return_pygel3d:
             return mesh

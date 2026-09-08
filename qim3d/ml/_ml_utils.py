@@ -11,8 +11,8 @@ from qim3d.viz._metrics import plot_metrics
 
 from .models._unet import Hyperparameters
 
-torch = optional_import('torch', extra='deep-learning')
-torchinfo = optional_import('torchinfo', extra='deep-learning')
+torch = optional_import("torch", extra="deep-learning")
+torchinfo = optional_import("torchinfo", extra="deep-learning")
 
 
 def train_model(
@@ -92,12 +92,12 @@ def train_model(
     # Get hyperparameters
     params_dict = hyperparameters()
 
-    n_epochs = params_dict['n_epochs']
-    optimizer = params_dict['optimizer']
-    criterion = params_dict['criterion']
+    n_epochs = params_dict["n_epochs"]
+    optimizer = params_dict["optimizer"]
+    criterion = params_dict["criterion"]
 
     # Choosing best device available
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model.to(device)
 
@@ -105,11 +105,11 @@ def train_model(
     log.propagate = False
 
     # Set up dictionaries to store training and validation losses
-    train_loss = {'loss': [], 'batch_loss': []}
-    val_loss = {'loss': [], 'batch_loss': []}
+    train_loss = {"loss": [], "batch_loss": []}
+    val_loss = {"loss": [], "batch_loss": []}
 
     with logging_redirect_tqdm():
-        for epoch in tqdm(range(n_epochs), desc='Training epochs', unit='epoch'):
+        for epoch in tqdm(range(n_epochs), desc="Training epochs", unit="epoch"):
             epoch_loss = 0
             step = 0
 
@@ -133,11 +133,11 @@ def train_model(
                 step += 1
 
                 # Log and store batch training loss
-                train_loss['batch_loss'].append(loss.detach().item())
+                train_loss["batch_loss"].append(loss.detach().item())
 
             # Log and store average training loss per epoch
             epoch_loss = epoch_loss / step
-            train_loss['loss'].append(epoch_loss)
+            train_loss["loss"].append(epoch_loss)
 
             if epoch % eval_every == 0:
                 eval_loss = 0
@@ -158,11 +158,11 @@ def train_model(
                     step += 1
 
                     # Log and store batch validation loss
-                    val_loss['batch_loss'].append(loss.item())
+                    val_loss["batch_loss"].append(loss.item())
 
                 # Log and store average validation loss
                 eval_loss = eval_loss / step
-                val_loss['loss'].append(eval_loss)
+                val_loss["loss"].append(eval_loss)
 
                 if epoch % print_every == 0:
                     log.info(
@@ -171,15 +171,15 @@ def train_model(
                     )
 
     if checkpoint_directory:
-        checkpoint_filename = f'model_{n_epochs}epochs.pth'
+        checkpoint_filename = f"model_{n_epochs}epochs.pth"
         checkpoint_path = os.path.join(checkpoint_directory, checkpoint_filename)
 
         # Save model checkpoint to .pth file
         torch.save(model.state_dict(), checkpoint_path)
-        log.info(f'Model checkpoint saved at: {checkpoint_path}')
+        log.info(f"Model checkpoint saved at: {checkpoint_path}")
 
     if plot:
-        plot_metrics(train_loss, val_loss, labels=['Train', 'Valid.'], show=True)
+        plot_metrics(train_loss, val_loss, labels=["Train", "Valid."], show=True)
 
     if return_loss:
         return train_loss, val_loss
@@ -223,7 +223,7 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str) -> torch.nn.Mo
         ```
     """
     model.load_state_dict(torch.load(checkpoint_path))
-    log.info(f'Model checkpoint loaded from: {checkpoint_path}')
+    log.info(f"Model checkpoint loaded from: {checkpoint_path}")
 
     return model
 
@@ -317,7 +317,7 @@ def test_model(
         ```
     """
     # Set model to evaluation mode
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
     model.eval()
 
@@ -326,7 +326,7 @@ def test_model(
 
     for volume, target in test_set:
         if not isinstance(volume, torch.Tensor) or not isinstance(target, torch.Tensor):
-            msg = 'Data items must consist of tensors'
+            msg = "Data items must consist of tensors"
             raise ValueError(msg)
 
         # Add batch and channel dimensions

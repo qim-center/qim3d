@@ -41,10 +41,10 @@ def pad(
         ```
         (100, 120, 120)
     """
-    assert len(volume.shape) == 3, 'Volume must be 3D'
-    assert z_axis >= 0, 'Padded shape must be positive in z-axis.'
-    assert y_axis >= 0, 'Padded shape must be positive in y-axis.'
-    assert x_axis >= 0, 'Padded shape must be positive in x-axis.'
+    assert len(volume.shape) == 3, "Volume must be 3D"
+    assert z_axis >= 0, "Padded shape must be positive in z-axis."
+    assert y_axis >= 0, "Padded shape must be positive in y-axis."
+    assert x_axis >= 0, "Padded shape must be positive in x-axis."
 
     n, h, w = volume.shape
 
@@ -105,15 +105,15 @@ def pad_to(volume: np.ndarray, shape: tuple[int, int, int]) -> np.ndarray:
         ```
         (110, 110, 110)
     """
-    assert len(shape) == 3, 'Shape must be 3D'
-    assert len(volume.shape) == 3, 'Volume must be 3D'
-    assert all(isinstance(x, int) for x in shape), 'Shape tuple must contain integers'
+    assert len(shape) == 3, "Shape must be 3D"
+    assert len(volume.shape) == 3, "Volume must be 3D"
+    assert all(isinstance(x, int) for x in shape), "Shape tuple must contain integers"
 
     shape_np = np.array(shape)
     for i in range(len(shape_np)):
         if shape_np[i] < volume.shape[i]:
             print(
-                'Pad shape is smaller than the volume shape. Changing it to original shape volume.'
+                "Pad shape is smaller than the volume shape. Changing it to original shape volume."
             )
             shape_np[i] = volume.shape[i]
 
@@ -158,7 +158,7 @@ def trim(volume: np.ndarray) -> np.ndarray:
         ```
         (80, 80, 80)
     """
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
     # Remove empty slices along the x-axis (columns)
     non_empty_x = np.any(volume, axis=(1, 2))  # Check non-empty slices in the y-z plane
@@ -237,13 +237,13 @@ def shear3d(
         ```
         ![warp_box_shear](../../assets/screenshots/warp_box_shear.png)
     """
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
-    assert isinstance(order, int), 'Order must be an integer.'
-    assert 0 <= order <= 5, 'Order must be in the range 0-5.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
+    assert isinstance(order, int), "Order must be an integer."
+    assert 0 <= order <= 5, "Order must be in the range 0-5."
     assert all(
         isinstance(var, int)
         for var in (x_shift_y, x_shift_z, y_shift_x, y_shift_z, z_shift_x, z_shift_y)
-    ), 'All shift values must be integers.'
+    ), "All shift values must be integers."
 
     n, h, w = volume.shape
 
@@ -270,7 +270,7 @@ def shear3d(
 
     # Apply transformation
     sheared_volume = scipy.ndimage.map_coordinates(
-        volume, coords, order=order, mode='nearest'
+        volume, coords, order=order, mode="nearest"
     )
 
     return sheared_volume
@@ -333,9 +333,9 @@ def curve_warp(
         ```
         ![warp_box_curved](../../assets/screenshots/warp_box_curve.png)
     """
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
-    assert isinstance(order, int), 'Order must be an integer.'
-    assert 0 <= order <= 5, 'Order must be in the range 0-5.'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
+    assert isinstance(order, int), "Order must be an integer."
+    assert 0 <= order <= 5, "Order must be in the range 0-5."
 
     n, h, w = volume.shape
 
@@ -355,7 +355,7 @@ def curve_warp(
     # Stack the new coordinates for interpolation and interpolate
     coords = np.array([z, y_new, x_new])
     warped_volume = scipy.ndimage.map_coordinates(
-        volume, coords, order=order, mode='nearest'
+        volume, coords, order=order, mode="nearest"
     )
 
     return warped_volume
@@ -428,12 +428,12 @@ def stretch(
 
         ![warp_box_squeeze](../../assets/screenshots/warp_box_squeeze.png)
     """
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
-    assert isinstance(order, int), 'Order must be an integer.'
-    assert 0 <= order <= 5, 'Order must be in the range 0-5.'
-    assert all(
-        isinstance(var, int) for var in (x_stretch, y_stretch, z_stretch)
-    ), 'Amount of pixel stretching must be integer'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
+    assert isinstance(order, int), "Order must be an integer."
+    assert 0 <= order <= 5, "Order must be in the range 0-5."
+    assert all(isinstance(var, int) for var in (x_stretch, y_stretch, z_stretch)), (
+        "Amount of pixel stretching must be integer"
+    )
 
     n, h, w = volume.shape
 
@@ -447,7 +447,7 @@ def stretch(
         np.linspace(0, n - 1, new_n),
         np.linspace(0, h - 1, new_h),
         np.linspace(0, w - 1, new_w),
-        indexing='ij',
+        indexing="ij",
     )
 
     # Stack coordinates and reshape for map_coordinates
@@ -455,7 +455,7 @@ def stretch(
 
     # Perform interpolation
     stretched_volume = scipy.ndimage.map_coordinates(
-        volume, coords, order=order, mode='nearest'
+        volume, coords, order=order, mode="nearest"
     )
 
     # Reshape back to the new volume dimensions
@@ -463,7 +463,7 @@ def stretch(
 
 
 def center_twist(
-    volume: np.ndarray, rotation_angle: float = 90, axis: str = 'z', order: int = 1
+    volume: np.ndarray, rotation_angle: float = 90, axis: str = "z", order: int = 1
 ) -> np.ndarray:
     """
     Applies a geometric twist transformation to the volume around a central axis.
@@ -510,10 +510,10 @@ def center_twist(
         ```
         <iframe src="https://platform.qim.dk/k3d/warp_box_twist.html" width="100%" height="500" frameborder="0"></iframe>
     """
-    assert len(volume.shape) == 3, 'Volume must be three-dimensional.'
-    assert isinstance(order, int), 'Order must be an integer.'
-    assert 0 <= order <= 5, 'Order must be in the range 0-5.'
-    assert axis in ['x', 'y', 'z'], 'Axis for rotation not recognized'
+    assert len(volume.shape) == 3, "Volume must be three-dimensional."
+    assert isinstance(order, int), "Order must be an integer."
+    assert 0 <= order <= 5, "Order must be in the range 0-5."
+    assert axis in ["x", "y", "z"], "Axis for rotation not recognized"
 
     # Get original dimensions
     n, h, w = volume.shape
@@ -521,7 +521,7 @@ def center_twist(
     # Create a coordinate grid
     z, y, x = np.mgrid[0:n, 0:h, 0:w]
 
-    if axis == 'z' or not axis:
+    if axis == "z" or not axis:
         # Normalize
         z_norm = z / (n - 1)
         # Compute rotation angle per z-layer
@@ -534,7 +534,7 @@ def center_twist(
         x_rot = x_center + x_shifted * np.cos(angles) - y_shifted * np.sin(angles)
         y_rot = y_center + x_shifted * np.sin(angles) + y_shifted * np.cos(angles)
         coords = np.array([z, y_rot, x_rot])
-    elif axis == 'x':
+    elif axis == "x":
         # Normalize
         x_norm = x / (w - 1)
         # Compute rotation angle per x-layer
@@ -547,7 +547,7 @@ def center_twist(
         z_rot = z_center + z_shifted * np.cos(angles) - y_shifted * np.sin(angles)
         y_rot = y_center + z_shifted * np.sin(angles) + y_shifted * np.cos(angles)
         coords = np.array([z_rot, y_rot, x])
-    elif axis == 'y':
+    elif axis == "y":
         # Normalize
         y_norm = y / (h - 1)
         # Compute rotation angle per y-layer
@@ -563,7 +563,7 @@ def center_twist(
 
     # Interpolate at new coordinates
     swirled_volume = scipy.ndimage.map_coordinates(
-        volume, coords, order=order, mode='nearest'
+        volume, coords, order=order, mode="nearest"
     )
 
     return swirled_volume

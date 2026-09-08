@@ -59,5 +59,5 @@ def test_center_twist():
     vol[:, 20:80, 20:80] = 1
 
     twisted_volume = qim3d.operations.center_twist(
-        vol, rotation_angle=180, axis='z', order=1
+        vol, rotation_angle=180, axis="z", order=1
     )

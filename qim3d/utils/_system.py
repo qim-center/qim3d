@@ -11,7 +11,6 @@ from qim3d.utils._misc import sizeof
 
 
 class Memory:
-
     """
     Class for obtaining current memory information
 
@@ -34,7 +33,7 @@ class Memory:
 
     def report(self):
         log.info(
-            'System memory:\n • Total.: %s\n • Used..: %s (%s%%)\n • Free..: %s (%s%%)',
+            "System memory:\n • Total.: %s\n • Used..: %s (%s%%)\n • Free..: %s (%s%%)",
             sizeof(self.total),
             sizeof(self.used),
             round(self.used_pct, 1),
@@ -76,13 +75,13 @@ def _test_disk_speed(
         data = os.urandom(file_size_bytes)
 
         # Write data to a temporary file
-        with open('temp_file.bin', 'wb') as f:
+        with open("temp_file.bin", "wb") as f:
             start_write = time.time()
             f.write(data)
             end_write = time.time()
 
         # Read data from the temporary file
-        with open('temp_file.bin', 'rb') as f:
+        with open("temp_file.bin", "rb") as f:
             start_read = time.time()
             f.read()
             end_read = time.time()
@@ -95,7 +94,7 @@ def _test_disk_speed(
         read_speeds.append(read_speed)
 
         # Clean up temporary file
-        os.remove('temp_file.bin')
+        os.remove("temp_file.bin")
 
     avg_write_speed = np.mean(write_speeds)
     write_speed_std = np.std(write_speeds)
@@ -128,7 +127,7 @@ def disk_report(file_size: int = 1024 * 1024 * 100, ntimes: int = 10) -> None:
 
     # Print disk information
     log.info(
-        'Disk:\n • Write speed..: %.2f GB/s (± %.2f GB/s)\n • Read speed...: %.2f GB/s (± %.2f GB/s)',
+        "Disk:\n • Write speed..: %.2f GB/s (± %.2f GB/s)\n • Read speed...: %.2f GB/s (± %.2f GB/s)",
         avg_write_speed,
         write_speed_std,
         avg_read_speed,

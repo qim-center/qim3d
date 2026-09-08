@@ -17,7 +17,7 @@ def vectors(
     volume: np.ndarray,
     vectors: np.ndarray,
     axis: int = 0,
-    volume_colormap: str = 'grey',
+    volume_colormap: str = "grey",
     min_value: float | None = None,
     max_value: float | None = None,
     slice_index: int | float | None = None,
@@ -112,7 +112,7 @@ def vectors(
 
     if grid_size < min_grid_size or grid_size > max_grid_size:
         grid_size = min(max(min_grid_size, grid_size), max_grid_size)
-        log.warning(f'Adjusting grid size to {grid_size} as it is out of bounds.')
+        log.warning(f"Adjusting grid size to {grid_size} as it is out of bounds.")
 
     def _structure_tensor(volume, vectors, axis, slice_index, grid_size, figsize, show):
         # Extract the 2D slice and corresponding vector components based on the chosen axis
@@ -132,10 +132,10 @@ def vectors(
             vectors_slice_y = vectors[2, :, :, slice_index]
             vectors_slice_z = vectors[0, :, :, slice_index]
         else:
-            msg = 'Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X.'
+            msg = "Invalid dimension. Use 0 for Z, 1 for Y, or 2 for X."
             raise ValueError(msg)
 
-        fig, ax = plt.subplots(1, 3, figsize=figsize, layout='constrained')
+        fig, ax = plt.subplots(1, 3, figsize=figsize, layout="constrained")
 
         # Blending function: mixes pure hue color toward gray (0.5) based on saturation
         # When saturation is 0 the color is pure hue, when 1 it becomes gray
@@ -176,16 +176,16 @@ def vectors(
 
         # Plot bidirectional arrows (both +v and -v) since eigenvectors have no preferred sense
         ax[0].quiver(
-            y_valid, x_valid, vx_valid, vy_valid, color=rgba_quiver_flat, angles='xy'
+            y_valid, x_valid, vx_valid, vy_valid, color=rgba_quiver_flat, angles="xy"
         )
         ax[0].quiver(
-            y_valid, x_valid, -vx_valid, -vy_valid, color=rgba_quiver_flat, angles='xy'
+            y_valid, x_valid, -vx_valid, -vy_valid, color=rgba_quiver_flat, angles="xy"
         )
         ax[0].imshow(data_slice, cmap=volume_colormap, vmin=min_value, vmax=max_value)
         ax[0].set_title(
-            f'Orientation vectors (slice {slice_index})'
+            f"Orientation vectors (slice {slice_index})"
             if not interactive
-            else 'Orientation vectors'
+            else "Orientation vectors"
         )
         ax[0].set_axis_off()
 
@@ -225,14 +225,14 @@ def vectors(
         )
 
         ax[1].bar(bin_centers, distribution, width=np.pi / nbins, color=rgba_bin)
-        ax[1].set_xlabel('Angle [radians]')
+        ax[1].set_xlabel("Angle [radians]")
         ax[1].set_xlim([0, np.pi])
         ax[1].set_aspect(np.pi / ax[1].get_ylim()[1])
         ax[1].set_xticks([0, np.pi / 2, np.pi])
-        ax[1].set_xticklabels(['0', '$\\frac{\\pi}{2}$', '$\\pi$'])
+        ax[1].set_xticklabels(["0", "$\\frac{\\pi}{2}$", "$\\pi$"])
         ax[1].set_yticks([])
-        ax[1].set_ylabel('Frequency')
-        ax[1].set_title('Histogram over orientation angles')
+        ax[1].set_ylabel("Frequency")
+        ax[1].set_title("Histogram over orientation angles")
 
         # ===================== PANEL 3: COLOR MAP =====================
 
@@ -253,14 +253,14 @@ def vectors(
             gray_slice[intensity_mask_2d] + rgba[:, :, :3][intensity_mask_2d]
         )
         data_slice_orientation_colored = (data_slice_orientation_colored * 255).astype(
-            'uint8'
+            "uint8"
         )
 
         ax[2].imshow(data_slice_orientation_colored)
         ax[2].set_title(
-            f'Colored orientations (slice {slice_index})'
+            f"Colored orientations (slice {slice_index})"
             if not interactive
-            else 'Colored orientations'
+            else "Colored orientations"
         )
         ax[2].set_axis_off()
 
@@ -274,7 +274,7 @@ def vectors(
     if vectors.ndim == 5:
         vectors = vectors[0, ...]
         log.warning(
-            'Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used.'
+            "Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used."
         )
 
     # Determine the initial slice index
@@ -283,7 +283,7 @@ def vectors(
     elif isinstance(slice_index, float):
         if slice_index < 0 or slice_index > 1:
             raise ValueError(
-                'Values of slice_index of float type must be between 0 and 1.'
+                "Values of slice_index of float type must be between 0 and 1."
             )
         slice_index = int(slice_index * volume.shape[0]) - 1
 
@@ -293,16 +293,16 @@ def vectors(
             max=volume.shape[axis] - 1,
             step=1,
             value=slice_index,
-            description='Slice index',
-            layout=widgets.Layout(width='450px'),
+            description="Slice index",
+            layout=widgets.Layout(width="450px"),
         )
         grid_size_slider = widgets.IntSlider(
             min=min_grid_size,
             max=max_grid_size,
             step=1,
             value=grid_size,
-            description='Grid size',
-            layout=widgets.Layout(width='450px'),
+            description="Grid size",
+            layout=widgets.Layout(width="450px"),
         )
         widget_obj = widgets.interactive(
             _structure_tensor,
@@ -316,7 +316,7 @@ def vectors(
         )
         sliders_box = widgets.HBox([slice_index_slider, grid_size_slider])
         widget_obj = widgets.VBox([sliders_box, widget_obj.children[-1]])
-        widget_obj.layout.align_items = 'center'
+        widget_obj.layout.align_items = "center"
 
         if show:
             display(widget_obj)
@@ -333,7 +333,7 @@ def vector_field_3d(
     vec: np.ndarray,
     val: np.ndarray,
     volume: np.ndarray,
-    select_eigen: Literal['smallest', 'largest', 'middle'] = 'smallest',
+    select_eigen: Literal["smallest", "largest", "middle"] = "smallest",
     sampling_step: int = 4,
     cone_size: float = 1,
     verbose: bool = True,
@@ -408,18 +408,18 @@ def vector_field_3d(
 
     # Select the eigenvector and its corresponding eigenvalue based on user choice
     if vec.ndim == 5:
-        if select_eigen == 'largest':
+        if select_eigen == "largest":
             vec = vec[2, :, ...]
             eigen_val = val[2]
-        elif select_eigen == 'smallest':
+        elif select_eigen == "smallest":
             vec = vec[0, :, ...]
             eigen_val = val[0]
-        elif select_eigen == 'middle':
+        elif select_eigen == "middle":
             vec = vec[1, :, ...]
             eigen_val = val[1]
         else:
             raise ValueError(
-                f'Invalid select_eigen: {select_eigen}. '
+                f"Invalid select_eigen: {select_eigen}. "
                 'Choose "smallest", "largest", or "middle".'
             )
 
@@ -438,17 +438,17 @@ def vector_field_3d(
 
     if verbose:
         log.info(
-            f'Eigenvalue range: {eigen_val[eigen_val > 0].min():.4f} to {eigen_val.max():.4f}'
+            f"Eigenvalue range: {eigen_val[eigen_val > 0].min():.4f} to {eigen_val.max():.4f}"
         )
         log.info(
-            f'Normalized eigenvalue range: {eigen_val_norm.min():.4f} to {eigen_val_norm.max():.4f}'
+            f"Normalized eigenvalue range: {eigen_val_norm.min():.4f} to {eigen_val_norm.max():.4f}"
         )
 
     nx, ny, nz, _ = vec.shape
     half = sampling_step // 2
 
     if verbose:
-        log.info(f'Original number of grid points: {nx * ny * nz}')
+        log.info(f"Original number of grid points: {nx * ny * nz}")
 
     points, vectors, val_values = [], [], []
 
@@ -476,16 +476,16 @@ def vector_field_3d(
                 val_values.append(avg_val)
 
     if not points:
-        raise ValueError('No valid cones to plot. Try lowering sampling_step.')
+        raise ValueError("No valid cones to plot. Try lowering sampling_step.")
 
     points = np.array(points)
     vectors = np.array(vectors)
     val_values = np.array(val_values)
 
     if verbose:
-        log.info(f'Cones plotted: {len(points)}')
+        log.info(f"Cones plotted: {len(points)}")
         log.info(
-            f'Eigenvalue (normalized) range: {val_values.min():.4f} to {val_values.max():.4f}'
+            f"Eigenvalue (normalized) range: {val_values.min():.4f} to {val_values.max():.4f}"
         )
 
     # Normalize each vector to unit length for consistent cone direction
@@ -514,22 +514,22 @@ def vector_field_3d(
         x=points[:, 2],
         y=points[:, 1],
         z=points[:, 0],
-        sizemode='scaled',
+        sizemode="scaled",
         sizeref=cone_size,
-        colorscale='Hot',
+        colorscale="Hot",
         cmin=cmin,
         cmax=cmax,
-        anchor='tail',
+        anchor="tail",
         **kwargs,
     )
 
     # Plot two mirrored cones per point to represent the bidirectional nature of eigenvectors
     fig = go.Figure(
         data=[
-            go.Cone(u=u, v=v, w=w, colorbar_title=f'λ ({select_eigen})', **shared),
+            go.Cone(u=u, v=v, w=w, colorbar_title=f"λ ({select_eigen})", **shared),
             go.Cone(u=-u, v=-v, w=-w, showscale=False, **shared),
         ],
-        layout={'width': 900, 'height': 700},
+        layout={"width": 900, "height": 700},
     )
 
     return fig
@@ -547,7 +547,7 @@ def streamlines(
     terminal_speed=1e-10,
     show_volume=False,
     show_starting_points=False,
-    camera_position='iso',
+    camera_position="iso",
 ):
     """
         Visualizes fiber orientations as 3D streamlines by tracing paths through the
@@ -642,7 +642,7 @@ def streamlines(
         else:
             background_threshold = 0
 
-    print(f'Background threshold: {background_threshold:.2f}')
+    print(f"Background threshold: {background_threshold:.2f}")
 
     # Use the first eigenvector which corresponds to the direction of minimum intensity
     # change, representing the dominant fiber orientation in structure tensor analysis
@@ -669,10 +669,10 @@ def streamlines(
     vec_scaled = vec_fiber * inv_l1_norm[np.newaxis, ...]
 
     print(
-        f'Inverse λ1 normalized range: {inv_l1_norm.min():.4f} to {inv_l1_norm.max():.4f}'
+        f"Inverse λ1 normalized range: {inv_l1_norm.min():.4f} to {inv_l1_norm.max():.4f}"
     )
     print(
-        f'  Mean (foreground): {inv_l1_norm[volume > background_threshold].mean():.4f}'
+        f"  Mean (foreground): {inv_l1_norm[volume > background_threshold].mean():.4f}"
     )
 
     # Set up the PyVista structured grid with the volume dimensions and unit spacing
@@ -683,10 +683,10 @@ def streamlines(
 
     # Reorder arrays from (Z, Y, X) to (X, Y, Z) as required by PyVista
     vectors_reordered = vec_scaled.transpose(3, 2, 1, 0)
-    grid.point_data['vectors'] = vectors_reordered.reshape(-1, 3, order='F')
+    grid.point_data["vectors"] = vectors_reordered.reshape(-1, 3, order="F")
 
     intensity_reordered = volume.transpose(2, 1, 0)
-    grid.point_data['intensity'] = intensity_reordered.flatten(order='F')
+    grid.point_data["intensity"] = intensity_reordered.flatten(order="F")
 
     # Compute the fan-based RGB color for each voxel following Dahl 2026, Fig. 6 col. 3:
     # (r, g, b) = (1 - vz²) · hsv2rgb(arctan(vy/vx), 1, 1) + 0.5·vz²
@@ -721,9 +721,9 @@ def streamlines(
     fan_rgb = np.stack([fan_r, fan_g, fan_b], axis=-1)
     fan_rgb_reordered = fan_rgb.transpose(2, 1, 0, 3)
     fan_rgb_flat = (
-        np.clip(fan_rgb_reordered, 0, 1).reshape(-1, 3, order='F') * 255
+        np.clip(fan_rgb_reordered, 0, 1).reshape(-1, 3, order="F") * 255
     ).astype(np.uint8)
-    grid.point_data['fan_rgb'] = fan_rgb_flat
+    grid.point_data["fan_rgb"] = fan_rgb_flat
 
     # Place seed points on a uniform grid within the bounding box of the foreground
     threshold = (
@@ -734,7 +734,7 @@ def streamlines(
     nonzero_coords = np.argwhere(intensity_reordered > threshold)
 
     if len(nonzero_coords) == 0:
-        print('WARNING: No foreground voxels found!')
+        print("WARNING: No foreground voxels found!")
         return
 
     x_min, y_min, z_min = nonzero_coords.min(axis=0)
@@ -744,45 +744,45 @@ def streamlines(
     y_seeds = np.arange(y_min, y_max, fiber_spacing)
     z_seeds = np.arange(z_min, z_max, fiber_spacing)
     seed_grid = np.array(
-        np.meshgrid(x_seeds, y_seeds, z_seeds, indexing='ij')
+        np.meshgrid(x_seeds, y_seeds, z_seeds, indexing="ij")
     ).T.reshape(-1, 3)
 
     # Keep only seed points where the volume intensity is above the background threshold
     seed_indices = seed_grid.astype(int)
-    intensity_3d_grid = grid.point_data['intensity'].reshape(grid.dimensions, order='F')
+    intensity_3d_grid = grid.point_data["intensity"].reshape(grid.dimensions, order="F")
     seed_intensities = intensity_3d_grid[
         seed_indices[:, 0], seed_indices[:, 1], seed_indices[:, 2]
     ]
     valid_seeds = seed_grid[seed_intensities > background_threshold]
 
-    print(f'Seeds: {len(seed_grid)} → {len(valid_seeds)} after filtering')
+    print(f"Seeds: {len(seed_grid)} → {len(valid_seeds)} after filtering")
 
     if len(valid_seeds) == 0:
-        print('WARNING: No valid seeds after filtering!')
+        print("WARNING: No valid seeds after filtering!")
         return
 
     seed_points = pv.PolyData(valid_seeds)
 
-    print('Generating streamlines...')
-    print(f'  Max steps: {max_fiber_length}')
-    print(f'  Step size: {initial_step_size} to {max_step_size}')
+    print("Generating streamlines...")
+    print(f"  Max steps: {max_fiber_length}")
+    print(f"  Step size: {initial_step_size} to {max_step_size}")
 
     streamlines_mesh = grid.streamlines_from_source(
         seed_points,
-        vectors='vectors',
+        vectors="vectors",
         max_steps=max_fiber_length,
         initial_step_length=initial_step_size,
         max_step_length=max_step_size,
-        integration_direction='both',
+        integration_direction="both",
         terminal_speed=terminal_speed,
         surface_streamlines=False,
-        interpolator_type='cell',  # cell locator is more robust than point locator
+        interpolator_type="cell",  # cell locator is more robust than point locator
         compute_vorticity=False,  # not needed for line visualization, saves computation
         progress_bar=True,
     )
 
     print(
-        f'Generated {streamlines_mesh.n_lines} fibers with {streamlines_mesh.n_points} total points'
+        f"Generated {streamlines_mesh.n_lines} fibers with {streamlines_mesh.n_points} total points"
     )
 
     plotter = pv.Plotter()
@@ -790,15 +790,15 @@ def streamlines(
     if show_volume:
         plotter.add_volume(
             grid,
-            scalars='intensity',
-            opacity='linear',
-            cmap='gray',
+            scalars="intensity",
+            opacity="linear",
+            cmap="gray",
             opacity_unit_distance=20,
         )
 
     plotter.add_mesh(
         streamlines_mesh,
-        scalars='fan_rgb',
+        scalars="fan_rgb",
         rgb=True,
         line_width=2,
         render_lines_as_tubes=False,
@@ -807,11 +807,11 @@ def streamlines(
 
     if show_starting_points:
         plotter.add_mesh(
-            seed_points, color='red', point_size=8, render_points_as_spheres=True
+            seed_points, color="red", point_size=8, render_points_as_spheres=True
         )
 
     plotter.camera_position = camera_position
     plotter.add_text(
-        f'Fiber Visualization ({streamlines_mesh.n_lines} fibers)', font_size=12
+        f"Fiber Visualization ({streamlines_mesh.n_lines} fibers)", font_size=12
     )
     plotter.show()

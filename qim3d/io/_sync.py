@@ -10,24 +10,23 @@ from qim3d.utils import log
 
 
 class Sync:
-
     """Class for dataset synchronization tasks"""
 
     def __init__(self):
         # Checks if rsync is available
         if not self._check_rsync():
             raise RuntimeError(
-                'Could not find rsync, please check if it is installed in your system.'
+                "Could not find rsync, please check if it is installed in your system."
             )
 
     def _check_rsync(self):
         """Check if rsync is available"""
         try:
-            subprocess.run(['rsync', '--version'], capture_output=True, check=True)
+            subprocess.run(["rsync", "--version"], capture_output=True, check=True)
             return True
 
         except Exception as error:
-            log.error('rsync is not available')
+            log.error("rsync is not available")
             log.error(error)
 
             return False
@@ -62,13 +61,13 @@ class Sync:
         destination = Path(destination)
 
         if checksum:
-            rsync_args = '-avrc'
+            rsync_args = "-avrc"
         else:
-            rsync_args = '-avr'
+            rsync_args = "-avr"
 
         command = [
-            'rsync',
-            '-n',
+            "rsync",
+            "-n",
             rsync_args,
             str(source) + os.path.sep,
             str(destination) + os.path.sep,
@@ -81,12 +80,12 @@ class Sync:
         )
 
         diff_files_and_folders = out.stdout.decode().splitlines()[1:-3]
-        diff_files = [f for f in diff_files_and_folders if not f.endswith('/')]
+        diff_files = [f for f in diff_files_and_folders if not f.endswith("/")]
 
         if len(diff_files) > 0 and verbose:
-            title = 'Source files differing or missing in destination'
+            title = "Source files differing or missing in destination"
             log.info(
-                ouf.showlist(diff_files, style='line', return_str=True, title=title)
+                ouf.showlist(diff_files, style="line", return_str=True, title=title)
             )
 
         return diff_files
@@ -125,7 +124,7 @@ class Sync:
         if verbose:
             s_files, s_dirs = self.count_files_and_dirs(source)
             d_files, d_dirs = self.count_files_and_dirs(destination)
-            log.info('\n')
+            log.info("\n")
 
         s_d = self.check_destination(
             source, destination, checksum=checksum, verbose=False
@@ -138,7 +137,7 @@ class Sync:
             # No differences
             if verbose:
                 log.info(
-                    'Source and destination are synchronized, no differences found.'
+                    "Source and destination are synchronized, no differences found."
                 )
             return
 
@@ -146,9 +145,9 @@ class Sync:
         log.info(
             ouf.showlist(
                 union,
-                style='line',
+                style="line",
                 return_str=True,
-                title=f'{len(union)} files are not in sync',
+                title=f"{len(union)} files are not in sync",
             )
         )
 
@@ -157,9 +156,9 @@ class Sync:
             log.info(
                 ouf.showlist(
                     intersection,
-                    style='line',
+                    style="line",
                     return_str=True,
-                    title=f'{len(intersection)} files present on both, but not equal',
+                    title=f"{len(intersection)} files present on both, but not equal",
                 )
             )
 
@@ -168,9 +167,9 @@ class Sync:
             log.info(
                 ouf.showlist(
                     s_exclusive,
-                    style='line',
+                    style="line",
                     return_str=True,
-                    title=f'{len(s_exclusive)} files present only on {source}',
+                    title=f"{len(s_exclusive)} files present only on {source}",
                 )
             )
 
@@ -179,9 +178,9 @@ class Sync:
             log.info(
                 ouf.showlist(
                     d_exclusive,
-                    style='line',
+                    style="line",
                     return_str=True,
-                    title=f'{len(d_exclusive)} files present only on {destination}',
+                    title=f"{len(d_exclusive)} files present only on {destination}",
                 )
             )
         return
@@ -223,6 +222,6 @@ class Sync:
                 dirs += dirs_count
 
         if verbose:
-            log.info(f'Total of {files} files and {dirs} directories on {path}')
+            log.info(f"Total of {files} files and {dirs} directories on {path}")
 
         return files, dirs

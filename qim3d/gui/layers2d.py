@@ -27,19 +27,19 @@ import qim3d
 from qim3d.gui.interface import BaseInterface
 from qim3d.utils._dependencies import optional_import
 
-gr = optional_import('gradio', extra='gui')
+gr = optional_import("gradio", extra="gui")
 
 # TODO figure out how not update anything and go through processing when there are no data loaded
 # So user could play with the widgets but it doesnt throw error
 # Right now its only bypassed with several if statements
 # I opened an issue here https://github.com/gradio-app/gradio/issues/9273
 
-X = 'X'
-Y = 'Y'
-Z = 'Z'
+X = "X"
+Y = "Y"
+Z = "Z"
 AXES = {X: 2, Y: 1, Z: 0}
 
-DEFAULT_PLOT_TYPE = 'Segmentation mask'
+DEFAULT_PLOT_TYPE = "Segmentation mask"
 SEGMENTATION_COLORS = np.array(
     [
         [0, 255, 255],  # Cyan
@@ -56,7 +56,7 @@ SEGMENTATION_COLORS = np.array(
 
 class Interface(BaseInterface):
     def __init__(self):
-        super().__init__('Layered surfaces 2D', 1080)
+        super().__init__("Layered surfaces 2D", 1080)
 
         self.data = None
         # It important to keep the name of the attributes like this (including the capital letter) becuase of
@@ -80,19 +80,19 @@ class Interface(BaseInterface):
                         base_path = gr.Textbox(
                             max_lines=1,
                             container=False,
-                            label='Base path',
+                            label="Base path",
                             value=os.getcwd(),
                         )
 
                     with gr.Column(scale=1, min_width=36):
-                        reload_base_path = gr.Button(value='⟳')
+                        reload_base_path = gr.Button(value="⟳")
 
                 explorer = gr.FileExplorer(
-                    ignore_glob='*/.*',
+                    ignore_glob="*/.*",
                     root_dir=os.getcwd(),
                     label=os.getcwd(),
                     render=True,
-                    file_count='single',
+                    file_count="single",
                     interactive=True,
                     height=230,
                 )
@@ -102,18 +102,18 @@ class Interface(BaseInterface):
                         axis = gr.Radio(
                             choices=[Z, Y, X],
                             value=Z,
-                            label='Layer axis',
-                            info='Specifies in which direction are the layers. The order of axes is ZYX',
+                            label="Layer axis",
+                            info="Specifies in which direction are the layers. The order of axes is ZYX",
                         )
                     with gr.Row():
                         wrap = gr.Checkbox(
-                            label='Lines start and end at the same level.',
-                            info='Used when segmenting layers of unfolded image.',
+                            label="Lines start and end at the same level.",
+                            info="Used when segmenting layers of unfolded image.",
                         )
 
                         is_inverted = gr.Checkbox(
-                            label='Invert image before processing',
-                            info='The algorithm effectively flips the gradient.',
+                            label="Invert image before processing",
+                            info="The algorithm effectively flips the gradient.",
                         )
 
                     with gr.Row():
@@ -123,8 +123,8 @@ class Interface(BaseInterface):
                             value=0.75,
                             step=0.01,
                             interactive=True,
-                            label='Delta value',
-                            info='The lower the delta is, the more accurate the gradient calculation will be. However, the calculation takes longer to execute. Delta above 1 is rounded down to closest lower integer',
+                            label="Delta value",
+                            info="The lower the delta is, the more accurate the gradient calculation will be. However, the calculation takes longer to execute. Delta above 1 is rounded down to closest lower integer",
                         )
 
                     with gr.Row():
@@ -134,8 +134,8 @@ class Interface(BaseInterface):
                             value=10,
                             step=1,
                             interactive=True,
-                            label='Min margin',
-                            info='Minimum margin between layers to be detected in the image.',
+                            label="Min margin",
+                            info="Minimum margin between layers to be detected in the image.",
                         )
 
                     with gr.Row():
@@ -145,8 +145,8 @@ class Interface(BaseInterface):
                             value=2,
                             step=1,
                             interactive=True,
-                            label='Number of layers',
-                            info='Number of layers to be detected in the image',
+                            label="Number of layers",
+                            info="Number of layers to be detected in the image",
                         )
 
                 # with gr.Row():
@@ -164,9 +164,9 @@ class Interface(BaseInterface):
             """
 
             self.heights = [
-                '60em',
-                '30em',
-                '20em',
+                "60em",
+                "30em",
+                "20em",
             ]  # em units are relative to the parent,
 
             with gr.Column(
@@ -187,13 +187,13 @@ class Interface(BaseInterface):
                 with gr.Row():  # Detected layers outputs
                     output_image_kwargs = lambda axis: dict(
                         show_label=True,
-                        label=f'Detected layers {axis}-axis',
+                        label=f"Detected layers {axis}-axis",
                         visible=True,
                         height=self.heights[2],
                     )
-                    output_plot_x = gr.Image(**output_image_kwargs('X'))
-                    output_plot_y = gr.Image(**output_image_kwargs('Y'))
-                    output_plot_z = gr.Image(**output_image_kwargs('Z'))
+                    output_plot_x = gr.Image(**output_image_kwargs("X"))
+                    output_plot_y = gr.Image(**output_image_kwargs("Y"))
+                    output_plot_z = gr.Image(**output_image_kwargs("Z"))
 
                 with gr.Row():  # Axis position sliders
                     slider_kwargs = lambda axis: dict(
@@ -201,23 +201,23 @@ class Interface(BaseInterface):
                         maximum=1,
                         value=0.5,
                         step=0.01,
-                        label=f'{axis} position',
-                        info=f'The 3D image is sliced along {axis}-axis',
+                        label=f"{axis} position",
+                        info=f"The 3D image is sliced along {axis}-axis",
                     )
 
-                    x_pos = gr.Slider(**slider_kwargs('X'))
-                    y_pos = gr.Slider(**slider_kwargs('Y'))
-                    z_pos = gr.Slider(**slider_kwargs('Z'))
+                    x_pos = gr.Slider(**slider_kwargs("X"))
+                    y_pos = gr.Slider(**slider_kwargs("Y"))
+                    z_pos = gr.Slider(**slider_kwargs("Z"))
 
                 with gr.Row():
                     x_check = gr.Checkbox(
-                        value=True, interactive=True, label='Show X slice'
+                        value=True, interactive=True, label="Show X slice"
                     )
                     y_check = gr.Checkbox(
-                        value=True, interactive=True, label='Show Y slice'
+                        value=True, interactive=True, label="Show Y slice"
                     )
                     z_check = gr.Checkbox(
-                        value=True, interactive=True, label='Show Z slice'
+                        value=True, interactive=True, label="Show Z slice"
                     )
 
                 with gr.Row():
@@ -225,7 +225,7 @@ class Interface(BaseInterface):
                         plot_type = gr.Radio(
                             choices=(
                                 DEFAULT_PLOT_TYPE,
-                                'Segmentation lines',
+                                "Segmentation lines",
                             ),
                             value=DEFAULT_PLOT_TYPE,
                             interactive=True,
@@ -236,7 +236,7 @@ class Interface(BaseInterface):
                             minimum=0,
                             maximum=1,
                             step=0.01,
-                            label='Alpha value',
+                            label="Alpha value",
                             show_label=True,
                             value=0.5,
                             visible=True,
@@ -247,14 +247,14 @@ class Interface(BaseInterface):
                             minimum=0.1,
                             maximum=5,
                             value=2,
-                            label='Line thickness',
+                            label="Line thickness",
                             show_label=True,
                             visible=False,
                             interactive=True,
                         )
 
                 with gr.Row():
-                    btn_run = gr.Button('Run Layers2D', variant='primary')
+                    btn_run = gr.Button("Run Layers2D", variant="primary")
 
         positions = [x_pos, y_pos, z_pos]
         process_inputs = [axis, is_inverted, delta, min_margin, n_layers, wrap]
@@ -263,8 +263,8 @@ class Interface(BaseInterface):
         output_plots = [output_plot_x, output_plot_y, output_plot_z]
         visibility_check_inputs = [x_check, y_check, z_check]
 
-        spinner_loading = gr.Text('Loading data...', visible=False)
-        spinner_running = gr.Text('Running pipeline...', visible=False)
+        spinner_loading = gr.Text("Loading data...", visible=False)
+        spinner_running = gr.Text("Running pipeline...", visible=False)
 
         reload_base_path.click(
             fn=self.update_explorer, inputs=base_path, outputs=explorer
@@ -318,7 +318,7 @@ class Interface(BaseInterface):
             fn=self.plot_output_img_all,
             inputs=plotting_inputs,
             outputs=output_plots,
-            show_progress='hidden',
+            show_progress="hidden",
         ).then(fn=self.set_relaunch_button, inputs=[], outputs=btn_run)
 
         # Chnages visibility and sizes of the plots - gives user the option to see only some of the images and in bigger scale
@@ -350,7 +350,7 @@ class Interface(BaseInterface):
         plot_type: str,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
         self.plot_type = plot_type
-        if plot_type == 'Segmentation lines':
+        if plot_type == "Segmentation lines":
             return gr.update(visible=False), gr.update(visible=True)
         else:
             return gr.update(visible=True), gr.update(visible=False)
@@ -394,16 +394,16 @@ class Interface(BaseInterface):
             return gr.update(root_dir=parent_dir, label=parent_dir, value=file_name)
 
         else:
-            raise ValueError('Invalid path')
+            raise ValueError("Invalid path")
 
     def set_relaunch_button(self):
-        return gr.update(value='Relaunch', interactive=True)
+        return gr.update(value="Relaunch", interactive=True)
 
     def set_spinner(self, message: str):
         if self.error:
             return gr.Button()
         # spinner icon/shows the user something is happeing
-        return gr.update(value=f'{message}', interactive=False)
+        return gr.update(value=f"{message}", interactive=False)
 
     def load_data(self, base_path: str, explorer: str):
         if base_path and os.path.isfile(base_path):
@@ -411,13 +411,13 @@ class Interface(BaseInterface):
         elif explorer and os.path.isfile(explorer):
             file_path = explorer
         else:
-            raise gr.Error('Invalid file path')
+            raise gr.Error("Invalid file path")
 
         try:
             self.data = qim3d.io.load(file_path, progress_bar=False)
         except Exception as error_message:
             raise gr.Error(
-                f'Failed to load the image: {error_message}'
+                f"Failed to load the image: {error_message}"
             ) from error_message
 
     def process_all(
@@ -448,8 +448,8 @@ class Interface(BaseInterface):
         Thus we have this wrapper function, where we pass the slicing axis - in which axis are we indexing the data
             and we return a function working in that direction
         """
-        slice_key = f'{slicing_axis}_slice'
-        seg_key = f'{slicing_axis}_segmentation'
+        slice_key = f"{slicing_axis}_slice"
+        seg_key = f"{slicing_axis}_segmentation"
         slicing_axis_int = AXES[slicing_axis]
 
         def process(
@@ -497,8 +497,8 @@ class Interface(BaseInterface):
         Checks if the desired direction of segmentation is the same if the image would be submitted to segmentation as is.
         If it is not, we have to rotate it before we put it to segmentation algorithm
         """
-        remaining_axis = f'{X}{Y}{Z}'.replace(slicing_axis, '').replace(
-            segmenting_axis, ''
+        remaining_axis = f"{X}{Y}{Z}".replace(slicing_axis, "").replace(
+            segmenting_axis, ""
         )
         return AXES[segmenting_axis] > AXES[remaining_axis]
 
@@ -522,8 +522,8 @@ class Interface(BaseInterface):
     #     return x_plot, y_plot, z_plot
 
     def plot_output_img_wrapper(self, slicing_axis: str):
-        slice_key = f'{slicing_axis}_slice'
-        seg_key = f'{slicing_axis}_segmentation'
+        slice_key = f"{slicing_axis}_slice"
+        seg_key = f"{slicing_axis}_segmentation"
 
         def plot_output_img(segmenting_axis: str, alpha: float, line_thickness: float):
             slice = self.__dict__[slice_key]
@@ -570,5 +570,5 @@ class Interface(BaseInterface):
         return x_output, y_output, z_output
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     Interface().run_interface()

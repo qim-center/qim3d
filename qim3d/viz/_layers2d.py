@@ -22,14 +22,14 @@ def image_with_lines(image: np.ndarray, lines: list, line_thickness: float) -> I
 
     """
     fig, ax = plt.subplots()
-    ax.imshow(image, cmap='gray')
-    ax.axis('off')
+    ax.imshow(image, cmap="gray")
+    ax.axis("off")
 
     for line in lines:
         ax.plot(line, linewidth=line_thickness)
 
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight', pad_inches=0)
+    plt.savefig(buf, format="png", bbox_inches="tight", pad_inches=0)
     plt.close()
 
     buf.seek(0)

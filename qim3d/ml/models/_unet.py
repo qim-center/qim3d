@@ -3,7 +3,7 @@
 from qim3d.utils import log
 from qim3d.utils._dependencies import optional_import
 
-torch = optional_import('torch', extra='deep-learning')
+torch = optional_import("torch", extra="deep-learning")
 
 
 class UNet(torch.nn.Module):
@@ -50,13 +50,13 @@ class UNet(torch.nn.Module):
 
     def __init__(
         self,
-        size: str = 'medium',
+        size: str = "medium",
         dropout: float = 0,
         kernel_size: int = 3,
         up_kernel_size: int = 3,
-        activation: str = 'PReLU',
+        activation: str = "PReLU",
         bias: bool = True,
-        adn_order: str = 'NDA',
+        adn_order: str = "NDA",
     ):
         super().__init__()
 
@@ -71,16 +71,16 @@ class UNet(torch.nn.Module):
         self.model = self._model_choice()
 
     def _model_choice(self) -> torch.nn.Module:
-        monai = optional_import('monai', extra='deep-learning')
+        monai = optional_import("monai", extra="deep-learning")
 
         size_options = {
-            'xxsmall': (4, 8),  # 2 layers
-            'xsmall': (16, 32),  # 2 layers
-            'small': (32, 64, 128),  # 3 layers
-            'medium': (64, 128, 256),  # 3 layers
-            'large': (64, 128, 256, 512, 1024),  # 5 layers
-            'xlarge': (64, 128, 256, 512, 1024, 2048),  # 6 layers
-            'xxlarge': (64, 128, 256, 512, 1024, 2048, 4096),  # 7 layers
+            "xxsmall": (4, 8),  # 2 layers
+            "xsmall": (16, 32),  # 2 layers
+            "small": (32, 64, 128),  # 3 layers
+            "medium": (64, 128, 256),  # 3 layers
+            "large": (64, 128, 256, 512, 1024),  # 5 layers
+            "xlarge": (64, 128, 256, 512, 1024, 2048),  # 6 layers
+            "xxlarge": (64, 128, 256, 512, 1024, 2048, 4096),  # 7 layers
         }
 
         if self.size in size_options:
@@ -172,22 +172,22 @@ class Hyperparameters:
         model: torch.nn.Module,
         n_epochs: int = 10,
         learning_rate: float = 1e-3,
-        optimizer: str = 'Adam',
+        optimizer: str = "Adam",
         momentum: float = 0,
         weight_decay: float = 0,
-        loss_function: str = 'Focal',
+        loss_function: str = "Focal",
     ):
         # TODO: Implement custom loss_functions? Then add a check to see if loss works for segmentation.
-        if loss_function not in ['BCE', 'Dice', 'Focal', 'DiceCE']:
+        if loss_function not in ["BCE", "Dice", "Focal", "DiceCE"]:
             msg = f'Invalid loss function: {loss_function}. Loss criterion must be one of the following: "BCE", "Dice", "Focal", "DiceCE".'
             raise ValueError(msg)
 
         # TODO: Implement custom optimizer? And add check to see if valid.
-        if optimizer not in ['Adam', 'SGD', 'RMSprop']:
+        if optimizer not in ["Adam", "SGD", "RMSprop"]:
             msg = f'Invalid optimizer: {optimizer}. Optimizer must be one of the following: "Adam", "SGD", "RMSprop".'
             raise ValueError(msg)
 
-        if (momentum != 0) and optimizer == 'Adam':
+        if (momentum != 0) and optimizer == "Adam":
             log.info(
                 "Momentum isn't an input in the 'Adam' optimizer. "
                 "Change optimizer to 'SGD' or 'RMSprop' to use momentum."
@@ -226,9 +226,9 @@ class Hyperparameters:
         criterion = self._loss_functions(loss_function)
 
         hyper_dict = {
-            'optimizer': optim,
-            'criterion': criterion,
-            'n_epochs': n_epochs,
+            "optimizer": optim,
+            "criterion": criterion,
+            "n_epochs": n_epochs,
         }
         return hyper_dict
 
@@ -241,20 +241,20 @@ class Hyperparameters:
         weight_decay: float,
         momentum: float,
     ) -> torch.optim.Optimizer:
-        torch = optional_import('torch', extra='deep-learning')
+        torch = optional_import("torch", extra="deep-learning")
 
-        if optimizer == 'Adam':
+        if optimizer == "Adam":
             optim = torch.optim.Adam(
                 model.parameters(), lr=learning_rate, weight_decay=weight_decay
             )
-        elif optimizer == 'SGD':
+        elif optimizer == "SGD":
             optim = torch.optim.SGD(
                 model.parameters(),
                 lr=learning_rate,
                 momentum=momentum,
                 weight_decay=weight_decay,
             )
-        elif optimizer == 'RMSprop':
+        elif optimizer == "RMSprop":
             optim = torch.optim.RMSprop(
                 model.parameters(),
                 lr=learning_rate,
@@ -265,15 +265,15 @@ class Hyperparameters:
 
     # Selecting the loss function
     def _loss_functions(self, loss_function: str) -> torch.nn:
-        monai = optional_import('monai', extra='deep-learning')
-        torch = optional_import('torch', extra='deep-learning')
+        monai = optional_import("monai", extra="deep-learning")
+        torch = optional_import("torch", extra="deep-learning")
 
-        if loss_function == 'BCE':
-            criterion = torch.nn.BCEWithLogitsLoss(reduction='mean')
-        elif loss_function == 'Dice':
-            criterion = monai.losses.DiceLoss(sigmoid=True, reduction='mean')
-        elif loss_function == 'Focal':
-            criterion = monai.losses.FocalLoss(reduction='mean')
-        elif loss_function == 'DiceCE':
-            criterion = monai.losses.DiceCELoss(sigmoid=True, reduction='mean')
+        if loss_function == "BCE":
+            criterion = torch.nn.BCEWithLogitsLoss(reduction="mean")
+        elif loss_function == "Dice":
+            criterion = monai.losses.DiceLoss(sigmoid=True, reduction="mean")
+        elif loss_function == "Focal":
+            criterion = monai.losses.FocalLoss(reduction="mean")
+        elif loss_function == "DiceCE":
+            criterion = monai.losses.DiceCELoss(sigmoid=True, reduction="mean")
         return criterion

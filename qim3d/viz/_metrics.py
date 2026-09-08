@@ -12,8 +12,8 @@ from qim3d.utils._logger import log
 
 def plot_metrics(
     *metrics: tuple[dict[str, float]],
-    linestyle: str = '-',
-    batch_linestyle: str = 'dotted',
+    linestyle: str = "-",
+    batch_linestyle: str = "dotted",
     labels: list | None = None,
     figsize: tuple = (16, 6),
     show: bool = False,
@@ -46,9 +46,9 @@ def plot_metrics(
         raise ValueError("The number of metrics doesn't match the number of labels.")
 
     # plotting parameters
-    snb.set_style('darkgrid')
+    snb.set_style("darkgrid")
     snb.set(font_scale=1.5)
-    plt.rcParams['lines.linewidth'] = 2
+    plt.rcParams["lines.linewidth"] = 2
 
     fig = plt.figure(figsize=figsize)
 
@@ -70,10 +70,10 @@ def plot_metrics(
         plt.legend()
 
     plt.ylabel(metric_name)
-    plt.xlabel('epoch')
+    plt.xlabel("epoch")
 
     # reset plotting parameters
-    snb.set_style('white')
+    snb.set_style("white")
 
     if show:
         plt.show()
@@ -83,10 +83,10 @@ def plot_metrics(
 
 
 def grid_overview(
-    data: list ,
+    data: list,
     n_images: int = 7,
-    colormap_im: str = 'gray',
-    colormap_segm: str = 'viridis',
+    colormap_im: str = "gray",
+    colormap_segm: str = "viridis",
     alpha: float = 0.5,
     show: bool = False,
 ) -> matplotlib.figure.Figure:
@@ -125,12 +125,12 @@ def grid_overview(
 
     # Check if image data is RGB and inform the user if it's the case
     if len(data[0][0].squeeze().shape) > 2:
-        log.info('Input images are RGB: color map is ignored')
+        log.info("Input images are RGB: color map is ignored")
 
     # Check if dataset have at least specified number of images
     if len(data) < n_images:
         log.warning(
-            'Not enough images in the dataset. Changing n_images=%d to n_images=%d',
+            "Not enough images in the dataset. Changing n_images=%d to n_images=%d",
             n_images,
             len(data),
         )
@@ -139,14 +139,14 @@ def grid_overview(
     # Adapt segmentation cmap so that background is transparent
     colors_segm = colormaps.get_cmap(colormap_segm)(np.linspace(0, 1, 256))
     colors_segm[:128, 3] = 0
-    custom_cmap = LinearSegmentedColormap.from_list('CustomCmap', colors_segm)
+    custom_cmap = LinearSegmentedColormap.from_list("CustomCmap", colors_segm)
 
     # Check if data have the right format
     if not isinstance(data[0], tuple):
-        raise ValueError('Data elements must be tuples')
+        raise ValueError("Data elements must be tuples")
 
     # Define row titles
-    row_titles = ['Input images', 'Ground truth segmentation', 'Mask']
+    row_titles = ["Input images", "Ground truth segmentation", "Mask"]
 
     # Make new list such that possible augmentations remain identical for all three rows
     plot_data = [data[idx] for idx in range(n_images)]
@@ -166,10 +166,10 @@ def grid_overview(
             if row in [1, 2]:  # Ground truth segmentation and mask
                 ax.imshow(plot_data[col][0].squeeze(), cmap=colormap_im)
                 ax.imshow(plot_data[col][row].squeeze(), cmap=custom_cmap, alpha=alpha)
-                ax.axis('off')
+                ax.axis("off")
             else:
                 ax.imshow(plot_data[col][row].squeeze(), cmap=colormap_im)
-                ax.axis('off')
+                ax.axis("off")
 
     if show:
         plt.show()
@@ -181,8 +181,8 @@ def grid_overview(
 def grid_pred(
     in_targ_preds: tuple[np.ndarray, np.ndarray, np.ndarray],
     n_images: int = 7,
-    colormap_im: str = 'gray',
-    colormap_segm: str = 'viridis',
+    colormap_im: str = "gray",
+    colormap_segm: str = "viridis",
     alpha: float = 0.5,
     show: bool = False,
 ) -> matplotlib.figure.Figure:
@@ -226,7 +226,7 @@ def grid_pred(
     # Check if dataset have at least specified number of images
     if len(in_targ_preds[0]) < n_images:
         log.warning(
-            'Not enough images in the dataset. Changing n_images=%d to n_images=%d',
+            "Not enough images in the dataset. Changing n_images=%d to n_images=%d",
             n_images,
             len(in_targ_preds[0]),
         )
@@ -238,7 +238,7 @@ def grid_pred(
     # Adapt segmentation cmap so that background is transparent
     colors_segm = colormaps.get_cmap(colormap_segm)(np.linspace(0, 1, 256))
     colors_segm[:128, 3] = 0
-    custom_cmap = LinearSegmentedColormap.from_list('CustomCmap', colors_segm)
+    custom_cmap = LinearSegmentedColormap.from_list("CustomCmap", colors_segm)
 
     N = n_images
     H = inputs[0].shape[-2]
@@ -250,10 +250,10 @@ def grid_pred(
     comp_rgb[:, 3, :, :] = targets.logical_or(preds)
 
     row_titles = [
-        'Input images',
-        'Predicted segmentation',
-        'Ground truth segmentation',
-        'True vs. predicted segmentation',
+        "Input images",
+        "Predicted segmentation",
+        "Ground truth segmentation",
+        "True vs. predicted segmentation",
     ]
 
     fig = plt.figure(figsize=(2 * n_images, 10), constrained_layout=True)
@@ -268,20 +268,20 @@ def grid_pred(
         for col, ax in enumerate(np.atleast_1d(axs)):
             if row == 0:
                 ax.imshow(inputs[col], cmap=colormap_im)
-                ax.axis('off')
+                ax.axis("off")
 
             elif row == 1:  # Predicted segmentation
                 ax.imshow(inputs[col], cmap=colormap_im)
                 ax.imshow(preds[col], cmap=custom_cmap, alpha=alpha)
-                ax.axis('off')
+                ax.axis("off")
             elif row == 2:  # Ground truth segmentation
                 ax.imshow(inputs[col], cmap=colormap_im)
                 ax.imshow(targets[col], cmap=custom_cmap, alpha=alpha)
-                ax.axis('off')
+                ax.axis("off")
             else:
                 ax.imshow(inputs[col], cmap=colormap_im)
                 ax.imshow(comp_rgb[col].permute(1, 2, 0), alpha=alpha)
-                ax.axis('off')
+                ax.axis("off")
 
     if show:
         plt.show()
@@ -314,8 +314,8 @@ def vol_masked(
 
     """
 
-    background = (volume.astype('float') + viz_delta) * (1 - volume_mask) * -1
-    foreground = (volume.astype('float') + viz_delta) * volume_mask
+    background = (volume.astype("float") + viz_delta) * (1 - volume_mask) * -1
+    foreground = (volume.astype("float") + viz_delta) * volume_mask
     volume_masked_result = background + foreground
 
     return volume_masked_result
