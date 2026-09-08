@@ -4746,7 +4746,7 @@ requires-dist = [
     { name = "pillow", specifier = ">=10.0.1" },
     { name = "plotly", specifier = ">=5.14.1" },
     { name = "psutil", specifier = ">=5.9.0" },
-    { name = "pydicom", specifier = ">=2.4.4" },
+    { name = "pydicom", specifier = ">=2.4.5" },
     { name = "pygel3d", specifier = ">=0.8.2" },
     { name = "pygorpho", specifier = ">=1.0.1" },
     { name = "pytetwild" },
