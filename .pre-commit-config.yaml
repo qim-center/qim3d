@@ -24,11 +24,12 @@
         args: ["--pytest-test-first"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Should match version in pyproject.toml
     rev: v0.15.20
     hooks:
-      # Run the linter and fix what is possible
-      - id: ruff-check
-        args: ["--fix"]
+      # # Run the linter and fix what is possible
+      # - id: ruff-check
+      #   args: ["--fix"]
 
       # Run the formatter and fix code styling
       - id: ruff-format
