@@ -1,20 +1,20 @@
 from ._common_filter_methods import (
+    Filter,
     FilterBase,
     Gaussian,
-    Median,
     Maximum,
+    Median,
     Minimum,
     Pipeline,
-    Tophat,
-    Filter,
     Sobel,
     Threshold,
+    Tophat,
     gaussian,
-    median,
     maximum,
+    median,
     minimum,
-    tophat,
     sobel,
+    tophat,
 )
 
 __all__ = [

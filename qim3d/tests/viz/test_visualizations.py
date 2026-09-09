@@ -1,5 +1,5 @@
-import pytest
 import matplotlib
+import pytest
 
 import qim3d
 

@@ -1,6 +1,6 @@
-import numpy as np
 import matplotlib.pyplot as plt
-from scipy.ndimage import find_objects, label, generate_binary_structure
+import numpy as np
+from scipy.ndimage import find_objects, generate_binary_structure, label
 
 from qim3d.utils._logger import log
 

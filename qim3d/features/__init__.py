@@ -1,9 +1,9 @@
 from ._common_features_methods import (
     area,
     mean_std_intensity,
+    roughness,
     size,
     sphericity,
-    roughness,
     volume,
 )
 

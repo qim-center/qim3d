@@ -1,6 +1,6 @@
-from pygel3d import jupyter_display as jd
 import pygel3d
 import pyvista as pv
+from pygel3d import jupyter_display as jd
 
 from qim3d.mesh._common_mesh_methods import SurfaceMesh, VolumeMesh
 from qim3d.utils._logger import log

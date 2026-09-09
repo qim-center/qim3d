@@ -1,5 +1,5 @@
-import pytest
 import numpy as np
+import pytest
 from torch import ones
 
 import qim3d
