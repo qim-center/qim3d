@@ -130,7 +130,7 @@ jupyter = [
 ]
 
 lint = [
-    "ruff>=0.15.20"  # Should match version in .pre-commit-config.yaml
+    "ruff==0.16.4"  # Should match version in .pre-commit-config.yaml, pinned to match exactly
 ]
 
 misc = [
