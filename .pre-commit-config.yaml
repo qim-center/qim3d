@@ -25,7 +25,7 @@
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Should match version in pyproject.toml
-    rev: v0.15.20
+    rev: v0.16.4
     hooks:
       # # Run the linter and fix what is possible
       # - id: ruff-check
