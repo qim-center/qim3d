@@ -3,7 +3,7 @@ from pygel3d import hmesh
 from skimage.filters import threshold_otsu
 
 import qim3d
-from qim3d.utils._logger import log
+from qim3d._log import logger
 
 
 def prepare_obj(
@@ -50,7 +50,7 @@ def prepare_obj(
 
     else:
         if threshold is not None:
-            log.info("The volume is already binarized, threshold will be ignored.")
+            logger.info("The volume is already binarized, threshold will be ignored.")
 
     # Apply mask if provided (set voxels outside of mask to 0)
     if mask is not None:
@@ -270,7 +270,7 @@ def sphericity(
     volume = qim3d.features.volume(mesh)
 
     if area == 0 or volume == 0:
-        log.warning("Surface area or volume is zero, sphericity is undefined.")
+        logger.warning("Surface area or volume is zero, sphericity is undefined.")
         return np.nan
 
     # Compute sphericity
@@ -487,7 +487,7 @@ def roughness(
     volume = qim3d.features.volume(mesh)
 
     if area == 0 or volume == 0:
-        log.warning("Surface area or volume is zero, roughness is undefined.")
+        logger.warning("Surface area or volume is zero, roughness is undefined.")
         return np.nan
 
     # Compute roughness

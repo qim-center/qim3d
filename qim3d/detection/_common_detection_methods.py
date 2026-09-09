@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from qim3d.utils._logger import log
+from qim3d._log import logger
 
 
 def blobs(
@@ -76,7 +76,7 @@ def blobs(
     from skimage.feature import blob_dog
 
     if background == "bright":
-        log.info("Bright background selected, volume will be inverted.")
+        logger.info("Bright background selected, volume will be inverted.")
         volume = np.invert(volume)
 
     blobs = blob_dog(

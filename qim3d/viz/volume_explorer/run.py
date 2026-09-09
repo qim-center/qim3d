@@ -6,7 +6,7 @@ import webbrowser
 from pathlib import Path
 
 import qim3d
-from qim3d.utils._logger import log
+from qim3d._log import logger
 
 from .helpers import (
     SOURCE_FNM,
@@ -118,7 +118,7 @@ def try_opening_volume_explorer(
             if open_browser:
                 webbrowser.open_new_tab(viz_url)
 
-            log.info(f"\nVisualization url:\n{viz_url}\n")
+            logger.info(f"\nVisualization url:\n{viz_url}\n")
         c.release()
 
     delayed_window = threading.Thread(target=delayed_open)

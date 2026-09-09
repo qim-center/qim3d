@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from scipy.ndimage import find_objects, generate_binary_structure, label
 
-from qim3d.utils._logger import log
+from qim3d._log import logger
 
 
 class LabeledVolume:

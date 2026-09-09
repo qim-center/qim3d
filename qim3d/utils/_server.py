@@ -2,7 +2,7 @@ import os
 import threading
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
-from qim3d.utils._logger import log
+from qim3d._log import logger
 
 
 class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
@@ -74,6 +74,6 @@ def start_http_server(directory: str, port: int = 8000) -> HTTPServer:
     thread.daemon = True
     thread.start()
 
-    log.info(f"Serving directory '{directory}'\nhttp://localhost:{port}/")
+    logger.info(f"Serving directory '{directory}'\nhttp://localhost:{port}/")
 
     return server

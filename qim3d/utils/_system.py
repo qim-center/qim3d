@@ -6,7 +6,7 @@ import time
 import numpy as np
 import psutil
 
-from qim3d.utils._logger import log
+from qim3d._log import logger
 from qim3d.utils._misc import sizeof
 
 
@@ -32,7 +32,7 @@ class Memory:
         self.used_pct = mem.percent
 
     def report(self):
-        log.info(
+        logger.info(
             "System memory:\n • Total.: %s\n • Used..: %s (%s%%)\n • Free..: %s (%s%%)",
             sizeof(self.total),
             sizeof(self.used),
@@ -126,7 +126,7 @@ def disk_report(file_size: int = 1024 * 1024 * 100, ntimes: int = 10) -> None:
     )
 
     # Print disk information
-    log.info(
+    logger.info(
         "Disk:\n • Write speed..: %.2f GB/s (± %.2f GB/s)\n • Read speed...: %.2f GB/s (± %.2f GB/s)",
         avg_write_speed,
         write_speed_std,

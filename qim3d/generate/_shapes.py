@@ -1,11 +1,11 @@
 import numpy as np
 
+from qim3d._log import logger
 from qim3d.filters import gaussian
 
 # Import qim3d modules
 from qim3d.generate._generators import volume
 from qim3d.operations import center_twist
-from qim3d.utils import log
 
 __all__ = ["berry", "rope"]
 
@@ -241,7 +241,7 @@ def berry(
         msg = "gamma must be positive"
         raise ValueError(msg)
 
-    log.info(f"Generating berry with {num_drupelets} drupelets in shape {shape}")
+    logger.info(f"Generating berry with {num_drupelets} drupelets in shape {shape}")
 
     center = tuple(s // 2 for s in shape)
 
@@ -512,7 +512,7 @@ def rope(
         msg = "thread_spacing must be positive"
         raise ValueError(msg)
 
-    log.info(f"Generating rope with {num_threads} threads in shape {shape}")
+    logger.info(f"Generating rope with {num_threads} threads in shape {shape}")
 
     rng = np.random.default_rng(seed)
 
