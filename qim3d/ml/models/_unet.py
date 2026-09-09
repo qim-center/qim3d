@@ -1,6 +1,6 @@
 """UNet model and Hyperparameters class."""
 
-from qim3d.utils import log
+from qim3d._log import logger
 from qim3d.utils._dependencies import optional_import
 
 torch = optional_import("torch", extra="deep-learning")
@@ -188,7 +188,7 @@ class Hyperparameters:
             raise ValueError(msg)
 
         if (momentum != 0) and optimizer == "Adam":
-            log.info(
+            logger.info(
                 "Momentum isn't an input in the 'Adam' optimizer. "
                 "Change optimizer to 'SGD' or 'RMSprop' to use momentum."
             )

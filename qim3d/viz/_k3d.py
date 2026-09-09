@@ -14,8 +14,8 @@ import plotly.graph_objects as go
 import pygel3d
 from matplotlib.colors import Colormap
 
+from qim3d._log import logger
 from qim3d.utils._decorators import coarseness
-from qim3d.utils._logger import log
 from qim3d.utils._misc import downscale_img, scale_to_float16
 
 
@@ -138,7 +138,7 @@ def volumetric(
     new_shape = volume.shape
 
     if original_shape != new_shape:
-        log.warning(
+        logger.warning(
             f"Downsampled image for visualization, from {original_shape} to {new_shape}"
         )
 
@@ -173,7 +173,7 @@ def volumetric(
     interpolation = True
 
     if constant_opacity:
-        log.warning(
+        logger.warning(
             'Deprecation warning: Keyword argument "constant_opacity" is deprecated and will be removed next release. Instead use opacity_function="constant".'
         )
         # without these settings, the plot will look bad when colormap is created with qim3d.viz.colormaps.objects
@@ -293,7 +293,7 @@ def mesh(
 
     if len(mesh.vertices()) > 100000:
         msg = f"The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh."
-        log.info(msg)
+        logger.info(msg)
 
     if backend not in ["k3d", "pygel3d"]:
         msg = "Invalid backend. Choose 'pygel3d' or 'k3d'."

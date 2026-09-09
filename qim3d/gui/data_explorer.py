@@ -28,11 +28,11 @@ import numpy as np
 import outputformat as ouf
 import zarr
 
+from qim3d._log import logger
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
 from qim3d.utils import _misc
 from qim3d.utils._dependencies import optional_import
-from qim3d.utils._logger import log
 
 gr = optional_import("gradio", extra="gui")
 gife = optional_import("gradio_improvedfileexplorer", extra="gui")
@@ -182,7 +182,7 @@ class Interface(BaseInterface):
                             return gr.update(visible=False)
 
                     except Exception as e:
-                        log.info(f"Error when reading zarr multiscale info: {e}")
+                        logger.info(f"Error when reading zarr multiscale info: {e}")
                         return gr.update(visible=False)
 
                 explorer.change(
@@ -467,7 +467,7 @@ class Interface(BaseInterface):
         self.calculated_operations = []
         for operation in self.all_operations:
             if operation in operations:
-                log.info(f"Running {operation}")
+                logger.info(f"Running {operation}")
                 try:
                     outputs.append(self.run_operation(operation, *args))
                     self.calculated_operations.append(operation)
@@ -477,10 +477,10 @@ class Interface(BaseInterface):
                         f"Error while running operation '{operation}': {err}"
                     )
 
-                    log.info(self.error_message)
+                    logger.info(self.error_message)
                     outputs.append(gr.update())
             else:
-                log.info(f"Skipping {operation}")
+                logger.info(f"Skipping {operation}")
                 outputs.append(gr.update())
 
         return outputs

@@ -5,8 +5,8 @@ import os
 from tqdm.auto import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
+from qim3d._log import logger
 from qim3d.utils._dependencies import optional_import
-from qim3d.utils._logger import log
 from qim3d.viz._metrics import plot_metrics
 
 from .models._unet import Hyperparameters
@@ -102,7 +102,7 @@ def train_model(
     model.to(device)
 
     # Avoid logging twice
-    log.propagate = False
+    logger.propagate = False
 
     # Set up dictionaries to store training and validation losses
     train_loss = {"loss": [], "batch_loss": []}
@@ -165,7 +165,7 @@ def train_model(
                 val_loss["loss"].append(eval_loss)
 
                 if epoch % print_every == 0:
-                    log.info(
+                    logger.info(
                         f"Epoch {epoch: 3}, train loss: {train_loss['loss'][epoch]:.4f}, "
                         f"val loss: {val_loss['loss'][epoch]:.4f}"
                     )
@@ -176,7 +176,7 @@ def train_model(
 
         # Save model checkpoint to .pth file
         torch.save(model.state_dict(), checkpoint_path)
-        log.info(f"Model checkpoint saved at: {checkpoint_path}")
+        logger.info(f"Model checkpoint saved at: {checkpoint_path}")
 
     if plot:
         plot_metrics(train_loss, val_loss, labels=["Train", "Valid."], show=True)
@@ -223,7 +223,7 @@ def load_checkpoint(model: torch.nn.Module, checkpoint_path: str) -> torch.nn.Mo
         ```
     """
     model.load_state_dict(torch.load(checkpoint_path))
-    log.info(f"Model checkpoint loaded from: {checkpoint_path}")
+    logger.info(f"Model checkpoint loaded from: {checkpoint_path}")
 
     return model
 

@@ -38,7 +38,7 @@ from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
 from pygel3d import hmesh
 
-from qim3d.utils import log
+from qim3d._log import logger
 from qim3d.utils._misc import stringify_path
 
 
@@ -129,7 +129,7 @@ class DataSaver:
                 filepath[: -(len(extension) + zfill_val)] + "-" * zfill_val + extension
             )
 
-            log.info(
+            logger.info(
                 f"Total of {no_slices} files saved following the pattern '{pattern_string}'"
             )
 
@@ -153,11 +153,13 @@ class DataSaver:
         # nib does automatically compress if filetype ends with .gz
         if self.compression and not path.endswith(".gz"):
             path += ".gz"
-            log.warning("File extension '.gz' is added since compression is enabled.")
+            logger.warning(
+                "File extension '.gz' is added since compression is enabled."
+            )
 
         if not self.compression and path.endswith(".gz"):
             path = path[:-3]
-            log.warning(
+            logger.warning(
                 "File extension '.gz' is ignored since compression is disabled."
             )
 
@@ -282,9 +284,9 @@ class DataSaver:
         if isinstance(data, da.Array):
             # If the data is a Dask array, save using dask
             if self.chunk_shape:
-                log.info("Rechunking data to shape %s", self.chunk_shape)
+                logger.info("Rechunking data to shape %s", self.chunk_shape)
                 data = data.rechunk(self.chunk_shape)
-            log.info("Saving Dask array to Zarr array on disk")
+            logger.info("Saving Dask array to Zarr array on disk")
             da.to_zarr(data, path, overwrite=self.replace)
 
         else:
@@ -359,7 +361,7 @@ class DataSaver:
             if not ext and self.basename:
                 # Make directory and save as tiff stack
                 os.mkdir(path)
-                log.info("Created directory '%s'!", path)
+                logger.info("Created directory '%s'!", path)
                 return self.save_tiff_stack(path, data)
 
             # Check if a parent directory exists
@@ -370,7 +372,7 @@ class DataSaver:
                     # If there is a basename
                     if self.basename:
                         # It will be unused and the user is informed accordingly
-                        log.info("'basename' argument is unused")
+                        logger.info("'basename' argument is unused")
                     # Check if a file with the given path already exists
                     if os.path.isfile(path) and not self.replace:
                         raise ValueError(

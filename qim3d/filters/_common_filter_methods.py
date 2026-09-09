@@ -10,7 +10,7 @@ import numpy as np
 from scipy import ndimage
 from skimage import morphology
 
-from qim3d.utils import log
+from qim3d._log import logger
 
 
 class FilterBase:
@@ -706,10 +706,10 @@ def tophat(volume: np.ndarray, dask: bool = False, **kwargs):
     background = kwargs["background"] if "background" in kwargs else "dark"
 
     if dask:
-        log.info("Dask not supported for tophat filter, switching to scipy.")
+        logger.info("Dask not supported for tophat filter, switching to scipy.")
 
     if background == "bright":
-        log.info(
+        logger.info(
             "Bright background selected, volume will be temporarily inverted when applying white_tophat"
         )
         volume = np.invert(volume)

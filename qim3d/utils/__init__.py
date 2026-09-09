@@ -1,6 +1,5 @@
 from ._decorators import coarseness
 from ._doi import *
-from ._logger import log
 from ._misc import (
     downscale_img,
     get_css,
