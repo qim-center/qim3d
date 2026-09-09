@@ -13,6 +13,11 @@ __version__ = "1.5.3"
 
 
 import importlib as _importlib
+import logging
+
+from qim3d._log import initialize_logger as _initialize_logger
+
+_initialize_logger(logging.INFO, detailed=True)
 
 
 class _LazyLoader:
