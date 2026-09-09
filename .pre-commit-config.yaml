@@ -27,9 +27,9 @@
     # Should match version in pyproject.toml
     rev: v0.16.4
     hooks:
-      # # Run the linter and fix what is possible
-      # - id: ruff-check
-      #   args: ["--fix"]
+      # Run the linter and fix what is possible
+      - id: ruff-check
+        args: ["--fix"]
 
       # Run the formatter and fix code styling
       - id: ruff-format
