@@ -28,7 +28,7 @@ def read_txrm(file_name, slice_range=None):
     """
     try:
         ole = olefile.OleFileIO(file_name)
-    except IOError:
+    except OSError:
         print("No such file or directory: %s", file_name)
         return False
 
@@ -54,9 +54,7 @@ def read_txrm(file_name, slice_range=None):
     for i, idx in enumerate(
         range(*slice_range[0].indices(metadata["number_of_images"]))
     ):
-        img_string = "ImageData{}/Image{}".format(
-            int(np.ceil((idx + 1) / 100.0)), int(idx + 1)
-        )
+        img_string = f"ImageData{int(np.ceil((idx + 1) / 100.0))}/Image{int(idx + 1)}"
         array_of_images[i] = _read_ole_image(ole, img_string, metadata)[slice_range[1:]]
 
     reference = metadata["reference"]
@@ -94,26 +92,20 @@ def read_ole_metadata(ole):
         "reference_filename": _read_ole_value(ole, "ImageInfo/referencefile", "<260s"),
         "reference_data_type": _read_ole_value(ole, "referencedata/DataType", "<1I"),
         # NOTE: converting theta to radians from degrees
-        "thetas": _read_ole_arr(
-            ole, "ImageInfo/Angles", "<{0}f".format(number_of_images)
-        )
+        "thetas": _read_ole_arr(ole, "ImageInfo/Angles", f"<{number_of_images}f")
         * np.pi
         / 180.0,
         "x_positions": _read_ole_arr(
-            ole, "ImageInfo/XPosition", "<{0}f".format(number_of_images)
+            ole, "ImageInfo/XPosition", f"<{number_of_images}f"
         ),
         "y_positions": _read_ole_arr(
-            ole, "ImageInfo/YPosition", "<{0}f".format(number_of_images)
+            ole, "ImageInfo/YPosition", f"<{number_of_images}f"
         ),
         "z_positions": _read_ole_arr(
-            ole, "ImageInfo/ZPosition", "<{0}f".format(number_of_images)
+            ole, "ImageInfo/ZPosition", f"<{number_of_images}f"
         ),
-        "x-shifts": _read_ole_arr(
-            ole, "alignment/x-shifts", "<{0}f".format(number_of_images)
-        ),
-        "y-shifts": _read_ole_arr(
-            ole, "alignment/y-shifts", "<{0}f".format(number_of_images)
-        ),
+        "x-shifts": _read_ole_arr(ole, "alignment/x-shifts", f"<{number_of_images}f"),
+        "y-shifts": _read_ole_arr(ole, "alignment/y-shifts", f"<{number_of_images}f"),
     }
     # special case to remove trailing null characters
     reference_filename = _read_ole_value(ole, "ImageInfo/referencefile", "<260s")

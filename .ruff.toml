@@ -21,7 +21,10 @@ lint.select = [
     # as we progressively get a more compliant codebase.
     # "ALL"
 
-    "I",  # isort
+    # I: isort
+    "I",
+    # UP: pyupgrade
+    "UP",
 ]
 
 lint.ignore = [

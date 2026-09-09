@@ -12,7 +12,7 @@ from qim3d.utils import log
 def local_thickness(
     image: np.ndarray,
     scale: float = 1,
-    mask: Optional[np.ndarray] = None,
+    mask: np.ndarray | None = None,
     visualize: bool = False,
     **viz_kwargs,
 ) -> np.ndarray:

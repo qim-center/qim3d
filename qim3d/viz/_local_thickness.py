@@ -12,10 +12,10 @@ def local_thickness(
     image_lt: np.ndarray,
     max_projection: bool = False,
     axis: int = 0,
-    slice_index: Optional[Union[int, float]] = None,
+    slice_index: int | float | None = None,
     show: bool = False,
-    figsize: Tuple[int, int] = (15, 5),
-) -> Union[plt.Figure, widgets.interactive]:
+    figsize: tuple[int, int] = (15, 5),
+) -> plt.Figure | widgets.interactive:
     """
     Visualizes a local thickness map alongside the original image and a statistics histogram.
 

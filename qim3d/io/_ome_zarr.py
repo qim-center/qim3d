@@ -23,7 +23,7 @@ from scipy.ndimage import zoom
 from qim3d.utils import log
 from qim3d.utils._progress_bar import OmeZarrExportProgressBar
 
-ListOfArrayLike = Union[List[da.Array], List[np.ndarray]]
+ListOfArrayLike = Union[list[da.Array], list[np.ndarray]]
 ArrayLike = Union[da.Array, np.ndarray]
 
 
