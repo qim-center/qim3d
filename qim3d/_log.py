@@ -44,6 +44,20 @@ def set_simple_output():
     logger.addHandler(handler)
 
 
-# Set up logging configuration
-set_detailed_output()
-logger.setLevel(logging.INFO)
+def initialize_logger(level: str | int, detailed: bool = False):
+    """
+    Initializes the logger with the specified log level and output format.
+
+    Args:
+        level (str or int): The log level to set for the logger. It can be a
+            string (e.g., "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL") or
+            an integer corresponding to the log level.
+            Note that `logging.INFO` is an int, so those enum-like values can be used.
+        detailed (bool, optional): If True, sets the output format to detailed.
+    """
+
+    logger.setLevel(level)
+    if detailed:
+        set_detailed_output()
+    else:
+        set_simple_output()
