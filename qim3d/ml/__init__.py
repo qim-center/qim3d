@@ -1,6 +1,6 @@
 from ._augmentations import Augmentation
-from ._data import Dataset, prepare_datasets, prepare_dataloaders
-from ._ml_utils import model_summary, train_model, load_checkpoint, test_model
+from ._data import Dataset, prepare_dataloaders, prepare_datasets
+from ._ml_utils import load_checkpoint, model_summary, test_model, train_model
 from .models import *
 
 __all__ = [

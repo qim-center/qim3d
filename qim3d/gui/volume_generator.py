@@ -3,9 +3,9 @@ import base64
 import gradio as gr
 from matplotlib.pyplot import colormaps
 
+from qim3d.generate import volume
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import save
-from qim3d.generate import volume
 from qim3d.viz import volumetric
 
 

@@ -1,10 +1,10 @@
 from collections.abc import Callable
+from unittest.mock import MagicMock, patch
 
-import pytest
 import matplotlib
-from unittest.mock import patch, MagicMock
+import pytest
 
-from qim3d.tests import get_all_functions_by_module, check_docstring, temp_data
+from qim3d.tests import check_docstring, get_all_functions_by_module, temp_data
 
 matplotlib.use("Agg")
 

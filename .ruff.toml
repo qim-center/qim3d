@@ -15,7 +15,15 @@ output-prefer-rule-codes = true
 lint.pydocstyle.convention = "google"
 
 # See: https://docs.astral.sh/ruff/rules/
-lint.select = ["ALL"]
+lint.select = [
+    # This should eventually be "ALL" with exceptions specified below, see #222
+    # For now, we only enable a few rules with the intention of enabling more
+    # as we progressively get a more compliant codebase.
+    # "ALL"
+
+    "I",  # isort
+]
+
 lint.ignore = [
     # Permanent rules that we currently wish to follow (until proven otherwise)
     # AIR: apache-airflow

@@ -4,18 +4,18 @@ import threading
 import time
 import webbrowser
 from pathlib import Path
-import qim3d
 
+import qim3d
 from qim3d.utils._logger import log
 
 from .helpers import (
     SOURCE_FNM,
     NotInstalledError,
-    get_volume_explorer_dir,
     get_node_binaries_dir,
     get_nvm_dir,
     get_viewer_binaries,
     get_viewer_dir,
+    get_volume_explorer_dir,
     run_for_platform,
 )
 from .installation import Installer

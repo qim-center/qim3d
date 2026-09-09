@@ -6,10 +6,10 @@ from pathlib import Path
 from .helpers import (
     SOURCE_FNM,
     NotInstalledError,
-    get_volume_explorer_dir,
     get_node_binaries_dir,
     get_nvm_dir,
     get_viewer_dir,
+    get_volume_explorer_dir,
     run_for_platform,
 )
 

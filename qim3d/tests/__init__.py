@@ -1,8 +1,8 @@
 """Helper functions for testing"""
 
-import os
-import inspect
 import importlib
+import inspect
+import os
 import shutil
 import socket
 from pathlib import Path
@@ -10,11 +10,10 @@ from pathlib import Path
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
-
 from mktestdocs import grab_code_blocks
 
-from qim3d.utils._logger import log
 from qim3d.io import save
+from qim3d.utils._logger import log
 
 
 def mock_plot():
