@@ -135,7 +135,7 @@ def _get_ole_data_type(metadata, datatype=None):
     elif datatype == 5:
         return np.dtype(np.uint16)
     else:
-        raise Exception("Unsupport XRM datatype: %s" % str(datatype))
+        raise Exception("Unsupport XRM datatype: %s", str(datatype))
 
 
 def _make_slice_object_a_tuple(slc):

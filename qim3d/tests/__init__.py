@@ -141,7 +141,7 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                log.warning("Failed to delete %s. Reason: %s" % (file_path, e))
+                log.warning("Failed to delete %s. Reason: %s", file_path, e)
 
         os.rmdir(folder)
 

@@ -5,7 +5,6 @@ Exporting data to different formats.
 import math
 import os
 import shutil
-from typing import List, Union
 
 import dask.array as da
 import numpy as np
@@ -22,9 +21,6 @@ from scipy.ndimage import zoom
 
 from qim3d.utils import log
 from qim3d.utils._progress_bar import OmeZarrExportProgressBar
-
-ListOfArrayLike = Union[list[da.Array], list[np.ndarray]]
-ArrayLike = Union[da.Array, np.ndarray]
 
 
 class OMEScaler(
