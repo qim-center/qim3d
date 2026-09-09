@@ -4,7 +4,6 @@ This module provides a collection of colormaps useful for 3D visualization.
 
 import colorsys
 import math
-from typing import Tuple, Union
 
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
