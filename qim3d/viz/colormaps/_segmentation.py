@@ -38,7 +38,7 @@ def segmentation(
     style: str = "bright",
     first_color_background: bool = True,
     last_color_background: bool = False,
-    background_color: Union[Tuple[float, float, float], str] = (0.0, 0.0, 0.0),
+    background_color: tuple[float, float, float] | str = (0.0, 0.0, 0.0),
     min_dist: int = 0.5,
     seed: int = 19,
 ) -> LinearSegmentedColormap:
