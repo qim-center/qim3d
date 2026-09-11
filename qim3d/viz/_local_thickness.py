@@ -55,7 +55,7 @@ def local_thickness(
         lt_fly = qim3d.processing.local_thickness(fly)
         qim3d.viz.local_thickness(fly, lt_fly, axis=0)
         ```
-        ![local thickness 3d](../../assets/screenshots/local_thickness_3d.gif)
+        ![local thickness 3d](../assets/screenshots/local_thickness_3d.gif)
     """
 
     def _local_thickness(image, image_lt, show, figsize, axis=None, slice_index=None):

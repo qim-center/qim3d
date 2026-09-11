@@ -18,6 +18,6 @@ Example:
 
     display(qim3d.viz.colormaps.qim)
     ```
-    ![colormap objects](../../assets/screenshots/viz-colormaps-qim.png)
+    ![colormap objects](../assets/screenshots/viz-colormaps-qim.png)
 """
 colormaps.register(qim)

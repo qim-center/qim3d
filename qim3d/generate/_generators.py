@@ -129,7 +129,7 @@ def background(
         ```python
         qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
         ```
-        ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_2.png)
+        ![synthetic_noisy_collection_slices](../assets/screenshots/synthetic_noisy_collection_slices_2.png)
 
     Example:
         ```python
@@ -151,7 +151,7 @@ def background(
 
         qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
         ```
-        ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_3.png)
+        ![synthetic_noisy_collection_slices](../assets/screenshots/synthetic_noisy_collection_slices_3.png)
 
     """
     # Ensure dtype is a valid NumPy type
@@ -327,7 +327,7 @@ def volume(
         # Visualize slices
         qim3d.viz.slices_grid(vol, value_min = 0, value_max = 255, num_slices = 15)
         ```
-        ![synthetic_blob](../../assets/screenshots/synthetic_blob_slices.png)
+        ![synthetic_blob](../assets/screenshots/synthetic_blob_slices.png)
 
     Example:
         ```python
@@ -353,7 +353,7 @@ def volume(
         # Visualize slices
         qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
         ```
-        ![synthetic_blob_cylinder_slice](../../assets/screenshots/synthetic_blob_cylinder_slice.png)
+        ![synthetic_blob_cylinder_slice](../assets/screenshots/synthetic_blob_cylinder_slice.png)
 
     Example:
         ```python
@@ -377,7 +377,7 @@ def volume(
         # Visualize
         qim3d.viz.slices_grid(vol, num_slices=15)
         ```
-        ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)
+        ![synthetic_blob_tube_slice](../assets/screenshots/synthetic_blob_tube_slice.png)
 
     """
     # Control
@@ -566,7 +566,7 @@ class ParameterVisualizer:
 
         viz = qim3d.generate.ParameterVisualizer()
         ```
-        ![paramter_visualizer](../../assets/screenshots/viz-synthetic_parameters.gif)
+        ![paramter_visualizer](../assets/screenshots/viz-synthetic_parameters.gif)
 
     Accessing the current volume:
             The most recently generated 3D volume can be retrieved at any time using the `.get_volume()` method:

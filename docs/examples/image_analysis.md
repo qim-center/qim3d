@@ -19,7 +19,7 @@ vol = qim3d.examples.bone_128x128x128
 qim3d.viz.threshold(vol)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/interactive_thresholding.gif" alt="thresholding">
+    <img src="../assets/screenshots/interactive_thresholding.gif" alt="thresholding">
 </div>
 
 
@@ -47,10 +47,10 @@ vol_filtered = pipeline(vol)
 fig2 = qim3d.viz.slices_grid(vol_filtered, num_slices=5, display_figure=True)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/filter_original.png" alt="filter_original">
+    <img src="../assets/screenshots/filter_original.png" alt="filter_original">
 </div>
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/filter_processed.png" alt="filter_processed">
+    <img src="../assets/screenshots/filter_processed.png" alt="filter_processed">
 </div>
 
 ## BLOB detection
@@ -74,10 +74,10 @@ blobs, binary_volume = qim3d.detection.blobs(
 qim3d.viz.circles(blobs, vol, alpha=0.8, color="blue")
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/blob_detection.gif" alt="blob_detection>
+    <img src="../assets/screenshots/blob_detection.gif" alt="blob_detection>
 </div>
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/blob_get_mask.gif" alt="blob_mask">
+    <img src="../assets/screenshots/blob_get_mask.gif" alt="blob_mask">
 </div>
 
 
@@ -92,7 +92,7 @@ bin_vol = qim3d.filters.gaussian(vol, sigma=2) < 60
 fig1 = qim3d.viz.slices_grid(bin_vol, slice_axis=1, display_figure=True)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/operations-watershed_before.png" alt="watershed_before">
+    <img src="../assets/screenshots/operations-watershed_before.png" alt="watershed_before">
 </div>
 
 ```py
@@ -104,5 +104,5 @@ fig2 = qim3d.viz.slices_grid(
 )
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/operations-watershed_after.png" alt="watershed_after">
+    <img src="../assets/screenshots/operations-watershed_after.png" alt="watershed_after">
 </div>

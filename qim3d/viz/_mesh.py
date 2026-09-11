@@ -64,17 +64,11 @@ def mesh(
         # Visualize the generated mesh
         qim3d.viz.mesh(mesh)
         ```
-        ![pygel3d_visualization](../../assets/screenshots/viz-pygel_mesh.png)
+        ![pygel3d_visualization](../assets/screenshots/viz-pygel_mesh.png)
 
         ```python
         qim3d.viz.mesh(mesh, backend='k3d', wireframe=False, flat_shading=False)
         ```
-        [k3d_visualization](../../assets/screenshots/sphere.html)
-        <div class="scene">
-            <iframe src="http://127.0.0.1:8000/qim3d/assets/screenshots/sphere.html" width="100%" height="500" frameborder="0"></iframe>
-        </div>
-
-
     """
 
     if isinstance(mesh, (VolumeMesh, SurfaceMesh)):

@@ -307,9 +307,9 @@ class Pipeline:
         # Show filtered result
         qim3d.viz.slices_grid(filtered_vol, num_slices=5)
         ```
-        ![original volume](../../assets/screenshots/pipeline_original.png)
-        ![original volume](../../assets/screenshots/pipeline_middlestep.png)
-        ![filtered volume](../../assets/screenshots/pipeline_processed.png)
+        ![original volume](../assets/screenshots/pipeline_original.png)
+        ![original volume](../assets/screenshots/pipeline_middlestep.png)
+        ![filtered volume](../assets/screenshots/pipeline_processed.png)
 
     """
 
@@ -429,8 +429,8 @@ def gaussian(
         qim3d.viz.slices_grid(vol, n_slices=5, display_figure=True)
         qim3d.viz.slices_grid(vol_filtered, n_slices=5, display_figure=True)
         ```
-        ![gaussian-filter-before](../../assets/screenshots/gaussian_filter_original.png)
-        ![gaussian-filter-after](../../assets/screenshots/gaussian_filter_processed.png)
+        ![gaussian-filter-before](../assets/screenshots/gaussian_filter_original.png)
+        ![gaussian-filter-after](../assets/screenshots/gaussian_filter_processed.png)
 
     """
 
@@ -472,8 +472,8 @@ def sobel(vol: np.ndarray, dask: bool = False):
         qim3d.viz.slices_grid(vol, num_slices=5)
         qim3d.viz.slices_grid(filtered_vol, num_slices=5)
         ```
-        ![sobel-filter-before](../../assets/screenshots/sobel_filter_original.png)
-        ![sobel-filter-after](../../assets/screenshots/pipeline_middlestep.png)
+        ![sobel-filter-before](../assets/screenshots/sobel_filter_original.png)
+        ![sobel-filter-after](../assets/screenshots/pipeline_middlestep.png)
 
     """
     if dask:
@@ -531,8 +531,8 @@ def median(
         qim3d.viz.slices_grid(noisy_vol, n_slices=5, slice_positions = [10, 31, 63, 95, 120], display_figure=True)
         qim3d.viz.slices_grid(vol_filtered, n_slices=5, slice_positions = [10, 31, 63, 95, 120], display_figure=True)
         ```
-        ![median-filter-before](../../assets/screenshots/median_filter_original.png)
-        ![median-filter-after](../../assets/screenshots/median_filter_processed.png)
+        ![median-filter-before](../assets/screenshots/median_filter_original.png)
+        ![median-filter-after](../assets/screenshots/median_filter_processed.png)
 
     """
     if size is None:
@@ -589,8 +589,8 @@ def maximum(
         qim3d.viz.slices_grid(vol, n_slices=5, display_figure=True)
         qim3d.viz.slices_grid(vol_filtered, n_slices=5, display_figure=True)
         ```
-        ![maximum-filter-before](../../assets/screenshots/maximum_filter_original.png)
-        ![maximum-filter-after](../../assets/screenshots/maximum_filter_processed.png)
+        ![maximum-filter-before](../assets/screenshots/maximum_filter_original.png)
+        ![maximum-filter-after](../assets/screenshots/maximum_filter_processed.png)
 
     """
     if size is None:
@@ -646,8 +646,8 @@ def minimum(
         qim3d.viz.slices_grid(vol, n_slices=5, slice_positions = [10, 31, 63, 95, 120], display_figure=True)
         qim3d.viz.slices_grid(vol_filtered, n_slices=5, slice_positions = [10, 31, 63, 95, 120], display_figure=True)
         ```
-        ![minimum-filter-before](../../assets/screenshots/minimum_filter_original.png)
-        ![minimum-filter-after](../../assets/screenshots/minimum_filter_processed.png)
+        ![minimum-filter-before](../assets/screenshots/minimum_filter_original.png)
+        ![minimum-filter-after](../assets/screenshots/minimum_filter_processed.png)
 
     """
     if size is None:
@@ -697,8 +697,8 @@ def tophat(volume: np.ndarray, dask: bool = False, **kwargs):
         qim3d.viz.slices_grid(vol, n_slices=5, slice_positions = [10, 31, 63, 95, 120], display_figure=True)
         qim3d.viz.slices_grid(vol_filtered, n_slices=5, slice_positions = [10, 31, 63, 95, 120], display_figure=True)
         ```
-        ![tophat-filter-before](../../assets/screenshots/tophat_filter_original.png)
-        ![tophat-filter-after](../../assets/screenshots/tophat_filter_processed.png)
+        ![tophat-filter-before](../assets/screenshots/tophat_filter_original.png)
+        ![tophat-filter-after](../assets/screenshots/tophat_filter_processed.png)
 
     """
 

@@ -226,7 +226,7 @@ def shear3d(
 
         qim3d.viz.slicer(vol, slice_axis=1)
         ```
-        ![warp_box](../../assets/screenshots/warp_box_1.png)
+        ![warp_box](../assets/screenshots/warp_box_1.png)
         ```python
         # Shear the volume by 20% factor in x-direction along z-axis
         factor = 0.2
@@ -235,7 +235,7 @@ def shear3d(
 
         qim3d.viz.slicer(sheared_vol, slice_axis=1)
         ```
-        ![warp_box_shear](../../assets/screenshots/warp_box_shear.png)
+        ![warp_box_shear](../assets/screenshots/warp_box_shear.png)
     """
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
     assert isinstance(order, int), "Order must be an integer."
@@ -325,13 +325,13 @@ def curve_warp(
         vol[:,40:60, 40:60] = 1
         qim3d.viz.slicer(vol, slice_axis=1)
         ```
-        ![warp_box_long](../../assets/screenshots/warp_box_long.png)
+        ![warp_box_long](../assets/screenshots/warp_box_long.png)
         ```python
         # Warp the box along the x dimension
         warped_volume = qim3d.operations.curve_warp(vol, x_amp=10, x_periods=4)
         qim3d.viz.slicer(warped_volume, slice_axis=1)
         ```
-        ![warp_box_curved](../../assets/screenshots/warp_box_curve.png)
+        ![warp_box_curved](../assets/screenshots/warp_box_curve.png)
     """
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
     assert isinstance(order, int), "Order must be an integer."
@@ -407,7 +407,7 @@ def stretch(
 
         qim3d.viz.slicer(vol)
         ```
-        ![warp_box](../../assets/screenshots/warp_box_0.png)
+        ![warp_box](../assets/screenshots/warp_box_0.png)
 
         ```python
         # Stretch the box along the x dimension
@@ -417,7 +417,7 @@ def stretch(
         ```
         (100, 100, 140)
 
-        ![warp_box_stretch](../../assets/screenshots/warp_box_stretch.png)
+        ![warp_box_stretch](../assets/screenshots/warp_box_stretch.png)
         ```python
         # Squeeze the box along the y dimension
         squeezed_volume = qim3d.operations.stretch(vol, x_stretch=-20)
@@ -426,7 +426,7 @@ def stretch(
         ```
         (100, 100, 60)
 
-        ![warp_box_squeeze](../../assets/screenshots/warp_box_squeeze.png)
+        ![warp_box_squeeze](../assets/screenshots/warp_box_squeeze.png)
     """
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
     assert isinstance(order, int), "Order must be an integer."

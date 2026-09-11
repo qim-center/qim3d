@@ -146,7 +146,7 @@ Some Windows users could face an build error during installation.
 This issue occurs because the system lacks the necessary tools to compile the library requirements. To resolve this, follow these steps:
 
 - Go to the [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) page and click on "Download build tools."
-- Run the installer and ensure that `Desktop development with C++` is checked. ![Windows build tools](assets/screenshots/Troubleshooting-Windows_build_tools.png)
+- Run the installer and ensure that `Desktop development with C++` is checked. ![Windows build tools](../assets/screenshots/Troubleshooting-Windows_build_tools.png)
 - Restart your computer
 - Activate your conda enviroment and run `pip install qim3d` again
 
