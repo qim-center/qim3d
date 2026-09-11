@@ -581,8 +581,12 @@ def slicer(
         )
         return fig
 
+    # python's round() uses "round half to even" for .5 cases:
+    # it rounds to whichever neighboring integer is even
+    # e.g. 4.5 -> 4 (4 is even), 5.5 -> 6 (6 is even)
     if isinstance(default_position, float):
-        default_position = int(default_position * (volume.shape[slice_axis] - 1))
+        default_position = round(default_position * (volume.shape[slice_axis] - 1))
+
     if isinstance(default_position, int):
         if default_position < 0:
             default_position = volume.shape[slice_axis] + default_position

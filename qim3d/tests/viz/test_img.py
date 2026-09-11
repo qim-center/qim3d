@@ -242,7 +242,8 @@ def test_orthogonal_initial_slider_value():
     # Call the orthogonal function with the NumPy array
     orthogonal_obj = qim3d.viz.slicer_orthogonal(vol)
     for idx, slicer in enumerate(orthogonal_obj.children):
-        assert slicer.children[0].value == vol.shape[idx] // 2
+        expected_position = round(0.5 * (vol.shape[idx] - 1))
+        assert slicer.children[0].value == expected_position
 
 
 def test_orthogonal_slider_description():
