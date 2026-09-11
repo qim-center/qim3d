@@ -327,7 +327,13 @@ class DataLoader:
         vol = data.dataobj
 
         if not self.virtual_stack:
-            vol = np.asarray(vol, dtype=data.get_data_dtype())
+            # Copy out of the memory-mapped array so the underlying file
+            # handle is released.
+            # np.asarray can return view into the mmap, which keeps a lock on
+            # the file in the filesystem until the array is garbage collected.
+            # Without this, removal of files during testing were failing,
+            # See: https://github.com/qim-center/qim3d/issues/230
+            vol = np.asarray(vol, dtype=data.get_data_dtype()).copy()
 
         if self.return_metadata:
             metadata = {}
