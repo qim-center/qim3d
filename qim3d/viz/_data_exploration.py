@@ -582,7 +582,8 @@ def slicer(
         return fig
 
     if isinstance(default_position, float):
-        default_position = int(default_position * (volume.shape[slice_axis] - 1))
+        default_position = math.floor((default_position * (volume.shape[slice_axis] -1)) + 0.5)
+
     if isinstance(default_position, int):
         if default_position < 0:
             default_position = volume.shape[slice_axis] + default_position
