@@ -17,7 +17,7 @@ def test_grid_overview():
     n_images = 10
     train_set = [random_tuple for t in range(n_images)]
 
-    fig = qim3d.viz.grid_overview(train_set, num_images=n_images)
+    fig = qim3d.viz.grid_overview(train_set, n_images=n_images)
     assert fig.get_figwidth() == 2 * n_images
 
 
@@ -25,13 +25,13 @@ def test_grid_overview_tuple():
     random_tuple = (torch.ones(256, 256), torch.ones(256, 256))
 
     with pytest.raises(ValueError, match="Data elements must be tuples"):
-        qim3d.viz.grid_overview(random_tuple, num_images=1)
+        qim3d.viz.grid_overview(random_tuple, n_images=1)
 
 
 # unit tests for slices function
 def test_slices_numpy_array_input():
     example_volume = np.ones((10, 10, 10))
-    fig = qim3d.viz.slices_grid(example_volume, num_slices=1)
+    fig = qim3d.viz.slices_grid(example_volume, n_slices=1)
     assert isinstance(fig, plt.Figure)
 
 
@@ -92,7 +92,7 @@ def test_slices_interpolation_option():
     interpolation_method = "bilinear"
     fig = qim3d.viz.slices_grid(
         example_volume,
-        num_slices=1,
+        n_slices=1,
         image_width=img_width,
         interpolation=interpolation_method,
     )
@@ -110,7 +110,7 @@ def test_slices_multiple_slices():
     image_width = 3
     num_slices = 3
     fig = qim3d.viz.slices_grid(
-        example_volume, num_slices=num_slices, image_width=image_width
+        example_volume, n_slices=num_slices, image_width=image_width
     )
     # Add assertions for the expected number of subplots in the figure
     assert len(fig.get_axes()) == num_slices
@@ -123,13 +123,13 @@ def test_slices_axis_argument():
 
     # Call the function with different values of the axis
     fig_axis_0 = qim3d.viz.slices_grid(
-        example_volume, num_slices=1, image_width=image_width, slice_axis=0
+        example_volume, n_slices=1, image_width=image_width, slice_axis=0
     )
     fig_axis_1 = qim3d.viz.slices_grid(
-        example_volume, num_slices=1, image_width=image_width, slice_axis=1
+        example_volume, n_slices=1, image_width=image_width, slice_axis=1
     )
     fig_axis_2 = qim3d.viz.slices_grid(
-        example_volume, num_slices=1, image_width=image_width, slice_axis=2
+        example_volume, n_slices=1, image_width=image_width, slice_axis=2
     )
 
     # Ensure that different axes result in different plots
@@ -215,7 +215,7 @@ def test_orthogonal_with_different_parameters():
     # Test with different colormaps
     for color_map in ["viridis", "gray", "plasma"]:
         orthogonal_obj = qim3d.viz.slicer_orthogonal(
-            np.random.rand(10, 10, 10), color_map=color_map
+            np.random.rand(10, 10, 10), colormap=color_map
         )
         assert isinstance(orthogonal_obj, widgets.HBox)
 
