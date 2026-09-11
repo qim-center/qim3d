@@ -12,12 +12,20 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        # We test on the minimum and maximum supported Python versions
-        python-version: [3.12, 3.14]
-    name: Ubuntu, Python ${{ matrix.python-version }}
+        # Each entry pins one Python version to one OS, so only these
+        # 3 combinations run instead of the full outer product.
+        include:
+          - os: ubuntu-latest
+            python-version: "3.12"
+          - os: windows-latest
+            python-version: "3.13"
+          - os: macos-latest
+            python-version: "3.14"
+    name: ${{ matrix.os }}, Python ${{ matrix.python-version }}
     timeout-minutes: 60
     steps:
       - name: Checkout
@@ -33,7 +41,7 @@ jobs:
         with:
           version: "0.12.5"  # uv version
           python-version: ${{ matrix.python-version }}
-          enable-cache:
+          enable-cache: "auto"
 
       - name: Run tests
         run: just test
