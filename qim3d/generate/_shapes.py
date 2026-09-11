@@ -212,7 +212,7 @@ def berry(
         # Display slices of the labels
         qim3d.viz.slices_grid(labels, colormap=cmap, max_value=num_druplets)
         ```
-        ![synthetic_berry_slices](../../assets/screenshots/synthetic_raspberry_slices.png)
+        ![synthetic_berry_slices](../assets/screenshots/synthetic_raspberry_slices.png)
 
     """
     # Validate inputs
@@ -483,7 +483,7 @@ def rope(
         # Display slices of the labels
         qim3d.viz.slices_grid(labels, colormap=cmap, max_value=num_threads)
         ```
-        ![synthetic_rope_labels_slices](../../assets/screenshots/synthetic_rope_slices.png)
+        ![synthetic_rope_labels_slices](../assets/screenshots/synthetic_rope_slices.png)
 
     """
     # Validate inputs

@@ -16,22 +16,22 @@ The `qim3d` library provides a set of custom made GUIs that ease the interaction
     ```
 
 In general, the GUIs can be launched directly from the command line.
-For details see [here](../cli/cli.md#qim3d-gui).
+For details see [here](cli.md#qim3d-gui).
 
 ::: qim3d.gui.data_explorer
     options:
         members: False
-![Data explorer GUI](../../assets/screenshots/GUI-data_explorer.png)
+![Data explorer GUI](../assets/screenshots/GUI-data_explorer.png)
 
 ::: qim3d.gui.local_thickness
     options:
         members: False
-![Local thickness GUI](../../assets/screenshots/GUI-local_thickness.png)
+![Local thickness GUI](../assets/screenshots/GUI-local_thickness.png)
 
 ::: qim3d.gui.iso3d
     options:
         members: False
-![Iso3d GUI](../../assets/screenshots/GUI-iso3d.png)
+![Iso3d GUI](../assets/screenshots/GUI-iso3d.png)
 
 ::: qim3d.gui.annotation_tool
     options:

@@ -142,7 +142,7 @@ def slices_grid(
         # Create a grid of 15 linearly spaced slices
         qim3d.viz.slices_grid(vol, n_slices=15)
         ```
-        ![Grid of slices](../../assets/screenshots/viz-slices.png)
+        ![Grid of slices](../assets/screenshots/viz-slices.png)
 
     """
     if image_size:
@@ -491,7 +491,7 @@ def slicer(
         # Visualize with a slider
         qim3d.viz.slicer(vol, colormap='bone')
     ```
-        ![viz slicer](../../assets/screenshots/viz-slicer.gif)
+        ![viz slicer](../assets/screenshots/viz-slicer.gif)
 
     """
     is_dask = isinstance(volume, da.Array)
@@ -716,7 +716,7 @@ def slicer_orthogonal(
             # View all three axes side-by-side
             qim3d.viz.slicer_orthogonal(vol, colormap="magma")
     ```
-            ![viz slicer_orthogonal](../../assets/screenshots/viz-orthogonal.gif)
+            ![viz slicer_orthogonal](../assets/screenshots/viz-orthogonal.gif)
 
     """
 
@@ -796,7 +796,7 @@ def fade_mask(
         vol = qim3d.examples.cement_128x128x128
         qim3d.viz.fade_mask(vol)
         ```
-        ![operations-edge_fade_before](../../assets/screenshots/viz-fade_mask.gif)
+        ![operations-edge_fade_before](../assets/screenshots/viz-fade_mask.gif)
 
     """
 
@@ -946,7 +946,7 @@ def chunks(zarr_path: str, **kwargs) -> widgets.VBox:
         # Visualize interactive chunks explorer
         qim3d.viz.chunks('path/to/zarr/dataset.zarr')
         ```
-        ![interactive chunks explorer](../../assets/screenshots/chunks_explorer.gif)
+        ![interactive chunks explorer](../assets/screenshots/chunks_explorer.gif)
 
     """
     # Opens the Zarr dataset - doesn't load to memory yet
@@ -1212,7 +1212,7 @@ def histogram(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.histogram(vol)
         ```
-        ![viz histogram](../../assets/screenshots/viz-histogram-vol.png)
+        ![viz histogram](../assets/screenshots/viz-histogram-vol.png)
 
     Example: Histogram from a single slice
         ```python
@@ -1221,7 +1221,7 @@ def histogram(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.histogram(vol, slice_index=100, slice_axis=1, bin_style='bars', edgecolor='white')
         ```
-        ![viz histogram](../../assets/screenshots/viz-histogram-slice.png)
+        ![viz histogram](../assets/screenshots/viz-histogram-slice.png)
 
     Example: Using coarseness for faster computation
         ```python
@@ -1230,7 +1230,7 @@ def histogram(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.histogram(vol, coarseness=2, kde=True, log_scale=True)
         ```
-        ![viz histogram](../../assets/screenshots/viz-histogram-coarse.png)
+        ![viz histogram](../assets/screenshots/viz-histogram-coarse.png)
 
     """
     if not (0 <= slice_axis < volume.ndim):
@@ -1658,7 +1658,7 @@ def line_profile(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.line_profile(vol)
         ```
-        ![viz histogram](../../assets/screenshots/viz-line_profile.gif)
+        ![viz histogram](../assets/screenshots/viz-line_profile.gif)
 
     """
 
@@ -1783,7 +1783,7 @@ def threshold(
         # Visualize interactive thresholding
         qim3d.viz.threshold(vol)
         ```
-        ![interactive threshold](../../assets/screenshots/interactive_thresholding.gif)
+        ![interactive threshold](../assets/screenshots/interactive_thresholding.gif)
 
     """
 
@@ -2377,7 +2377,7 @@ def compare_volumes(
 
         qim3d.viz.compare_volumes(vol1, vol2, volumetric_visualization=True)
         ```
-        ![volume_comparison](../../assets/screenshots/viz-compare_volumes.png)
+        ![volume_comparison](../assets/screenshots/viz-compare_volumes.png)
 
     """
 
@@ -2643,7 +2643,7 @@ def iso_surface(volume: np.ndarray, colormap: str = "Magma") -> None:
         vol = qim3d.generate.volume(noise_scale=0.020)
         qim3d.viz.iso_surface(vol)
         ```
-        ![volume_comparison](../../assets/screenshots/iso_surface.gif)
+        ![volume_comparison](../assets/screenshots/iso_surface.gif)
 
     """
     IsoSurface(volume, colormap)
@@ -2715,7 +2715,7 @@ def export_rotation(
 
         qim3d.viz.export_rotation('test.gif', vol, show=True)
         ```
-        ![export_rotation_defaults](../../assets/screenshots/export_rotation_defaults.gif)
+        ![export_rotation_defaults](../assets/screenshots/export_rotation_defaults.gif)
 
     Example:
         Creation of a .webm file with specified parameters of a generated volume in the shape of a tube.
@@ -2734,7 +2734,7 @@ def export_rotation(
                                   camera_focus = 'center',
                                   show = True)
         ```
-        ![export_rotation_video](../../assets/screenshots/export_rotation_video.gif)
+        ![export_rotation_video](../assets/screenshots/export_rotation_video.gif)
 
     """
     if not (
@@ -3307,7 +3307,7 @@ def planes(
         # Launch the interactive 3D plane viewer
         qim3d.viz.planes(vol, colormap='plasma')
         ```
-        ![viz planes](../../assets/screenshots/viz-planes.gif)
+        ![viz planes](../assets/screenshots/viz-planes.gif)
 
     """
     VolumePlaneSlicer(
@@ -3540,7 +3540,7 @@ def overlay(
 
         qim3d.viz.overlay(vol, labeled_volume, colormaps=('grey', segm_cmap), volume2_values=(0, num_labels))
         ```
-        ![viz overlay](../../assets/screenshots/viz-overlay.gif)
+        ![viz overlay](../assets/screenshots/viz-overlay.gif)
 
     """
     if volume1.ndim != 3:

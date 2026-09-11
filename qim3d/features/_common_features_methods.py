@@ -322,7 +322,7 @@ def mean_std_intensity(
         ```
         Mean intensity: 114.6734
         Standard deviation of intensity: 45.8481
-        ![mean_std_intensity_feature](../../assets/screenshots/mean_std_intensity_feature_example.png)
+        ![mean_std_intensity_feature](../assets/screenshots/mean_std_intensity_feature_example.png)
 
     """
 

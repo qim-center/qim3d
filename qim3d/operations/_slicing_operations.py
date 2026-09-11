@@ -320,7 +320,7 @@ def get_random_slice(
         vol = qim3d.examples.shell_225x128x128
         qim3d.viz.slices_grid(vol)
         ```
-        ![Normal slices](../../assets/screenshots/random_slice-before.png)
+        ![Normal slices](../assets/screenshots/random_slice-before.png)
 
         ```python
         random_slices = []
@@ -331,7 +331,7 @@ def get_random_slice(
         qim3d.viz.slices_grid(np.array(random_slices))
 
         ```
-        ![Random slices](../../assets/screenshots/random_slice-after.png)
+        ![Random slices](../assets/screenshots/random_slice-after.png)
     """
 
     if seed is not None:

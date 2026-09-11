@@ -33,7 +33,7 @@ def watershed(
 
         fig1 = qim3d.viz.slices_grid(binary_volume, slice_axis=1, display_figure=True)
         ```
-        ![operations-watershed_before](../../assets/screenshots/operations-watershed_before.png)
+        ![operations-watershed_before](../assets/screenshots/operations-watershed_before.png)
 
         ```python
         labeled_volume, num_labels = qim3d.segmentation.watershed(binary_volume)
@@ -41,7 +41,7 @@ def watershed(
         cmap = qim3d.viz.colormaps.segmentation(num_labels)
         fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, color_map=cmap, display_figure=True)
         ```
-        ![operations-watershed_after](../../assets/screenshots/operations-watershed_after.png)
+        ![operations-watershed_after](../assets/screenshots/operations-watershed_after.png)
     """
     import scipy
     import skimage
