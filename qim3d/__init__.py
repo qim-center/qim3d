@@ -33,6 +33,7 @@ if _TYPE_CHECKING:
     from qim3d import viz as viz
 import logging
 
+from qim3d import examples as examples
 from qim3d._log import initialize_logger as _initialize_logger
 
 _initialize_logger(logging.INFO, detailed=True)
@@ -57,7 +58,6 @@ class _LazyLoader:
 
 # List of submodules
 _submodules = [
-    "examples",
     "generate",
     "gui",
     "io",
