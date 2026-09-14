@@ -1,0 +1,83 @@
+# See comment at top of .ruff.toml for motivation for this file.
+extend = ".ruff.toml"
+
+lint.ignore = [
+    # "print",
+
+
+    # Below here are rules that we wish to comply with but currently do not.
+    # Over time, hopefully we can remove some of these.
+    # Critical (fix ASAP)
+    "F821",   # undefined name
+    "SIM115", # Use context manager when opening files
+    "B006",   # Do not use mutable data structures for argument defaults
+    "B026",   # star-arg after keyword-arg
+
+    # Hard
+    "E501",   # line too long
+    "ANN001", # missing type annotation for function arg
+    "ANN201", # missing type annotation for function return
+    # "ANN203",  # missing type annotation TODO
+    "ANN204", # missing type annotation for special method
+
+    # Medium
+    "PLW1510", # subprocess.run without check
+    "S607",    # subprocess with partial executable path
+    "S603",    # subprocess potentially untrusted input
+    "ANN202",  # missing return type annotation (private func)
+    "S102",    # use of exec
+    "BLE001",  # do not catch blind Exception
+    "E722",    # do not use bare except
+    "TRY002",  # raise Exception
+    "D100",    # missing docstring in public module
+    "D101",    # missing docstring in public class
+    "D102",    # missing docstring in public method
+    "D103",    # missing docstring in public function
+    "D104",    # missing docstring in public package
+    "D107",    # missing docstring in __init__
+    "ERA001",  # commented out code
+
+    # Easy
+    "PLW0602", # using global but no assignment done
+    "F841",    # local variable assigned but unused
+    "F401",    # imported but unused (remove or explicit re-export)
+    "TRY004",  # prefer TypeError for invalid type
+    "RUF015",  # Prefer next(iter(...)) over list(...)[0]
+    "RUF059",  # Unpacked variable never used
+    "RUF013",  # Implicit Optional[...]
+    "RUF057",  # Value being rounded is already integer
+    "C408",    # Unnecessary call
+    "SIM103",  # Return condition directly if possible
+    "UP031",   # Use format specifiers instead of percent format
+    "B008",    # Constant function call for argument default
+    "FURB192", # Use min over sorted to get minimum of sequence
+    "RUF046",  # Redundant int cast
+    "DTZ005",  # use of `datetime.now` without tz
+    "DTZ006",  # use of `datetime.fromtimestamp` without tz
+    "PERF102", # use dict.values instead of dict.items where possible
+    "SIM102",  # unnecessarily nested if statement
+    "SIM401",  # use dict.get(..., default=...) instead of if where possible
+    "UP007",   # use X | Y instead of Union[X, Y]
+    "D401",    # First line of docstring should be imperative mood
+    "T201",    # Use of print
+    "PTH100",  # os.path.abspath -> Path.resolve
+    "PTH102",  # os.mkdir -> Path.mkdir
+    "PTH106",  # os.rmdir -> Path.rmdir
+    "PTH107",  # os.remove -> Path.unlink
+    "PTH108",  # os.unlink -> Path.unlink
+    "PTH110",  # os.path.exists -> Path.exists
+    "PTH111",  # os.path.expanduser -> Path.expanduser
+    "PTH112",  # os.path.isdir -> Path.is_dir
+    "PTH114",  # os.path.islink -> Path.is_symlink
+    "PTH119",  # os.path.basename -> Path.name
+    "PTH120",  # os.path.dirname -> Path.parent
+    "PTH202",  # os.path.getsize -> Path.stat().st_size
+    "PTH204",  # os.path.getmtime -> Path.stat().st_mtime
+    "PTH205",  # os.path.getctime -> Path.stat().st_ctime
+    "PTH208",  # os.listdir -> Path.iterdir
+    "D400",    # first line of docstring should end in period
+    "D415",    # first line of docstring should end in punctuation
+    "D205",    # 1 blank line required between summary line and description
+    "D200",    # one-line docstring should fit on one line
+    "A002",    # shadowing of builtin
+]
