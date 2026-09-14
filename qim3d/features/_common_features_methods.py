@@ -318,7 +318,7 @@ def mean_std_intensity(
         print(f"Standard deviation of intensity: {std_intensity:.4f}")
 
         # Visualize slices of the object
-        qim3d.viz.slices_grid(shell_object, color_bar=True, color_bar_style="large")
+        qim3d.viz.slices_grid(shell_object, colorbar=True, colorbar_style="large")
         ```
         Mean intensity: 114.6734
         Standard deviation of intensity: 45.8481

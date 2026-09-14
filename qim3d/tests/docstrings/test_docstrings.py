@@ -34,6 +34,9 @@ MOCK_TARGETS: dict[str, dict[str, dict[str, Callable[[], object]]]] = {
         "mesh": {
             "pyvista.Plotter": noop_mock,
         },
+        "streamlines": {
+            "pyvista.Plotter": noop_mock,
+        },
     },
     "mesh": {
         "from_volume": {
