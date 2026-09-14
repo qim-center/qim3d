@@ -1,7 +1,7 @@
 import argparse
 import os
-import platform
 import webbrowser
+from importlib.metadata import version as version
 
 import outputformat as ouf
 
@@ -14,7 +14,7 @@ QIM_TITLE = ouf.rainbow(
      / __ `/ / __ `__ \ /_ </ __  /
     / /_/ / / / / / / /__/ / /_/ /
     \__, /_/_/ /_/ /_/____/\__,_/
-      /_/                 v{qim3d.__version__}
+      /_/                 v{version("qim3d")}
 
     """,
     return_str=True,
