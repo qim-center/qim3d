@@ -4,7 +4,6 @@ name = "qim3d"
 version = "1.5.3"
 license = "MIT"
 description = "QIM tools and user interfaces for volumetric imaging"
-urls = { Homepage = "https://platform.qim.dk/qim3d" }
 authors = [
     { name = "Felipe Delestro", email = "fima@dtu.dk" },
     { name = "QIM Development Team", email = "info@qim.dk" },
@@ -76,6 +75,12 @@ dependencies = [
     "outputformat>=0.1.3",
     "psutil>=5.9.0",
 ]
+
+[project.urls]
+Homepage = "https://qim.dk/"
+Documentation = "https://docs.qim.dk/qim3d/"
+Repository = "https://github.com/qim-center/qim3d"
+Issues = "https://github.com/qim-center/qim3d/issues"
 
 [project.readme]
 file = "README.md"
