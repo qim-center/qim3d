@@ -2,6 +2,7 @@
 
 import inspect
 import io
+import logging
 import math
 import warnings
 from collections.abc import Callable, Iterable, Sequence
@@ -40,9 +41,10 @@ from skimage.filters import (
 
 import qim3d
 import qim3d.operations
-from qim3d._log import logger
 from qim3d._types import ColormapLike, PathLike
 from qim3d.utils._decorators import coarseness
+
+_logger = logging.getLogger(__name__)
 
 # For progress bar in Jupyter notebooks
 try:
@@ -2396,7 +2398,7 @@ def compare_volumes(
     if np.issubdtype(volume1.dtype, np.unsignedinteger) and np.issubdtype(
         volume2.dtype, np.unsignedinteger
     ):
-        logger.warning(
+        _logger.warning(
             "Volumes have unsigned integer datatypes. Beware of over-/underflow."
         )
 
@@ -2827,7 +2829,7 @@ def export_rotation(
             msg = "Invalid file extension. Please use .gif, .avi, .mp4 or .webm"
             raise ValueError(msg)
 
-    logger.info("File saved to " + str(path.resolve()))
+    _logger.info("File saved to " + str(path.resolve()))
 
     if show:
         if path.suffix == ".gif":

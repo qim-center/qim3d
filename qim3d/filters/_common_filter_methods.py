@@ -2,6 +2,7 @@
 
 import abc
 import inspect
+import logging
 from collections.abc import Callable
 
 import dask.array as da
@@ -10,7 +11,7 @@ import numpy as np
 from scipy import ndimage
 from skimage import morphology
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 class FilterBase:
@@ -706,10 +707,10 @@ def tophat(volume: np.ndarray, dask: bool = False, **kwargs):
     background = kwargs["background"] if "background" in kwargs else "dark"
 
     if dask:
-        logger.info("Dask not supported for tophat filter, switching to scipy.")
+        _logger.info("Dask not supported for tophat filter, switching to scipy.")
 
     if background == "bright":
-        logger.info(
+        _logger.info(
             "Bright background selected, volume will be temporarily inverted when applying white_tophat"
         )
         volume = np.invert(volume)
