@@ -6,11 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
 
-from qim3d._log import logger
-
-previous_logging_level = logging.getLogger().getEffectiveLevel()
-logging.getLogger().setLevel(logging.CRITICAL)
-logging.getLogger().setLevel(previous_logging_level)
+logger = logging.getLogger(__name__)
 
 
 def vectors(
