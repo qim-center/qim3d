@@ -38,7 +38,7 @@ def remove_background(
         import qim3d
 
         vol = qim3d.examples.cement_128x128x128
-        fig1 = qim3d.viz.slices_grid(vol, value_min=0, value_max=255, num_slices=5, display_figure=True)
+        fig1 = qim3d.viz.slices_grid(vol, min_value=0, max_value=255, n_slices=5, display_figure=True)
         ```
         ![operations-remove_background_before](../../assets/screenshots/operations-remove_background_before.png)
 
@@ -46,7 +46,7 @@ def remove_background(
         vol_filtered  = qim3d.operations.remove_background(vol,
                                                               min_object_radius=3,
                                                               background="bright")
-        fig2 = qim3d.viz.slices_grid(vol_filtered, value_min=0, value_max=255, num_slices=5, display_figure=True)
+        fig2 = qim3d.viz.slices_grid(vol_filtered, min_value=0, max_value=255, n_slices=5, display_figure=True)
         ```
         ![operations-remove_background_after](../../assets/screenshots/operations-remove_background_after.png)
     """

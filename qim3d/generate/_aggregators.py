@@ -624,7 +624,7 @@ def volume_collection(
 
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(volume_collection, num_slices=15)
+        qim3d.viz.slices_grid(volume_collection, n_slices=15)
         ```
         ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
 
@@ -652,7 +652,7 @@ def volume_collection(
 
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(volume_collection, num_slices=15, slice_axis=1)
+        qim3d.viz.slices_grid(volume_collection, n_slices=15, slice_axis=1)
         ```
         ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
 

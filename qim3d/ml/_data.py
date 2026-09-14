@@ -296,23 +296,29 @@ def prepare_dataloaders(
 
     Example:
         ```python
+        import torch
         import qim3d
 
-        # ... (assume datasets are already created as train_set, val_set, test_set) ...
+        images = torch.rand((4, 1, 16, 16, 16))
+        labels = torch.zeros_like(images)
+        dataset = torch.utils.data.TensorDataset(images, labels)
+        train_set = torch.utils.data.Subset(dataset, [0, 1])
+        val_set = torch.utils.data.Subset(dataset, [2])
+        test_set = torch.utils.data.Subset(dataset, [3])
 
         # Create DataLoaders
         train_loader, val_loader, test_loader = qim3d.ml.prepare_dataloaders(
             train_set=train_set,
             val_set=val_set,
             test_set=test_set,
-            batch_size=4,
-            num_workers=4
+            batch_size=2,
+            num_workers=0,
         )
 
         # Iterate through the training loader
-        for batch in train_loader:
-            inputs, labels = batch['image'], batch['label']
+        for inputs, labels in train_loader:
             # training step...
+            ...
         ```
     """
     from torch.utils.data import DataLoader

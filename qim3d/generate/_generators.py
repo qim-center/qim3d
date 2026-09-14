@@ -90,7 +90,11 @@ def background(
         import qim3d
 
         # Generate synthetic collection of volumes
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+        volume_collection, labels = qim3d.generate.volume_collection(
+            n_volumes=3,
+            collection_shape=(64, 64, 64),
+            shape_range=((12, 12, 12), (20, 20, 20)),
+        )
 
         # Apply noise to the synthetic collection
         noisy_collection = qim3d.generate.background(
@@ -111,7 +115,11 @@ def background(
         import qim3d
 
         # Generate synthetic collection of volumes
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+        volume_collection, labels = qim3d.generate.volume_collection(
+            n_volumes=3,
+            collection_shape=(64, 64, 64),
+            shape_range=((12, 12, 12), (20, 20, 20)),
+        )
 
         # Apply noise to the synthetic collection
         noisy_collection = qim3d.generate.background(
@@ -128,7 +136,7 @@ def background(
         ```
         <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_2.html" width="100%" height="500" frameborder="0"></iframe>
         ```python
-        qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
+        qim3d.viz.slices_grid(noisy_collection, n_slices=10, colorbar=True, colorbar_style="large")
         ```
         ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_2.png)
 
@@ -137,11 +145,15 @@ def background(
         import qim3d
 
         # Generate synthetic collection of volumes
-        volume_collection, labels = qim3d.generate.volume_collection(num_volumes = 15)
+        volume_collection, labels = qim3d.generate.volume_collection(
+            n_volumes=3,
+            collection_shape=(64, 64, 64),
+            shape_range=((12, 12, 12), (20, 20, 20)),
+        )
 
         # Apply noise to the synthetic collection
         noisy_collection = qim3d.generate.background(
-            background_shape = (200, 200, 200),
+            background_shape = volume_collection.shape,
             baseline_value = 100,
             min_noise_value = 0.8,
             max_noise_value = 1.2,
@@ -150,7 +162,7 @@ def background(
             apply_to = volume_collection
         )
 
-        qim3d.viz.slices_grid(noisy_collection, num_slices=10, color_bar=True, color_bar_style="large")
+        qim3d.viz.slices_grid(noisy_collection, n_slices=10, colorbar=True, colorbar_style="large")
         ```
         ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_3.png)
 
@@ -326,7 +338,7 @@ def volume(
 
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(vol, value_min = 0, value_max = 255, num_slices = 15)
+        qim3d.viz.slices_grid(vol, min_value=0, max_value=255, n_slices=15)
         ```
         ![synthetic_blob](../../assets/screenshots/synthetic_blob_slices.png)
 
@@ -352,7 +364,7 @@ def volume(
 
         ```python
         # Visualize slices
-        qim3d.viz.slices_grid(vol, num_slices=15, slice_axis=1)
+        qim3d.viz.slices_grid(vol, n_slices=15, slice_axis=1)
         ```
         ![synthetic_blob_cylinder_slice](../../assets/screenshots/synthetic_blob_cylinder_slice.png)
 
@@ -376,7 +388,7 @@ def volume(
 
         ```python
         # Visualize
-        qim3d.viz.slices_grid(vol, num_slices=15)
+        qim3d.viz.slices_grid(vol, n_slices=15)
         ```
         ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)
 

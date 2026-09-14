@@ -469,8 +469,8 @@ def sobel(vol: np.ndarray, dask: bool = False):
         vol = qim3d.examples.bone_128x128x128.astype('int64')
         filtered_vol = qim3d.filters.sobel(vol)
 
-        qim3d.viz.slices_grid(vol, num_slices=5)
-        qim3d.viz.slices_grid(filtered_vol, num_slices=5)
+        qim3d.viz.slices_grid(vol, n_slices=5)
+        qim3d.viz.slices_grid(filtered_vol, n_slices=5)
         ```
         ![sobel-filter-before](../../assets/screenshots/sobel_filter_original.png)
         ![sobel-filter-after](../../assets/screenshots/pipeline_middlestep.png)

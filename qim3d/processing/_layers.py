@@ -123,11 +123,19 @@ def get_lines(segmentations: list[np.ndarray]) -> list:
 
     Example:
         ```python
-        # Assuming 'layers' is the output from segment_layers
+        import matplotlib.pyplot as plt
+        import numpy as np
+        import qim3d
+
+        # A simple mask whose boundary lies halfway down the image
+        layer = np.vstack(
+            [np.ones((4, 8), dtype=bool), np.zeros((4, 8), dtype=bool)]
+        )
+        layers = [layer]
         lines = qim3d.processing.get_lines(layers)
 
         # Plotting the first layer
-        plt.plot(lines[0], color='red')
+        plt.plot(lines[0], color="red")
         ```
     """
     segmentation_lines = [np.argmin(s, axis=0) - 0.5 for s in segmentations]

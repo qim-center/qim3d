@@ -42,10 +42,24 @@ def plot_connected_components(
 
         vol = qim3d.examples.cement_128x128x128[50:150]
         vol_bin = vol < 80
-        cc = qim3d.segmentation.get_3d_cc(vol_bin)
+        cc = qim3d.segmentation.connected_components(vol_bin)
 
-        qim3d.viz.plot_cc(cc, crop=True, display_figure=True, overlay=None, num_slices=5, component_indexs=[4,6,7])
-        qim3d.viz.plot_cc(cc, crop=True, display_figure=True, overlay=vol, num_slices=5, component_indexs=[4,6,7])
+        qim3d.viz.plot_connected_components(
+            cc,
+            crop=True,
+            display_figure=True,
+            overlay=None,
+            n_slices=5,
+            component_indexs=[4, 6, 7],
+        )
+        qim3d.viz.plot_connected_components(
+            cc,
+            crop=True,
+            display_figure=True,
+            overlay=vol,
+            n_slices=5,
+            component_indexs=[4, 6, 7],
+        )
         ```
         ![plot_cc_no_overlay](../../assets/screenshots/plot_cc_no_overlay.png)
         ![plot_cc_overlay](../../assets/screenshots/plot_cc_overlay.png)
