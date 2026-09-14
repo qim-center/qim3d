@@ -9,9 +9,6 @@ Documentation available at https://platform.qim.dk/qim3d/
 
 """
 
-__version__ = "1.5.3"
-
-
 import importlib as _importlib
 from typing import TYPE_CHECKING as _TYPE_CHECKING
 
