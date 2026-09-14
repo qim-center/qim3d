@@ -16,6 +16,7 @@ app.launch()
 """
 
 import datetime
+import logging
 import os
 import re
 from collections.abc import Callable
@@ -28,11 +29,12 @@ import numpy as np
 import outputformat as ouf
 import zarr
 
-from qim3d._log import logger
 from qim3d.gui.interface import BaseInterface
 from qim3d.io import load
 from qim3d.utils import _misc
 from qim3d.utils._dependencies import optional_import
+
+_logger = logging.getLogger(__name__)
 
 gr = optional_import("gradio", extra="gui")
 gife = optional_import("gradio_improvedfileexplorer", extra="gui")
@@ -182,7 +184,7 @@ class Interface(BaseInterface):
                             return gr.update(visible=False)
 
                     except Exception as e:
-                        logger.info(f"Error when reading zarr multiscale info: {e}")
+                        _logger.info(f"Error when reading zarr multiscale info: {e}")
                         return gr.update(visible=False)
 
                 explorer.change(
@@ -467,7 +469,7 @@ class Interface(BaseInterface):
         self.calculated_operations = []
         for operation in self.all_operations:
             if operation in operations:
-                logger.info(f"Running {operation}")
+                _logger.info(f"Running {operation}")
                 try:
                     outputs.append(self.run_operation(operation, *args))
                     self.calculated_operations.append(operation)
@@ -477,10 +479,10 @@ class Interface(BaseInterface):
                         f"Error while running operation '{operation}': {err}"
                     )
 
-                    logger.info(self.error_message)
+                    _logger.info(self.error_message)
                     outputs.append(gr.update())
             else:
-                logger.info(f"Skipping {operation}")
+                _logger.info(f"Skipping {operation}")
                 outputs.append(gr.update())
 
         return outputs

@@ -1,12 +1,14 @@
 """Wrapper for the local thickness function from the localthickness package including visualization functions."""
 
+import logging
 from typing import Optional
 
 import numpy as np
 from IPython.display import display
 
 import qim3d
-from qim3d._log import logger
+
+_logger = logging.getLogger(__name__)
 
 
 def local_thickness(
@@ -90,7 +92,7 @@ def local_thickness(
     if np.unique(image).size > 2:
         # If not, binarize it using Otsu's method, log the threshold and compute the local thickness
         threshold = threshold_otsu(image=image)
-        logger.warning(
+        _logger.warning(
             f"Input image is not binary. It will be binarized using Otsu's method with threshold: {threshold}"
         )
         local_thickness = lt.local_thickness(image > threshold, scale=scale, mask=mask)

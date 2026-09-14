@@ -1,6 +1,8 @@
+import logging
+
 import numpy as np
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 def watershed(
@@ -73,6 +75,6 @@ def watershed(
 
     # Extract number of objects found
     num_labels = len(np.unique(labeled_volume)) - 1
-    logger.info(f"Total number of objects found: {num_labels}")
+    _logger.info(f"Total number of objects found: {num_labels}")
 
     return labeled_volume, num_labels

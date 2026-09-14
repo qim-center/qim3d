@@ -16,6 +16,7 @@ app.launch()
 
 """
 
+import logging
 import os
 
 import numpy as np
@@ -23,9 +24,10 @@ import plotly.graph_objects as go
 from scipy import ndimage
 
 import qim3d
-from qim3d._log import logger
 from qim3d.gui.interface import InterfaceWithExamples
 from qim3d.utils._dependencies import optional_import
+
+_logger = logging.getLogger(__name__)
 
 gr = optional_import("gradio", extra="gui")
 
@@ -64,7 +66,7 @@ class Interface(InterfaceWithExamples):
         original_Z, original_Y, original_X = np.shape(self.vol)
         max_size = np.max([original_Z, original_Y, original_X])
         if self.verbose:
-            logger.info(f"\nOriginal volume: {original_Z, original_Y, original_X}")
+            _logger.info(f"\nOriginal volume: {original_Z, original_Y, original_X}")
 
         # Resize for display
         self.vol = ndimage.zoom(
@@ -78,7 +80,7 @@ class Interface(InterfaceWithExamples):
             self.vol
         )
         if self.verbose:
-            logger.info(
+            _logger.info(
                 f"Resized volume: {self.display_size_z, self.display_size_y, self.display_size_x}"
             )
 

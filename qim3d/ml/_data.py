@@ -1,15 +1,17 @@
 """Provides a custom Dataset class for building a PyTorch dataset."""
 
+import logging
 from collections.abc import Callable
 from pathlib import Path
 
 import numpy as np
 
 import qim3d
-from qim3d._log import logger
 from qim3d.utils._dependencies import optional_import
 
 from ._augmentations import Augmentation
+
+_logger = logging.getLogger(__name__)
 
 torch = optional_import("torch", extra="deep-learning")
 
@@ -103,7 +105,7 @@ class Dataset(torch.utils.data.Dataset):
             msg = "Only images of all the same size can be processed at the moment"
             raise NotImplementedError(msg)
         else:
-            logger.debug("Images are all the same size!")
+            _logger.debug("Images are all the same size!")
         return consistency_check
 
     def _get_shape(self, image_path: str) -> tuple:
@@ -161,7 +163,7 @@ def check_resize(
             raise ValueError(msg)
 
         if final_d != orig_d or final_h != orig_h or final_w != orig_w:
-            logger.warning(
+            _logger.warning(
                 f"The image size doesn't match the Unet model's depth. \
                           The image is changed with '{resize}', from {orig_h, orig_w} to {final_h, final_w}."
             )

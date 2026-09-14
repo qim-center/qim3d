@@ -1,7 +1,9 @@
+import logging
+
 import numpy as np
 from scipy.ndimage import map_coordinates
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 class _Slicer:
@@ -392,7 +394,7 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
 
     vol_subsample = volume[tuple(slice(None, None, step) for step in coarseness)]
     ratio = vol_subsample.size / volume.size
-    logger.info(
+    _logger.info(
         f"Subsampled volume has size {100 * ratio:.3g}% of the original volume."
     )
 
@@ -400,11 +402,11 @@ def subsample(volume: np.ndarray, coarseness: int | list[int]) -> np.ndarray:
     min_elements = 1000
     min_axis_len = 5
     if vol_subsample.size < min_elements:
-        logger.info(
+        _logger.info(
             f"User warning: less than {min_elements} elements in subsample. Consider using a lower coarseness for higher precision."
         )
     elif np.min(vol_subsample.shape) < min_axis_len:
-        logger.info(
+        _logger.info(
             f"User warning: subsampled volume contains an axis with size less than {min_axis_len}. Consider using a lower coarseness for higher precision."
         )
 
@@ -478,7 +480,7 @@ def ratio_subsample(volume: np.ndarray, ratio: float) -> np.ndarray:
 
     vol_subsample = volume[::stride, ::stride, ::stride]
     actual_ratio = vol_subsample.size / volume.size
-    logger.info(
+    _logger.info(
         f"Subsampled volume has size {100 * actual_ratio:.3g}% of the original volume. Used a spacing of {stride} in each axis."
     )
 

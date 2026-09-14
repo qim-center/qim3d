@@ -1,8 +1,10 @@
+import logging
+
 import numpy as np
 import pygorpho as pg
 import scipy.ndimage as ndi
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
@@ -21,17 +23,17 @@ def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
 
     """
     if isinstance(k, int):
-        logger.debug("Using int to generate np.ones((k,k,k))")
+        _logger.debug("Using int to generate np.ones((k,k,k))")
         return np.ones((k, k, k), dtype=bool)
 
     elif isinstance(k, tuple):
         if len(k) == 1 and isinstance(k[0], int):
-            logger.debug(
+            _logger.debug(
                 "Using tuple with 1 element. Generating np.ones((k[0], k[0], k[0]))"
             )
             return np.ones((k[0], k[0], k[0]), dtype=bool)
         elif len(k) == 3 and all(isinstance(x, int) for x in k):
-            logger.debug(
+            _logger.debug(
                 "Using tuple with 3 elements. Generating np.ones((k[0], k[1], k[2]))"
             )
             return np.ones((k[0], k[1], k[2]), dtype=bool)
@@ -41,7 +43,7 @@ def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
 
     elif isinstance(k, np.ndarray):
         if k.ndim == 3:
-            logger.debug("Using provided ndarray with shape %s", k.shape)
+            _logger.debug("Using provided ndarray with shape %s", k.shape)
             return k
         else:
             err = "ndarray kernel must be 3-dimensional."

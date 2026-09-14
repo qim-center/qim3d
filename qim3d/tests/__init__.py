@@ -2,6 +2,7 @@
 
 import importlib
 import inspect
+import logging
 import os
 import shutil
 import socket
@@ -12,8 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mktestdocs import grab_code_blocks
 
-from qim3d._log import logger
 from qim3d.io import save
+
+_logger = logging.getLogger(__name__)
 
 
 def mock_plot():
@@ -141,7 +143,7 @@ def temp_data(folder, remove=False, n=3, img_shape=(32, 32, 32)):
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
             except Exception as e:
-                logger.warning("Failed to delete %s. Reason: %s", file_path, e)
+                _logger.warning("Failed to delete %s. Reason: %s", file_path, e)
 
         os.rmdir(folder)
 

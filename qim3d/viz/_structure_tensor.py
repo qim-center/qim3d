@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
 
-logger = logging.getLogger(__name__)
+_logger = logging.getLogger(__name__)
 
 
 def vectors(
@@ -108,7 +108,7 @@ def vectors(
 
     if grid_size < min_grid_size or grid_size > max_grid_size:
         grid_size = min(max(min_grid_size, grid_size), max_grid_size)
-        logger.warning(f"Adjusting grid size to {grid_size} as it is out of bounds.")
+        _logger.warning(f"Adjusting grid size to {grid_size} as it is out of bounds.")
 
     def _structure_tensor(volume, vectors, axis, slice_index, grid_size, figsize, show):
         # Extract the 2D slice and corresponding vector components based on the chosen axis
@@ -269,7 +269,7 @@ def vectors(
     # If the full eigenvector array is provided, use only the first eigenvector
     if vectors.ndim == 5:
         vectors = vectors[0, ...]
-        logger.warning(
+        _logger.warning(
             "Eigenvector array is full. Only the eigenvectors corresponding to the first eigenvalue will be used."
         )
 
@@ -444,10 +444,10 @@ def vector_field_3d(
     eigen_val_norm = 1 - eigen_val_norm
 
     if verbose:
-        logger.info(
+        _logger.info(
             f"Eigenvalue range: {eigen_val[eigen_val > 0].min():.4f} to {eigen_val.max():.4f}"
         )
-        logger.info(
+        _logger.info(
             f"Normalized eigenvalue range: {eigen_val_norm.min():.4f} to {eigen_val_norm.max():.4f}"
         )
 
@@ -455,7 +455,7 @@ def vector_field_3d(
     half = sampling_step // 2
 
     if verbose:
-        logger.info(f"Original number of grid points: {nx * ny * nz}")
+        _logger.info(f"Original number of grid points: {nx * ny * nz}")
 
     points, vectors, val_values = [], [], []
 
@@ -490,8 +490,8 @@ def vector_field_3d(
     val_values = np.array(val_values)
 
     if verbose:
-        logger.info(f"Cones plotted: {len(points)}")
-        logger.info(
+        _logger.info(f"Cones plotted: {len(points)}")
+        _logger.info(
             f"Eigenvalue (normalized) range: {val_values.min():.4f} to {val_values.max():.4f}"
         )
 

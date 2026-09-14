@@ -1,8 +1,10 @@
+import logging
+
 import ipywidgets as widgets
 import matplotlib.pyplot as plt
 import numpy as np
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 def local_thickness(
@@ -91,7 +93,7 @@ def local_thickness(
     if len(image.shape) == 3:
         if max_projection:
             if slice_index is not None:
-                logger.warning(
+                _logger.warning(
                     "slice_index is not used for max_projection. It will be ignored."
                 )
             image = image.max(axis=axis)
@@ -129,11 +131,11 @@ def local_thickness(
             return widget_obj
     else:
         if max_projection:
-            logger.warning(
+            _logger.warning(
                 "max_projection is only used for 3D images. It will be ignored."
             )
         if slice_index is not None:
-            logger.warning(
+            _logger.warning(
                 "slice_index is only used for 3D images. It will be ignored."
             )
         return _local_thickness(image, image_lt, show, figsize)
