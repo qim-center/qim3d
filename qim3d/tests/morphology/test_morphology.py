@@ -17,7 +17,7 @@ def test_dilate():
 
     s = 5
     strel = np.ones((s, s, s))
-    vol_dilated = qim3d.morphology.dilate(vol_padded, strel, method="ndi")
+    vol_dilated = qim3d.morphology.dilate(vol_padded, strel, method="scipy.ndimage")
 
     vol_trimmed = qim3d.operations.trim(vol_dilated)
     assert (
@@ -35,7 +35,7 @@ def test_erode():
 
     s = 5
     strel = np.ones((s, s, s))
-    vol_eroded = qim3d.morphology.erode(vol, strel, method="ndi")
+    vol_eroded = qim3d.morphology.erode(vol, strel, method="scipy.ndimage")
     assert vol.shape == vol_eroded.shape
 
 
@@ -44,7 +44,7 @@ def test_opening():
 
     s = 5
     strel = np.ones((s, s, s))
-    vol_opened = qim3d.morphology.opening(vol, strel, method="ndi")
+    vol_opened = qim3d.morphology.opening(vol, strel, method="scipy.ndimage")
 
     assert vol_opened.shape == vol.shape
 
@@ -54,7 +54,7 @@ def test_closing():
 
     s = 5
     strel = np.ones((s, s, s))
-    vol_opened = qim3d.morphology.closing(vol, strel, method="ndi")
+    vol_opened = qim3d.morphology.closing(vol, strel, method="scipy.ndimage")
 
     assert vol_opened.shape == vol.shape
 
@@ -64,7 +64,7 @@ def test_black_tophat():
 
     s = 5
     strel = np.ones((s, s, s))
-    vol_opened = qim3d.morphology.black_tophat(vol, strel, method="ndi")
+    vol_opened = qim3d.morphology.black_tophat(vol, strel, method="scipy.ndimage")
 
     assert vol_opened.shape == vol.shape
 
@@ -74,6 +74,6 @@ def test_white_tophat():
 
     s = 5
     strel = np.ones((s, s, s))
-    vol_opened = qim3d.morphology.white_tophat(vol, strel, method="ndi")
+    vol_opened = qim3d.morphology.white_tophat(vol, strel, method="scipy.ndimage")
 
     assert vol_opened.shape == vol.shape
