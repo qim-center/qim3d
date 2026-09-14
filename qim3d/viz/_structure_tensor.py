@@ -395,11 +395,22 @@ def vector_field_3d(
     ```python
             import qim3d
 
-            vol = qim3d.examples.fiber_150x256x256
-            val, vec = qim3d.processing.structure_tensor(vol, sigma=2.0, rho=6)
+            vol = qim3d.examples.fibers_150x150x150[::3, ::3, ::3]
+            val, vec = qim3d.processing.structure_tensor(
+                vol,
+                sigma=2.0,
+                rho=6,
+                smallest=False,
+            )
 
-            fig = qim3d.viz.vector_field_3d(vec, val, vol, select_eigen='smallest')
-            fig.show()
+            fig = qim3d.viz.vector_field_3d(
+                vec,
+                val,
+                vol,
+                select_eigen="smallest",
+                sampling_step=8,
+                verbose=False,
+            )
     ```
 
     """
@@ -609,15 +620,16 @@ def streamlines(
     ```python
             import qim3d
 
+            volume = qim3d.examples.fibers_150x150x150[::3, ::3, ::3]
             val, vec = qim3d.processing.structure_tensor(volume, sigma=2.0, rho=6)
 
-            qim3d.viz.streamlines(volume, vec, val)
-
-            qim3d.viz.streamlines(volume, vec, val, fiber_spacing=8, initial_step_size=0.3)
-
-            qim3d.viz.streamlines(volume, vec, val, fiber_spacing=25, show_volume=True)
-
-            qim3d.viz.streamlines(volume, vec, val, max_fiber_length=600, show_starting_points=True)
+            qim3d.viz.streamlines(
+                volume,
+                vec,
+                val,
+                fiber_spacing=10,
+                max_fiber_length=50,
+            )
     ```
 
     """

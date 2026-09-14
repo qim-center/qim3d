@@ -39,7 +39,7 @@ def watershed(
         labeled_volume, num_labels = qim3d.segmentation.watershed(binary_volume)
 
         cmap = qim3d.viz.colormaps.segmentation(num_labels)
-        fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, color_map=cmap, display_figure=True)
+        fig2 = qim3d.viz.slices_grid(labeled_volume, slice_axis=1, colormap=cmap, display_figure=True)
         ```
         ![operations-watershed_after](../../assets/screenshots/operations-watershed_after.png)
     """
