@@ -1,3 +1,5 @@
+import logging
+
 import ipywidgets as widgets
 import k3d
 import matplotlib.pyplot as plt
@@ -6,9 +8,10 @@ import scipy.ndimage
 from IPython.display import display
 
 import qim3d
-from qim3d._log import logger
 from qim3d.utils import scale_to_float16
 from qim3d.utils._dependencies import optional_import
+
+_logger = logging.getLogger(__name__)
 
 # Import noise as optional dependency
 noise = optional_import("noise", extra="synthetic-data")
@@ -188,7 +191,7 @@ def background(
     if (apply_to is not None) and (apply_to.shape != background_shape):
         msg = f"Shape of input volume {apply_to.shape} does not match requested background_shape {background_shape}. Using input shape instead."
         background_shape = apply_to.shape
-        logger.info(msg)
+        _logger.info(msg)
 
     # Generate the noise volume
     baseline = np.full(shape=background_shape, fill_value=baseline_value)
@@ -212,7 +215,7 @@ def background(
     # Warn user if the background noise is constant or none
     if np.min(background_volume) == np.max(background_volume):
         msg = "Warning: The used settings have generated a background with a uniform value."
-        logger.info(msg)
+        _logger.info(msg)
 
     # Apply method to the target volume if specified
     if apply_to is not None:

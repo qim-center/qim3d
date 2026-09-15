@@ -25,6 +25,7 @@ Example:
 """
 
 import datetime
+import logging
 import os
 
 import dask.array as da
@@ -38,8 +39,9 @@ from pydicom.dataset import FileDataset, FileMetaDataset
 from pydicom.uid import UID
 from pygel3d import hmesh
 
-from qim3d._log import logger
 from qim3d.utils._misc import stringify_path
+
+_logger = logging.getLogger(__name__)
 
 
 class DataSaver:
@@ -129,7 +131,7 @@ class DataSaver:
                 filepath[: -(len(extension) + zfill_val)] + "-" * zfill_val + extension
             )
 
-            logger.info(
+            _logger.info(
                 f"Total of {no_slices} files saved following the pattern '{pattern_string}'"
             )
 
@@ -153,13 +155,13 @@ class DataSaver:
         # nib does automatically compress if filetype ends with .gz
         if self.compression and not path.endswith(".gz"):
             path += ".gz"
-            logger.warning(
+            _logger.warning(
                 "File extension '.gz' is added since compression is enabled."
             )
 
         if not self.compression and path.endswith(".gz"):
             path = path[:-3]
-            logger.warning(
+            _logger.warning(
                 "File extension '.gz' is ignored since compression is disabled."
             )
 
@@ -284,9 +286,9 @@ class DataSaver:
         if isinstance(data, da.Array):
             # If the data is a Dask array, save using dask
             if self.chunk_shape:
-                logger.info("Rechunking data to shape %s", self.chunk_shape)
+                _logger.info("Rechunking data to shape %s", self.chunk_shape)
                 data = data.rechunk(self.chunk_shape)
-            logger.info("Saving Dask array to Zarr array on disk")
+            _logger.info("Saving Dask array to Zarr array on disk")
             da.to_zarr(data, path, overwrite=self.replace)
 
         else:
@@ -361,7 +363,7 @@ class DataSaver:
             if not ext and self.basename:
                 # Make directory and save as tiff stack
                 os.mkdir(path)
-                logger.info("Created directory '%s'!", path)
+                _logger.info("Created directory '%s'!", path)
                 return self.save_tiff_stack(path, data)
 
             # Check if a parent directory exists
@@ -372,7 +374,7 @@ class DataSaver:
                     # If there is a basename
                     if self.basename:
                         # It will be unused and the user is informed accordingly
-                        logger.info("'basename' argument is unused")
+                        _logger.info("'basename' argument is unused")
                     # Check if a file with the given path already exists
                     if os.path.isfile(path) and not self.replace:
                         raise ValueError(

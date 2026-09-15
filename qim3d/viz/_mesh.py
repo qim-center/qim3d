@@ -1,9 +1,12 @@
+import logging
+
 import pygel3d
 import pyvista as pv
 from pygel3d import jupyter_display as jd
 
-from qim3d._log import logger
 from qim3d.mesh._common_mesh_methods import SurfaceMesh, VolumeMesh
+
+_logger = logging.getLogger(__name__)
 
 
 def mesh(
@@ -113,7 +116,7 @@ def mesh(
     if isinstance(mesh, pygel3d.hmesh.Manifold):
         if len(mesh.vertices()) > 100000:
             msg = f"The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh."
-            logger.info(msg)
+            _logger.info(msg)
 
         jd.set_export_mode(True)
         valid_pygel_kwargs = {

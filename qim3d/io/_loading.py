@@ -11,6 +11,7 @@ Example:
 """
 
 import difflib
+import logging
 import os
 import re
 
@@ -25,11 +26,12 @@ from dask import delayed
 from PIL import Image, UnidentifiedImageError
 from pygel3d import hmesh
 
-from qim3d._log import logger
 from qim3d.io._txrm import _get_ole_data_type, read_ole_metadata, read_txrm
 from qim3d.utils import Memory
 from qim3d.utils._misc import find_similar_paths, get_file_size, sizeof, stringify_path
 from qim3d.utils._progress_bar import FileLoadingProgressBar
+
+_logger = logging.getLogger(__name__)
 
 dask.config.set(scheduler="processes")
 
@@ -150,7 +152,7 @@ class DataLoader:
         # Only one dataset was found
         if len(datasets) == 1:
             if self.dataset_name:
-                logger.info(
+                _logger.info(
                     "'dataset_name' argument is unused since there is only one dataset in the file"
                 )
             name = datasets[0]
@@ -263,7 +265,7 @@ class DataLoader:
 
         if self.virtual_stack:
             if not path.endswith(".txm"):
-                logger.warning(
+                _logger.warning(
                     "Virtual stack is only thoroughly tested for reconstructed volumes in TXM format and is thus not guaranteed to load TXRM and XRM files correctly"
                 )
 
@@ -291,7 +293,7 @@ class DataLoader:
                 )
 
             vol = da.concatenate(slices, axis=0)
-            logger.warning(
+            _logger.warning(
                 "Virtual stack volume will be returned as a dask array. To load certain slices into memory, use normal indexing followed by the compute() method, e.g. vol[:,0,:].compute()"
             )
 
@@ -503,7 +505,7 @@ class DataLoader:
         # makes sure path point to .VGI metadata file and not the .VOL file
         if path.endswith(".vol") and os.path.isfile(path.replace(".vol", ".vgi")):
             path = path.replace(".vol", ".vgi")
-            logger.warning("Corrected path to .vgi metadata file from .vol file")
+            _logger.warning("Corrected path to .vgi metadata file from .vol file")
         elif path.endswith(".vol") and not os.path.isfile(path.replace(".vol", ".vgi")):
             msg = f"Unsupported file format, should point to .vgi metadata file assumed to be in same folder as .vol file: {path}"
             raise ValueError(msg)
@@ -655,7 +657,7 @@ class DataLoader:
         if file_size > available_memory:
             message = f"The file {filename} has {sizeof(file_size)} but only {sizeof(available_memory)} of memory is available."
             if self.force_load:
-                logger.warning(message)
+                _logger.warning(message)
             else:
                 raise MemoryError(
                     message + " Set 'force_load=True' to ignore this error."
@@ -962,14 +964,14 @@ def load(
 
     def log_memory_info(data: np.ndarray) -> None:
         mem = Memory()
-        logger.info(
+        _logger.info(
             "Volume using %s of memory\n",
             sizeof(data[0].nbytes if isinstance(data, tuple) else data.nbytes),
         )
         mem.report()
 
     if return_metadata and not isinstance(data, tuple):
-        logger.warning("The file format does not contain metadata")
+        _logger.warning("The file format does not contain metadata")
 
     if not virtual_stack:
         if display_memory_usage:
@@ -979,9 +981,9 @@ def load(
         if not isinstance(
             type(data[0]) if isinstance(data, tuple) else type(data), np.ndarray
         ):
-            logger.info("Using virtual stack")
+            _logger.info("Using virtual stack")
         else:
-            logger.warning("Virtual stack is not supported for this file format")
+            _logger.warning("Virtual stack is not supported for this file format")
             if display_memory_usage:
                 log_memory_info(data)
 

@@ -1,5 +1,7 @@
 """Visualization tools"""
 
+import logging
+
 import matplotlib
 import matplotlib.figure
 import matplotlib.pyplot as plt
@@ -7,7 +9,7 @@ import numpy as np
 from matplotlib import colormaps
 from matplotlib.colors import LinearSegmentedColormap
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 def plot_metrics(
@@ -125,11 +127,11 @@ def grid_overview(
 
     # Check if image data is RGB and inform the user if it's the case
     if len(data[0][0].squeeze().shape) > 2:
-        logger.info("Input images are RGB: color map is ignored")
+        _logger.info("Input images are RGB: color map is ignored")
 
     # Check if dataset have at least specified number of images
     if len(data) < n_images:
-        logger.warning(
+        _logger.warning(
             "Not enough images in the dataset. Changing n_images=%d to n_images=%d",
             n_images,
             len(data),
@@ -225,7 +227,7 @@ def grid_pred(
 
     # Check if dataset have at least specified number of images
     if len(in_targ_preds[0]) < n_images:
-        logger.warning(
+        _logger.warning(
             "Not enough images in the dataset. Changing n_images=%d to n_images=%d",
             n_images,
             len(in_targ_preds[0]),

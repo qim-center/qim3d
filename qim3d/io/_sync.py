@@ -1,12 +1,13 @@
 """Dataset synchronization tasks"""
 
+import logging
 import os
 import subprocess
 from pathlib import Path
 
 import outputformat as ouf
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 class Sync:
@@ -26,8 +27,8 @@ class Sync:
             return True
 
         except Exception as error:
-            logger.error("rsync is not available")
-            logger.error(error)
+            _logger.error("rsync is not available")
+            _logger.error(error)
 
             return False
 
@@ -84,7 +85,7 @@ class Sync:
 
         if len(diff_files) > 0 and verbose:
             title = "Source files differing or missing in destination"
-            logger.info(
+            _logger.info(
                 ouf.showlist(diff_files, style="line", return_str=True, title=title)
             )
 
@@ -124,7 +125,7 @@ class Sync:
         if verbose:
             s_files, s_dirs = self.count_files_and_dirs(source)
             d_files, d_dirs = self.count_files_and_dirs(destination)
-            logger.info("\n")
+            _logger.info("\n")
 
         s_d = self.check_destination(
             source, destination, checksum=checksum, verbose=False
@@ -136,13 +137,13 @@ class Sync:
         if len(s_d) == 0 and len(d_s) == 0:
             # No differences
             if verbose:
-                logger.info(
+                _logger.info(
                     "Source and destination are synchronized, no differences found."
                 )
             return
 
         union = list(set(s_d + d_s))
-        logger.info(
+        _logger.info(
             ouf.showlist(
                 union,
                 style="line",
@@ -153,7 +154,7 @@ class Sync:
 
         intersection = list(set(s_d) & set(d_s))
         if len(intersection) > 0:
-            logger.info(
+            _logger.info(
                 ouf.showlist(
                     intersection,
                     style="line",
@@ -164,7 +165,7 @@ class Sync:
 
         s_exclusive = list(set(s_d).symmetric_difference(set(intersection)))
         if len(s_exclusive) > 0:
-            logger.info(
+            _logger.info(
                 ouf.showlist(
                     s_exclusive,
                     style="line",
@@ -175,7 +176,7 @@ class Sync:
 
         d_exclusive = list(set(d_s).symmetric_difference(set(intersection)))
         if len(d_exclusive) > 0:
-            logger.info(
+            _logger.info(
                 ouf.showlist(
                     d_exclusive,
                     style="line",
@@ -222,6 +223,6 @@ class Sync:
                 dirs += dirs_count
 
         if verbose:
-            logger.info(f"Total of {files} files and {dirs} directories on {path}")
+            _logger.info(f"Total of {files} files and {dirs} directories on {path}")
 
         return files, dirs

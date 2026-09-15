@@ -2,7 +2,7 @@
 
 import logging
 
-logger = logging.getLogger("qim3d")
+_qim3d_root_logger = logging.getLogger("qim3d")
 
 
 def set_detailed_output():
@@ -22,8 +22,8 @@ def set_detailed_output():
     )
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger.handlers = []
-    logger.addHandler(handler)
+    _qim3d_root_logger.handlers = []
+    _qim3d_root_logger.addHandler(handler)
 
 
 def set_simple_output():
@@ -40,8 +40,8 @@ def set_simple_output():
     formatter = logging.Formatter("%(message)s")
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
-    logger.handlers = []
-    logger.addHandler(handler)
+    _qim3d_root_logger.handlers = []
+    _qim3d_root_logger.addHandler(handler)
 
 
 def initialize_logger(level: str | int, detailed: bool = False):
@@ -56,7 +56,7 @@ def initialize_logger(level: str | int, detailed: bool = False):
         detailed (bool, optional): If True, sets the output format to detailed.
     """
 
-    logger.setLevel(level)
+    _qim3d_root_logger.setLevel(level)
     if detailed:
         set_detailed_output()
     else:

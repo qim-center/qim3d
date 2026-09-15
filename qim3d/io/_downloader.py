@@ -1,6 +1,7 @@
 # ruff: noqa: S310
 """Manages downloads and access to data."""
 
+import logging
 import os
 import urllib.request
 from collections.abc import Callable
@@ -12,8 +13,9 @@ from ome_zarr.utils import download
 from tqdm import tqdm
 
 import qim3d
-from qim3d._log import logger
 from qim3d.io._loading import load
+
+_logger = logging.getLogger(__name__)
 
 __all__ = ["Downloader", "download_file"]
 
@@ -77,7 +79,7 @@ class _Myfolder:
 
             download_file(url_dl, folder, file)
             if load_file:
-                logger.info(f"\nLoading {file}")
+                _logger.info(f"\nLoading {file}")
                 file_path = os.path.join(folder, file)
 
                 return load(path=file_path, virtual_stack=virtual_stack)
@@ -227,16 +229,16 @@ class Downloader:
         # --- Zarr / OME-Zarr store ---
         if fname.endswith((".zarr", ".ome.zarr")):
             if os.path.exists(dest):
-                logger.warning(
+                _logger.warning(
                     f"Zarr store already downloaded:\n{os.path.abspath(dest)}"
                 )
             else:
-                logger.info(f"Downloading Zarr store {fname}\n{url}")
+                _logger.info(f"Downloading Zarr store {fname}\n{url}")
                 download(url, output_dir=output_dir)  # return always None
             if load_file:
                 # If virtual stack == True --> dask array --> need to call False in load (we don't want call .compute())
                 # If virtual stack == False --> numpy array --> need to call True in load (we want call .compute())
-                logger.info(
+                _logger.info(
                     f"\nLoading scale={scale} from {fname} as {'numpy array' if not virtual_stack else 'dask array'}"
                 )
                 return qim3d.io.import_ome_zarr(
@@ -246,12 +248,12 @@ class Downloader:
 
         # --- Regular single file ---
         if os.path.exists(dest):
-            logger.warning(f"File already downloaded:\n{os.path.abspath(dest)}")
+            _logger.warning(f"File already downloaded:\n{os.path.abspath(dest)}")
             if load_file:
                 return load(path=dest, virtual_stack=virtual_stack)
             return dest
         else:
-            logger.info(f"Downloading file {fname}\n{url}")
+            _logger.info(f"Downloading file {fname}\n{url}")
             try:
                 total = _get_file_size(url)
             except (HTTPError, URLError):
@@ -277,7 +279,7 @@ class Downloader:
                     raise ConnectionError(msg) from url_err
 
         if load_file:
-            logger.info(f"\nLoading {fname}")
+            _logger.info(f"\nLoading {fname}")
             return load(path=dest, virtual_stack=virtual_stack)
 
         return dest
@@ -298,7 +300,7 @@ class Downloader:
         folders = _extract_names()
 
         for folder in folders:
-            logger.info(f"\n{ouf.boxtitle(folder, return_str=True)}")
+            _logger.info(f"\n{ouf.boxtitle(folder, return_str=True)}")
             files = _extract_names(folder)
 
             for file in files:
@@ -310,7 +312,7 @@ class Downloader:
                 formatted_size = _format_file_size(file_size)
                 path_string = f"{folder}.{formatted_file}"
 
-                logger.info(f"{path_string:<50}({formatted_size})")
+                _logger.info(f"{path_string:<50}({formatted_size})")
 
 
 def _update_progress(pbar: tqdm, blocknum: int, bs: int) -> None:
@@ -343,10 +345,10 @@ def download_file(path: str, name: str, file: str) -> None:
     file_path = os.path.join(name, file)
 
     if os.path.exists(file_path):
-        logger.warning(f"File already downloaded:\n{os.path.abspath(file_path)}")
+        _logger.warning(f"File already downloaded:\n{os.path.abspath(file_path)}")
         return
     else:
-        logger.info(
+        _logger.info(
             f"Downloading {ouf.b(file, return_str=True)}\n{os.path.join(path, name, file)}"
         )
 
@@ -384,7 +386,7 @@ def _extract_html(url: str) -> str:
                 "utf-8"
             )  # Assuming the content is in UTF-8 encoding
     except urllib.error.URLError as e:
-        logger.warning(f"Failed to retrieve data from {url}. Error: {e}")
+        _logger.warning(f"Failed to retrieve data from {url}. Error: {e}")
 
     return html_content
 

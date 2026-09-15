@@ -2,6 +2,7 @@
 Exporting data to different formats.
 """
 
+import logging
 import math
 import os
 import shutil
@@ -19,8 +20,9 @@ from ome_zarr.writer import (
 )
 from scipy.ndimage import zoom
 
-from qim3d._log import logger
 from qim3d.utils._progress_bar import OmeZarrExportProgressBar
+
+_logger = logging.getLogger(__name__)
 
 
 class OMEScaler(
@@ -46,11 +48,11 @@ class OMEScaler(
     def scaleZYX(self, base: da.Array):
         """Downsample using :func:`scipy.ndimage.zoom`."""
         rv = [base]
-        logger.info(f"- Scale 0: {rv[-1].shape}")
+        _logger.info(f"- Scale 0: {rv[-1].shape}")
 
         for i in range(self.max_layer):
             rv.append(zoom(rv[-1], zoom=1 / self.downscale, order=self.order))
-            logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
+            _logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
 
         return list(rv)
 
@@ -83,14 +85,14 @@ class OMEScaler(
                 ).astype(int)
             )
 
-            logger.debug(f"better chunk size: {better_chunksize}")
+            _logger.debug(f"better chunk size: {better_chunksize}")
 
             # Compute the chunk size after the downscaling
             new_chunk_size = tuple(
                 np.ceil(np.multiply(better_chunksize, scale_factors)).astype(int)
             )
 
-            logger.debug(
+            _logger.debug(
                 f"orginal chunk size: {vol.chunksize}, chunk size after downscale: {new_chunk_size}"
             )
 
@@ -111,7 +113,7 @@ class OMEScaler(
 
             # Testing new shape
             predicted_shape = np.multiply(vol.shape, scale_factors)
-            logger.debug(f"predicted shape: {predicted_shape}")
+            _logger.debug(f"predicted shape: {predicted_shape}")
             scaled_vol = da.map_blocks(
                 resize_chunk,
                 vol,
@@ -126,10 +128,10 @@ class OMEScaler(
             return scaled_vol
 
         rv = [base]
-        logger.info(f"- Scale 0: {rv[-1].shape}")
+        _logger.info(f"- Scale 0: {rv[-1].shape}")
 
         for i in range(self.max_layer):
-            logger.debug(f"\nScale {i + 1}\n{'-' * 32}")
+            _logger.debug(f"\nScale {i + 1}\n{'-' * 32}")
             # Calculate the downscale factor for this scale
             downscale_factor = 1 / (self.downscale ** (i + 1))
 
@@ -137,17 +139,17 @@ class OMEScaler(
                 np.ceil(np.multiply(base.shape, downscale_factor)).astype(int)
             )
 
-            logger.debug(f"target shape: {scaled_shape}")
+            _logger.debug(f"target shape: {scaled_shape}")
             downscale_rate = tuple(np.divide(rv[-1].shape, scaled_shape).astype(float))
-            logger.debug(f"downscale rate: {downscale_rate}")
+            _logger.debug(f"downscale rate: {downscale_rate}")
             scale_factors = tuple(np.divide(1, downscale_rate))
-            logger.debug(f"scale factors: {scale_factors}")
+            _logger.debug(f"scale factors: {scale_factors}")
 
-            logger.debug("\nResizing volume chunk-wise")
+            _logger.debug("\nResizing volume chunk-wise")
             scaled_vol = resize_zoom(rv[-1], scale_factors, self.order, scaled_shape)
             rv.append(scaled_vol)
 
-            logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
+            _logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
 
         return list(rv)
 
@@ -156,14 +158,14 @@ class OMEScaler(
         Export 3D image data to OME-Zarr format using dask.coarsen
         """
         rv = [base]
-        logger.info(f"- Scale 0: {rv[-1].shape}")
+        _logger.info(f"- Scale 0: {rv[-1].shape}")
 
         for i in range(self.max_layer):
-            logger.debug(f"\nScale {i + 1}\n{'-' * 32}")
+            _logger.debug(f"\nScale {i + 1}\n{'-' * 32}")
 
             scaled = da.coarsen(np.mean, rv[-1], {0: 2, 1: 2, 2: 2}, trim_excess=True)
             rv.append(scaled)
-            logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
+            _logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
 
         return list(rv)
 
@@ -171,7 +173,7 @@ class OMEScaler(
         """Downsample using the original OME-Zarr python library"""
 
         rv = [base]
-        logger.info(f"- Scale 0: {rv[-1].shape}")
+        _logger.info(f"- Scale 0: {rv[-1].shape}")
 
         for i in range(self.max_layer):
             scaled_shape = tuple(
@@ -181,7 +183,7 @@ class OMEScaler(
             scaled = dask_resize(base, scaled_shape, order=self.order)
             rv.append(scaled)
 
-            logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
+            _logger.info(f"- Scale {i + 1}: {rv[-1].shape}")
         return list(rv)
 
 
@@ -265,12 +267,12 @@ def export_ome_zarr(
     if downsample_rate <= 1:
         raise ValueError("Downsample rate must be greater than 1.")
 
-    logger.info(f"Exporting data to OME-Zarr format at {path}")
+    _logger.info(f"Exporting data to OME-Zarr format at {path}")
 
     # Get the number of scales
     min_dim = np.max(np.shape(data))
     nscales = math.ceil(math.log(min_dim / chunk_size) / math.log(downsample_rate))
-    logger.info(f"Number of scales: {nscales + 1}")
+    _logger.info(f"Number of scales: {nscales + 1}")
 
     # Create scaler
     scaler = OMEScaler(
@@ -284,21 +286,21 @@ def export_ome_zarr(
 
     # Check if we want to process using Dask
     if "dask" in method and not isinstance(data, da.Array):
-        logger.info("\nConverting input data to Dask array")
+        _logger.info("\nConverting input data to Dask array")
         data = da.from_array(data, chunks=(chunk_size, chunk_size, chunk_size))
-        logger.info(f" - shape...: {data.shape}\n - chunks..: {data.chunksize}\n")
+        _logger.info(f" - shape...: {data.shape}\n - chunks..: {data.chunksize}\n")
 
     elif "dask" in method and isinstance(data, da.Array):
-        logger.info("\nInput data will be rechunked")
+        _logger.info("\nInput data will be rechunked")
         data = data.rechunk((chunk_size, chunk_size, chunk_size))
-        logger.info(f" - shape...: {data.shape}\n - chunks..: {data.chunksize}\n")
+        _logger.info(f" - shape...: {data.shape}\n - chunks..: {data.chunksize}\n")
 
-    logger.info("Calculating the multi-scale pyramid")
+    _logger.info("Calculating the multi-scale pyramid")
 
     # Generate multi-scale pyramid
     mip = scaler.func(data)
 
-    logger.info("Writing data to disk")
+    _logger.info("Writing data to disk")
     kwargs = dict(
         pyramid=mip,
         group=root,
@@ -324,7 +326,7 @@ def export_ome_zarr(
     else:
         write_multiscale(**kwargs)
 
-    logger.info("\nAll done!")
+    _logger.info("\nAll done!")
 
     return
 
@@ -379,9 +381,9 @@ def import_ome_zarr(
     image_node = nodes[0]
     dask_data = image_node.data
 
-    logger.info(f"Data contains {len(dask_data)} scales:")
+    _logger.info(f"Data contains {len(dask_data)} scales:")
     for i in np.arange(len(dask_data)):
-        logger.info(f"- Scale {i}: {dask_data[i].shape}")
+        _logger.info(f"- Scale {i}: {dask_data[i].shape}")
 
     if scale == "highest":
         scale = 0
@@ -394,7 +396,7 @@ def import_ome_zarr(
             f"Scale {scale} does not exist in the data. Please choose a scale between 0 and {len(dask_data) - 1}."
         )
 
-    logger.info(f"\nLoading scale {scale} with shape {dask_data[scale].shape}")
+    _logger.info(f"\nLoading scale {scale} with shape {dask_data[scale].shape}")
 
     if load:
         vol = dask_data[scale].compute()
