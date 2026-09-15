@@ -283,12 +283,12 @@ def mesh(
         # Visualize the generated mesh
         qim3d.viz.mesh(mesh)
         ```
-        ![pygel3d_visualization](../../assets/screenshots/viz-pygel_mesh.png)
+        ![pygel3d_visualization](../assets/screenshots/viz-pygel_mesh.png)
 
         ```python
         qim3d.viz.mesh(mesh, backend='k3d', wireframe=False, flat_shading=False)
         ```
-        ![k3d_visualization](../../assets/screenshots/viz-k3d_mesh.png)
+        ![k3d_visualization](../assets/screenshots/viz-k3d_mesh.png)
     """
 
     if len(mesh.vertices()) > 100000:

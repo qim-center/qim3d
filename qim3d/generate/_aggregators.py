@@ -209,14 +209,14 @@ def _volume_collection(
         ```python
         qim3d.viz.slicer(volume_collection)
         ```
-        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default.gif)
+        ![synthetic_collection](../assets/screenshots/synthetic_collection_default.gif)
 
         ```python
         # Visualize labels
         cmap = qim3d.viz.colormaps.segmentation(num_labels=n_volumes)
         qim3d.viz.slicer(labels, color_map=cmap, value_max=n_volumes)
         ```
-        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
+        ![synthetic_collection](../assets/screenshots/synthetic_collection_default_labels.gif)
 
     Example:
         ```python
@@ -269,7 +269,7 @@ def _volume_collection(
         # Visualize slices
         qim3d.viz.slices_grid(volume_collection, num_slices=15)
         ```
-        ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
+        ![synthetic_collection_cylinder](../assets/screenshots/synthetic_collection_cylinder_slices.png)
 
     Example:
         ```python
@@ -299,7 +299,7 @@ def _volume_collection(
         # Visualize slices
         qim3d.viz.slices_grid(volume_collection, num_slices=15, slice_axis=1)
         ```
-        ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
+        ![synthetic_collection_tube](../assets/screenshots/synthetic_collection_tube_slices.png)
 
     """
 
@@ -591,14 +591,14 @@ def volume_collection(
         ```python
         qim3d.viz.slicer(volume_collection)
         ```
-        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default.gif)
+        ![synthetic_collection](../assets/screenshots/synthetic_collection_default.gif)
 
         ```python
         # Visualize labels
         cmap = qim3d.viz.colormaps.segmentation(n_labels=n_volumes)
         qim3d.viz.slicer(labels, colormap=cmap, max_value=n_volumes)
         ```
-        ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
+        ![synthetic_collection](../assets/screenshots/synthetic_collection_default_labels.gif)
 
     Example: Collection of fiber-like structures
         ```python
@@ -626,7 +626,7 @@ def volume_collection(
         # Visualize slices
         qim3d.viz.slices_grid(volume_collection, num_slices=15)
         ```
-        ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
+        ![synthetic_collection_cylinder](../assets/screenshots/synthetic_collection_cylinder_slices.png)
 
     Example: Create a collection of tubular (hollow) structures
         ```python
@@ -654,7 +654,7 @@ def volume_collection(
         # Visualize slices
         qim3d.viz.slices_grid(volume_collection, num_slices=15, slice_axis=1)
         ```
-        ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
+        ![synthetic_collection_tube](../assets/screenshots/synthetic_collection_tube_slices.png)
 
     Example: Using predefined volumes
         ```python

@@ -15,7 +15,7 @@ Equidistant slices of the mussel µCT-scan can be viewed. Here 15 slices are cho
 qim3d.viz.slices_grid(volume, num_slices=15, color_map="Blues")
 ```
 <div class="notebook-output-figure">
-  <img src="../../assets/screenshots/mussel_slices_grid.png" alt="mussel_slices">
+  <img src="../assets/screenshots/mussel_slices_grid.png" alt="mussel_slices">
 </div>
 
 One can interactively scroll through the different axes of the volume:
@@ -23,7 +23,7 @@ One can interactively scroll through the different axes of the volume:
 qim3d.viz.slicer_orthogonal(volume, colormap="Blues")
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/mussel_slicer_orthogonal.png" alt="mussel_slicer_orthogonal">
+    <img src="../assets/screenshots/mussel_slicer_orthogonal.png" alt="mussel_slicer_orthogonal">
 </div>
 
 ## Histogram
@@ -34,5 +34,5 @@ qim3d.viz.histogram(volume, bins=100, coarseness=2)
 
 <div class="notebook-output-figure">
     <pre>Subsampled volume has size 12.5% of the original volume.</pre>
-    <img src="../../assets/screenshots/mussel_histogram.png" alt="mussel_histogram">
+    <img src="../assets/screenshots/mussel_histogram.png" alt="mussel_histogram">
 </div>

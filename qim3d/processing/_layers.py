@@ -58,8 +58,8 @@ def segment_layers(
         plt.legend()
         plt.show()
         ```
-        ![layer_segmentation](../../assets/screenshots/layers.png)
-        ![layer_segmentation](../../assets/screenshots/segmented_layers.png)
+        ![layer_segmentation](../assets/screenshots/layers.png)
+        ![layer_segmentation](../assets/screenshots/segmented_layers.png)
     """
     if isinstance(data, np.ndarray):
         data = data.astype(np.int32)

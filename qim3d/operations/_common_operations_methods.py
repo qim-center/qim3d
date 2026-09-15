@@ -40,7 +40,7 @@ def remove_background(
         vol = qim3d.examples.cement_128x128x128
         fig1 = qim3d.viz.slices_grid(vol, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
-        ![operations-remove_background_before](../../assets/screenshots/operations-remove_background_before.png)
+        ![operations-remove_background_before](../assets/screenshots/operations-remove_background_before.png)
 
         ```python
         vol_filtered  = qim3d.operations.remove_background(vol,
@@ -48,7 +48,7 @@ def remove_background(
                                                               background="bright")
         fig2 = qim3d.viz.slices_grid(vol_filtered, value_min=0, value_max=255, num_slices=5, display_figure=True)
         ```
-        ![operations-remove_background_after](../../assets/screenshots/operations-remove_background_after.png)
+        ![operations-remove_background_after](../assets/screenshots/operations-remove_background_after.png)
     """
 
     # Create a pipeline with a median filter and a tophat filter
@@ -277,13 +277,13 @@ def make_hollow(
         vol = qim3d.generate.volume(noise_scale = 0.01)
         qim3d.viz.slicer(vol)
         ```
-        ![synthetic_collection](../../assets/screenshots/hollow_slicer_1.gif)
+        ![synthetic_collection](../assets/screenshots/hollow_slicer_1.gif)
         ```python
         # Hollow volume and visualize it
         vol_hollowed = qim3d.operations.make_hollow(vol, thickness=10)
         qim3d.viz.slicer(vol_hollowed)
         ```
-        ![synthetic_collection](../../assets/screenshots/hollow_slicer_2.gif)
+        ![synthetic_collection](../assets/screenshots/hollow_slicer_2.gif)
     """
     # Create base mask
     vol_mask_base = volume > 0

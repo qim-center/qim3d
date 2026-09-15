@@ -15,7 +15,7 @@ vol = qim3d.generate.volume(noise_scale=0.03, noise_type="perlin")
 qim3d.viz.slices_grid(vol, n_slices=15)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/synthetic_data_blob.gif" alt="synthetic_data_blob">
+    <img src="../assets/screenshots/synthetic_data_blob.gif" alt="synthetic_data_blob">
 </div>
 
 The noise scale can be adjusted to change the roughness of the blob. A higher `noise_scale` creates finer, more detailed Perlin noise features:
@@ -29,7 +29,7 @@ rough_blob = qim3d.generate.volume(noise_scale=0.05)
 ```
 
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/synthetic_data_blobs_noise.png" alt="synthetic_data_blobs_noise_scale">
+    <img src="../assets/screenshots/synthetic_data_blobs_noise.png" alt="synthetic_data_blobs_noise_scale">
 </div>
 
 ## Clusters
@@ -43,7 +43,7 @@ cluster = qim3d.generate.berry(num_drupelets=60, core_radius=20)
 qim3d.viz.slices_grid(cluster, n_slices=15)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/synthetic_data_berry.gif" alt="synthetic_data_berry">
+    <img src="../assets/screenshots/synthetic_data_berry.gif" alt="synthetic_data_berry">
 </div>
 
 Parameters such as `num_drupelets`, `drupelet_radius`, and `return_labels` can be explored to adjust cluster density or obtain instance labels for segmentation:
@@ -57,7 +57,7 @@ cmap = qim3d.viz.colormaps.segmentation(n_labels=len(labels))
 qim3d.viz.slices_grid(labels, colormap=cmap, n_slices=15)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/synthetic_cluster_labels.png" alt="synthetic_cluster_labels">
+    <img src="../assets/screenshots/synthetic_cluster_labels.png" alt="synthetic_cluster_labels">
 </div>
 
 ## Fibers
@@ -71,7 +71,7 @@ fiber_bundle = qim3d.generate.rope(num_threads=18, twist_rate=2.0)
 qim3d.viz.slices_grid(fiber_bundle, n_slices=15)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/synthetic_data_rope.gif" alt="synthetic_data_rope">
+    <img src="../assets/screenshots/synthetic_data_rope.gif" alt="synthetic_data_rope">
 </div>
 
 Parameters such as `num_threads`, `twist_rate`, and `thread_thickness` allow exploring different fiber bundle densities and twist frequencies:
@@ -87,5 +87,5 @@ cmap = qim3d.viz.colormaps.segmentation(n_labels=len(thread_labels))
 qim3d.viz.slices_grid(thread_labels, colormap=cmap, n_slices=15)
 ```
 <div class="notebook-output-figure">
-    <img src="../../assets/screenshots/synthetic_rope_labels.png" alt="synthetic_rope_labels">
+    <img src="../assets/screenshots/synthetic_rope_labels.png" alt="synthetic_rope_labels">
 </div>

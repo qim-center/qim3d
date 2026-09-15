@@ -140,7 +140,7 @@ def from_volume(
         # Visualize the generated blob
         qim3d.viz.volumetric(synthetic_blob)
         ```
-        ![pygel3d_visualization_vol](../../assets/screenshots/viz-pygel_mesh_vol.png){width='300', length='200'}
+        ![pygel3d_visualization_vol](../assets/screenshots/viz-pygel_mesh_vol.png){width='300', length='200'}
 
         ```python
         # Convert the 3D numpy array to a mesh object
@@ -149,7 +149,7 @@ def from_volume(
         # Visualize the generated mesh
         qim3d.viz.mesh(mesh)
         ```
-        ![pygel3d_visualization_mesh](../../assets/screenshots/viz-pygel_mesh.png){width='300', length='200'}
+        ![pygel3d_visualization_mesh](../assets/screenshots/viz-pygel_mesh.png){width='300', length='200'}
 
     """
 
