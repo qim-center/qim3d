@@ -246,12 +246,15 @@ def model_summary(
 
     Example:
         ```python
+        import torch
         import qim3d
 
         # Define model and data components
-        model = qim3d.ml.models.UNet(size='small')
-
-        # ... (assume train_loader is already prepared) ...
+        model = qim3d.ml.models.UNet(size="small")
+        images = torch.zeros((1, 1, 16, 16, 16))
+        labels = torch.zeros_like(images)
+        dataset = torch.utils.data.TensorDataset(images, labels)
+        train_loader = torch.utils.data.DataLoader(dataset, batch_size=1)
 
         # Print model summary
         summary = qim3d.ml.model_summary(model, train_loader)
