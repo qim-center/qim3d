@@ -497,7 +497,6 @@ def volume_collection(
     shape: str = None,
     tube_hole_ratio: float = 0.5,
     axis: int = 0,
-    verbose: bool = False,
     same_seed: bool = False,
     hollow: bool = False,
     seed: int = 0,
@@ -552,8 +551,6 @@ def volume_collection(
             Ratio of the inner hole if `shape='tube'`.
         axis (int, optional):
             Orientation axis (0, 1, 2) if `shape` is defined.
-        verbose (bool, optional):
-            If `True`, enables detailed logging of placement attempts.
         same_seed (bool, optional):
             If `True`, reuses the same random seed for every object (they will look identical).
         hollow (bool, optional):
@@ -735,10 +732,6 @@ def volume_collection(
     if rotation_axes is None:
         rotation_axes = [(0, 1), (0, 2), (1, 2)]
 
-    if verbose:
-        original_log_level = _logger.getEffectiveLevel()
-        _logger.setLevel("DEBUG")
-
     # Set seed for random number generator
     rng = np.random.default_rng(seed)
 
@@ -873,8 +866,6 @@ def volume_collection(
         _logger.error(
             f"Object #{i + 1} could not be placed in the collection, no space found. Collection contains {i}/{n_volumes} volumes."
         )
-    if verbose:
-        _logger.setLevel(original_log_level)
 
     if return_positions:
         return collection_array, labels, placed_positions
