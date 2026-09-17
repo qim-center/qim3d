@@ -15,9 +15,9 @@ maintainers = [
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
@@ -28,7 +28,7 @@ classifiers = [
     "Topic :: Software Development :: User Interfaces",
 ]
 
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 dependencies = [
     # SPEC-0 Base
     # See: https://scientific-python.org/specs/spec-0000/
@@ -146,6 +146,15 @@ test = [
 ]
 
 ### Tools
+[[tool.uv.index]]
+name = "pytorch-cu132"
+url = "https://download.pytorch.org/whl/cu132"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu132", marker = "sys_platform != 'darwin'" }
+torchvision = { index = "pytorch-cu132", marker = "sys_platform != 'darwin'" }
+
 [tool.setuptools]
 include-package-data = true
 license-files = []
