@@ -1,8 +1,10 @@
 """Blob detection using Difference of Gaussian (DoG) method"""
 
+import logging
+
 import numpy as np
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 def blobs(
@@ -76,7 +78,7 @@ def blobs(
     from skimage.feature import blob_dog
 
     if background == "bright":
-        logger.info("Bright background selected, volume will be inverted.")
+        _logger.info("Bright background selected, volume will be inverted.")
         volume = np.invert(volume)
 
     blobs = blob_dog(

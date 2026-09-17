@@ -31,12 +31,6 @@ if _TYPE_CHECKING:
     from qim3d import tests as tests
     from qim3d import utils as utils
     from qim3d import viz as viz
-import logging
-
-from qim3d import examples as examples
-from qim3d._log import initialize_logger as _initialize_logger
-
-_initialize_logger(logging.INFO, detailed=True)
 
 
 class _LazyLoader:
@@ -56,24 +50,26 @@ class _LazyLoader:
         return getattr(module, item)
 
 
-# List of submodules
+# List of submodules that should be lazily loaded.
+# Note: Not all modules need to be lazily loaded
 _submodules = [
+    "cli",
+    "detection",
+    "examples",
+    "features",
+    "filters",
     "generate",
     "gui",
     "io",
+    "mesh",
     "ml",
+    "morphology",
+    "operations",
     "processing",
+    "segmentation",
     "tests",
     "utils",
     "viz",
-    "cli",
-    "filters",
-    "segmentation",
-    "mesh",
-    "features",
-    "operations",
-    "morphology",
-    "detection",
 ]
 
 # Creating lazy loaders for each submodule

@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 import threading
@@ -6,7 +7,6 @@ import webbrowser
 from pathlib import Path
 
 import qim3d
-from qim3d._log import logger
 
 from .helpers import (
     SOURCE_FNM,
@@ -19,6 +19,8 @@ from .helpers import (
     run_for_platform,
 )
 from .installation import Installer
+
+_logger = logging.getLogger(__name__)
 
 # CLI entry point provided by @qim3d/volume-explorer
 START_COMMAND = "volume-explorer --no-open"
@@ -118,7 +120,7 @@ def try_opening_volume_explorer(
             if open_browser:
                 webbrowser.open_new_tab(viz_url)
 
-            logger.info(f"\nVisualization url:\n{viz_url}\n")
+            _logger.info(f"\nVisualization url:\n{viz_url}\n")
         c.release()
 
     delayed_window = threading.Thread(target=delayed_open)

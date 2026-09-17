@@ -1,16 +1,17 @@
 """Deals with DOI for references"""
 
 import json
+import logging
 
 import requests
 
-from qim3d._log import logger
+_logger = logging.getLogger(__name__)
 
 
 def _validate_response(response: requests.Response) -> bool:
     # Check if we got a good response
     if not response.ok:
-        logger.error(f"Could not read the provided DOI ({response.reason})")
+        _logger.error(f"Could not read the provided DOI ({response.reason})")
         return False
 
     return True
@@ -44,12 +45,12 @@ def _log_and_get_text(doi, header) -> str:
     if response and response.encoding:
         # Explicitly decode the response content using the specified encoding
         text = response.content.decode(response.encoding)
-        logger.info(text)
+        _logger.info(text)
         return text
     elif response:
         # If encoding is not specified, default to UTF-8
         text = response.text
-        logger.info(text)
+        _logger.info(text)
         return text
 
 

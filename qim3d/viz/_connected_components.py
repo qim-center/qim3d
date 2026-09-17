@@ -1,9 +1,12 @@
+import logging
+
 import matplotlib.pyplot as plt
 import numpy as np
 
 import qim3d
-from qim3d._log import logger
 from qim3d.segmentation._connected_components import ConnectedComponents
+
+_logger = logging.getLogger(__name__)
 
 
 def plot_connected_components(
@@ -68,7 +71,7 @@ def plot_connected_components(
     # if no components are given, plot the first max_cc_to_plot=32 components
     if component_indexs is None:
         if len(connected_components) > max_cc_to_plot:
-            logger.warning(
+            _logger.warning(
                 f"More than {max_cc_to_plot} connected components found. Only the first {max_cc_to_plot} will be plotted. Change max_cc_to_plot to plot more components."
             )
         component_indexs = range(
