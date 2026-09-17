@@ -50,24 +50,26 @@ class _LazyLoader:
         return getattr(module, item)
 
 
-# List of submodules
+# List of submodules that should be lazily loaded.
+# Note: Not all modules need to be lazily loaded
 _submodules = [
+    "cli",
+    "detection",
+    "examples",
+    "features",
+    "filters",
     "generate",
     "gui",
     "io",
+    "mesh",
     "ml",
+    "morphology",
+    "operations",
     "processing",
+    "segmentation",
     "tests",
     "utils",
     "viz",
-    "cli",
-    "filters",
-    "segmentation",
-    "mesh",
-    "features",
-    "operations",
-    "morphology",
-    "detection",
 ]
 
 # Creating lazy loaders for each submodule
