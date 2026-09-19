@@ -44,4 +44,4 @@ jobs:
           enable-cache: "auto"
 
       - name: Run tests
-        run: just test
+        run: just test -v
