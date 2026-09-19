@@ -25,11 +25,16 @@ MOCK_TARGETS: dict[str, dict[str, dict[str, Callable[[], object]]]] = {
         "chunks": {
             "qim3d.viz.chunks": noop_mock,
         },
+        # screenshot() segfaults without a graphics environment, so it is mocked
+        # out.
+        # It returns MagicMock objects, which okay since the mimsave method is also mocked.
+        # See: https://github.com/qim-center/qim3d/issues/249
         "export_rotation": {
             "imageio.v2.mimsave": noop_mock,
             "imageio.v2.get_writer": noop_mock,
             "qim3d.viz._data_exploration.Image": noop_mock,
             "qim3d.viz._data_exploration.display": noop_mock,
+            "pyvista.Plotter.screenshot": noop_mock,
         },
         "mesh": {
             "pyvista.Plotter": noop_mock,
