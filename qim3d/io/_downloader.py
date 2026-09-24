@@ -64,7 +64,7 @@ class Downloader:
     repeated downloads of the same file.
 
     The `Downloader` acts as an interface to the [QIM data repository](https://data.qim.dk/),
-    discovering datasets from its JSON manifest and downloading volumes by dataset ID and format.
+    The `Downloader` acts as an interface to the [QIM data repository](https://data-repository.qim.dk/),
 
     Attributes:
         manifest_url (str): URL of the dataset manifest.
