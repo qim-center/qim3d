@@ -75,8 +75,8 @@ def mock_downloader():
         # Create a mock instance of Downloader
         mock_instance = MockDownloader.return_value
 
-        # Mock the Snail.Escargot method to return a fake dataset
-        mock_instance.Snail.Escargot.return_value = MagicMock(name="FakeDataset")
+        # Avoid fetching the manifest or image data in downloader docstrings.
+        mock_instance.load_dataset.return_value = MagicMock(name="FakeDataset")
 
         yield MockDownloader
 
