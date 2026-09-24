@@ -147,6 +147,39 @@ def test_slices_axis_argument():
     )
 
 
+def test_slices_grid_shares_clim_by_default():
+    # Each slice has a distinct intensity range; shared clim is the default
+    # so all images use the volume min/max rather than their own.
+    volume = np.zeros((4, 8, 8), dtype=float)
+    for i in range(4):
+        volume[i] = i + 1
+
+    fig = qim3d.viz.slices_grid(
+        volume, slice_positions=list(range(4)), n_slices=4, max_columns=4
+    )
+    clims = [ax.images[0].get_clim() for ax in fig.get_axes() if ax.images]
+    assert clims
+    assert all(clim == clims[0] for clim in clims)
+    assert clims[0] == (volume.min(), volume.max())
+
+
+def test_slices_grid_independent_clim_when_share_z_false():
+    volume = np.zeros((4, 8, 8), dtype=float)
+    for i in range(4):
+        volume[i] = i + 1
+
+    fig = qim3d.viz.slices_grid(
+        volume,
+        slice_positions=list(range(4)),
+        n_slices=4,
+        max_columns=4,
+        share_z=False,
+    )
+    clims = [ax.images[0].get_clim() for ax in fig.get_axes() if ax.images]
+    assert clims
+    assert len({clim for clim in clims}) == len(clims)
+
+
 # unit tests for slicer function
 def test_slicer_with_numpy_array():
     # Create a sample NumPy array

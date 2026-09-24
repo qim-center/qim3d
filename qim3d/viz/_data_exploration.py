@@ -55,13 +55,13 @@ except ImportError:
 def slices_grid(
     volume: np.ndarray,
     slice_axis: int = 0,
-    slice_positions: str | int | list[int] | None = None,
+    slice_positions: Literal["start", "mid", "end"] | int | list[int] | None = None,
     n_slices: int = 15,
     max_columns: int = 5,
     colormap: str = "magma",
-    min_value: float = None,
-    max_value: float = None,
-    image_size: int = None,
+    min_value: float | None = None,
+    max_value: float | None = None,
+    image_size: int | None = None,
     image_height: int = 2,
     image_width: int = 2,
     display_figure: bool = False,
@@ -69,7 +69,8 @@ def slices_grid(
     interpolation: str | None = None,
     colorbar: bool = False,
     colorbar_style: str = "small",
-    mask: np.ndarray = None,
+    share_z: bool = True,
+    mask: np.ndarray | None = None,
     mask_alpha: float = 0.4,
     mask_colormap: str = "gray",
     row_range: tuple[int, int] | None = None,
@@ -115,6 +116,10 @@ def slices_grid(
 
             * `'small'`: Matches the height of a single image row.
             * `'large'`: Spans the full height of the grid.
+
+        share_z (bool, optional): If `True` (default), all slices share the same color
+            limits so intensities are comparable across the grid. Set to `False` for
+            independent per-slice colormaps. A colorbar always uses a shared range.
 
         mask (numpy.ndarray, optional): A 3D segmentation mask to overlay on the slices.
         mask_alpha (float, optional): Opacity of the mask overlay (0.0 to 1.0).
@@ -246,9 +251,10 @@ def slices_grid(
     if isinstance(volume, da.Array):
         volume = volume.compute()
 
-    if colorbar:
-        # In this case, we want the vrange to be constant across the
-        # slices, which makes them all comparable to a single colorbar.
+    # Shared color limits make slices comparable. A colorbar requires this,
+    # and it is also the default without a colorbar (disable with share_z=False).
+    share_clim = colorbar or share_z
+    if share_clim:
         new_min_value = min_value if min_value is not None else np.min(volume)
         new_max_value = max_value if max_value is not None else np.max(volume)
 
@@ -271,7 +277,7 @@ def slices_grid(
                 if slice_mask is not None:
                     slice_mask = slice_mask[row_slice, col_slice]
 
-                if not colorbar:
+                if not share_clim:
                     # If min_value is higher than the highest value in the
                     # image ValueError is raised. We don't want to
                     # override the values because next slices might be okay
