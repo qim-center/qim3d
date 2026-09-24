@@ -68,6 +68,20 @@ In order to have a relatively clean git history, it is appreciated if PRs have r
 
 The merge strategy onto `main` should also ideally use the `rebase` strategy. See [this blog post](https://graphite.com/blog/why-ban-merge-commits) for justification.
 
+### Configuration
+
+In order to get your local `git` to correctly use the `.git-blame-ignore-revs` file you can add the following configuration option to your local git configuration:
+
+```ini
+[blame]
+	ignorerevsfile=.git-blame-ignore-revs
+```
+
+This can also be set with:
+```sh
+git config blame.ignoreRevsFile .git-blame-ignore-revs
+```
+
 ## Review Policy
 
 For submitting pull-requests, please make _atomic_[^1] pull requests (and ideally also atomic commits)
