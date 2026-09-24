@@ -186,7 +186,7 @@ class Downloader:
                 f"format {format!r}"
             )
         destination = dataset_dir / filename
-        if destination.exists():
+        if destination.exists() and not destination.is_symlink():
             _logger.info("Dataset volume already downloaded: %s", destination)
             return destination
 
@@ -195,7 +195,7 @@ class Downloader:
             prefix=".download-", dir=dataset_dir
         ) as staging:
             staged = self._download_url(url, output_dir=staging)
-            if destination.exists():
+            if destination.exists() and not destination.is_symlink():
                 return destination
             os.replace(staged, destination)
         return destination
