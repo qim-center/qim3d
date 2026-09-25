@@ -281,3 +281,34 @@ def test_local_thickness_3d_max_projection():
 
     # Assert that returned object is an interactive widget
     assert isinstance(fig, plt.Figure)
+
+
+# unit tests for slices_grid shared color extent
+def _gradient_volume(n=6):
+    # Slice k has constant value k, so per-slice autoscaling hides the gradient
+    return np.stack([np.full((4, 4), float(k)) for k in range(n)])
+
+
+def _grid_image_clims(fig):
+    return [im.get_clim() for ax in fig.axes for im in ax.images]
+
+
+def test_slices_grid_shares_color_extent_by_default():
+    fig = qim3d.viz.slices_grid(_gradient_volume(), n_slices=6)
+    clims = _grid_image_clims(fig)
+    assert len(clims) == 6
+    assert all(clim == (0.0, 5.0) for clim in clims)
+
+
+def test_slices_grid_share_z_respects_explicit_min_max():
+    fig = qim3d.viz.slices_grid(_gradient_volume(), n_slices=6, min_value=1.0, max_value=4.0)
+    clims = _grid_image_clims(fig)
+    assert all(clim == (1.0, 4.0) for clim in clims)
+
+
+def test_slices_grid_share_z_false_autoscales_each_slice():
+    fig = qim3d.viz.slices_grid(_gradient_volume(), n_slices=6, share_z=False)
+    clims = _grid_image_clims(fig)
+    # Constant slices each get their own narrow autoscale around their value
+    assert clims[0] != clims[-1]
+    assert clims[-1][0] >= 4.0
