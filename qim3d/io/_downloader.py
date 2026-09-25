@@ -1,14 +1,16 @@
 # ruff: noqa: S310
-"""Manages downloads and access to data."""
+"""Discover QIM datasets and download their volumes."""
 
+import json
 import logging
 import os
+import tempfile
 import urllib.request
-from collections.abc import Callable
-from urllib.error import HTTPError, URLError
-from urllib.parse import quote, urlparse
+from copy import deepcopy
+from pathlib import Path
+from typing import Any
+from urllib.parse import urlparse
 
-import outputformat as ouf
 from ome_zarr.utils import download
 from tqdm import tqdm
 
@@ -17,74 +19,40 @@ from qim3d.io._loading import load
 
 _logger = logging.getLogger(__name__)
 
-__all__ = ["Downloader", "download_file"]
+__all__ = ["Downloader"]
+
+MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
 
 
-class _Myfolder:
-    """
-    Class for extracting the files from each folder in the Downloader class.
+class ManifestError(ValueError):
+    """The dataset manifest could not be used."""
 
-    Args:
-        folder(str): name of the folder of interest in the QIM data repository.
 
-    Methods:
-            _make_fn(folder,file): creates custom functions for each file found in the folder.
-        [file_name_1](load_file,optional): Function to download file number 1 in the given folder.
-        [file_name_2](load_file,optional): Function to download file number 2 in the given folder.
-        ...
-        [file_name_n](load_file,optional): Function to download file number n in the given folder.
+class DatasetNotFoundError(LookupError):
+    """The requested dataset ID is absent from the manifest."""
 
-    """
 
-    def __init__(self, folder: str):
-        files = _extract_names(folder)
+class VolumeNotFoundError(LookupError):
+    """The requested format is absent from a dataset."""
 
-        for _, file in enumerate(files):
-            # Changes names to usable function name.
-            file_name = file
-            if ("%20" in file) or ("-" in file):
-                file_name = file_name.replace("%20", "_")
-                file_name = file_name.replace("-", "_")
 
-            name = file_name.split(".")[0]
-            setattr(self, name, self._make_fn(folder, file))
+class VolumeUnavailableError(ValueError):
+    """The requested volume has no download URL."""
 
-    def _make_fn(self, folder: str, file: str) -> Callable[[bool, bool], object]:
-        """
-        Private method that returns a function. The function downloads the chosen file from the folder.
 
-        Args:
-            folder(str): Folder where the file is located.
-            file(str): Name of the file to be downloaded.
+def _fetch_manifest(url: str, timeout: float) -> list[dict]:
+    """Fetch the collection's dataset list."""
+    try:
+        with urllib.request.urlopen(url, timeout=timeout) as response:
+            return json.load(response)["datasets"]
+    except Exception as exc:
+        raise ManifestError("Could not load dataset manifest") from exc
 
-        Returns:
-                function: the function used to download the file.
 
-        """
-
-        url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
-
-        def _download(load_file: bool = False, virtual_stack: bool = True) -> object:
-            """
-            Downloads the file and optionally also loads it.
-
-            Args:
-                load_file(bool,optional): Whether to simply download or also load the file.
-                virtual_stack(bool,optional): Whether to load the file as a virtual stack.
-
-            Returns:
-                virtual_stack: The loaded image.
-
-            """
-
-            download_file(url_dl, folder, file)
-            if load_file:
-                _logger.info(f"\nLoading {file}")
-                file_path = os.path.join(folder, file)
-
-                return load(path=file_path, virtual_stack=virtual_stack)
-
-        return _download
+def _get_file_size(url: str) -> int:
+    """Return the remote Content-Length, or -1 if unavailable."""
+    with urllib.request.urlopen(url, timeout=10) as response:
+        return int(response.info().get("Content-Length", -1))
 
 
 class Downloader:
@@ -96,43 +64,24 @@ class Downloader:
     repeated downloads of the same file.
 
     The `Downloader` acts as an interface to the [QIM data repository](https://data.qim.dk/),
-    organizing files into accessible attributes (e.g., `downloader.Cowry_Shell.Cowry_DOWNSAMPLED`). It also
-    serves as a general-purpose tool to retrieve files from any given URL via the `__call__` method.
+    The `Downloader` acts as an interface to the [QIM data repository](https://data-repository.qim.dk/),
 
     Attributes:
-        folder_name (str or os.PathLike): Dynamic attributes corresponding to folders in the repository (e.g., `Coal`, `Foam`, `Shell`).
+        manifest_url (str): URL of the dataset manifest.
+        timeout (float): Timeout in seconds for fetching the manifest.
 
     Methods:
-        list_files(): Displays a catalog of downloadable files available in the repository.
-        __call__(url, ...): Downloads a file from a specific URL.
+        list_datasets(): Returns the datasets and formats published in the manifest.
+        download_dataset(dataset_id, format, ...): Downloads a volume and returns its local path.
+        load_dataset(dataset_id, format, ...): Downloads a volume if needed and returns its image data.
+        refresh(): Fetches the manifest again.
 
-    Syntax for downloading and loading a pre-defined file:
-    `qim3d.io.Downloader().{folder_name}.{file_name}(load_file=True)`
+    Syntax for downloading and loading a dataset:
+    `qim3d.io.Downloader().load_dataset("cowry-shell", format="zarr")`
 
     ??? info "Overview of available data"
-        Below is a table of the available folders and files on the [QIM data repository](https://data.qim.dk/).
-
-        Folder name         | File name                                                                                                          | File size
-        ------------------- | ------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------
-        `Coal`              | `CoalBrikett` <br> `CoalBrikett_Zoom` <br> `CoalBrikettZoom_DOWNSAMPLED`                                           | 2.23 GB <br> 3.72 GB <br> 238 MB
-        `Corals`            | `Coral_1` <br> `Coral_2` <br> `Coral2_DOWNSAMPLED` <br> `MexCoral`                                                 | 2.26 GB <br> 2.38 GB <br> 162 MB <br> 2.23 GB
-        `Cowry_Shell`       | `Cowry_Shell` <br> `Cowry_DOWNSAMPLED`                                                                             | 1.82 GB <br> 116 MB
-        `Crab`              | `HerrmitCrab` <br> `OkinawaCrab`                                                                                   | 2.38 GB <br> 1.86 GB
-        `Deer_Mandible`     | `Animal_Mandible` <br> `DeerMandible_DOWNSAMPLED` <br>                                                             | 2.79 GB <br> 638 MB
-        `Foam`              | `Foam` <br> `Foam_DOWNSAMPLED` <br> `Foam_2` <br> `Foam_2_zoom`                                                    | 3.72 GB <br> 238 MB <br> 3.72 GB <br> 3.72 GB
-        `Hourglass`         | `Hourglass` <br> `Hourglass_4X_80kV_Air_9s_1_97um` <br> `Hourglass_longexp_rerun`                                  | 3.72 GB <br> 1.83 GB <br> 3.72 GB
-        `Kiwi`              | `Kiwi`                                                                                                             | 2.86 GB
-        `Loofah`            | `Loofah` <br> `Loofah_DOWNSAMPLED`                                                                                 | 2.23 GB <br> 143 MB
-        `Marine_Gastropods` | `MarineGatropod_1` <br> `MarineGastropod1_DOWNSAMPLED` <br> `MarineGatropod_2` <br> `MarineGastropod2_DOWNSAMPLED` | 2.23 GB <br> 143 MB <br> 2.60 GB <br> 166 MB
-        `Mussel`            | `ClosedMussel1` <br> `ClosedMussel1_DOWNSAMPLED`                                                                   | 2.23 GB <br> 143 MB
-        `Oak_Branch`        | `Oak_branch` <br> `OakBranch_DOWNSAMPLED`                                                                          | 2.38 GB <br> 152 MB
-        `Okinawa_Forams`    | `Okinawa_Foram_1` <br> `Okinawa_Foram_2`                                                                           | 1.84 GB <br> 1.84 GB
-        `Physalis`          | `Physalis` <br> `Physalis_DOWNSAMPLED`                                                                             | 3.72 GB <br> 238 MB
-        `Raspberry`         | `Raspberry2` <br> `Raspberry2_DOWNSAMPLED`                                                                         | 2.97 GB <br> 190 MB
-        `Rope`              | `FibreRope1` <br> `FibreRope1_DOWNSAMPLED`                                                                         | 1.82 GB <br> 686 MB
-        `Sea_Urchin`        | `SeaUrchin` <br> `Cordatum_Shell` <br> `Cordatum_Spine`                                                            | 2.60 GB <br> 1.85 GB <br> 183 MB
-        `Snail`             | `Escargot`                                                                                                         | 2.60 GB
-        `Sponge`            | `Sponge`                                                                                                           | 1.11 GB
+        See the current datasets and formats on the [QIM data repository](https://data.qim.dk/),
+        or call `list_datasets()` to inspect them in Python.
 
     Example:
         ```python
@@ -140,304 +89,175 @@ class Downloader:
 
         downloader = qim3d.io.Downloader()
 
-        # Browse available files
-        downloader.list_files()
+        # Browse available datasets
+        datasets = downloader.list_datasets()
 
-        # Download and load a specific sample
-        data = downloader.Cowry_Shell.Cowry_DOWNSAMPLED(load_file=True)
+        # Download and load a sample
+        data = downloader.load_dataset("cowry-shell", format="zarr", scale="lowest")
 
         qim3d.viz.slicer_orthogonal(data, colormap="magma")
         ```
         ![cowry shell](../../assets/screenshots/cowry_shell_slicer.gif)
     """
 
-    def __init__(self):
-        folders = _extract_names()
-        for folder in folders:
-            setattr(self, folder, _Myfolder(folder))
+    def __init__(
+        self,
+        manifest_url: str = MANIFEST_URL,
+        timeout: float = 10,
+    ) -> None:
+        if timeout <= 0:
+            raise ValueError("timeout must be positive")
+        self.manifest_url = manifest_url
+        self.timeout = timeout
+        self._datasets: list[dict] | None = None
 
-    def __call__(
+    def refresh(self) -> None:
+        """Fetch the manifest again, replacing the cached catalog on success."""
+        self._datasets = _fetch_manifest(self.manifest_url, self.timeout)
+
+    def list_datasets(self) -> list[dict[Any, Any]]:
+        """Return a list of all available datasets."""
+        if self._datasets is None:
+            self.refresh()
+        assert self._datasets is not None
+        return deepcopy(self._datasets)
+
+    def _get_volume_url(self, dataset_id: str, volume_format: str) -> str:
+        if self._datasets is None:
+            self.refresh()
+        assert self._datasets is not None
+        dataset = None
+        for item in self._datasets:
+            if isinstance(item, dict) and item.get("id") == dataset_id:
+                dataset = item
+                break
+        if dataset is None:
+            raise DatasetNotFoundError(
+                f"Dataset {dataset_id!r} was not found. "
+                "Use list_datasets() to see available IDs."
+            )
+        volume = None
+        for item in dataset.get("volumes") or []:
+            if isinstance(item, dict) and item.get("format") == volume_format:
+                volume = item
+                break
+        if volume is None:
+            raise VolumeNotFoundError(
+                f"Dataset {dataset_id!r} has no {volume_format!r} volume."
+            )
+        url = volume.get("url")
+        if isinstance(url, str):
+            parsed = urlparse(url)
+            if parsed.scheme in {"http", "https"} and parsed.netloc:
+                return url
+        raise VolumeUnavailableError(
+            f"Dataset {dataset_id!r} has no usable download URL for "
+            f"format {volume_format!r}"
+        )
+
+    def download_dataset(
+        self,
+        dataset_id: str,
+        *,
+        format: str,
+        output_dir: str | os.PathLike = ".",
+    ) -> Path:
+        """Download a manifest volume and return its local path.
+
+        Store it under ``output_dir/dataset_id/``. An existing path is reused;
+        new downloads are staged so failures do not leave a partial final path.
+        """
+        try:
+            dataset_dir = Path(output_dir) / dataset_id
+            # Checks that id doesn't contain folder-escaping sequences, for example "../coal-briquette"
+            if (
+                not isinstance(dataset_id, str)
+                or Path(output_dir).resolve() not in dataset_dir.resolve().parents
+            ):
+                raise ValueError
+        except Exception as exc:
+            raise ValueError(f"Invalid dataset ID {dataset_id!r}") from exc
+
+        url = self._get_volume_url(dataset_id, format)
+        filename = Path(str(urlparse(url).path)).name
+        if not filename or filename in {".", ".."}:
+            raise VolumeUnavailableError(
+                f"Dataset {dataset_id!r} has no usable download URL for "
+                f"format {format!r}"
+            )
+        destination = dataset_dir / filename
+        if destination.exists() and not destination.is_symlink():
+            _logger.info("Dataset volume already downloaded: %s", destination)
+            return destination
+
+        dataset_dir.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(
+            prefix=".download-", dir=dataset_dir
+        ) as staging:
+            staged = self._download_url(url, output_dir=staging)
+            if destination.exists() and not destination.is_symlink():
+                return destination
+            os.replace(staged, destination)
+        return destination
+
+    def load_dataset(
+        self,
+        dataset_id: str,
+        *,
+        format: str,
+        output_dir: str | os.PathLike = ".",
+        virtual_stack: bool = True,
+        scale: int | str = 0,
+    ) -> object:
+        """Download a volume if needed, then return its image data.
+
+        ``virtual_stack=True`` uses lazy loading where supported. ``scale`` selects
+        an OME-Zarr resolution (0, a coarser integer, "highest", or "lowest");
+        other formats only accept the default scale of 0.
+        """
+        if format not in {"zarr", "ome-zarr"} and scale != 0:
+            raise ValueError("scale is only supported for OME-Zarr volumes")
+        path = self.download_dataset(dataset_id, format=format, output_dir=output_dir)
+        if format in {"zarr", "ome-zarr"}:
+            return qim3d.io.import_ome_zarr(path, scale=scale, load=not virtual_stack)
+        return load(path=path, virtual_stack=virtual_stack)
+
+    def _download_url(
         self,
         url: str,
-        output_dir: str = ".",
-        load_file: bool = False,
-        virtual_stack: bool = True,
-        scale: int = 0,
-    ) -> object:
-        """
-        Downloads a file or dataset from a direct URL.
+        output_dir: str | os.PathLike,
+    ) -> Path:
+        """Download a volume into a staging directory and return its path."""
+        filename = Path(str(urlparse(url).path)).name
+        output_path = Path(output_dir)
+        destination = output_path / filename
 
-        This function serves as a general-purpose file retriever, capable of fetching data from
-        external resources or cloud storage. It supports standard image formats (TIFF, HDF5, NIfTI, DICOM)
-        as well as modern chunked formats (Zarr, OME-Zarr).
-
-        For large 3D volumes that may exceed available RAM, this function supports lazy loading
-        via the `virtual_stack` parameter. This allows users to work with metadata and open the
-        file without immediately reading the full pixel data into memory.
-
-        Args:
-            url (str):
-                The direct URL of the file to download. Supported formats include:
-                regular files (TIFF, HDF5, TXRM/TXM/XRM, NIfTI, PIL, VOL/VGI, DICOM)
-                and Zarr/OME-Zarr stores.
-            output_dir (str, optional):
-                The local directory where the file will be saved. Defaults to the current working directory.
-            load_file (bool, optional):
-                If `True`, the function will import/read the file into a Python object after downloading.
-                If `False`, it only downloads the file to the disk. Default is `False`.
-            virtual_stack (bool, optional):
-                If `True`, the file is loaded as a virtual stack (lazy loading) if the format supports it.
-                This is recommended for large datasets to save memory. Default is `True`.
-            scale (int, optional):
-                Used only for Zarr/OME-Zarr stores when `load_file` is True. Specifies the resolution
-                level (pyramid scale) to load. 0 is full resolution. Default is 0.
-
-        Returns:
-            object:
-                The downloaded data or file path. The specific return type depends on the parameters:
-
-                * **str**: The local path to the file (if `load_file=False`).
-                * **numpy.ndarray**: The full image data loaded into memory (if `load_file=True` and `virtual_stack=False`).
-                * **dask.array.Array**: A lazy-loaded virtual stack (if `load_file=True` and `virtual_stack=True`).
-
-        Example:
-            ```python
-            import qim3d
-
-            downloader = qim3d.io.Downloader()
-
-            # 1. Download a file from a URL without loading it
-            path = downloader(
-                url="[https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif](https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif)",
-                output_dir=".",
-                load_file=False
-            )
-
-            # 2. Download and load directly into memory (Numpy array)
-            data = downloader(
-                url="[https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif](https://archive.compute.dtu.dk/.../Cowry_DOWNSAMPLED.tif)",
-                load_file=True,
-                virtual_stack=False
-            )
-            ```
-        """
-
-        parsed = urlparse(url)
-        fname = os.path.basename(parsed.path.rstrip("/"))
-        dest = os.path.join(output_dir, fname)
-
-        # --- Zarr / OME-Zarr store ---
-        if fname.endswith((".zarr", ".ome.zarr")):
-            if os.path.exists(dest):
-                _logger.warning(
-                    f"Zarr store already downloaded:\n{os.path.abspath(dest)}"
-                )
-            else:
-                _logger.info(f"Downloading Zarr store {fname}\n{url}")
-                download(url, output_dir=output_dir)  # return always None
-            if load_file:
-                # If virtual stack == True --> dask array --> need to call False in load (we don't want call .compute())
-                # If virtual stack == False --> numpy array --> need to call True in load (we want call .compute())
-                _logger.info(
-                    f"\nLoading scale={scale} from {fname} as {'numpy array' if not virtual_stack else 'dask array'}"
-                )
-                return qim3d.io.import_ome_zarr(
-                    dest, scale=scale, load=not virtual_stack
-                )
-            return dest
-
-        # --- Regular single file ---
-        if os.path.exists(dest):
-            _logger.warning(f"File already downloaded:\n{os.path.abspath(dest)}")
-            if load_file:
-                return load(path=dest, virtual_stack=virtual_stack)
-            return dest
+        if destination.exists():
+            _logger.warning("Already downloaded: %s", destination.resolve())
         else:
-            _logger.info(f"Downloading file {fname}\n{url}")
-            try:
-                total = _get_file_size(url)
-            except (HTTPError, URLError):
-                total = None
-
-            os.makedirs(output_dir, exist_ok=True)
-            with tqdm(
-                total=total, unit="B", unit_scale=True, unit_divisor=1024, ncols=80
-            ) as pbar:
+            output_path.mkdir(parents=True, exist_ok=True)
+            if filename.endswith(".zarr"):
+                _logger.info("Downloading Zarr store %s from %s", filename, url)
+                download(url, output_dir=str(output_path))
+            else:
+                _logger.info("Downloading file %s from %s", filename, url)
                 try:
+                    total = _get_file_size(url)
+                except OSError:
+                    total = -1
+                with tqdm(
+                    total=total if total > 0 else None,
+                    unit="B",
+                    unit_scale=True,
+                    unit_divisor=1024,
+                    ncols=80,
+                ) as pbar:
                     urllib.request.urlretrieve(
                         url,
-                        dest,
-                        reporthook=lambda blocknum, bs, total: _update_progress(
-                            pbar, blocknum, bs
+                        destination,
+                        reporthook=lambda blocknum, block_size, _total_size: (
+                            pbar.update(blocknum * block_size - pbar.n)
                         ),
                     )
-                except HTTPError as http_err:
-                    msg = f"Failed to download {url!r}: server returned HTTP {http_err.code}"
-                    raise FileNotFoundError(msg) from http_err
-                except URLError as url_err:
-                    msg = f"Failed to reach {url!r}: {url_err.reason}"
-                    raise ConnectionError(msg) from url_err
 
-        if load_file:
-            _logger.info(f"\nLoading {fname}")
-            return load(path=dest, virtual_stack=virtual_stack)
-
-        return dest
-
-    def list_files(self) -> None:
-        """
-        Displays a catalog of all available datasets in the QIM repository.
-
-        This method prints a formatted list of folder names, file names, and file sizes to the console log.
-        It is useful for exploring the inventory of biological and material science scans available for
-        download without needing to visit the website.
-
-        The output groups files by their parent folder (e.g., 'Coal', 'Corals', 'Foam').
-        """
-
-        url_dl = "https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository"
-
-        folders = _extract_names()
-
-        for folder in folders:
-            _logger.info(f"\n{ouf.boxtitle(folder, return_str=True)}")
-            files = _extract_names(folder)
-
-            for file in files:
-                url = os.path.join(url_dl, folder, file).replace("\\", "/")
-                file_size = _get_file_size(url)
-                formatted_file = (
-                    f"{file[: -len(file.split('.')[-1]) - 1].replace('%20', '_')}"
-                )
-                formatted_size = _format_file_size(file_size)
-                path_string = f"{folder}.{formatted_file}"
-
-                _logger.info(f"{path_string:<50}({formatted_size})")
-
-
-def _update_progress(pbar: tqdm, blocknum: int, bs: int) -> None:
-    """Helper function for the ´download_file()´ function. Updates the progress bar."""
-
-    pbar.update(blocknum * bs - pbar.n)
-
-
-def _get_file_size(url: str) -> int:
-    """Helper function for the ´download_file()´ function. Finds the size of the file."""
-
-    return int(urllib.request.urlopen(url).info().get("Content-Length", -1))
-
-
-def download_file(path: str, name: str, file: str) -> None:
-    """
-    Downloads the file from path / name / file.
-
-    Args:
-        path(str): path to the folders available.
-        name(str): name of the folder of interest.
-        file(str): name of the file to be downloaded.
-
-    """
-
-    if not os.path.exists(name):
-        os.makedirs(name)
-
-    url = os.path.join(path, name, file).replace("\\", "/")  # if user is on windows
-    file_path = os.path.join(name, file)
-
-    if os.path.exists(file_path):
-        _logger.warning(f"File already downloaded:\n{os.path.abspath(file_path)}")
-        return
-    else:
-        _logger.info(
-            f"Downloading {ouf.b(file, return_str=True)}\n{os.path.join(path, name, file)}"
-        )
-
-    if " " in url:
-        url = quote(url, safe=":/")
-
-    with tqdm(
-        total=_get_file_size(url),
-        unit="B",
-        unit_scale=True,
-        unit_divisor=1024,
-        ncols=80,
-    ) as pbar:
-        urllib.request.urlretrieve(
-            url,
-            file_path,
-            reporthook=lambda blocknum, bs, total: _update_progress(pbar, blocknum, bs),
-        )
-
-
-def _extract_html(url: str) -> str:
-    """
-    Extracts the html content of a webpage in "utf-8".
-
-    Args:
-        url(str): url to the location where all the data is stored.
-
-    Returns:
-        html_content(str): decoded html.
-
-    """
-    try:
-        with urllib.request.urlopen(url) as response:
-            html_content = response.read().decode(
-                "utf-8"
-            )  # Assuming the content is in UTF-8 encoding
-    except urllib.error.URLError as e:
-        _logger.warning(f"Failed to retrieve data from {url}. Error: {e}")
-
-    return html_content
-
-
-def _extract_names(name: str = None) -> list[str]:
-    """
-    Extracts the names of the folders and files.
-
-    Finds the names of either the folders if no name is given,
-    or all the names of all files in the given folder.
-
-    Args:
-        name(str,optional): name of the folder from which the names should be extracted.
-
-    Returns:
-        list: If name is None, returns a list of all folders available.
-              If name is not None, returns a list of all files available in the given 'name' folder.
-
-    """
-
-    url = "https://archive.compute.dtu.dk/files/public/projects/viscomp_data_repository"
-    if name:
-        datapath = os.path.join(url, name).replace("\\", "/")
-        html_content = _extract_html(datapath)
-
-        data_split = html_content.split(
-            "files/public/projects/viscomp_data_repository/"
-        )[3:]
-        data_files = [
-            element.split(" ")[0][(len(name) + 1) : -3] for element in data_split
-        ]
-
-        return data_files
-    else:
-        html_content = _extract_html(url)
-        split = html_content.split('"icon-folder-open">')[2:]
-        folders = [element.split(" ")[0][4:-4] for element in split]
-
-        return folders
-
-
-def _format_file_size(size_in_bytes: int) -> str:
-    # Define size units
-    units = ["B", "KB", "MB", "GB", "TB", "PB"]
-    size = float(size_in_bytes)
-    unit_index = 0
-
-    # Convert to appropriate unit
-    while size >= 1024 and unit_index < len(units) - 1:
-        size /= 1024
-        unit_index += 1
-
-    # Format the size with 1 decimal place
-    return f"{size:.2f}{units[unit_index]}"
+        return destination
