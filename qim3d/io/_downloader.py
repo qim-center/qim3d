@@ -27,7 +27,8 @@ _MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
 def _fetch_manifest(url: str, timeout: float) -> list[dict]:
     """Fetch the collection's dataset list."""
     with urllib.request.urlopen(url, timeout=timeout) as response:
-        datasets = json.load(response)["datasets"]
+        manifest = json.load(response)
+    datasets = manifest.get("datasets") if isinstance(manifest, dict) else None
     if not isinstance(datasets, list):
         raise ValueError(f"Manifest at {url} has no list of datasets.")
     return datasets
