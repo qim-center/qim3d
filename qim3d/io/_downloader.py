@@ -27,7 +27,10 @@ _MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
 def _fetch_manifest(url: str, timeout: float) -> list[dict]:
     """Fetch the collection's dataset list."""
     with urllib.request.urlopen(url, timeout=timeout) as response:
-        return json.load(response)["datasets"]
+        datasets = json.load(response)["datasets"]
+    if not isinstance(datasets, list):
+        raise ValueError(f"Manifest at {url} has no list of datasets.")
+    return datasets
 
 
 def _get_file_size(url: str) -> int:
@@ -96,19 +99,18 @@ class Downloader:
         """Fetch the manifest again, replacing the cached catalog on success."""
         self._datasets = _fetch_manifest(self.manifest_url, self.timeout)
 
+    def _get_datasets(self) -> list[dict]:
+        if self._datasets is None:
+            self._datasets = _fetch_manifest(self.manifest_url, self.timeout)
+        return self._datasets
+
     def list_datasets(self) -> list[dict[Any, Any]]:
         """Return a list of all available datasets."""
-        if self._datasets is None:
-            self.refresh()
-        assert self._datasets is not None
-        return deepcopy(self._datasets)
+        return deepcopy(self._get_datasets())
 
     def _get_volume_url(self, dataset_id: str, volume_format: str) -> str:
-        if self._datasets is None:
-            self.refresh()
-        assert self._datasets is not None
         dataset = None
-        for item in self._datasets:
+        for item in self._get_datasets():
             if isinstance(item, dict) and item.get("id") == dataset_id:
                 dataset = item
                 break
