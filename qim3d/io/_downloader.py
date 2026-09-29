@@ -157,7 +157,7 @@ class Downloader:
             raise ValueError(f"Invalid dataset ID {dataset_id!r}")
 
         url = self._get_volume_url(dataset_id, format)
-        filename = Path(str(urlparse(url).path)).name
+        filename = Path(urlparse(url).path).name
         if not filename or filename in {".", ".."}:
             raise ValueError(
                 f"Dataset {dataset_id!r} has no usable download URL for "
@@ -206,7 +206,7 @@ class Downloader:
         output_dir: str | os.PathLike,
     ) -> Path:
         """Download a volume into a staging directory and return its path."""
-        filename = Path(str(urlparse(url).path)).name
+        filename = Path(urlparse(url).path).name
         output_path = Path(output_dir)
         destination = output_path / filename
 
