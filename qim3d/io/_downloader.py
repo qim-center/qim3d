@@ -24,22 +24,6 @@ __all__ = ["Downloader"]
 _MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
 
 
-class ManifestError(ValueError):
-    """The dataset manifest could not be used."""
-
-
-class DatasetNotFoundError(LookupError):
-    """The requested dataset ID is absent from the manifest."""
-
-
-class VolumeNotFoundError(LookupError):
-    """The requested format is absent from a dataset."""
-
-
-class VolumeUnavailableError(ValueError):
-    """The requested volume has no download URL."""
-
-
 def _fetch_manifest(url: str, timeout: float) -> list[dict]:
     """Fetch the collection's dataset list."""
     try:
@@ -132,7 +116,7 @@ class Downloader:
                 dataset = item
                 break
         if dataset is None:
-            raise DatasetNotFoundError(
+            raise LookupError(
                 f"Dataset {dataset_id!r} was not found. "
                 "Use list_datasets() to see available IDs."
             )
@@ -142,7 +126,7 @@ class Downloader:
                 volume = item
                 break
         if volume is None:
-            raise VolumeNotFoundError(
+            raise LookupError(
                 f"Dataset {dataset_id!r} has no {volume_format!r} volume."
             )
         url = volume.get("url")
@@ -150,7 +134,7 @@ class Downloader:
             parsed = urlparse(url)
             if parsed.scheme in {"http", "https"} and parsed.netloc:
                 return url
-        raise VolumeUnavailableError(
+        raise ValueError(
             f"Dataset {dataset_id!r} has no usable download URL for "
             f"format {volume_format!r}"
         )
@@ -181,7 +165,7 @@ class Downloader:
         url = self._get_volume_url(dataset_id, format)
         filename = Path(str(urlparse(url).path)).name
         if not filename or filename in {".", ".."}:
-            raise VolumeUnavailableError(
+            raise ValueError(
                 f"Dataset {dataset_id!r} has no usable download URL for "
                 f"format {format!r}"
             )
