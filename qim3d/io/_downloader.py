@@ -26,11 +26,8 @@ _MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
 
 def _fetch_manifest(url: str, timeout: float) -> list[dict]:
     """Fetch the collection's dataset list."""
-    try:
-        with urllib.request.urlopen(url, timeout=timeout) as response:
-            return json.load(response)["datasets"]
-    except Exception as exc:
-        raise ManifestError("Could not load dataset manifest") from exc
+    with urllib.request.urlopen(url, timeout=timeout) as response:
+        return json.load(response)["datasets"]
 
 
 def _get_file_size(url: str) -> int:
