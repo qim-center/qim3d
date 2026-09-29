@@ -149,16 +149,12 @@ class Downloader:
         Store it under ``output_dir/dataset_id/``. An existing path is reused;
         new downloads are staged so failures do not leave a partial final path.
         """
-        try:
-            dataset_dir = Path(output_dir) / dataset_id
-            # Checks that id doesn't contain folder-escaping sequences, for example "../coal-briquette"
-            if (
-                not isinstance(dataset_id, str)
-                or Path(output_dir).resolve() not in dataset_dir.resolve().parents
-            ):
-                raise ValueError
-        except Exception as exc:
-            raise ValueError(f"Invalid dataset ID {dataset_id!r}") from exc
+        if not isinstance(dataset_id, str):
+            raise ValueError(f"Invalid dataset ID {dataset_id!r}")
+        dataset_dir = Path(output_dir) / dataset_id
+        # Checks that id doesn't contain folder-escaping sequences, for example "../coal-briquette"
+        if Path(output_dir).resolve() not in dataset_dir.resolve().parents:
+            raise ValueError(f"Invalid dataset ID {dataset_id!r}")
 
         url = self._get_volume_url(dataset_id, format)
         filename = Path(str(urlparse(url).path)).name
