@@ -8,7 +8,7 @@ import tempfile
 import urllib.request
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 from urllib.parse import urlparse
 
 from ome_zarr.utils import download
@@ -185,7 +185,7 @@ class Downloader:
         format: str,
         output_dir: str | os.PathLike = ".",
         virtual_stack: bool = True,
-        scale: int | str = 0,
+        scale: int | Literal["lowest", "highest"] = 0,
     ) -> object:
         """Download a volume if needed, then return its image data.
 

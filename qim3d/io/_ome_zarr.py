@@ -6,6 +6,7 @@ import logging
 import math
 import os
 import shutil
+from typing import Literal
 
 import dask.array as da
 import numpy as np
@@ -332,7 +333,9 @@ def export_ome_zarr(
 
 
 def import_ome_zarr(
-    path: str | os.PathLike, scale: int = 0, load: bool = True
+    path: str | os.PathLike,
+    scale: int | Literal["lowest", "highest"] = 0,
+    load: bool = True,
 ) -> np.ndarray:
     """
     Imports or reads image data from an OME-Zarr (NGFF) container.
