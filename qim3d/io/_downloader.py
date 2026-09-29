@@ -21,7 +21,7 @@ _logger = logging.getLogger(__name__)
 
 __all__ = ["Downloader"]
 
-MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
+_MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
 
 
 class ManifestError(ValueError):
@@ -102,7 +102,7 @@ class Downloader:
 
     def __init__(
         self,
-        manifest_url: str = MANIFEST_URL,
+        manifest_url: str = _MANIFEST_URL,
         timeout: float = 10,
     ) -> None:
         if timeout <= 0:
