@@ -100,15 +100,15 @@ def test_refresh_failure_preserves_cached_catalog(monkeypatch, manifest):
         raise OSError("offline")
 
     monkeypatch.setattr(urllib.request, "urlopen", unavailable)
-    with pytest.raises(qim3d.io.ManifestError, match="Could not load dataset manifest"):
+    with pytest.raises(OSError, match="offline"):
         downloader.refresh()
     assert len(downloader.list_datasets()) == 2
 
 
-@pytest.mark.parametrize("bad_manifest", [{}, []])
-def test_manifest_needs_datasets_key(monkeypatch, bad_manifest):
+@pytest.mark.parametrize("bad_manifest, error", [({}, KeyError), ([], TypeError)])
+def test_manifest_needs_datasets_key(monkeypatch, bad_manifest, error):
     mock_manifest_response(monkeypatch, bad_manifest)
-    with pytest.raises(qim3d.io.ManifestError, match="Could not load dataset manifest"):
+    with pytest.raises(error):
         qim3d.io.Downloader().list_datasets()
 
 
@@ -149,7 +149,7 @@ def test_unrelated_bad_metadata_does_not_block_listing_or_download(
 @pytest.mark.parametrize(
     ("datasets", "error"),
     [
-        ([{"id": "coral", "volumes": "bad"}], qim3d.io.VolumeNotFoundError),
+        ([{"id": "coral", "volumes": "bad"}], LookupError),
         (
             [
                 {
@@ -157,15 +157,15 @@ def test_unrelated_bad_metadata_does_not_block_listing_or_download(
                     "volumes": [{"format": "zarr", "url": "file:///tmp/a.zarr"}],
                 }
             ],
-            qim3d.io.VolumeUnavailableError,
+            ValueError,
         ),
         (
             [{"id": "coral", "volumes": [{"format": "zarr", "url": ""}]}],
-            qim3d.io.VolumeUnavailableError,
+            ValueError,
         ),
         (
             [{"id": "coral", "volumes": [{"format": "zarr", "url": 123}]}],
-            qim3d.io.VolumeUnavailableError,
+            ValueError,
         ),
         (
             [
@@ -174,7 +174,7 @@ def test_unrelated_bad_metadata_does_not_block_listing_or_download(
                     "volumes": [{"format": "zarr", "url": "https://example.org/"}],
                 }
             ],
-            qim3d.io.VolumeUnavailableError,
+            ValueError,
         ),
     ],
 )
@@ -249,18 +249,19 @@ def test_manifest_fetch_and_json_errors(monkeypatch):
         raise TimeoutError("offline")
 
     monkeypatch.setattr(urllib.request, "urlopen", unavailable)
-    with pytest.raises(qim3d.io.ManifestError, match="Could not load dataset manifest"):
+    with pytest.raises(TimeoutError, match="offline"):
         qim3d.io.Downloader().list_datasets()
 
-    for payload in (b"not JSON", b"\xff"):
+    for payload, error in (
+        (b"not JSON", json.JSONDecodeError),
+        (b"\xff", UnicodeDecodeError),
+    ):
         monkeypatch.setattr(
             urllib.request,
             "urlopen",
             lambda *args, **kwargs: io.BytesIO(payload),
         )
-        with pytest.raises(
-            qim3d.io.ManifestError, match="Could not load dataset manifest"
-        ):
+        with pytest.raises(error):
             qim3d.io.Downloader().list_datasets()
 
 
@@ -268,11 +269,11 @@ def test_dataset_lookup_errors(monkeypatch, manifest, tmp_path):
     mock_manifest_response(monkeypatch, manifest)
     downloader = qim3d.io.Downloader()
 
-    with pytest.raises(qim3d.io.DatasetNotFoundError, match="unknown"):
+    with pytest.raises(LookupError, match="unknown"):
         downloader.download_dataset("unknown", format="zarr", output_dir=tmp_path)
-    with pytest.raises(qim3d.io.VolumeNotFoundError, match="tiff"):
+    with pytest.raises(LookupError, match="tiff"):
         downloader.download_dataset("oak-branch", format="tiff", output_dir=tmp_path)
-    with pytest.raises(qim3d.io.VolumeUnavailableError, match="oak-branch"):
+    with pytest.raises(ValueError, match="oak-branch"):
         downloader.download_dataset("oak-branch", format="zarr", output_dir=tmp_path)
     assert not list(tmp_path.iterdir())
 
