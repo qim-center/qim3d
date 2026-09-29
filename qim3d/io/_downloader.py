@@ -47,7 +47,6 @@ class Downloader:
     benchmarking, or educational purposes. It automatically handles local caching to avoid
     repeated downloads of the same file.
 
-    The `Downloader` acts as an interface to the [QIM data repository](https://data.qim.dk/),
     The `Downloader` acts as an interface to the [QIM data repository](https://data-repository.qim.dk/),
 
     Attributes:
