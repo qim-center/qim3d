@@ -28,7 +28,6 @@ if _TYPE_CHECKING:
     from qim3d import operations as operations
     from qim3d import processing as processing
     from qim3d import segmentation as segmentation
-    from qim3d import tests as tests
     from qim3d import utils as utils
     from qim3d import viz as viz
 
@@ -67,7 +66,6 @@ _submodules = [
     "operations",
     "processing",
     "segmentation",
-    "tests",
     "utils",
     "viz",
 ]

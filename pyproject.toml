@@ -160,7 +160,6 @@ find = { namespaces = false }
 
 [tool.coverage.run]
 omit = [
-    "qim3d/tests/*",
     "qim3d/examples/*",
     "qim3d/css/*",
     "docs/*",
@@ -170,7 +169,7 @@ omit = [
 ]
 
 [tool.pytest.ini_options]
-addopts = "-p no:warnings" # "--ignore=qim3d/tests/notebooks -p no:warnings"
+addopts = "-p no:warnings"
 
 ### Build System
 [build-system]

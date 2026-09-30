@@ -3,7 +3,6 @@ from unittest.mock import MagicMock, patch
 
 import matplotlib
 import pytest
-
 from qim3d.tests import check_docstring, get_all_functions_by_module, temp_data
 
 matplotlib.use("Agg")
