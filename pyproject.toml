@@ -92,8 +92,6 @@ deep-learning = [
     "monai>=1.2.0",
 ]
 
-synthetic-data = ["noise>=1.2.2"]
-
 gui = [
     "gradio>=5.1,<6",
     "gradio-improvedfileexplorer>=1.0.0",
@@ -103,7 +101,6 @@ gui = [
 
 all = [
     "qim3d[deep-learning]",
-    "qim3d[synthetic-data]",
     "qim3d[gui]",
 ]
 
