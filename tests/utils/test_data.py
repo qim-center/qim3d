@@ -1,8 +1,8 @@
 import pytest
+from qim3d.tests import temp_data
 from torch.utils.data.dataloader import DataLoader
 
 import qim3d
-from qim3d.tests import temp_data
 
 
 # unit tests for Dataset()

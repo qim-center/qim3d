@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytest
 import torch
+from qim3d.tests import temp_data
 
 import qim3d
-from qim3d.tests import temp_data
 
 matplotlib.use("Agg")
 

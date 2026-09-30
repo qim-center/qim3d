@@ -1,9 +1,9 @@
 import numpy as np
 import pytest
+from qim3d.tests import temp_data
 from torch import ones
 
 import qim3d
-from qim3d.tests import temp_data
 
 
 # unit test for model summary()
