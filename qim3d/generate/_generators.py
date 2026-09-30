@@ -9,15 +9,10 @@ from IPython.display import display
 
 import qim3d
 from qim3d.utils import scale_to_float16
-from qim3d.utils._dependencies import optional_import
 
 _logger = logging.getLogger(__name__)
 
-# Import noise as optional dependency
-noise = optional_import("noise", extra="synthetic-data")
-
-pnoise3 = noise.pnoise3
-snoise3 = noise.snoise3
+from qim3d.generate._noise import _noise_field
 
 __all__ = ["volume", "background"]
 
@@ -289,7 +284,7 @@ def volume(
             Controls the "zoom" of the noise texture. Smaller values = smooth, large features.
             Larger values = rough, high-frequency details.
         noise_type (str, optional):
-            The noise algorithm: `perlin` (standard) or `simplex` (faster, different artifacts).
+            The noise algorithm: `perlin` (standard) or `simplex` (different texture).
         decay_rate (float, optional):
             Controls how quickly the object fades into the background at the edges.
             Higher values create sharper, distinct boundaries.
@@ -314,7 +309,7 @@ def volume(
         hollow (int, optional):
             If > 0, hollows out the blob by eroding the center, creating a shell of thickness `hollow`.
         seed (int, optional):
-            Random seed for reproducibility.
+            Random seed for reproducibility with either noise algorithm.
 
     Returns:
         vol (numpy.ndarray):
@@ -436,22 +431,14 @@ def volume(
     if noise_scale == 0:
         noise = np.ones(base_shape)
     else:
-        if noise_type in noise_types[:3]:
-            vectorized_noise = np.vectorize(pnoise3)
-            noise = vectorized_noise(
-                z.flatten() * noise_scale,
-                y.flatten() * noise_scale,
-                x.flatten() * noise_scale,
-                base=seed,
-            ).reshape(base_shape)
-        elif noise_type in noise_types[3:]:
-            vectorized_noise = np.vectorize(snoise3)
-            noise = vectorized_noise(
-                z.flatten() * noise_scale,
-                y.flatten() * noise_scale,
-                x.flatten() * noise_scale,
-            ).reshape(base_shape)
-        noise = (noise - np.min(noise)) / (np.max(noise) - np.min(noise))
+        algorithm = "perlin" if noise_type in noise_types[:3] else "simplex"
+        noise = _noise_field(base_shape, noise_scale, algorithm, seed)
+        noise_range = np.ptp(noise)
+        if noise_range == 0:
+            # A constant field has no texture; retain the shape envelope.
+            noise.fill(1)
+        else:
+            noise = (noise - noise.min()) / noise_range
 
     # Calculate the center of the array
     center = np.array([(s - 1) / 2 for s in base_shape])

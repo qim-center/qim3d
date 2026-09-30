@@ -80,7 +80,6 @@ You can install optional dependencies for specific features:
 | Feature | Optional dependency | Install command |
 |---------|-------------------|----------------|
 | Deep-learning / model training | `torch`, `torchvision`, `torchinfo`, `monai` | `pip install qim3d[deep-learning]` |
-| Synthetic data generation | `noise` | `pip install qim3d[synthetic-data]` |
 | GUI / interactive tools | `gradio` | `pip install qim3d[gui]` |
 | All optional features | All of the above | `pip install qim3d[all]` |
 
@@ -89,10 +88,10 @@ You can install optional dependencies for specific features:
 
 !!! tip "Installing Multiple Features"
     You can install multiple optional dependency groups simultaneously by separating the names with a comma, without spaces, inside the brackets.  
-    For example, to install both the `synthetic-data` features and the `deep-learning` features, use the following command:
+    For example, to install both the `gui` features and the `deep-learning` features, use the following command:
 
     ```bash
-    pip install qim3d[synthetic-data,deep-learning]
+    pip install qim3d[gui,deep-learning]
     ```
 
 !!! note "Installing qim3d And CIL In The Same Environment"
@@ -109,46 +108,6 @@ You can install optional dependencies for specific features:
 ## Troubleshooting
 
 Here are some solutions for commonly found issues during installation and usage of `qim3d`.
-
-### Failed building
-
-Some Windows users could face an build error during installation.
-
-??? Bug "ERROR: Failed building wheel for noise"
-    ```
-    Building wheels for collected packages: noise, outputformat, asciitree, ffmpy
-    Building wheel for noise (setup.py) ... error
-    error: subprocess-exited-with-error
-
-    × python setup.py bdist_wheel did not run successfully.
-    │ exit code: 1
-    ╰─> [14 lines of output]
-        running bdist_wheel
-        running build
-        running build_py
-        creating build
-        creating build\lib.win-amd64-cpython-311
-        creating build\lib.win-amd64-cpython-311\noise
-        copying perlin.py -> build\lib.win-amd64-cpython-311\noise
-        copying shader.py -> build\lib.win-amd64-cpython-311\noise
-        copying shader_noise.py -> build\lib.win-amd64-cpython-311\noise
-        copying test.py -> build\lib.win-amd64-cpython-311\noise
-        copying __init__.py -> build\lib.win-amd64-cpython-311\noise
-        running build_ext
-        building 'noise._simplex' extension
-        error: Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
-        [end of output]
-
-    note: This error originates from a subprocess, and is likely not a problem with pip.
-    ERROR: Failed building wheel for noise
-    ```
-
-This issue occurs because the system lacks the necessary tools to compile the library requirements. To resolve this, follow these steps:
-
-- Go to the [Visual C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) page and click on "Download build tools."
-- Run the installer and ensure that `Desktop development with C++` is checked. ![Windows build tools](assets/screenshots/Troubleshooting-Windows_build_tools.png)
-- Restart your computer
-- Activate your conda enviroment and run `pip install qim3d` again
 
 ### Get the latest version
 
