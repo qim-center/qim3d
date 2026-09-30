@@ -28,6 +28,17 @@ uv tool install rust-just
 
 When installed, you can easily perform common tasks with `just`. To see an overview of available commands, simply run `just` in the terminal.
 
+#### Windows shell setup (optional)
+
+By default, `just` expects `sh` to be available (see [prerequisites](https://just.systems/man/en/prerequisites.html)), but this project is configured to use PowerShell on Windows instead.
+No additional shell setup is therefore currently needed, though this may change if future recipes use `sh`-specific functionality.
+
+If you prefer to have `sh` available, install [Git for Windows](https://gitforwindows.org/) and either:
+
+- Run `just` from Git Bash.
+- Add Git's `bin` directory to PATH
+  (usually `C:\Program Files\Git\bin`), then restart your terminal or editor.
+
 ### Pre-Commit
 
 To ensure consistent styling and reduce git diffs, please install a pre-commit git hook by running the following:
