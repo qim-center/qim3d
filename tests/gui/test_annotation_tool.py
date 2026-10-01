@@ -15,7 +15,7 @@ def start_server(ip, port):
     app.launch(server_name=ip, server_port=port)
 
 
-def test_app_launch():
+def test_app_launch(is_server_running):
     ip = "localhost"
     port = 65432
 
@@ -28,7 +28,7 @@ def test_app_launch():
     check = 0
     server_running = False
     while check < max_checks and not server_running:
-        server_running = qim3d.tests.is_server_running(ip, port)
+        server_running = is_server_running(ip, port)
         time.sleep(1)
         check += 1
 
