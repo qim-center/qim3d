@@ -211,11 +211,12 @@ def test_docstrings_mesh(func):
 
 
 @pytest.mark.parametrize("func", functions_by_module["ml"], ids=lambda d: d.__name__)
-def test_docstrings_ml(func):
+def test_docstrings_ml(func, make_dataset, tmp_path, monkeypatch):
     # Exclude train_model, load_checkpoint, and test_model functions
     if func.__name__ in ["train_model", "load_checkpoint", "test_model"]:
         return
 
-    temp_data(folder="dataset", img_shape=(32, 32, 32), n=5)
+    # The docstring examples load from the relative path "dataset"
+    monkeypatch.chdir(tmp_path)
+    make_dataset(img_shape=(32, 32, 32), n=5)
     check_docstring(obj=func)
-    temp_data(folder="dataset", remove=True)
