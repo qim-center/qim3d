@@ -132,7 +132,9 @@ class _Slicer:
 
         return candidates, class_weights
 
-    def update_orientation_vectors(self, rotation_vector, eps=np.finfo(float).eps):
+    def update_orientation_vectors(
+        self, rotation_vector, eps=float(np.finfo(np.float64).eps)
+    ):
         """
         Updates the orientation vectors from the given rotation vector.
         """
