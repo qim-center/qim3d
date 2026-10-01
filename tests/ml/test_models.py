@@ -1,17 +1,15 @@
 import numpy as np
 import pytest
-from qim3d.tests import temp_data
 from torch import ones
 
 import qim3d
 
 
 # unit test for model summary()
-def test_model_summary():
+def test_model_summary(make_dataset):
     n = 10
     img_shape = (32, 32, 32)
-    folder = "folder_data"
-    temp_data(folder, img_shape=img_shape, n=n)
+    folder = make_dataset(img_shape=img_shape, n=n)
 
     unet = qim3d.ml.models.UNet(size="small")
     augment = qim3d.ml.Augmentation(transform_train=None)
@@ -26,13 +24,10 @@ def test_model_summary():
 
     assert summary.input_size[0] == (1, 1) + img_shape
 
-    temp_data(folder, remove=True)
-
 
 # unit test for inference()
-def test_inference():
-    folder = "folder_data"
-    temp_data(folder)
+def test_inference(make_dataset):
+    folder = make_dataset()
 
     unet = qim3d.ml.models.UNet(size="small")
     augment = qim3d.ml.Augmentation(transform_train=None)
@@ -43,27 +38,19 @@ def test_inference():
 
     assert tuple(np.unique(targ[0])) == (0, 1)
 
-    temp_data(folder, remove=True)
-
 
 # unit test for tensor ValueError().
 def test_inference_tensor():
-    folder = "folder_data"
-    temp_data(folder)
-
     unet = qim3d.ml.models.UNet(size="small")
 
     data = [(1, 2)]
     with pytest.raises(ValueError, match="Data items must consist of tensors"):
         qim3d.ml.test_model(unet, data)
 
-    temp_data(folder, remove=True)
-
 
 # unit test for train_model()
-def test_train_model():
-    folder = "folder_data"
-    temp_data(folder)
+def test_train_model(make_dataset):
+    folder = make_dataset()
 
     n_epochs = 1
 
@@ -82,5 +69,3 @@ def test_train_model():
     )
 
     assert len(train_loss["loss"]) == n_epochs
-
-    temp_data(folder, remove=True)

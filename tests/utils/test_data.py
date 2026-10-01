@@ -1,23 +1,19 @@
 import pytest
-from qim3d.tests import temp_data
 from torch.utils.data.dataloader import DataLoader
 
 import qim3d
 
 
 # unit tests for Dataset()
-def test_dataset():
+def test_dataset(make_dataset):
     img_shape = (32, 32, 32)
-    folder = "folder_data"
-    temp_data(folder, img_shape=img_shape)
+    folder = make_dataset(img_shape=img_shape)
 
     augmentation = qim3d.ml.Augmentation()
     dataset = qim3d.ml.Dataset(folder, transform=augmentation.augment(img_shape))
     image, target = dataset[0]
 
     assert image[0].shape == img_shape
-
-    temp_data(folder, remove=True)
 
 
 # unit tests for check_resize()
@@ -48,12 +44,11 @@ def test_check_resize_fail():
 
 
 # unit tests for prepare_datasets()
-def test_prepare_datasets():
+def test_prepare_datasets(make_dataset):
     n = 3
     validation = 1 / 3
 
-    folder = "folder_data"
-    img = temp_data(folder, n=n)
+    folder = make_dataset(n=n)
 
     my_model = qim3d.ml.models.UNet()
     my_augmentation = qim3d.ml.Augmentation(transform_test="light")
@@ -66,8 +61,6 @@ def test_prepare_datasets():
         int(n * validation),
         n,
     )
-
-    temp_data(folder, remove=True)
 
 
 # unit test for validation in prepare_datasets()
@@ -83,9 +76,8 @@ def test_validation():
 
 
 # unit test for prepare_dataloaders()
-def test_prepare_dataloaders():
-    folder = "folder_data"
-    temp_data(folder)
+def test_prepare_dataloaders(make_dataset):
+    folder = make_dataset()
 
     batch_size = 1
     my_model = qim3d.ml.models.UNet()
@@ -99,5 +91,3 @@ def test_prepare_dataloaders():
     )
 
     assert type(val_loader) == DataLoader
-
-    temp_data(folder, remove=True)
