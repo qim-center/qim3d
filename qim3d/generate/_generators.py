@@ -1,9 +1,12 @@
+from typing import Literal
+
 import ipywidgets as widgets
 import k3d
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage
 from IPython.display import display
+from numpy.typing import DTypeLike
 
 import qim3d
 from qim3d._log import logger
@@ -15,15 +18,15 @@ __all__ = ["volume", "background"]
 
 
 def background(
-    background_shape: tuple,
+    background_shape: tuple[int, int, int],
     baseline_value: float = 0,
     min_noise_value: float = 0,
     max_noise_value: float = 20,
-    generate_method: str = "add",
-    apply_method: str = None,
+    generate_method: Literal["add", "subtract", "multiply", "divide"] = "add",
+    apply_method: Literal["add", "subtract", "multiply", "divide"] | None = None,
     seed: int = 0,
-    dtype: str = "uint8",
-    apply_to: np.ndarray = None,
+    dtype: DTypeLike = "uint8",
+    apply_to: np.ndarray | None = None,
 ) -> np.ndarray:
     """
     Generates a 3D noise field or adds synthetic background noise to an existing volume.
@@ -223,19 +226,19 @@ def background(
 
 
 def volume(
-    base_shape: tuple = (128, 128, 128),
-    final_shape: tuple = None,
+    base_shape: tuple[int, int, int] = (128, 128, 128),
+    final_shape: tuple[int, int, int] | None = None,
     noise_scale: float = 0.02,
-    noise_type: str = "perlin",
+    noise_type: Literal["perlin", "simplex"] = "perlin",
     decay_rate: float = 10,
     gamma: float = 1,
     threshold: float = 0.5,
     max_value: float = 255,
-    shape: str = None,
+    shape: Literal["cylinder", "tube"] | None = None,
     tube_hole_ratio: float = 0.5,
     axis: int = 0,
-    order: int = 1,
-    dtype: str = "uint8",
+    order: Literal[0, 1, 2, 3, 4, 5] = 1,
+    dtype: DTypeLike = "uint8",
     hollow: int = 0,
     seed: int = 0,
 ) -> np.ndarray:
@@ -381,7 +384,7 @@ def volume(
     if shape and shape not in shape_types:
         err = f"shape should be one of: {shape_types}"
         raise ValueError(err)
-    noise_types = ["pnoise", "perlin", "p", "snoise", "simplex", "s"]
+    noise_types = ["perlin", "simplex"]
     if noise_type not in noise_types:
         err = f"noise_type should be one of: {noise_types}"
         raise ValueError(err)
@@ -416,8 +419,7 @@ def volume(
     if noise_scale == 0:
         noise = np.ones(base_shape)
     else:
-        algorithm = "perlin" if noise_type in noise_types[:3] else "simplex"
-        noise = _noise_field(base_shape, noise_scale, algorithm, seed)
+        noise = _noise_field(base_shape, noise_scale, noise_type, seed)
         noise_range = np.ptp(noise)
         if noise_range == 0:
             # A constant field has no texture; retain the shape envelope.
@@ -568,11 +570,11 @@ class ParameterVisualizer:
 
     def __init__(
         self,
-        base_shape: tuple = (128, 128, 128),
-        final_shape: tuple = None,
+        base_shape: tuple[int, int, int] = (128, 128, 128),
+        final_shape: tuple[int, int, int] | None = None,
         seed: int = 0,
         hollow: int = 0,
-        initial_config: dict = None,
+        initial_config: dict | None = None,
         nsmin: float = 0.0,
         nsmax: float = 0.1,
         dsmin: float = 0.1,
@@ -648,7 +650,7 @@ class ParameterVisualizer:
         self._setup_plot()
         self._display_ui()
 
-    def _compute_volume(self) -> None:
+    def _compute_volume(self) -> np.ndarray:
         vol = volume(
             base_shape=self.base_shape,
             final_shape=self.final_shape,
@@ -775,13 +777,13 @@ class ParameterVisualizer:
         # Initial state
         self._on_checkbox_change({"new": self.final_same_as_base_checkbox.value})
 
-    def _on_checkbox_change(self, change) -> None:
+    def _on_checkbox_change(self, change: dict) -> None:
         disabled = change["new"]
         self.final_shape_x_text.disabled = disabled
         self.final_shape_y_text.disabled = disabled
         self.final_shape_z_text.disabled = disabled
 
-    def _get_base_shape(self) -> tuple:
+    def _get_base_shape(self) -> tuple[int, int, int]:
         # Check valid axes
         for axis in [
             self.base_shape_x_text,
@@ -796,7 +798,7 @@ class ParameterVisualizer:
             self.base_shape_z_text.value,
         )
 
-    def _get_final_shape(self) -> tuple:
+    def _get_final_shape(self) -> tuple[int, int, int] | None:
         if self.final_same_as_base_checkbox.value:
             return None
         else:
@@ -833,7 +835,7 @@ class ParameterVisualizer:
         )
         self.plot += self.plt_volume
 
-    def _on_change(self, change: None = None) -> None:
+    def _on_change(self, change: dict | None = None) -> None:
         self.config["noise_type"] = self.noise_type_dropdown.value
         self.config["noise_scale"] = self.noise_slider.value
         self.config["decay_rate"] = self.decay_slider.value
@@ -994,7 +996,7 @@ class ParameterVisualizer:
 
         display(ui)
 
-    def get_volume(self):
+    def get_volume(self) -> np.ndarray:
         """
         Extracts the generated volume from the widget's current state.
 

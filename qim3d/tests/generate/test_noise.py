@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from qim3d.generate import volume
+from qim3d.generate import volume, volume_collection
 from qim3d.generate._noise import _noise_field, _perlin, _simplex
 
 
@@ -68,17 +68,6 @@ def test_volume_seed(algorithm):
     assert first.dtype == np.uint8
     assert first.shape == kwargs["base_shape"]
     assert first.max() > 0
-
-
-@pytest.mark.parametrize(
-    "alias,algorithm",
-    [("pnoise", "perlin"), ("p", "perlin"), ("snoise", "simplex"), ("s", "simplex")],
-)
-def test_aliases(alias, algorithm):
-    kwargs = dict(base_shape=(12, 12, 12), seed=42)
-    np.testing.assert_array_equal(
-        volume(**kwargs, noise_type=alias), volume(**kwargs, noise_type=algorithm)
-    )
 
 
 def test_constant_perlin_field():
