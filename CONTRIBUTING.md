@@ -28,6 +28,15 @@ uv tool install rust-just
 
 When installed, you can easily perform common tasks with `just`. To see an overview of available commands, simply run `just` in the terminal.
 
+#### Windows shell setup
+
+`just` assumes `sh` is available (see [prerequisites](https://just.systems/man/en/prerequisites.html)). With
+[Git for Windows](https://gitforwindows.org/) installed, choose either option:
+
+- **Git Bash:** run `just` directly.
+- **PowerShell or Command Prompt:** add Git's `bin` directory to PATH
+  (usually `C:\Program Files\Git\bin`), then restart your terminal or editor.
+
 ### Pre-Commit
 
 To ensure consistent styling and reduce git diffs, please install a pre-commit git hook by running the following:
