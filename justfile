@@ -1,5 +1,6 @@
 set minimum-version := '1.55.0'
 set default-list := true
+set windows-shell := ["powershell.exe", "-NoLogo", "-NoProfile", "-Command"]
 
 ### --- SETUP ---
 # Installs the project dependencies
