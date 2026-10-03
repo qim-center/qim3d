@@ -70,17 +70,6 @@ def test_volume_seed(algorithm):
     assert first.max() > 0
 
 
-@pytest.mark.parametrize(
-    "alias,algorithm",
-    [("pnoise", "perlin"), ("p", "perlin"), ("snoise", "simplex"), ("s", "simplex")],
-)
-def test_aliases(alias, algorithm):
-    kwargs = dict(base_shape=(12, 12, 12), seed=42)
-    np.testing.assert_array_equal(
-        volume(**kwargs, noise_type=alias), volume(**kwargs, noise_type=algorithm)
-    )
-
-
 def test_constant_perlin_field():
     """A constant noise field must normalize safely to an untextured shape."""
     # Noise coordinates = integer voxel coordinates * noise_scale. At scale 1,

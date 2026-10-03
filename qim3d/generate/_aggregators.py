@@ -1,7 +1,9 @@
 import logging
+from typing import Literal
 
 import numpy as np
 import scipy.ndimage
+from numpy.typing import DTypeLike
 from tqdm.notebook import tqdm
 
 import qim3d.generate
@@ -15,7 +17,7 @@ def random_placement(
     collection: np.ndarray,
     blob: np.ndarray,
     rng: np.random.Generator,
-) -> tuple[np.ndarray, bool]:
+) -> tuple[np.ndarray, bool, np.ndarray]:
     """
     Place blob at random available position in collection.
 
@@ -75,8 +77,8 @@ def random_placement(
 def specific_placement(
     collection: np.ndarray,
     blob: np.ndarray,
-    positions: list[tuple],
-) -> tuple[np.ndarray, bool]:
+    positions: list[tuple[int, int, int]],
+) -> tuple[np.ndarray, bool, list[tuple[int, int, int]]]:
     """
     Place blob at one of the specified positions in the collection.
 
@@ -129,28 +131,34 @@ def specific_placement(
 
 def volume_collection(
     n_volumes: int = 15,
-    collection_shape: tuple = (200, 200, 200),
+    collection_shape: tuple[int, int, int] = (200, 200, 200),
     data: np.ndarray | list[np.ndarray] | None = None,
-    positions: list[tuple] = None,
-    shape_range: tuple[tuple] = ((40, 40, 40), (60, 60, 60)),
-    shape_magnification_range: tuple[float] = (1.0, 1.0),
-    noise_type: str = "perlin",
-    noise_range: tuple[float] = (0.02, 0.03),
-    rotation_degree_range: tuple[int] = (0, 360),
-    rotation_axes: list[tuple] = None,
-    gamma_range: tuple[float] = (0.9, 1),
-    value_range: tuple[int] = (128, 255),
-    threshold_range: tuple[float] = (0.5, 0.55),
-    decay_rate_range: tuple[float] = (5, 10),
-    shape: str = None,
+    positions: list[tuple[int, int, int]] | None = None,
+    shape_range: tuple[tuple[int, int, int], tuple[int, int, int]] = (
+        (40, 40, 40),
+        (60, 60, 60),
+    ),
+    shape_magnification_range: tuple[float, float] = (1.0, 1.0),
+    noise_type: Literal["perlin", "simplex", "mixed"] = "perlin",
+    noise_range: tuple[float, float] = (0.02, 0.03),
+    rotation_degree_range: tuple[float, float] = (0, 360),
+    rotation_axes: list[tuple[int, int]] | None = None,
+    gamma_range: tuple[float, float] = (0.9, 1),
+    value_range: tuple[int, int] = (128, 255),
+    threshold_range: tuple[float, float] = (0.5, 0.55),
+    decay_rate_range: tuple[float, float] = (5, 10),
+    shape: Literal["cylinder", "tube"] | None = None,
     tube_hole_ratio: float = 0.5,
     axis: int = 0,
     same_seed: bool = False,
-    hollow: bool = False,
+    hollow: int = 0,
     seed: int = 0,
-    dtype: str = "uint8",
+    dtype: DTypeLike = "uint8",
     return_positions: bool = False,
-) -> tuple[np.ndarray, np.ndarray]:
+) -> (
+    tuple[np.ndarray, np.ndarray]
+    | tuple[np.ndarray, np.ndarray, list[tuple[int, int, int]]]
+):
     """
     Generates a synthetic dataset of multiple non-overlapping volumes with ground truth labels.
 
@@ -175,23 +183,23 @@ def volume_collection(
             chosen randomly. If provided, `n_volumes` must match the length of this list.
         shape_range (tuple[tuple], optional):
             Defines the size variance of generated objects. Format: `((min_z, min_y, min_x), (max_z, max_y, max_x))`.
-        shape_magnification_range (tuple[float], optional):
+        shape_magnification_range (tuple[float, float], optional):
             Range for random uniform scaling factors applied to the object shape.
         noise_type (str, optional):
             Algorithm for synthetic texture generation: `'perlin'`, `'simplex'`, or `'mixed'` (randomly selects per object).
-        noise_range (tuple[float], optional):
+        noise_range (tuple[float, float], optional):
             Range for the noise scale parameter (roughness).
-        rotation_degree_range (tuple[int], optional):
+        rotation_degree_range (tuple[float, float], optional):
             Range of rotation angles (in degrees) to apply to each object.
         rotation_axes (list[tuple], optional):
             List of axis pairs to rotate around (e.g., `[(0, 1)]` for XY rotation).
-        gamma_range (tuple[float], optional):
+        gamma_range (tuple[float, float], optional):
             Range for gamma correction (contrast).
-        value_range (tuple[int], optional):
+        value_range (tuple[int, int], optional):
             Range for the maximum intensity value of the objects.
-        threshold_range (tuple[float], optional):
+        threshold_range (tuple[float, float], optional):
             Range for the threshold used to define the object surface/size.
-        decay_rate_range (tuple[float], optional):
+        decay_rate_range (tuple[float, float], optional):
             Range for the edge decay rate (fading at boundaries).
         shape (str, optional):
             Force a specific geometric shape: `'cylinder'`, `'tube'`, or `None` (organic blob).
@@ -201,8 +209,8 @@ def volume_collection(
             Orientation axis (0, 1, 2) if `shape` is defined.
         same_seed (bool, optional):
             If `True`, reuses the same random seed for every object (they will look identical).
-        hollow (bool, optional):
-            If `True`, applies a hollowing operation to synthetic objects.
+        hollow (int, optional):
+            Shell thickness for hollowing synthetic objects; 0 disables hollowing.
         seed (int, optional):
             Global random seed for reproducibility.
         dtype (str, optional):
@@ -353,7 +361,7 @@ def volume_collection(
             msg = f"No custom volumes fit within collection size {collection_shape}."
             raise ValueError(msg)
 
-    noise_types = ["pnoise", "perlin", "p", "snoise", "simplex", "s", "mixed", "m"]
+    noise_types = ["perlin", "simplex", "mixed"]
     if noise_type not in noise_types:
         err = f"noise_type should be one of: {noise_types}"
         raise ValueError(err)
@@ -440,7 +448,7 @@ def volume_collection(
             max_value = value_range[0]
         _logger.debug(f"- Max value: {max_value}")
 
-        if noise_type == "mixed" or noise_type == "m":
+        if noise_type == "mixed":
             nti = "perlin" if nt[i] >= 0.5 else "simplex"
         else:
             nti = noise_type
