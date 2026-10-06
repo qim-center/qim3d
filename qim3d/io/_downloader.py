@@ -16,6 +16,7 @@ from tqdm import tqdm
 
 import qim3d
 from qim3d.io._loading import load
+from qim3d.utils._misc import sizeof
 
 _logger = logging.getLogger(__name__)
 
@@ -55,7 +56,7 @@ class Downloader:
         timeout (float): Timeout in seconds for fetching the manifest.
 
     Methods:
-        list_datasets(): Returns the datasets and formats published in the manifest.
+        list_datasets(): Returns the datasets, formats and sizes published in the manifest.
         download_dataset(dataset_id, format, ...): Downloads a volume and returns its local path.
         load_dataset(dataset_id, format, ...): Downloads a volume if needed and returns its image data.
         refresh(): Fetches the manifest again.
@@ -105,10 +106,17 @@ class Downloader:
         return self._datasets
 
     def list_datasets(self) -> list[dict[Any, Any]]:
-        """Return a list of all available datasets."""
+        """Return a list of all available datasets.
+
+        Each entry in a dataset's ``volumes`` has its ``format``, ``url`` and
+        ``size_bytes`` (``None`` when the size is not published).
+        """
         return deepcopy(self._get_datasets())
 
-    def _get_volume_url(self, dataset_id: str, volume_format: str) -> str:
+    def _get_volume(
+        self, dataset_id: str, volume_format: str
+    ) -> tuple[str, int | None]:
+        """Return the URL and size in bytes (None if unknown) of a volume."""
         dataset = None
         for item in self._get_datasets():
             if isinstance(item, dict) and item.get("id") == dataset_id:
@@ -132,7 +140,10 @@ class Downloader:
         if isinstance(url, str):
             parsed = urlparse(url)
             if parsed.scheme in {"http", "https"} and parsed.netloc:
-                return url
+                size_bytes = volume.get("size_bytes")
+                if type(size_bytes) is not int or size_bytes <= 0:
+                    size_bytes = None
+                return url, size_bytes
         raise ValueError(
             f"Dataset {dataset_id!r} has no usable download URL for "
             f"format {volume_format!r}"
@@ -157,7 +168,7 @@ class Downloader:
         if Path(output_dir).resolve() not in dataset_dir.resolve().parents:
             raise ValueError(f"Invalid dataset ID {dataset_id!r}")
 
-        url = self._get_volume_url(dataset_id, format)
+        url, size_bytes = self._get_volume(dataset_id, format)
         filename = Path(urlparse(url).path).name
         if not filename or filename in {".", ".."}:
             raise ValueError(
@@ -173,7 +184,7 @@ class Downloader:
         with tempfile.TemporaryDirectory(
             prefix=".download-", dir=dataset_dir
         ) as staging:
-            staged = self._download_url(url, output_dir=staging)
+            staged = self._download_url(url, output_dir=staging, size_bytes=size_bytes)
             if destination.exists() and not destination.is_symlink():
                 return destination
             os.replace(staged, destination)
@@ -205,8 +216,12 @@ class Downloader:
         self,
         url: str,
         output_dir: str | os.PathLike,
+        size_bytes: int | None = None,
     ) -> Path:
-        """Download a volume into a staging directory and return its path."""
+        """Download a volume into a staging directory and return its path.
+
+        ``size_bytes`` is the expected size, used for logging and the progress bar.
+        """
         filename = Path(urlparse(url).path).name
         output_path = Path(output_dir)
         destination = output_path / filename
@@ -215,15 +230,18 @@ class Downloader:
             _logger.warning("Already downloaded: %s", destination.resolve())
         else:
             output_path.mkdir(parents=True, exist_ok=True)
+            size = f" ({sizeof(size_bytes)})" if size_bytes else ""
             if filename.endswith(".zarr"):
-                _logger.info("Downloading Zarr store %s from %s", filename, url)
+                _logger.info("Downloading Zarr store %s%s from %s", filename, size, url)
                 download(url, output_dir=str(output_path))
             else:
-                _logger.info("Downloading file %s from %s", filename, url)
-                try:
-                    total = _get_file_size(url)
-                except OSError:
-                    total = -1
+                _logger.info("Downloading file %s%s from %s", filename, size, url)
+                total = size_bytes
+                if total is None:
+                    try:
+                        total = _get_file_size(url)
+                    except OSError:
+                        total = -1
                 with tqdm(
                     total=total if total > 0 else None,
                     unit="B",
