@@ -27,8 +27,10 @@ downloader.list_datasets()
   'summary': 'Coal briquette from a bag of BBQ coal',
   'title': 'Coal Briquette',
   'volumes': [{'format': 'zarr',
+               'size_bytes': 2400000000,
                'url': 'https://public.qim.dk/coal_briquette/coal_briquette.zarr'},
               {'format': 'tiff',
+               'size_bytes': 2400082900,
                'url': 'https://public.qim.dk/coal_briquette/coal_briquette.tif'}]},
  ...]
 </pre></div>
