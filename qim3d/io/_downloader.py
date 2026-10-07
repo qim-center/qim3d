@@ -262,7 +262,13 @@ class Downloader:
             _logger.info(
                 "Downloading Zarr store %s%s from %s", destination.name, size, url
             )
-            download(url, output_dir=str(destination.parent))
+            try:
+                download(url, output_dir=str(destination.parent))
+            except (AssertionError, AttributeError) as err:
+                # ome_zarr only asserts that the store could be opened
+                raise FileNotFoundError(
+                    f"No OME-Zarr store could be opened at {url}"
+                ) from err
             return
         _logger.info("Downloading file %s%s from %s", destination.name, size, url)
         total = size_bytes
