@@ -239,7 +239,7 @@ class Downloader:
         an OME-Zarr resolution (0, a coarser integer, "highest", or "lowest");
         other formats only accept the default scale of 0.
         """
-        if format != "zarr" and scale != 0:
+        if format != "zarr" and scale not in (0, "highest"):
             raise ValueError("scale is only supported for OME-Zarr volumes")
         path = self.download_dataset(dataset_id, format=format, output_dir=output_dir)
         if format == "zarr":
