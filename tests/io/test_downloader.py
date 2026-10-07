@@ -28,6 +28,7 @@ def manifest():
             {
                 "id": "coral",
                 "title": "Coral",
+                "categories": ["animal"],
                 "volumes": [
                     {"format": "zarr", "url": ZARR_URL, "size_bytes": 8192},
                     {"format": "tiff", "url": TIFF_URL, "size_bytes": 4096},
@@ -162,6 +163,17 @@ def test_manifest_without_dataset_list_is_rejected(downloader, urlopen, body):
 
     with pytest.raises(ValueError, match="no list of datasets"):
         downloader.list_datasets()
+
+
+def test_show_datasets_prints_id_categories_and_sizes(downloader, manifest, capsys):
+    del published_volume(manifest, "zarr")["size_bytes"]
+
+    downloader.show_datasets()
+
+    assert capsys.readouterr().out.splitlines() == [
+        "ID     Categories  TIFF    Zarr",
+        "coral  animal      4.0 KB  -",
+    ]
 
 
 # --- Finding a volume ---
