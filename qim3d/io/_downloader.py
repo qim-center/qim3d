@@ -56,7 +56,7 @@ class Downloader:
         timeout (float): Timeout in seconds for fetching the manifest.
 
     Methods:
-        list_datasets(): Returns the datasets, formats and sizes published in the manifest.
+        get_datasets(): Returns the datasets, formats and sizes published in the manifest.
         show_datasets(): Prints a table of the datasets, their categories and sizes.
         download_dataset(dataset_id, format, ...): Downloads a volume and returns its local path.
         load_dataset(dataset_id, format, ...): Downloads a volume if needed and returns its image data.
@@ -67,7 +67,7 @@ class Downloader:
 
     ??? info "Overview of available data"
         See the current datasets and formats on the [QIM data repository](https://data.qim.dk/),
-        or call `list_datasets()` to inspect them in Python.
+        or call `get_datasets()` to inspect them in Python.
 
     Example:
         ```python
@@ -76,7 +76,7 @@ class Downloader:
         downloader = qim3d.io.Downloader()
 
         # Browse available datasets
-        datasets = downloader.list_datasets()
+        datasets = downloader.get_datasets()
 
         # Download and load a sample
         data = downloader.load_dataset("cowry-shell", format="zarr", scale="lowest")
@@ -106,7 +106,7 @@ class Downloader:
             self._datasets = _fetch_manifest(self.manifest_url, self.timeout)
         return self._datasets
 
-    def list_datasets(self) -> list[dict[Any, Any]]:
+    def get_datasets(self) -> list[dict[Any, Any]]:
         """Return a list of all available datasets.
 
         Each entry in a dataset's ``volumes`` has its ``format``, ``url`` and
@@ -145,7 +145,7 @@ class Downloader:
         if dataset is None:
             raise LookupError(
                 f"Dataset {dataset_id!r} was not found. "
-                "Use list_datasets() to see available IDs."
+                "Use get_datasets() to see available IDs."
             )
         volume = None
         for item in dataset.get("volumes") or []:
