@@ -217,7 +217,7 @@ class Downloader:
             prefix=".download-", dir=dataset_dir
         ) as staging:
             staged = Path(staging) / filename
-            self._download_url(url, staged, size_bytes)
+            self._download_url(url, staged, format, size_bytes)
             if destination.exists():
                 return destination
             os.replace(staged, destination)
@@ -250,6 +250,7 @@ class Downloader:
         self,
         url: str,
         destination: Path,
+        volume_format: str,
         size_bytes: int | None = None,
     ) -> None:
         """Download a volume to ``destination``.
@@ -257,30 +258,30 @@ class Downloader:
         ``size_bytes`` is the expected size, used for logging and the progress bar.
         """
         size = f" ({sizeof(size_bytes)})" if size_bytes else ""
-        if destination.name.endswith(".zarr"):
+        if volume_format == "zarr":
             _logger.info(
                 "Downloading Zarr store %s%s from %s", destination.name, size, url
             )
             download(url, output_dir=str(destination.parent))
-        else:
-            _logger.info("Downloading file %s%s from %s", destination.name, size, url)
-            total = size_bytes
-            if total is None:
-                try:
-                    total = _get_file_size(url)
-                except OSError:
-                    total = -1
-            with tqdm(
-                total=total if total > 0 else None,
-                unit="B",
-                unit_scale=True,
-                unit_divisor=1024,
-                ncols=80,
-            ) as pbar:
-                urllib.request.urlretrieve(
-                    url,
-                    destination,
-                    reporthook=lambda blocknum, block_size, _total_size: pbar.update(
-                        blocknum * block_size - pbar.n
-                    ),
-                )
+            return
+        _logger.info("Downloading file %s%s from %s", destination.name, size, url)
+        total = size_bytes
+        if total is None:
+            try:
+                total = _get_file_size(url)
+            except OSError:
+                total = -1
+        with tqdm(
+            total=total if total > 0 else None,
+            unit="B",
+            unit_scale=True,
+            unit_divisor=1024,
+            ncols=80,
+        ) as pbar:
+            urllib.request.urlretrieve(
+                url,
+                destination,
+                reporthook=lambda blocknum, block_size, _total_size: pbar.update(
+                    blocknum * block_size - pbar.n
+                ),
+            )
