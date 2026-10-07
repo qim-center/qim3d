@@ -55,7 +55,7 @@ class Downloader:
     benchmarking, or educational purposes. It automatically handles local caching to avoid
     repeated downloads of the same file.
 
-    The `Downloader` acts as an interface to the [QIM data repository](https://data-repository.qim.dk/),
+    The `Downloader` acts as an interface to the [QIM data repository](https://data-repository.qim.dk/).
 
     Attributes:
         manifest_url (str): URL of the dataset manifest.
@@ -72,7 +72,7 @@ class Downloader:
     `qim3d.io.Downloader().load_dataset("cowry-shell", format="zarr")`
 
     ??? info "Overview of available data"
-        See the current datasets and formats on the [QIM data repository](https://data.qim.dk/),
+        See the current datasets and formats on the [QIM data repository](https://data-repository.qim.dk/),
         or call `get_datasets()` to inspect them in Python.
 
     Example:
