@@ -153,8 +153,14 @@ class Downloader:
                 volume = item
                 break
         if volume is None:
+            available = ", ".join(
+                str(item.get("format"))
+                for item in dataset.get("volumes") or []
+                if isinstance(item, dict) and item.get("url")
+            )
             raise LookupError(
-                f"Dataset {dataset_id!r} has no {volume_format!r} volume."
+                f"Dataset {dataset_id!r} has no {volume_format!r} volume. "
+                f"Available formats: {available or 'none'}."
             )
         url = volume.get("url")
         if isinstance(url, str):
@@ -173,20 +179,23 @@ class Downloader:
         self,
         dataset_id: str,
         *,
-        format: str,
+        format: Literal["tiff", "zarr"],
         output_dir: str | os.PathLike = ".",
     ) -> Path:
         """Download a manifest volume and return its local path.
 
-        Store it under ``output_dir/dataset_id/``. An existing path is reused;
+        ``format`` is "tiff" or "zarr". The volume is stored under
+        ``output_dir/dataset_id/``. An existing path is reused;
         new downloads are staged so failures do not leave a partial final path.
         """
-        if not isinstance(dataset_id, str):
+        # The ID must be a single folder name, so it can't escape output_dir, for example "../coal-briquette"
+        if (
+            not isinstance(dataset_id, str)
+            or dataset_id in {"", ".", ".."}
+            or Path(dataset_id).name != dataset_id
+        ):
             raise ValueError(f"Invalid dataset ID {dataset_id!r}")
         dataset_dir = Path(output_dir) / dataset_id
-        # Checks that id doesn't contain folder-escaping sequences, for example "../coal-briquette"
-        if Path(output_dir).resolve() not in dataset_dir.resolve().parents:
-            raise ValueError(f"Invalid dataset ID {dataset_id!r}")
 
         url, size_bytes = self._get_volume(dataset_id, format)
         filename = Path(urlparse(url).path).name
@@ -214,21 +223,22 @@ class Downloader:
         self,
         dataset_id: str,
         *,
-        format: str,
+        format: Literal["tiff", "zarr"],
         output_dir: str | os.PathLike = ".",
         virtual_stack: bool = True,
         scale: int | Literal["lowest", "highest"] = 0,
     ) -> object:
         """Download a volume if needed, then return its image data.
 
-        ``virtual_stack=True`` uses lazy loading where supported. ``scale`` selects
+        ``format`` is "tiff" or "zarr". ``virtual_stack=True`` uses lazy loading
+        where supported. ``scale`` selects
         an OME-Zarr resolution (0, a coarser integer, "highest", or "lowest");
         other formats only accept the default scale of 0.
         """
-        if format not in {"zarr", "ome-zarr"} and scale != 0:
+        if format != "zarr" and scale != 0:
             raise ValueError("scale is only supported for OME-Zarr volumes")
         path = self.download_dataset(dataset_id, format=format, output_dir=output_dir)
-        if format in {"zarr", "ome-zarr"}:
+        if format == "zarr":
             return qim3d.io.import_ome_zarr(path, scale=scale, load=not virtual_stack)
         return load(path=path, virtual_stack=virtual_stack)
 
@@ -243,38 +253,33 @@ class Downloader:
         ``size_bytes`` is the expected size, used for logging and the progress bar.
         """
         filename = Path(urlparse(url).path).name
-        output_path = Path(output_dir)
-        destination = output_path / filename
+        destination = Path(output_dir) / filename
 
-        if destination.exists():
-            _logger.warning("Already downloaded: %s", destination.resolve())
+        size = f" ({sizeof(size_bytes)})" if size_bytes else ""
+        if filename.endswith(".zarr"):
+            _logger.info("Downloading Zarr store %s%s from %s", filename, size, url)
+            download(url, output_dir=str(output_dir))
         else:
-            output_path.mkdir(parents=True, exist_ok=True)
-            size = f" ({sizeof(size_bytes)})" if size_bytes else ""
-            if filename.endswith(".zarr"):
-                _logger.info("Downloading Zarr store %s%s from %s", filename, size, url)
-                download(url, output_dir=str(output_path))
-            else:
-                _logger.info("Downloading file %s%s from %s", filename, size, url)
-                total = size_bytes
-                if total is None:
-                    try:
-                        total = _get_file_size(url)
-                    except OSError:
-                        total = -1
-                with tqdm(
-                    total=total if total > 0 else None,
-                    unit="B",
-                    unit_scale=True,
-                    unit_divisor=1024,
-                    ncols=80,
-                ) as pbar:
-                    urllib.request.urlretrieve(
-                        url,
-                        destination,
-                        reporthook=lambda blocknum, block_size, _total_size: (
-                            pbar.update(blocknum * block_size - pbar.n)
-                        ),
-                    )
+            _logger.info("Downloading file %s%s from %s", filename, size, url)
+            total = size_bytes
+            if total is None:
+                try:
+                    total = _get_file_size(url)
+                except OSError:
+                    total = -1
+            with tqdm(
+                total=total if total > 0 else None,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                ncols=80,
+            ) as pbar:
+                urllib.request.urlretrieve(
+                    url,
+                    destination,
+                    reporthook=lambda blocknum, block_size, _total_size: pbar.update(
+                        blocknum * block_size - pbar.n
+                    ),
+                )
 
         return destination

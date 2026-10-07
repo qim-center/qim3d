@@ -185,7 +185,9 @@ def test_unknown_dataset_raises_lookup_error(downloader, tmp_path):
 
 
 def test_unpublished_format_raises_lookup_error(downloader, tmp_path):
-    with pytest.raises(LookupError, match="no 'nifti' volume"):
+    with pytest.raises(
+        LookupError, match="no 'nifti' volume. Available formats: zarr, tiff"
+    ):
         downloader.download_dataset("coral", format="nifti", output_dir=tmp_path)
 
 
@@ -220,6 +222,19 @@ def test_absolute_path_as_dataset_id_is_rejected(downloader, tmp_path):
 
     with pytest.raises(ValueError, match="Invalid dataset ID"):
         downloader.download_dataset(str(outside), format="tiff", output_dir=tmp_path)
+
+
+def test_symlinked_dataset_folder_is_accepted(downloader, tmp_path):
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    output_dir = tmp_path / "out"
+    output_dir.mkdir()
+    (output_dir / "coral").symlink_to(elsewhere, target_is_directory=True)
+
+    path = downloader.download_dataset("coral", format="tiff", output_dir=output_dir)
+
+    assert path == output_dir / "coral" / "coral.tif"
+    assert (elsewhere / "coral.tif").is_file()
 
 
 # --- Downloading ---
