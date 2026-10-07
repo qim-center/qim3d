@@ -67,7 +67,6 @@ dependencies = [
     # Processing
     "dask-image>=2024.5.3",
     "localthickness>=0.1.2",
-    "pygorpho>=1.0.1",
     "slgbuilder>=0.2.1",
     "structure-tensor>=0.2.1",
 

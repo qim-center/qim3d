@@ -1,7 +1,6 @@
 import logging
 
 import numpy as np
-import pygorpho as pg
 import scipy.ndimage as ndi
 
 _logger = logging.getLogger(__name__)
@@ -56,35 +55,24 @@ def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
 
 def dilate(
     volume: np.ndarray,
-    kernel: int | np.ndarray,
-    method: str = "pygorpho.linear",
+    kernel: int | tuple | np.ndarray,
+    method: str = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
-    Performs morphological dilation on a 3D volume using CPU or GPU-accelerated methods.
+    Performs morphological dilation on a 3D volume.
 
     Dilation enlarges bright regions (foreground) and shrinks dark regions (background). It is commonly used to close small holes, connect disjoint features, or thicken object boundaries.
 
-    This function supports efficient GPU acceleration using the `pygorpho` library, based on zonohedral approximations. If a GPU is not available, it is recommended to use the 'scipy.ndimage' method.
-
     Args:
         volume (np.ndarray): The input 3D volume.
-        kernel (int or np.ndarray): The structuring element.
-            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
-            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
-        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
-            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
-            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
-            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
+        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
         dilated_vol (np.ndarray):
             The dilated volume.
-
-    !!! quote "Reference"
-        The GPU methods implement the algorithms described in:
-        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -117,71 +105,37 @@ def dilate(
 
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == "pygorpho.flat":
-        kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        return pg.flat.dilate(volume, kernel, **kwargs)
-
-    elif method == "pygorpho.linear":
-        assert isinstance(kernel, int), (
-            "Kernel is generated within function and must therefore be an integer."
-        )
-
-        linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        return pg.flat.linear_dilate(volume, linesteps, linelens)
-
-    elif method == "scipy.ndimage":
+    if method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_dilation(volume, footprint=kernel, **kwargs)
 
     else:
-        err = "Unknown closing method."
+        err = f"Unknown method '{method}'. Supported: 'scipy.ndimage'."
         raise ValueError(err)
 
 
 def erode(
     volume: np.ndarray,
-    kernel: int | np.ndarray,
-    method: str = "pygorpho.linear",
+    kernel: int | tuple | np.ndarray,
+    method: str = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
-    Performs morphological erosion on a 3D volume using CPU or GPU-accelerated methods.
+    Performs morphological erosion on a 3D volume.
 
     Erosion shrinks bright regions (foreground) and enlarges dark regions (background). It is commonly used to remove small noise (salt noise), detach touching objects, or thin out features.
 
-    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the 'scipy.ndimage' method.
-
     Args:
         volume (np.ndarray): The input 3D volume.
-        kernel (int or np.ndarray): The structuring element.
-            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
-            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
-        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
-            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
-            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
-            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
+        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
         eroded_vol (np.ndarray):
             The eroded volume.
-
-    !!! quote "Reference"
-        The GPU methods implement the algorithms described in:
-        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -213,70 +167,37 @@ def erode(
 
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == "pygorpho.flat":
-        kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        return pg.flat.erode(volume, kernel, **kwargs)
-
-    elif method == "pygorpho.linear":
-        assert isinstance(kernel, int), (
-            "Kernel is generated within function and must therefore be an integer."
-        )
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.linear_erode(volume, linesteps, linelens, **kwargs)
-
-    elif method == "scipy.ndimage":
+    if method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_erosion(volume, footprint=kernel, **kwargs)
 
     else:
-        err = "Unknown closing method."
+        err = f"Unknown method '{method}'. Supported: 'scipy.ndimage'."
         raise ValueError(err)
 
 
 def opening(
     volume: np.ndarray,
-    kernel: int | np.ndarray,
-    method: str = "pygorpho.linear",
+    kernel: int | tuple | np.ndarray,
+    method: str = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
-    Performs morphological opening on a 3D volume using CPU or GPU-accelerated methods.
+    Performs morphological opening on a 3D volume.
 
     Opening is defined as an **erosion** followed by a **dilation**. It is primarily used to remove small bright objects (salt noise) from the background while preserving the shape and size of larger objects. It smooths object contours by breaking narrow isthmuses and eliminating thin protrusions.
 
-    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) method.
-
     Args:
         volume (np.ndarray): The input 3D volume.
-        kernel (int or np.ndarray): The structuring element.
-            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
-            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
-        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
-            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
-            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
-            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
+        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
         opened_vol (np.ndarray):
             The opened volume.
-
-    !!! quote "Reference"
-        The GPU methods implement the algorithms described in:
-        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -317,70 +238,37 @@ def opening(
 
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == "pygorpho.flat":
-        kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        return pg.flat.open(volume, kernel, **kwargs)
-
-    elif method == "pygorpho.linear":
-        assert isinstance(kernel, int), (
-            "Kernel is generated within function and must therefore be an integer."
-        )
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.linear_open(volume, linesteps, linelens, **kwargs)
-
-    elif method == "scipy.ndimage":
+    if method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_opening(volume, footprint=kernel, **kwargs)
 
     else:
-        err = "Unknown closing method."
+        err = f"Unknown method '{method}'. Supported: 'scipy.ndimage'."
         raise ValueError(err)
 
 
 def closing(
     volume: np.ndarray,
-    kernel: int | np.ndarray,
-    method: str = "pygorpho.linear",
+    kernel: int | tuple | np.ndarray,
+    method: str = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
-    Performs morphological closing on a 3D volume using CPU or GPU-accelerated methods.
+    Performs morphological closing on a 3D volume.
 
     Closing is defined as a **dilation** followed by an **erosion**. It is primarily used to fill small dark holes, cracks, or gaps within bright objects while preserving their overall shape and size. It smooths object contours by fusing narrow breaks and filling small depressions.
 
-    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.grey_dilation.html) method.
-
     Args:
         volume (np.ndarray): The input 3D volume.
-        kernel (int or np.ndarray): The structuring element.
-            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
-            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
-        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
-            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
-            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
-            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
+        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
         closed_vol (np.ndarray):
             The closed volume.
-
-    !!! quote "Reference"
-        The GPU methods implement the algorithms described in:
-        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -414,43 +302,21 @@ def closing(
 
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == "pygorpho.flat":
-        kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        return pg.flat.close(volume, kernel, **kwargs)
-
-    elif method == "pygorpho.linear":
-        assert isinstance(kernel, int), (
-            "Kernel is generated within function and must therefore be an integer."
-        )
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.linear_close(volume, linesteps, linelens, **kwargs)
-
-    elif method == "scipy.ndimage":
+    if method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.grey_closing(volume, footprint=kernel, **kwargs)
 
     else:
-        err = "Unknown closing method."
+        err = f"Unknown method '{method}'. Supported: 'scipy.ndimage'."
         raise ValueError(err)
 
 
 def black_tophat(
     volume: np.ndarray,
-    kernel: int | np.ndarray,
-    method: str = "pygorpho.linear",
+    kernel: int | tuple | np.ndarray,
+    method: str = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -458,26 +324,15 @@ def black_tophat(
 
     The black top-hat transform is defined as the difference between the morphological closing of the volume and the original volume (Closing - Input). It is used to extract dark features and valleys that are smaller than the structuring element (kernel) from a brighter background. This is particularly effective for background correction or isolating small dark structures in a non-uniformly lit image.
 
-    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.black_tophat.html) method.
-
     Args:
         volume (np.ndarray): The input 3D volume.
-        kernel (int or np.ndarray): The structuring element.
-            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
-            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
-        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
-            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
-            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
-            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
+        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
         bothat_vol (np.ndarray):
             The processed volume containing the extracted dark features.
-
-    !!! quote "Reference"
-        The GPU methods implement the algorithms described in:
-        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -509,43 +364,21 @@ def black_tophat(
 
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == "pygorpho.flat":
-        kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        return pg.flat.bothat(volume, kernel, **kwargs)
-
-    elif method == "pygorpho.linear":
-        assert isinstance(kernel, int), (
-            "Kernel is generated within function and must therefore be an integer."
-        )
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.bothat(volume, linesteps, linelens, **kwargs)
-
-    elif method == "scipy.ndimage":
+    if method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.black_tophat(volume, footprint=kernel, **kwargs)
 
     else:
-        err = "Unknown closing method."
+        err = f"Unknown method '{method}'. Supported: 'scipy.ndimage'."
         raise ValueError(err)
 
 
 def white_tophat(
     volume: np.ndarray,
-    kernel: int | np.ndarray,
-    method: str = "pygorpho.linear",
+    kernel: int | tuple | np.ndarray,
+    method: str = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -553,26 +386,15 @@ def white_tophat(
 
     The white top-hat transform is defined as the difference between the original volume and its morphological opening (Input - Opening). It is used to extract bright features and peaks that are smaller than the structuring element (kernel) from a darker background. This is a powerful tool for background subtraction, enhancing small bright spots, or correcting uneven illumination in a volume.
 
-    This function supports efficient GPU acceleration using the `pygorpho` library. If a GPU is not available, it is recommended to use the [scipy.ndimage](https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.white_tophat.html) method.
-
     Args:
         volume (np.ndarray): The input 3D volume.
-        kernel (int or np.ndarray): The structuring element.
-            * If method is 'pygorpho.linear': Must be an integer representing the radius of the ball-shaped kernel.
-            * If method is 'pygorpho.flat' or 'scipy.ndimage': Must be a 3D numpy array defining the footprint.
-        method (str, optional): The backend implementation to use. Defaults to 'pygorpho.linear'.
-            * 'pygorpho.linear': GPU-accelerated. Best for large, spherical kernels.
-            * 'pygorpho.flat': GPU-accelerated. Supports arbitrary kernel shapes.
-            * 'scipy.ndimage': CPU-based. Standard implementation (slower for large volumes).
+        kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
+        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
         tophat_vol (np.ndarray):
             The processed volume containing the extracted bright features.
-
-    !!! quote "Reference"
-        The GPU methods implement the algorithms described in:
-        [Zonohedral Approximation of Spherical Structuring Element for Volumetric Morphology](https://backend.orbit.dtu.dk/ws/portalfiles/portal/172879029/SCIA19_Zonohedra.pdf).
 
     Example:
         ```python
@@ -604,34 +426,12 @@ def white_tophat(
 
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
 
-    if method == "pygorpho.flat":
-        kernel = _create_kernel(kernel)
-        assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        return pg.flat.tophat(volume, kernel, **kwargs)
-
-    elif method == "pygorpho.linear":
-        assert isinstance(kernel, int), (
-            "Kernel is generated within function and must therefore be an integer."
-        )
-
-        if not pg.cuda.get_device_count():
-            err = "no CUDA device available. Use method=scipy.ndimage."
-            raise RuntimeError(err)
-
-        linesteps, linelens = pg.strel.flat_ball_approx(kernel)
-        return pg.flat.tophat(volume, linesteps, linelens, **kwargs)
-
-    elif method == "scipy.ndimage":
+    if method == "scipy.ndimage":
         kernel = _create_kernel(kernel)
         assert kernel.ndim == 3, "Kernel must a 3D np.ndarray."
 
         return ndi.white_tophat(volume, footprint=kernel, **kwargs)
 
     else:
-        err = "Unknown closing method."
+        err = f"Unknown method '{method}'. Supported: 'scipy.ndimage'."
         raise ValueError(err)

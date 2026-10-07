@@ -1067,15 +1067,6 @@ wheels = [
 ]
 
 [[package]]
-name = "distro"
-version = "1.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fc/f8/98eea607f65de6527f8a2e8885fc8015d3e6f5775df186e443e0964a11c3/distro-1.9.0.tar.gz", hash = "sha256:2fa77c6fd8940f116ee1d6b94a2f90b13b5ea8d019b98bc8bafdcabcdd9bdbed", size = 60722, upload-time = "2023-12-24T09:54:32.31Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/12/b3/231ffd4ab1fc9d679809f356cebee130ac7daa00d6d6f3206dd4fd137e9e/distro-1.9.0-py3-none-any.whl", hash = "sha256:7bffd925d65168f85027d8da9af6bddab658135b840670a223589bc0c8ef02b2", size = 20277, upload-time = "2023-12-24T09:54:30.421Z" },
-]
-
-[[package]]
 name = "docstring-parser"
 version = "0.18.0"
 source = { registry = "https://pypi.org/simple" }
@@ -3763,20 +3754,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pygorpho"
-version = "1.0.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "numpy" },
-    { name = "scikit-build" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/74/f6/d394a0dfcb0c6d9943257fe3dd03f43c700d56e70ff49ccb10c4462c1915/pygorpho-1.0.1.zip", hash = "sha256:29d93e75c1c9deb52ba235d05cda2db84911726dcec0f7461b205fc78cf94edf", size = 12770, upload-time = "2024-05-02T10:02:47.848Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/45/da/944daee64976b69c4d38f0af19b1a7c564a9799fab24c8624e99c700549a/pygorpho-1.0.1-py3-none-manylinux1_x86_64.whl", hash = "sha256:0b7581003ae5cc1e6b8a7d200fe2c963be2ba78160f4c8e529dc6fa15ca89bc3", size = 1006960, upload-time = "2024-05-02T10:02:43.954Z" },
-    { url = "https://files.pythonhosted.org/packages/bc/2f/a5cae98033a78bdb85cfea0e00d8e7ae77ed649443551f403d7c18291b80/pygorpho-1.0.1-py3-none-win_amd64.whl", hash = "sha256:dbea932c6f61a1e671357ffec788f1e751066207d8ebc5cd92eef60f393feb98", size = 1027726, upload-time = "2024-05-02T10:02:46.473Z" },
-]
-
-[[package]]
 name = "pymdown-extensions"
 version = "11.0.1"
 source = { registry = "https://pypi.org/simple" }
@@ -4065,7 +4042,6 @@ dependencies = [
     { name = "psutil" },
     { name = "pydicom" },
     { name = "pygel3d" },
-    { name = "pygorpho" },
     { name = "pytetwild" },
     { name = "pyvista", extra = ["jupyter"] },
     { name = "scikit-image" },
@@ -4166,7 +4142,6 @@ requires-dist = [
     { name = "psutil", specifier = ">=5.9.0" },
     { name = "pydicom", specifier = ">=2.4.5" },
     { name = "pygel3d", specifier = ">=0.8.2" },
-    { name = "pygorpho", specifier = ">=1.0.1" },
     { name = "pytetwild" },
     { name = "pyvista", extras = ["jupyter"], specifier = ">=0.45" },
     { name = "qim3d", extras = ["deep-learning"], marker = "extra == 'all'" },
@@ -4463,21 +4438,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/89/d1/4282284d9cf1ee873607a46442da977fc3c985059315ab23610be31d5885/safehttpx-0.1.7.tar.gz", hash = "sha256:db201c0978c41eddb8bb480f3eee59dd67304fdd91646035e9d9a720049a9d23", size = 10385, upload-time = "2025-10-24T18:30:09.783Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/2e/a3/0f0b7d78e2f1eb9e8e1afbff1d2bff8d60144aee17aca51c065b516743dd/safehttpx-0.1.7-py3-none-any.whl", hash = "sha256:c4f4a162db6993464d7ca3d7cc4af0ffc6515a606dfd220b9f82c6945d869cde", size = 8959, upload-time = "2025-10-24T18:30:08.733Z" },
-]
-
-[[package]]
-name = "scikit-build"
-version = "0.19.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "distro" },
-    { name = "packaging" },
-    { name = "setuptools" },
-    { name = "wheel" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c7/ce/8ec52888f74a3e849a56bfe0a6d48d93646ac95ad4ff22915639a4393ea6/scikit_build-0.19.1.tar.gz", hash = "sha256:b9a8d07fca2d5d10d93220bc57a685161d72af1fc76285d55c564ddaa862e584", size = 276708, upload-time = "2026-06-23T01:39:06.454Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/47/ef/53c5d9293d1d11ed4e682fdd7f32c776b79ee30f83757395db0d4d0f0276/scikit_build-0.19.1-py3-none-any.whl", hash = "sha256:a4fa78a7222ca40d5e8bae6700514bbf7efea4346efd9fc1f8cfca837cd1de71", size = 86399, upload-time = "2026-06-23T01:39:04.874Z" },
 ]
 
 [[package]]
@@ -5465,18 +5425,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/86/eb/20b6cdf273913d0ad05a6a14aed4b9a85591c18a987a3d47f20fa13dcc47/websockets-15.0.1-cp313-cp313-win32.whl", hash = "sha256:ba9e56e8ceeeedb2e080147ba85ffcd5cd0711b89576b83784d8605a7df455fa", size = 176393, upload-time = "2025-03-05T20:02:53.814Z" },
     { url = "https://files.pythonhosted.org/packages/1b/6c/c65773d6cab416a64d191d6ee8a8b1c68a09970ea6909d16965d26bfed1e/websockets-15.0.1-cp313-cp313-win_amd64.whl", hash = "sha256:e09473f095a819042ecb2ab9465aee615bd9c2028e4ef7d933600a8401c79561", size = 176837, upload-time = "2025-03-05T20:02:55.237Z" },
     { url = "https://files.pythonhosted.org/packages/fa/a8/5b41e0da817d64113292ab1f8247140aac61cbf6cfd085d6a0fa77f4984f/websockets-15.0.1-py3-none-any.whl", hash = "sha256:f7a866fbc1e97b5c617ee4116daaa09b722101d4a3c170c787450ba409f9736f", size = 169743, upload-time = "2025-03-05T20:03:39.41Z" },
-]
-
-[[package]]
-name = "wheel"
-version = "0.48.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "packaging" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/d0/20/50ed6bdf27dec98b568a8ae25dc599f35baa3d9709f9e83fd1edb56b9a90/wheel-0.48.0.tar.gz", hash = "sha256:94800765601e9171bf5d58d066e640662842bcedcbab982b2c90787a2c987322", size = 66471, upload-time = "2026-08-11T22:02:27.327Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/2e/29/69cfbb602cd91690c55d38ba9fe53e6a7e76a6fa647bf38f19c138d25449/wheel-0.48.0-py3-none-any.whl", hash = "sha256:3217dcc807155e45db462d7ef2431f5ddda0d7273b700d05a67b271ceb1287ab", size = 33320, upload-time = "2026-08-11T22:02:26.1Z" },
 ]
 
 [[package]]
