@@ -115,46 +115,46 @@ def test_non_positive_timeout_is_rejected(timeout):
 # --- Listing datasets ---
 
 
-def test_list_datasets_returns_manifest_datasets(downloader, manifest):
-    assert downloader.list_datasets() == manifest["datasets"]
+def test_get_datasets_returns_manifest_datasets(downloader, manifest):
+    assert downloader.get_datasets() == manifest["datasets"]
 
 
 def test_manifest_is_fetched_with_configured_timeout(urlopen):
-    Downloader(manifest_url=MANIFEST_URL, timeout=3).list_datasets()
+    Downloader(manifest_url=MANIFEST_URL, timeout=3).get_datasets()
 
     urlopen.assert_called_once_with(MANIFEST_URL, timeout=3)
 
 
 def test_manifest_is_fetched_once_and_cached(downloader, urlopen):
-    downloader.list_datasets()
-    downloader.list_datasets()
+    downloader.get_datasets()
+    downloader.get_datasets()
 
     assert urlopen.call_count == 1
 
 
-def test_list_datasets_returns_a_copy(downloader, manifest):
-    downloader.list_datasets()[0]["volumes"].clear()
+def test_get_datasets_returns_a_copy(downloader, manifest):
+    downloader.get_datasets()[0]["volumes"].clear()
 
-    assert downloader.list_datasets() == manifest["datasets"]
+    assert downloader.get_datasets() == manifest["datasets"]
 
 
 def test_refresh_fetches_updated_manifest(downloader, manifest):
-    downloader.list_datasets()
+    downloader.get_datasets()
     manifest["datasets"][0]["title"] = "Brain coral"
 
     downloader.refresh()
 
-    assert downloader.list_datasets()[0]["title"] == "Brain coral"
+    assert downloader.get_datasets()[0]["title"] == "Brain coral"
 
 
 def test_failed_refresh_keeps_previous_catalog(downloader, urlopen, manifest):
-    downloader.list_datasets()
+    downloader.get_datasets()
     urlopen.side_effect = URLError("offline")
 
     with pytest.raises(URLError):
         downloader.refresh()
 
-    assert downloader.list_datasets() == manifest["datasets"]
+    assert downloader.get_datasets() == manifest["datasets"]
 
 
 @pytest.mark.parametrize("body", [b"{}", b"[]", b'{"datasets": {}}'])
@@ -162,7 +162,7 @@ def test_manifest_without_dataset_list_is_rejected(downloader, urlopen, body):
     urlopen.side_effect = [io.BytesIO(body)]
 
     with pytest.raises(ValueError, match="no list of datasets"):
-        downloader.list_datasets()
+        downloader.get_datasets()
 
 
 def test_show_datasets_prints_id_categories_and_sizes(downloader, manifest, capsys):

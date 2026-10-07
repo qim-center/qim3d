@@ -15,7 +15,7 @@ data = downloader.load_dataset("mussel", format="tiff")
 
 A full list of all available datasets for download can be returned:
 ``` py
-downloader.list_datasets()
+downloader.get_datasets()
 ```
 <div class="notebook-output"><pre>
 [{'categories': ['material'],
