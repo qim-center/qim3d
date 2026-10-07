@@ -205,16 +205,18 @@ class Downloader:
                 f"format {format!r}"
             )
         destination = dataset_dir / filename
-        if destination.exists() and not destination.is_symlink():
+        if destination.exists():
             _logger.info("Dataset volume already downloaded: %s", destination)
             return destination
+        if destination.is_symlink():
+            raise FileNotFoundError(f"{destination} is a broken symbolic link")
 
         dataset_dir.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(
             prefix=".download-", dir=dataset_dir
         ) as staging:
             staged = self._download_url(url, output_dir=staging, size_bytes=size_bytes)
-            if destination.exists() and not destination.is_symlink():
+            if destination.exists():
                 return destination
             os.replace(staged, destination)
         return destination
