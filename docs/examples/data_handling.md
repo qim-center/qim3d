@@ -13,7 +13,31 @@ downloader = qim3d.io.Downloader()
 data = downloader.load_dataset("mussel", format="tiff")
 ```
 
-A full list of all available datasets for download can be returned:
+A full list of all available datasets for download can be printed:
+``` py
+downloader.show_datasets()
+```
+<div class="notebook-output"><pre>
+ID              Categories  TIFF    Zarr
+coal-briquette  material    2.2 GB  2.2 GB
+coral           animal      2.3 GB  2.3 GB
+cowry-shell     animal      1.8 GB  1.8 GB
+deer-mandible   animal      2.8 GB  2.8 GB
+escargot        animal      2.6 GB  2.6 GB
+foram-okinawa   animal      1.8 GB  1.8 GB
+gastropod       animal      2.2 GB  2.2 GB
+kiwi            plant       2.9 GB  2.9 GB
+loofah          plant       2.2 GB  2.2 GB
+mex-coral       animal      2.2 GB  2.2 GB
+mussel          animal      2.2 GB  2.2 GB
+oak-branch      plant       -       -
+okinawa-crab    animal      1.9 GB  1.9 GB
+physalis        plant       3.7 GB  3.7 GB
+raspberry       plant       3.0 GB  3.0 GB
+rope            material    1.8 GB  1.8 GB
+</pre></div>
+
+The same datasets, with all their details, can be returned as a list for use in Python:
 ``` py
 downloader.get_datasets()
 ```
