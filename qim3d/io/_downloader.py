@@ -141,8 +141,8 @@ class Downloader:
 
     def _get_volume(
         self, dataset_id: str, volume_format: str
-    ) -> tuple[str, int | None]:
-        """Return the URL and size in bytes (None if unknown) of a volume."""
+    ) -> tuple[str, str, int | None]:
+        """Return the URL, file name and size in bytes (None if unknown) of a volume."""
         dataset = next(
             (item for item in self._get_datasets() if item.get("id") == dataset_id),
             None,
@@ -167,11 +167,16 @@ class Downloader:
         url = volume.get("url")
         if isinstance(url, str):
             parsed = urlparse(url)
-            if parsed.scheme in {"http", "https"} and parsed.netloc:
+            filename = Path(parsed.path).name
+            if (
+                parsed.scheme in {"http", "https"}
+                and parsed.netloc
+                and filename not in {"", ".", ".."}
+            ):
                 size_bytes = volume.get("size_bytes")
                 if type(size_bytes) is not int or size_bytes <= 0:
                     size_bytes = None
-                return url, size_bytes
+                return url, filename, size_bytes
         raise ValueError(
             f"Dataset {dataset_id!r} has no usable download URL for "
             f"format {volume_format!r}"
@@ -199,13 +204,7 @@ class Downloader:
             raise ValueError(f"Invalid dataset ID {dataset_id!r}")
         dataset_dir = Path(output_dir) / dataset_id
 
-        url, size_bytes = self._get_volume(dataset_id, format)
-        filename = Path(urlparse(url).path).name
-        if not filename or filename in {".", ".."}:
-            raise ValueError(
-                f"Dataset {dataset_id!r} has no usable download URL for "
-                f"format {format!r}"
-            )
+        url, filename, size_bytes = self._get_volume(dataset_id, format)
         destination = dataset_dir / filename
         if destination.exists():
             _logger.info("Dataset volume already downloaded: %s", destination)
@@ -217,7 +216,8 @@ class Downloader:
         with tempfile.TemporaryDirectory(
             prefix=".download-", dir=dataset_dir
         ) as staging:
-            staged = self._download_url(url, output_dir=staging, size_bytes=size_bytes)
+            staged = Path(staging) / filename
+            self._download_url(url, staged, size_bytes)
             if destination.exists():
                 return destination
             os.replace(staged, destination)
@@ -249,22 +249,21 @@ class Downloader:
     def _download_url(
         self,
         url: str,
-        output_dir: str | os.PathLike,
+        destination: Path,
         size_bytes: int | None = None,
-    ) -> Path:
-        """Download a volume into a staging directory and return its path.
+    ) -> None:
+        """Download a volume to ``destination``.
 
         ``size_bytes`` is the expected size, used for logging and the progress bar.
         """
-        filename = Path(urlparse(url).path).name
-        destination = Path(output_dir) / filename
-
         size = f" ({sizeof(size_bytes)})" if size_bytes else ""
-        if filename.endswith(".zarr"):
-            _logger.info("Downloading Zarr store %s%s from %s", filename, size, url)
-            download(url, output_dir=str(output_dir))
+        if destination.name.endswith(".zarr"):
+            _logger.info(
+                "Downloading Zarr store %s%s from %s", destination.name, size, url
+            )
+            download(url, output_dir=str(destination.parent))
         else:
-            _logger.info("Downloading file %s%s from %s", filename, size, url)
+            _logger.info("Downloading file %s%s from %s", destination.name, size, url)
             total = size_bytes
             if total is None:
                 try:
@@ -285,5 +284,3 @@ class Downloader:
                         blocknum * block_size - pbar.n
                     ),
                 )
-
-        return destination
