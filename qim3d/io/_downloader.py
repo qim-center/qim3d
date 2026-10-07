@@ -32,6 +32,12 @@ def _fetch_manifest(url: str, timeout: float) -> list[dict]:
     datasets = manifest.get("datasets") if isinstance(manifest, dict) else None
     if not isinstance(datasets, list):
         raise ValueError(f"Manifest at {url} has no list of datasets.")
+    for dataset in datasets:
+        volumes = (dataset.get("volumes") or []) if isinstance(dataset, dict) else None
+        if not isinstance(volumes, list) or not all(
+            isinstance(volume, dict) for volume in volumes
+        ):
+            raise ValueError(f"Manifest at {url} has a malformed dataset: {dataset!r}")
     return datasets
 
 
@@ -126,7 +132,7 @@ class Downloader:
                 sizeof(size) if type(size) is int and size > 0 else "-"
                 for size in (sizes.get("tiff"), sizes.get("zarr"))
             )
-            categories = ", ".join(dataset.get("categories") or [])
+            categories = ", ".join(map(str, dataset.get("categories") or []))
             rows.append((str(dataset.get("id")), categories, tiff, zarr))
         widths = [max(len(cell) for cell in column) for column in zip(*rows)]
         for row in rows:
@@ -137,26 +143,22 @@ class Downloader:
         self, dataset_id: str, volume_format: str
     ) -> tuple[str, int | None]:
         """Return the URL and size in bytes (None if unknown) of a volume."""
-        dataset = None
-        for item in self._get_datasets():
-            if isinstance(item, dict) and item.get("id") == dataset_id:
-                dataset = item
-                break
+        dataset = next(
+            (item for item in self._get_datasets() if item.get("id") == dataset_id),
+            None,
+        )
         if dataset is None:
             raise LookupError(
                 f"Dataset {dataset_id!r} was not found. "
                 "Use get_datasets() to see available IDs."
             )
-        volume = None
-        for item in dataset.get("volumes") or []:
-            if isinstance(item, dict) and item.get("format") == volume_format:
-                volume = item
-                break
+        volumes = dataset.get("volumes") or []
+        volume = next(
+            (item for item in volumes if item.get("format") == volume_format), None
+        )
         if volume is None:
             available = ", ".join(
-                str(item.get("format"))
-                for item in dataset.get("volumes") or []
-                if isinstance(item, dict) and item.get("url")
+                str(item.get("format")) for item in volumes if item.get("url")
             )
             raise LookupError(
                 f"Dataset {dataset_id!r} has no {volume_format!r} volume. "
