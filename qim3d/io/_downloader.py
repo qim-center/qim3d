@@ -57,6 +57,7 @@ class Downloader:
 
     Methods:
         list_datasets(): Returns the datasets, formats and sizes published in the manifest.
+        show_datasets(): Prints a table of the datasets, their categories and sizes.
         download_dataset(dataset_id, format, ...): Downloads a volume and returns its local path.
         load_dataset(dataset_id, format, ...): Downloads a volume if needed and returns its image data.
         refresh(): Fetches the manifest again.
@@ -112,6 +113,25 @@ class Downloader:
         ``size_bytes`` (``None`` when the size is not published).
         """
         return deepcopy(self._get_datasets())
+
+    def show_datasets(self) -> None:
+        """Print a table of the datasets with their categories and volume sizes."""
+        rows = [("ID", "Categories", "TIFF", "Zarr")]
+        for dataset in self._get_datasets():
+            sizes = {
+                volume.get("format"): volume.get("size_bytes")
+                for volume in dataset.get("volumes") or []
+            }
+            tiff, zarr = (
+                sizeof(size) if type(size) is int and size > 0 else "-"
+                for size in (sizes.get("tiff"), sizes.get("zarr"))
+            )
+            categories = ", ".join(dataset.get("categories") or [])
+            rows.append((str(dataset.get("id")), categories, tiff, zarr))
+        widths = [max(len(cell) for cell in column) for column in zip(*rows)]
+        for row in rows:
+            line = "  ".join(cell.ljust(width) for cell, width in zip(row, widths))
+            print(line.rstrip())
 
     def _get_volume(
         self, dataset_id: str, volume_format: str
