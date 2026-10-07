@@ -41,9 +41,9 @@ def _fetch_manifest(url: str, timeout: float) -> list[dict]:
     return datasets
 
 
-def _get_file_size(url: str) -> int:
+def _get_file_size(url: str, timeout: float) -> int:
     """Return the remote Content-Length, or -1 if unavailable."""
-    with urllib.request.urlopen(url, timeout=10) as response:
+    with urllib.request.urlopen(url, timeout=timeout) as response:
         return int(response.info().get("Content-Length", -1))
 
 
@@ -59,7 +59,7 @@ class Downloader:
 
     Attributes:
         manifest_url (str): URL of the dataset manifest.
-        timeout (float): Timeout in seconds for fetching the manifest.
+        timeout (float): Timeout in seconds for fetching the manifest and looking up file sizes.
 
     Methods:
         get_datasets(): Returns the datasets, formats and sizes published in the manifest.
@@ -274,7 +274,7 @@ class Downloader:
         total = size_bytes
         if total is None:
             try:
-                total = _get_file_size(url)
+                total = _get_file_size(url, self.timeout)
             except OSError:
                 total = -1
         with tqdm(
