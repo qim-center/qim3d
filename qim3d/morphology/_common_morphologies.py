@@ -1,4 +1,5 @@
 import logging
+from typing import Literal
 
 import numpy as np
 import scipy.ndimage as ndi
@@ -56,7 +57,7 @@ def _create_kernel(k: int | tuple | np.ndarray) -> np.ndarray:
 def dilate(
     volume: np.ndarray,
     kernel: int | tuple | np.ndarray,
-    method: str = "scipy.ndimage",
+    method: Literal["scipy.ndimage"] = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -67,7 +68,7 @@ def dilate(
     Args:
         volume (np.ndarray): The input 3D volume.
         kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
-        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
+        method (Literal["scipy.ndimage"], optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
@@ -119,7 +120,7 @@ def dilate(
 def erode(
     volume: np.ndarray,
     kernel: int | tuple | np.ndarray,
-    method: str = "scipy.ndimage",
+    method: Literal["scipy.ndimage"] = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -130,7 +131,7 @@ def erode(
     Args:
         volume (np.ndarray): The input 3D volume.
         kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
-        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
+        method (Literal["scipy.ndimage"], optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
@@ -181,7 +182,7 @@ def erode(
 def opening(
     volume: np.ndarray,
     kernel: int | tuple | np.ndarray,
-    method: str = "scipy.ndimage",
+    method: Literal["scipy.ndimage"] = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -192,7 +193,7 @@ def opening(
     Args:
         volume (np.ndarray): The input 3D volume.
         kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
-        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
+        method (Literal["scipy.ndimage"], optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
@@ -252,7 +253,7 @@ def opening(
 def closing(
     volume: np.ndarray,
     kernel: int | tuple | np.ndarray,
-    method: str = "scipy.ndimage",
+    method: Literal["scipy.ndimage"] = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -263,7 +264,7 @@ def closing(
     Args:
         volume (np.ndarray): The input 3D volume.
         kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
-        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
+        method (Literal["scipy.ndimage"], optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
@@ -316,7 +317,7 @@ def closing(
 def black_tophat(
     volume: np.ndarray,
     kernel: int | tuple | np.ndarray,
-    method: str = "scipy.ndimage",
+    method: Literal["scipy.ndimage"] = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -327,7 +328,7 @@ def black_tophat(
     Args:
         volume (np.ndarray): The input 3D volume.
         kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
-        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
+        method (Literal["scipy.ndimage"], optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
@@ -378,7 +379,7 @@ def black_tophat(
 def white_tophat(
     volume: np.ndarray,
     kernel: int | tuple | np.ndarray,
-    method: str = "scipy.ndimage",
+    method: Literal["scipy.ndimage"] = "scipy.ndimage",
     **kwargs,
 ) -> np.ndarray:
     """
@@ -389,7 +390,7 @@ def white_tophat(
     Args:
         volume (np.ndarray): The input 3D volume.
         kernel (int, tuple or np.ndarray): The structuring element. An int gives a cube of that side length, a tuple of 3 ints a box of that shape, and a 3D array is used directly as the footprint.
-        method (str, optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
+        method (Literal["scipy.ndimage"], optional): The backend implementation to use. Currently only 'scipy.ndimage' is supported. Defaults to 'scipy.ndimage'.
         **kwargs (Any): Additional keyword arguments passed to the underlying method.
 
     Returns:
