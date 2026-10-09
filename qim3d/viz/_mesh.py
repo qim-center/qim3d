@@ -18,37 +18,38 @@ def mesh(
     export_html: str = "",
     explode: int = 0,
     smooth_shading: bool = False,
-    face_color="#cccccc",
-    edge_color="#993333",
+    face_color: str = "#cccccc",
+    edge_color: str = "#993333",
     **kwargs,
 ) -> None:
     """
-    Visualize a 3D mesh using `pygel3d` or `pyvista`. If you need more advanced tools, use pyvista directly.
+    Visualize a 3D mesh. The renderer is chosen from the mesh type:
+    `qim3d.mesh.SurfaceMesh` and `qim3d.mesh.VolumeMesh` are rendered with
+    `pyvista`, while `pygel3d.hmesh.Manifold` objects are rendered with
+    `pygel3d`. If you need more advanced tools, use pyvista directly.
 
     Args:
-        mesh (pygel3d.hmesh.Manifold): The input mesh object.
+        mesh (pygel3d.hmesh.Manifold | SurfaceMesh | VolumeMesh): The input mesh object.
         wireframe (bool, optional): If True, displays the mesh as a wireframe. Defaults to False.
-        show_edges (bool, optional): If True, shows edges of the mesh. Fefaults to True.
+        show_edges (bool, optional): If True, shows edges of the mesh. Defaults to True.
         show (bool, optional): If True, displays the visualization inline, useful for multiple plots.
-            Works only with backend `pyvista`. Defaults to True.
-        save_screenshot (str, optional): If True, saves the visualization as an `png` file.
-            The string is interpreted as the file path where the screenshot will
-            be saved. Works only with the backend `pyvista`. Defaults to ''.
-        export_html (str, optional): If True, saves the visualization as an `html` file.
-            The string is interpreted as the file path where the scene will
-            be saved. Works only with the backend `pyvista`. Defaults to ''.
-        explode (int, optional): Only works when mesh is qim3d.mesh.VolumeMesh.
-            Defines how spread are the tetrahedrons. If 0, the volume us intact.
-            Defaults to 1.
-        smooth_shading (bool, optional): Smooths out edges. Only works with `pyvista'.
+            Only applies to `pyvista` meshes (`SurfaceMesh` and `VolumeMesh`). Defaults to True.
+        save_screenshot (str, optional): File path where a `png` screenshot of the
+            visualization will be saved. Only applies to `pyvista` meshes. Defaults to ''.
+        export_html (str, optional): File path where the scene will be saved as an
+            `html` file. Only applies to `pyvista` meshes. Defaults to ''.
+        explode (int, optional): Only applies when mesh is a `qim3d.mesh.VolumeMesh`.
+            Defines how spread out the tetrahedrons are. If 0, the volume is intact.
+            Defaults to 0.
+        smooth_shading (bool, optional): Smooths out edges. Only applies to `pyvista` meshes.
             Defaults to False.
-        face_color (str, optional): Face color of the mesh. Onyl works with `pyvista`.
-            Doesn't work with `wireframe = True'. Defaults to '#cccccc'.
-        edge_color (str, optional): Edge color of the mesh. Only works with `pyvista`.
+        face_color (str, optional): Face color of the mesh. Only applies to `pyvista` meshes.
+            Doesn't work with `wireframe = True`. Defaults to '#cccccc'.
+        edge_color (str, optional): Edge color of the mesh. Only applies to `pyvista` meshes.
             Defaults to '#993333'.
-        **kwargs (Any): Additional keyword arguments specific to the chosen backend:
-            - `pyvista` kwargs: Arguments that customize the [`pyvista`](https://docs.pyvista.org/api/plotting) visualization.
-            - `pygel3d.display` kwargs: Arguments that customize the [`pygel3d.display`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display) visualization.
+        **kwargs (Any): Additional keyword arguments specific to the renderer:
+            - `pyvista` kwargs: Arguments that customize the [`pyvista`](https://docs.pyvista.org/api/plotting) visualization (`SurfaceMesh` and `VolumeMesh`).
+            - `pygel3d.display` kwargs: Arguments that customize the [`pygel3d.display`](https://www2.compute.dtu.dk/projects/GEL/PyGEL/pygel3d/jupyter_display.html#display) visualization (`Manifold`; only `smooth` and `data` are forwarded).
 
     Returns:
         None: The function displays the mesh but does not return a plot object.
@@ -70,12 +71,9 @@ def mesh(
         ![pygel3d_visualization](../../assets/screenshots/viz-pygel_mesh.png)
 
         ```python
-        qim3d.viz.mesh(mesh, backend='k3d', wireframe=False, flat_shading=False)
+        # Pass pyvista options through to customize the rendering
+        qim3d.viz.mesh(mesh, wireframe=False, smooth_shading=True)
         ```
-        [k3d_visualization](../../assets/screenshots/sphere.html)
-        <div class="scene">
-            <iframe src="http://127.0.0.1:8000/qim3d/assets/screenshots/sphere.html" width="100%" height="500" frameborder="0"></iframe>
-        </div>
 
 
     """
