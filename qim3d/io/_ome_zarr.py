@@ -6,6 +6,7 @@ import logging
 import math
 import os
 import shutil
+from typing import Literal
 
 import dask.array as da
 import numpy as np
@@ -247,7 +248,7 @@ def export_ome_zarr(
 
         # Load a sample dataset
         downloader = qim3d.io.Downloader()
-        data = downloader.Snail.Escargot(load_file=True)
+        data = downloader.load_dataset("escargot", format="zarr")
 
         # Export to OME-Zarr with 2x downsampling per level
         qim3d.io.export_ome_zarr("Escargot.zarr", data, chunk_size=128, downsample_rate=2)
@@ -332,7 +333,9 @@ def export_ome_zarr(
 
 
 def import_ome_zarr(
-    path: str | os.PathLike, scale: int = 0, load: bool = True
+    path: str | os.PathLike,
+    scale: int | Literal["lowest", "highest"] = 0,
+    load: bool = True,
 ) -> np.ndarray:
     """
     Imports or reads image data from an OME-Zarr (NGFF) container.

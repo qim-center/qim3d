@@ -7,161 +7,62 @@ import qim3d
 ```
 
 ## Downloading volumes
-The [QIM data repository](https://data.qim.dk/) contains different volumes readily available for download using qim3d.Here, a mussel volume is downloaded:
+The [QIM data repository](https://data-repository.qim.dk/) contains different volumes readily available for download using qim3d. Here, a mussel volume is downloaded and loaded:
 ``` py
 downloader = qim3d.io.Downloader()
-data = downloader.Mussel.ClosedMussel1_DOWNSAMPLED(load_file=True)
+data = downloader.load_dataset("mussel", format="tiff")
 ```
-<div class="notebook-output"><pre>
-Downloading ClosedMussel1_DOWNSAMPLED.tif
-https://archive.compute.dtu.dk/download/public/projects/viscomp_data_repository/Mussel/ClosedMussel1_DOWNSAMPLED.tif
-143MB [00:05, 26.5MB/s]  
 
-Loading ClosedMussel1_DOWNSAMPLED.tif
-Using virtual stack
-</pre></div>
-
-
-A full list of all avaialable volumes for download can be printed:
+A full list of all available datasets for download can be printed:
 ``` py
-downloader = qim3d.io.Downloader()
-downloader.list_files()
+downloader.show_datasets()
 ```
 <div class="notebook-output"><pre>
-╭──────╮
-│ Coal │
-╰──────╯
-Coal.CoalBrikett                                  (2.24GB)
-Coal.CoalBrikettZoom_DOWNSAMPLED                  (238.50MB)
-Coal.CoalBrikett_Zoom                             (3.73GB)
-
-╭────────╮
-│ Corals │
-╰────────╯
-Corals.Coral_1                                    (2.27GB)
-Corals.Coral_2                                    (2.38GB)
-Corals.Coral2_DOWNSAMPLED                         (152.66MB)
-Corals.Coral_1_1                                  (1.83GB)
-Corals.Coral_1_2                                  (1.83GB)
-Corals.Coral_1_3                                  (1.83GB)
-Corals.MexCoral                                   (2.24GB)
-
-╭─────────────╮
-│ Cowry_Shell │
-╰─────────────╯
-Cowry_Shell.Cowry_DOWNSAMPLED                     (116.91MB)
-Cowry_Shell.Cowry_Shell                           (1.83GB)
-
-╭──────╮
-│ Crab │
-╰──────╯
-Crab.HerrmitCrab                                  (2.38GB)
-Crab.OkinawaCrab                                  (1.86GB)
-
-╭───────────────╮
-│ Deer_Mandible │
-╰───────────────╯
-Deer_Mandible.Animal_Mandible                     (2.79GB)
-Deer_Mandible.DeerMandible_DOWNSAMPLED            (638.71MB)
-
-╭──────╮
-│ Foam │
-╰──────╯
-Foam.Foam                                         (3.73GB)
-Foam.Foam_2                                       (3.73GB)
-Foam.Foam_2_zoom                                  (3.73GB)
-Foam.Foam_DOWNSAMPLED                             (238.49MB)
-
-╭───────────╮
-│ Hourglass │
-╰───────────╯
-Hourglass.Hourglass                               (3.73GB)
-Hourglass.Hourglass_4X-80kV-Air-9s-1_97um         (1.83GB)
-Hourglass.Hourglass_longexp_rerun                 (3.73GB)
-
-╭──────╮
-│ Kiwi │
-╰──────╯
-Kiwi.Kiwi                                         (2.87GB)
-
-╭────────╮
-│ Loofah │
-╰────────╯
-Loofah.Loofah                                     (2.24GB)
-Loofah.Loofah_DOWNSAMPLED                         (143.10MB)
-
-╭───────────────────╮
-│ Marine_Gastropods │
-╰───────────────────╯
-Marine_Gastropods.MarineGastropod1_DOWNSAMPLED    (143.10MB)
-Marine_Gastropods.MarineGastropod2_DOWNSAMPLED    (166.95MB)
-Marine_Gastropods.MarineGatropod_1                (2.24GB)
-Marine_Gastropods.MarineGatropod_2                (2.61GB)
-
-╭────────╮
-│ Mussel │
-╰────────╯
-Mussel.ClosedMussel1                              (2.24GB)
-Mussel.ClosedMussel1_DOWNSAMPLED                  (143.11MB)
-
-╭────────────╮
-│ Oak_Branch │
-╰────────────╯
-Oak_Branch.Oak_branch                             (2.38GB)
-Oak_Branch.OakBranch_DOWNSAMPLED                  (152.67MB)
-
-╭────────────────╮
-│ Okinawa_Forams │
-╰────────────────╯
-Okinawa_Forams.Okinawa_Foram_1                    (1.85GB)
-Okinawa_Forams.Okinawa_Foram_2                    (1.84GB)
-
-╭──────────╮
-│ Physalis │
-╰──────────╯
-Physalis.Physalis                                 (3.73GB)
-Physalis.Physalis_DOWNSAMPLED                     (238.50MB)
-
-╭───────────╮
-│ Raspberry │
-╰───────────╯
-Raspberry.Raspberry2                              (2.98GB)
-Raspberry.Raspberry2_DOWNSAMPLED                  (190.81MB)
-
-╭──────╮
-│ Rope │
-╰──────╯
-Rope.FibreRope1                                   (1.83GB)
-Rope.FibreRope1_DOWNSAMPLED                       (686.81MB)
-
-╭────────────╮
-│ Sea_Urchin │
-╰────────────╯
-Sea_Urchin.Cordatum_Shell                         (1.85GB)
-Sea_Urchin.Cordatum_Spine                         (183.40MB)
-Sea_Urchin.SeaUrchin                              (2.61GB)
-
-╭───────╮
-│ Sepia │
-╰───────╯
-Sepia.Sepia_Tiffs                                 (2.70GB)
-
-╭───────╮
-│ Snail │
-╰───────╯
-Snail.Escargot                                    (2.61GB)
-
-╭────────╮
-│ Sponge │
-╰────────╯
-Sponge.Sponge                                     (1.12GB)
+ID              Categories  TIFF    Zarr
+coal-briquette  material    2.2 GB  2.2 GB
+coral           animal      2.3 GB  2.3 GB
+cowry-shell     animal      1.8 GB  1.8 GB
+deer-mandible   animal      2.8 GB  2.8 GB
+escargot        animal      2.6 GB  2.6 GB
+foram-okinawa   animal      1.8 GB  1.8 GB
+gastropod       animal      2.2 GB  2.2 GB
+kiwi            plant       2.9 GB  2.9 GB
+loofah          plant       2.2 GB  2.2 GB
+mex-coral       animal      2.2 GB  2.2 GB
+mussel          animal      2.2 GB  2.2 GB
+oak-branch      plant       -       -
+okinawa-crab    animal      1.9 GB  1.9 GB
+physalis        plant       3.7 GB  3.7 GB
+raspberry       plant       3.0 GB  3.0 GB
+rope            material    1.8 GB  1.8 GB
 </pre></div>
 
+The same datasets, with all their details, can be returned as a list for use in Python:
+``` py
+downloader.get_datasets()
+```
+<div class="notebook-output"><pre>
+[{'categories': ['material'],
+  'contributors': [],
+  'description': '...',
+  'id': 'coal-briquette',
+  'license': None,
+  'page_url': '/datasets/coal-briquette/',
+  'summary': 'Coal briquette from a bag of BBQ coal',
+  'title': 'Coal Briquette',
+  'volumes': [{'format': 'zarr',
+               'size_bytes': 2400000000,
+               'url': 'https://public.qim.dk/coal_briquette/coal_briquette.zarr'},
+              {'format': 'tiff',
+               'size_bytes': 2400082900,
+               'url': 'https://public.qim.dk/coal_briquette/coal_briquette.tif'}]},
+ ...]
+</pre></div>
 
 ## Loading and saving files
 The qim3d library handles loading in volumetric data of many different file formats, like Tiff, HDF5, TXRM/TXM/XRM, NifTI, PIL, VOL/VGI, DICOM. Simply use the load function:
 ``` py
-vol = qim3d.io.load("./Mussel/ClosedMussel1_DOWNSAMPLED.tif")
+vol = qim3d.io.load("./mussel/mussel.tif")
 ```
 Volumes can also be saved to specific file paths and in different file formats, like saving the mussel volume in the NIfTI format:
 ```py
@@ -182,11 +83,12 @@ OME-Zarr volumes can easily be loaded in:
 volume = qim3d.io.import_ome_zarr("Mussel.zarr", scale=1, load=True)
 ```
 <div class="notebook-output"><pre>
-Data contains 4 scales:
-- Scale 0: (300, 500, 500)
-- Scale 1: (150, 250, 250)
-- Scale 2: (75, 125, 125)
-- Scale 3: (38, 62, 62)
+Data contains 5 scales:
+- Scale 0: (600, 1000, 1000)
+- Scale 1: (300, 500, 500)
+- Scale 2: (150, 250, 250)
+- Scale 3: (75, 125, 125)
+- Scale 4: (37, 62, 62)
 
-Loading scale 1 with shape (150, 250, 250)
+Loading scale 1 with shape (300, 500, 500)
 </pre></div>
