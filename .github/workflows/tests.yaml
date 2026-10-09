@@ -23,12 +23,8 @@ jobs:
             python-version: "3.12"
           - os: windows-latest
             python-version: "3.13"
-          ## We should switch to testing on MacOS when following is resolved:
-          ## https://github.com/qim-center/qim3d/issues/223
-          - os: ubuntu-latest
+          - os: macos-latest
             python-version: "3.14"
-          # - os: macos-latest
-          #   python-version: "3.14"
     name: ${{ matrix.os }}, Python ${{ matrix.python-version }}
     timeout-minutes: 60
     steps:
