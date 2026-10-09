@@ -20,8 +20,6 @@ from qim3d.utils._misc import sizeof
 
 _logger = logging.getLogger(__name__)
 
-__all__ = ["Downloader"]
-
 _MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
 
 
