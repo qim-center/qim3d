@@ -821,7 +821,7 @@ def load(
     virtual_stack: bool = False,
     dataset_name: str | None = None,
     return_metadata: bool = False,
-    contains: bool = None,
+    contains: str | None = None,
     force_load: bool = False,
     dim_order: tuple = (2, 1, 0),
     progress_bar: bool = False,
