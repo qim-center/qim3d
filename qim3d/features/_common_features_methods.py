@@ -237,7 +237,6 @@ def sphericity(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_2.html" width="100%" height="500" frameborder="0"></iframe>
 
     Example:
         ```python
@@ -257,7 +256,6 @@ def sphericity(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
     # Prepare object
@@ -380,7 +378,6 @@ def size(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
     # Prepare object
@@ -450,7 +447,6 @@ def roughness(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v1.html" width="100%" height="500" frameborder="0"></iframe>
 
     Example:
         ```python
@@ -471,7 +467,6 @@ def roughness(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
     # Prepare object
