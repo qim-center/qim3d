@@ -55,6 +55,21 @@ uv tool install prek==0.4.14
 
 _Note: We use [`prek`](https://github.com/j178/prek) instead of `pre-commit`. It is fully compatible with `pre-commit`, but is generally more pleasant to work with and is a lot faster._
 
+## Documentation
+
+### Embedded K3D examples
+
+The documentation hook executes examples in Markdown and Python docstrings during
+each build. It runs triple-backtick code blocks labeled `python` between
+`<!-- k3d-example: name -->` and `<!-- /k3d-example -->` in order, sharing variables
+within each example.
+
+Each `qim3d.viz.volumetric` call produces an interactive HTML export. Place
+`<!-- k3d-output: name/plot -->` after its code block to embed that visualization as an
+iframe; each output marker corresponds to exactly one preceding plot call.
+The displayed code stays unchanged. After building, exports are in
+`site/assets/k3d/name/plot.html`, alongside the generated documentation.
+
 ## Git
 
 The sections below describe some of the best practices of `git` that we strive to abide by.

@@ -4110,6 +4110,7 @@ misc = [
     { name = "prek" },
 ]
 test = [
+    { name = "mkdocs" },
     { name = "mktestdocs" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -4189,6 +4190,7 @@ jupyter = [
 lint = [{ name = "ruff", specifier = "==0.16.4" }]
 misc = [{ name = "prek", specifier = ">=0.4.14" }]
 test = [
+    { name = "mkdocs", specifier = ">=1.6.1" },
     { name = "mktestdocs", specifier = ">=0.2.4" },
     { name = "pytest", specifier = ">=9.1.1" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
