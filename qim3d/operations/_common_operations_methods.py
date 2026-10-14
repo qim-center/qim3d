@@ -105,7 +105,7 @@ def fade_mask(
         <iframe src="https://platform.qim.dk/k3d/fly.html" width="100%" height="500" frameborder="0"></iframe>
 
         ```python
-        vol_faded = qim3d.operations.fade_mask(vol, geometric='cylindrical', decay_rate=5, ratio=0.65, axis=1)
+        vol_faded = qim3d.operations.fade_mask(vol, geometry='cylindrical', decay_rate=5, ratio=0.65, axis=1)
         qim3d.viz.volumetric(vol_faded)
         ```
         Afterwards the artifacts are faded out, making the object of interest more visible for visualization purposes.
