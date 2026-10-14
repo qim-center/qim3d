@@ -114,7 +114,6 @@ def volume(
         volume = qim3d.features.volume(synthetic_object, threshold=50, mask=mask)
         print(volume)
         ```
-        48774.99
 
     """
     # Prepare object
@@ -166,7 +165,6 @@ def area(
         area = qim3d.features.area(synthetic_object)
         print(area)
         ```
-        58535.06
 
     Example:
         Compute area from a mesh:
@@ -183,7 +181,6 @@ def area(
         area = qim3d.features.area(mesh)
         print(area)
         ```
-        58535.06
 
     """
     # Prepare object
@@ -240,7 +237,6 @@ def sphericity(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        Sphericity: 0.9058
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_2.html" width="100%" height="500" frameborder="0"></iframe>
 
     Example:
@@ -261,7 +257,6 @@ def sphericity(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        Sphericity: 0.6876
         <iframe src="https://platform.qim.dk/k3d/sphericity_feature_example_1.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
@@ -385,7 +380,6 @@ def size(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        Size: 100.0
         <iframe src="https://platform.qim.dk/k3d/size_feature_example.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
@@ -456,7 +450,6 @@ def roughness(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        Roughness: 0.1005
         <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v1.html" width="100%" height="500" frameborder="0"></iframe>
 
     Example:
@@ -478,7 +471,6 @@ def roughness(
         # Visualize the synthetic object
         qim3d.viz.volumetric(synthetic_object)
         ```
-        Roughness: 0.2534
         <iframe src="https://platform.qim.dk/k3d/roughness_feature_example_v2.html" width="100%" height="500" frameborder="0"></iframe>
 
     """
