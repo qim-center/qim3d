@@ -493,6 +493,8 @@ def center_twist(
         AssertionError: If the input volume is not 3D, `order` is invalid, or `axis` is not 'x', 'y', or 'z'.
 
     Example:
+        <!-- k3d-example: box-twist -->
+
         ```python
         import qim3d
         import numpy as np
@@ -502,13 +504,14 @@ def center_twist(
         vol[:,20:80, 20:80] = 1
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/warp_box.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: box-twist/original -->
         ```python
         # Twist the box 180 degrees along the z-axis
         twisted_volume = qim3d.operations.center_twist(vol, rotation_angle=180, axis='z', order=1)
         qim3d.viz.volumetric(twisted_volume)
         ```
-        <iframe src="https://platform.qim.dk/k3d/warp_box_twist.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: box-twist/twisted -->
+        <!-- /k3d-example -->
     """
     assert len(volume.shape) == 3, "Volume must be three-dimensional."
     assert isinstance(order, int), "Order must be an integer."
