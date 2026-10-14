@@ -139,6 +139,7 @@ misc = [
 ]
 
 test = [
+    "mkdocs>=1.6.1",
     "mktestdocs>=0.2.4",
     "pytest-cov>=7.1.0",
     "pytest>=9.1.1",
