@@ -33,8 +33,6 @@ from qim3d.utils._progress_bar import FileLoadingProgressBar
 
 _logger = logging.getLogger(__name__)
 
-dask.config.set(scheduler="processes")
-
 
 class DataLoader:
     """
