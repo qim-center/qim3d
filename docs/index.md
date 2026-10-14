@@ -45,6 +45,8 @@ Whether you are working with medical imaging data, materials science data, or an
     ![viz slicer](assets/screenshots/viz-slicer.gif)
 
 !!! Example "Synthetic data generation"
+    <!-- k3d-example: homepage-collection -->
+
     ```python
     import qim3d
 
@@ -55,7 +57,8 @@ Whether you are working with medical imaging data, materials science data, or an
     # Visualize the collection
     qim3d.viz.volumetric(volume_collection)
     ```
-    <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default.html" width="100%" height="500" frameborder="0"></iframe>
+    <!-- k3d-output: homepage-collection/blobs -->
+    <!-- /k3d-example -->
 
 !!! Example "Structure tensor"
     ```python

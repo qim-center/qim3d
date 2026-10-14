@@ -232,6 +232,8 @@ def volume_collection(
         ValueError: If ranges or shapes are incorrectly defined.
 
     Example:
+        <!-- k3d-example: collection-blobs -->
+
         ```python
         import qim3d
 
@@ -242,7 +244,7 @@ def volume_collection(
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection, grid_visible=True)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_default_1.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: collection-blobs/collection -->
 
         ```python
         qim3d.viz.slicer(volume_collection)
@@ -256,7 +258,11 @@ def volume_collection(
         ```
         ![synthetic_collection](../../assets/screenshots/synthetic_collection_default_labels.gif)
 
+        <!-- /k3d-example -->
+
     Example: Collection of fiber-like structures
+        <!-- k3d-example: collection-cylinders -->
+
         ```python
         import qim3d
 
@@ -276,7 +282,7 @@ def volume_collection(
         qim3d.viz.volumetric(volume_collection)
 
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_cylinder_1.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: collection-cylinders/collection -->
 
         ```python
         # Visualize slices
@@ -284,7 +290,11 @@ def volume_collection(
         ```
         ![synthetic_collection_cylinder](../../assets/screenshots/synthetic_collection_cylinder_slices.png)
 
+        <!-- /k3d-example -->
+
     Example: Create a collection of tubular (hollow) structures
+        <!-- k3d-example: collection-tubes -->
+
         ```python
         import qim3d
 
@@ -304,7 +314,7 @@ def volume_collection(
         # Visualize the collection
         qim3d.viz.volumetric(volume_collection)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_tube_1.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: collection-tubes/collection -->
 
         ```python
         # Visualize slices
@@ -312,7 +322,11 @@ def volume_collection(
         ```
         ![synthetic_collection_tube](../../assets/screenshots/synthetic_collection_tube_slices.png)
 
+        <!-- /k3d-example -->
+
     Example: Using predefined volumes
+        <!-- k3d-example: collection-predefined -->
+
         ```python
         import qim3d
 
@@ -326,8 +340,9 @@ def volume_collection(
         # Visualize
         qim3d.viz.volumetric(volume_collection)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_collection_from_given_volumes.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: collection-predefined/collection -->
 
+        <!-- /k3d-example -->
     """
 
     # Check valid input types

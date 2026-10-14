@@ -70,6 +70,8 @@ def background(
         ValueError: If `apply_method` is provided without `apply_to` input volume provided, or vice versa.
 
     Example:
+        <!-- k3d-example: background-noise -->
+
         ```python
         import qim3d
 
@@ -83,9 +85,13 @@ def background(
 
         qim3d.viz.volumetric(background)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_noise_background.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: background-noise/volume -->
+
+        <!-- /k3d-example -->
 
     Example:
+        <!-- k3d-example: collection-additive-noise -->
+
         ```python
         import qim3d
 
@@ -108,9 +114,13 @@ def background(
 
         qim3d.viz.volumetric(noisy_collection)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_1.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: collection-additive-noise/collection -->
+
+        <!-- /k3d-example -->
 
     Example:
+        <!-- k3d-example: collection-divisive-noise -->
+
         ```python
         import qim3d
 
@@ -134,11 +144,13 @@ def background(
 
         qim3d.viz.volumetric(noisy_collection)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_noisy_collection_2.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: collection-divisive-noise/collection -->
         ```python
         qim3d.viz.slices_grid(noisy_collection, n_slices=10, colorbar=True, colorbar_style="large")
         ```
         ![synthetic_noisy_collection_slices](../../assets/screenshots/synthetic_noisy_collection_slices_2.png)
+
+        <!-- /k3d-example -->
 
     Example:
         ```python
@@ -324,7 +336,8 @@ def volume(
         ValueError: If `hollow` is not 0 or a positive integer.
 
     Example:
-        Example:
+        <!-- k3d-example: synthetic-blob -->
+
         ```python
         import qim3d
 
@@ -334,7 +347,7 @@ def volume(
         # Visualize 3D volume
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_1.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: synthetic-blob/volume -->
 
         ```python
         # Visualize slices
@@ -342,7 +355,11 @@ def volume(
         ```
         ![synthetic_blob](../../assets/screenshots/synthetic_blob_slices.png)
 
+        <!-- /k3d-example -->
+
     Example:
+        <!-- k3d-example: synthetic-tube-custom-bore -->
+
         ```python
         import qim3d
 
@@ -360,7 +377,7 @@ def volume(
         # Visualize synthetic volume
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_cylinder_1.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: synthetic-tube-custom-bore/volume -->
 
         ```python
         # Visualize slices
@@ -368,7 +385,11 @@ def volume(
         ```
         ![synthetic_blob_cylinder_slice](../../assets/screenshots/synthetic_blob_cylinder_slice.png)
 
+        <!-- /k3d-example -->
+
     Example:
+        <!-- k3d-example: synthetic-tube -->
+
         ```python
         import qim3d
 
@@ -384,7 +405,7 @@ def volume(
         # Visualize synthetic blob
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/synthetic_blob_tube_1.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: synthetic-tube/volume -->
 
         ```python
         # Visualize
@@ -392,6 +413,7 @@ def volume(
         ```
         ![synthetic_blob_tube_slice](../../assets/screenshots/synthetic_blob_tube_slice.png)
 
+        <!-- /k3d-example -->
     """
     # Control
     shape_types = ["cylinder", "tube"]

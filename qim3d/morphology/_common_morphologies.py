@@ -76,6 +76,8 @@ def dilate(
             The dilated volume.
 
     Example:
+        <!-- k3d-example: dilation -->
+
         ```python
         import qim3d
         import numpy as np
@@ -86,7 +88,7 @@ def dilate(
         # Visualize synthetic volume
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: dilation/original -->
 
         ```python
         # Apply dilation
@@ -95,7 +97,8 @@ def dilate(
         # Visualize
         qim3d.viz.volumetric(vol_dilated)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_dilated.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: dilation/dilated -->
+        <!-- /k3d-example -->
     """
 
     try:
@@ -139,6 +142,8 @@ def erode(
             The eroded volume.
 
     Example:
+        <!-- k3d-example: erosion -->
+
         ```python
         import qim3d
         import numpy as np
@@ -149,7 +154,7 @@ def erode(
         # Visualize synthetic volume
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: erosion/original -->
         ```python
         # Apply erosion
         vol_eroded = qim3d.morphology.erode(vol, kernel=(10,10,10), method='scipy.ndimage')
@@ -157,7 +162,8 @@ def erode(
         # Visualize
         qim3d.viz.volumetric(vol_eroded)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_eroded.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: erosion/eroded -->
+        <!-- /k3d-example -->
     """
 
     try:
@@ -201,6 +207,8 @@ def opening(
             The opened volume.
 
     Example:
+        <!-- k3d-example: opening -->
+
         ```python
         import qim3d
         import numpy as np
@@ -219,7 +227,7 @@ def opening(
         qim3d.viz.volumetric(vol_noised, grid_visible=True)
         ```
 
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_noised_volume.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: opening/noisy -->
 
         ```python
         # Apply opening
@@ -229,7 +237,8 @@ def opening(
         qim3d.viz.volumetric(vol_opened)
         ```
 
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_opening.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: opening/opened -->
+        <!-- /k3d-example -->
     """
     try:
         volume = np.asarray(volume)
@@ -272,6 +281,8 @@ def closing(
             The closed volume.
 
     Example:
+        <!-- k3d-example: closing -->
+
         ```python
         import qim3d
         import numpy as np
@@ -284,7 +295,7 @@ def closing(
         # Visualize synthetic volume
         qim3d.viz.volumetric(cube)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_cube.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: closing/perforated-cube -->
         ```python
         # Apply closing
         cube_closed = qim3d.morphology.closing(cube, kernel=(15,15,15), method='scipy.ndimage')
@@ -292,7 +303,8 @@ def closing(
         # Visualize
         qim3d.viz.volumetric(cube_closed)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_cube_closed.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: closing/closed-cube -->
+        <!-- /k3d-example -->
     """
 
     try:
@@ -336,6 +348,8 @@ def black_tophat(
             The processed volume containing the extracted dark features.
 
     Example:
+        <!-- k3d-example: black-tophat -->
+
         ```python
         import qim3d
         import numpy as np
@@ -346,7 +360,7 @@ def black_tophat(
         # Visualize synthetic volume
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: black-tophat/original -->
 
         ```python
         # Apply the black top-hat to extract dark details
@@ -354,7 +368,8 @@ def black_tophat(
 
         qim3d.viz.volumetric(vol_black)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_black_tophat.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: black-tophat/dark-details -->
+        <!-- /k3d-example -->
     """
 
     try:
@@ -398,6 +413,8 @@ def white_tophat(
             The processed volume containing the extracted bright features.
 
     Example:
+        <!-- k3d-example: white-tophat -->
+
         ```python
         import qim3d
         import numpy as np
@@ -408,7 +425,7 @@ def white_tophat(
         # Visualize synthetic volume
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_original.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: white-tophat/original -->
 
         ```python
         # Apply the white top-hat to extract bright details
@@ -416,7 +433,8 @@ def white_tophat(
 
         qim3d.viz.volumetric(vol_white)
         ```
-        <iframe src="https://platform.qim.dk/k3d/zonohedra_white_tophat.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: white-tophat/bright-details -->
+        <!-- /k3d-example -->
     """
 
     try:

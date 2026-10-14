@@ -97,6 +97,8 @@ def volumetric(
         The function can be used for object label visualization using a `colormap` created with `qim3d.viz.colormaps.objects` along with setting `objects=True`. The latter ensures appropriate rendering.
 
     Example:
+        <!-- k3d-example: volumetric-bone -->
+
         Display a volume inline:
         ```python
         import qim3d
@@ -104,7 +106,8 @@ def volumetric(
         vol = qim3d.examples.bone_128x128x128
         qim3d.viz.volumetric(vol)
         ```
-        <iframe src="https://platform.qim.dk/k3d/fima-bone_128x128x128-20240221113459.html" width="100%" height="500" frameborder="0"></iframe>
+        <!-- k3d-output: volumetric-bone/volume -->
+        <!-- /k3d-example -->
 
         Save the rendering to an HTML file without displaying it:
         ```python
