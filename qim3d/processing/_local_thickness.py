@@ -86,12 +86,11 @@ def local_thickness(
         ```
     """
     import localthickness as lt
-    from skimage.filters import threshold_otsu
 
     # Check if input is binary
     if np.unique(image).size > 2:
         # If not, binarize it using Otsu's method, log the threshold and compute the local thickness
-        threshold = threshold_otsu(image=image)
+        threshold = qim3d.operations.threshold(image, method="otsu")
         _logger.warning(
             f"Input image is not binary. It will be binarized using Otsu's method with threshold: {threshold}"
         )
