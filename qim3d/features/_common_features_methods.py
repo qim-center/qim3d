@@ -2,7 +2,6 @@ import logging
 
 import numpy as np
 from pygel3d import hmesh
-from skimage.filters import threshold_otsu
 
 import qim3d
 
@@ -22,7 +21,7 @@ def prepare_obj(
 
     Args:
         obj (np.ndarray, hmesh.Manifold, or SurfaceMesh): Input `np.ndarray` volume or a mesh object.
-        threshold (float, str, or None): Threshold value, ignored if input is a mesh or volume is already binary. Defaults to 'otsu' for Otsu's method.
+        threshold (float, str, or None): Threshold value, or the name of an automatic thresholding method (see `qim3d.operations.threshold`). Ignored if input is a mesh or volume is already binary. Defaults to 'otsu'.
         mask (np.ndarray or None): Boolean mask to apply for a region of interest in the volume. Must match the shape of the input volume. Ignored if input is a mesh.
         mesh_precision (float): Precision parameter for mesh generation.
         return_mesh (bool): If True, returns a mesh. Otherwise, returns the binarized and/or masked volume.
@@ -46,8 +45,8 @@ def prepare_obj(
 
     # Apply threshold if needed
     if not is_binary and threshold is not None:
-        if threshold == "otsu":
-            threshold = threshold_otsu(volume)
+        if isinstance(threshold, str):
+            threshold = qim3d.operations.threshold(volume, method=threshold)
 
         processed_volume = (volume > threshold).astype(np.uint8)
 
@@ -89,7 +88,7 @@ def volume(
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
             * **float**: A specific intensity value.
-            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
+            * **str**: The name of an automatic thresholding method: 'otsu', 'isodata', 'li', 'mean', 'minimum', 'triangle' or 'yen'. See `qim3d.operations.threshold` for details. Defaults to 'otsu'.
 
     Returns:
         volume (float):
@@ -144,7 +143,7 @@ def area(
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
             * **float**: A specific intensity value.
-            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
+            * **str**: The name of an automatic thresholding method: 'otsu', 'isodata', 'li', 'mean', 'minimum', 'triangle' or 'yen'. See `qim3d.operations.threshold` for details. Defaults to 'otsu'.
 
     Returns:
         area (float):
@@ -214,7 +213,7 @@ def sphericity(
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
             * **float**: A specific intensity value.
-            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
+            * **str**: The name of an automatic thresholding method: 'otsu', 'isodata', 'li', 'mean', 'minimum', 'triangle' or 'yen'. See `qim3d.operations.threshold` for details. Defaults to 'otsu'.
 
     Returns:
         sphericity (float):
@@ -351,7 +350,7 @@ def size(
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
             * **float**: A specific intensity value.
-            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
+            * **str**: The name of an automatic thresholding method: 'otsu', 'isodata', 'li', 'mean', 'minimum', 'triangle' or 'yen'. See `qim3d.operations.threshold` for details. Defaults to 'otsu'.
 
     Returns:
         size (float):
@@ -421,7 +420,7 @@ def roughness(
         threshold (float or str, optional): The intensity value used to binarize the volume if a NumPy array is provided.
 
             * **float**: A specific intensity value.
-            * **'otsu'**: Automatically calculates the threshold using Otsu's method. Defaults to 'otsu'.
+            * **str**: The name of an automatic thresholding method: 'otsu', 'isodata', 'li', 'mean', 'minimum', 'triangle' or 'yen'. See `qim3d.operations.threshold` for details. Defaults to 'otsu'.
 
     Returns:
         roughness (float):
