@@ -1,6 +1,10 @@
+from typing import Literal
+
 import numpy as np
+import skimage.filters
 
 import qim3d.filters as filters
+from qim3d.operations._slicing_operations import subsample
 
 
 def remove_background(
@@ -300,3 +304,80 @@ def make_hollow(
     vol_hollowed = volume * vol_mask
 
     return vol_hollowed
+
+
+def threshold(
+    volume: np.ndarray,
+    method: Literal[
+        "otsu", "isodata", "li", "mean", "minimum", "triangle", "yen"
+    ] = "otsu",
+    coarseness: int | list[int] = 1,
+) -> float:
+    """
+    Computes an automatic intensity threshold for segmenting a volume.
+
+    This function estimates the cut-off value that best separates the objects of interest from the background, based on the intensity histogram of the volume. It returns the threshold value itself, which can then be used to create a binary mask (e.g., `volume > threshold_value`) or passed on to other processing steps. The available methods are the automatic thresholding algorithms from `skimage.filters`, which are also offered interactively in `qim3d.viz.threshold`. For large volumes, the `coarseness` parameter allows computing the threshold on a subsampled volume, which is much faster and usually gives a very similar value.
+
+    Args:
+        volume (np.ndarray): The input volume to compute the threshold for.
+        method (str, optional): The thresholding algorithm to use: 'otsu', 'isodata', 'li', 'mean', 'minimum', 'triangle' or 'yen'. The name is case-insensitive. Each method corresponds to the `threshold_<method>` function in [`skimage.filters`](https://scikit-image.org/docs/stable/api/skimage.filters.html). Defaults to 'otsu'.
+        coarseness (int or list[int], optional): The step size used to subsample the volume before computing the threshold. A value of `1` uses the full volume, while `2` uses every second voxel along each axis. A list of 3 integers sets the step size for each axis `[z, y, x]`. See `qim3d.operations.subsample` for details. Defaults to 1.
+
+    Returns:
+        threshold_value (float):
+            The computed threshold value, in the same intensity range as the input volume.
+
+    Raises:
+        ValueError: If `method` is not supported, if `coarseness` is smaller than 1, or if the volume contains a single intensity value.
+
+    Example:
+        ```python
+        import qim3d
+
+        vol = qim3d.examples.bone_128x128x128
+
+        # Compute the threshold value using Otsu's method
+        threshold_value = qim3d.operations.threshold(vol, method="otsu")
+
+        # Use the threshold to create a binary mask
+        binary_volume = vol > threshold_value
+        ```
+
+        ```python
+        # Get a faster estimate by computing the threshold on a subsampled volume
+        threshold_value = qim3d.operations.threshold(vol, method="otsu", coarseness=2)
+        ```
+    """
+    # Check that the method is supported
+    threshold_methods = {
+        "otsu": skimage.filters.threshold_otsu,
+        "isodata": skimage.filters.threshold_isodata,
+        "li": skimage.filters.threshold_li,
+        "mean": skimage.filters.threshold_mean,
+        "minimum": skimage.filters.threshold_minimum,
+        "triangle": skimage.filters.threshold_triangle,
+        "yen": skimage.filters.threshold_yen,
+    }
+    method = method.lower()
+    if method not in threshold_methods:
+        error = f"Method must be one of {list(threshold_methods)}. You used '{method}'"
+        raise ValueError(error)
+
+    # Check that the coarseness is a positive integer for every axis
+    if np.min(coarseness) < 1:
+        error = f"Coarseness has to be a positive integer. You used {coarseness}"
+        raise ValueError(error)
+
+    # Subsample the volume for a faster estimate
+    if coarseness != 1:
+        volume = subsample(volume, coarseness)
+
+    # A threshold cannot separate anything if all voxels have the same value
+    if volume.min() == volume.max():
+        error = "Volume must contain more than one intensity value"
+        raise ValueError(error)
+
+    # Compute the threshold with the corresponding skimage method
+    threshold_value = float(threshold_methods[method](volume))
+
+    return threshold_value
