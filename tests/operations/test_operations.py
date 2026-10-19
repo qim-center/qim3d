@@ -2,6 +2,7 @@ import re
 
 import numpy as np
 import pytest
+import skimage.filters
 
 import qim3d
 
@@ -96,3 +97,49 @@ def test_overlay_rgb_images():
     assert np.all(composite[foreground_indices][:, 1] == expected_foreground_color), (
         "Foreground color not blended correctly"
     )
+
+
+def test_threshold():
+    # Volume with a noisy, dark background and a white cube in the middle
+    vol = np.zeros((10, 10, 10), dtype=np.uint8)
+    noise = (
+        np.random.default_rng(seed=0).uniform(0, 50, size=vol.shape).astype(np.uint8)
+    )
+    vol += noise
+    vol[3:7, 3:7, 3:7] = 255
+
+    # The voxels that belong to the white cube (the expected segmentation)
+    cube = vol == 255
+
+    # Apply the threshold function
+    threshold_value = qim3d.operations.threshold(vol, method="otsu")
+    assert isinstance(threshold_value, float), "Threshold value is not a float"
+
+    # The voxels above the threshold should be exactly the white cube
+    mask = vol > threshold_value
+    assert np.array_equal(mask, cube), "Threshold does not separate the cube"
+
+    # The method name should be case-insensitive
+    threshold_upper = qim3d.operations.threshold(vol, method="Otsu")
+    assert threshold_upper == threshold_value, "Method name is not case-insensitive"
+
+    # The subsampled volume should still find the white cube
+    threshold_coarse = qim3d.operations.threshold(vol, coarseness=2)
+    mask_coarse = vol > threshold_coarse
+    assert np.array_equal(mask_coarse, cube), "Coarseness does not separate the cube"
+
+    # Each method should give the same value as skimage
+    skimage_methods = {
+        "otsu": skimage.filters.threshold_otsu,
+        "isodata": skimage.filters.threshold_isodata,
+        "li": skimage.filters.threshold_li,
+        "mean": skimage.filters.threshold_mean,
+        "minimum": skimage.filters.threshold_minimum,
+        "triangle": skimage.filters.threshold_triangle,
+        "yen": skimage.filters.threshold_yen,
+    }
+    for method, skimage_func in skimage_methods.items():
+        threshold_method = qim3d.operations.threshold(vol, method=method)
+        assert threshold_method == skimage_func(vol), (
+            f"'{method}' does not match skimage"
+        )
