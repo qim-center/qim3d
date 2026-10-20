@@ -29,6 +29,15 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import ndimage
+from skimage.filters import (
+    threshold_isodata,
+    threshold_li,
+    threshold_mean,
+    threshold_minimum,
+    threshold_otsu,
+    threshold_triangle,
+    threshold_yen,
+)
 
 import qim3d
 import qim3d.operations
@@ -1800,6 +1809,16 @@ def threshold(
     else:
         pass
 
+    threshold_methods = {
+        "Otsu": threshold_otsu,
+        "Isodata": threshold_isodata,
+        "Li": threshold_li,
+        "Mean": threshold_mean,
+        "Minimum": threshold_minimum,
+        "Triangle": threshold_triangle,
+        "Yen": threshold_yen,
+    }
+
     # Create an output widget to display the plot
     output = widgets.Output()
 
@@ -1813,17 +1832,20 @@ def threshold(
             state["threshold"] = threshold_slider.value
             threshold_slider.disabled = False
         else:
-            slice_img = volume[state["position"], :, :]
-            computed_threshold = qim3d.operations.threshold(
-                slice_img, method=state["method"]
-            )
-            state["threshold"] = computed_threshold
+            threshold_func = threshold_methods.get(state["method"])
+            if threshold_func:
+                slice_img = volume[state["position"], :, :]
+                computed_threshold = threshold_func(slice_img)
+                state["threshold"] = computed_threshold
 
-            # Programmatically update the slider without triggering callbacks
-            threshold_slider.unobserve_all()
-            threshold_slider.value = computed_threshold
-            threshold_slider.disabled = True
-            threshold_slider.observe(update_state, names="value")
+                # Programmatically update the slider without triggering callbacks
+                threshold_slider.unobserve_all()
+                threshold_slider.value = computed_threshold
+                threshold_slider.disabled = True
+                threshold_slider.observe(update_state, names="value")
+            else:
+                msg = f"Unsupported thresholding method: {state['method']}"
+                raise ValueError(msg)
 
         # Trigger visualization
         update_visualization()
