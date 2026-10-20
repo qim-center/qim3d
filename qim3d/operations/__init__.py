@@ -5,7 +5,6 @@ from ._common_operations_methods import (
     make_hollow,
     overlay_rgb_images,
     remove_background,
-    threshold,
 )
 from ._slicing_operations import (
     get_random_slice,
@@ -27,7 +26,6 @@ __all__ = [
     "fade_mask",
     "overlay_rgb_images",
     "make_hollow",
-    "threshold",
     "center_twist",
     "curve_warp",
     "pad",

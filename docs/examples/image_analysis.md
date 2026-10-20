@@ -22,15 +22,6 @@ qim3d.viz.threshold(vol)
     <img src="../../assets/screenshots/interactive_thresholding.gif" alt="thresholding">
 </div>
 
-The threshold value can also be computed directly, which is useful for scripts and processing pipelines. The `coarseness` parameter subsamples the volume to get a faster estimate:
-``` py
-# Compute the threshold value using Otsu's method
-threshold_value = qim3d.operations.threshold(vol, method="otsu", coarseness=2)
-
-# Use the threshold to create a binary mask
-binary_volume = vol > threshold_value
-```
-
 
 ## Filter pipelines
 The qim3d library offers multiple filters for image analysis. They can also be combined into a single pipeline that is applied sequentially:
