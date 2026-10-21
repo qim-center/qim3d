@@ -24,6 +24,7 @@ def published_volume(manifest, volume_format):
 def manifest():
     """A manifest with one dataset, published as both TIFF and OME-Zarr."""
     return {
+        "schema_version": 1,
         "datasets": [
             {
                 "id": "coral",
@@ -157,11 +158,22 @@ def test_failed_refresh_keeps_previous_catalog(downloader, urlopen, manifest):
     assert downloader.get_datasets() == manifest["datasets"]
 
 
-@pytest.mark.parametrize("body", [b"{}", b"[]", b'{"datasets": {}}'])
+@pytest.mark.parametrize(
+    "body",
+    [b'{"schema_version": 1}', b"[]", b'{"schema_version": 1, "datasets": {}}'],
+)
 def test_manifest_without_dataset_list_is_rejected(downloader, urlopen, body):
     urlopen.side_effect = [io.BytesIO(body)]
 
     with pytest.raises(ValueError, match="no list of datasets"):
+        downloader.get_datasets()
+
+
+@pytest.mark.parametrize("version", [None, 0, 2, "1"])
+def test_unsupported_schema_version_is_rejected(downloader, manifest, version):
+    manifest["schema_version"] = version
+
+    with pytest.raises(ValueError, match="Upgrade qim3d"):
         downloader.get_datasets()
 
 

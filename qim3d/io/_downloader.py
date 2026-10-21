@@ -22,12 +22,19 @@ from qim3d.utils._misc import sizeof
 _logger = logging.getLogger(__name__)
 
 _MANIFEST_URL = "https://data-repository.qim.dk/datasets/index.json"
+_SCHEMA_VERSION = 1
 
 
 def _fetch_manifest(url: str, timeout: float) -> list[dict]:
     """Fetch the collection's dataset list."""
     with urllib.request.urlopen(url, timeout=timeout) as response:
         manifest = json.load(response)
+    if isinstance(manifest, dict) and manifest.get("schema_version") != _SCHEMA_VERSION:
+        raise ValueError(
+            f"Manifest at {url} uses schema version "
+            f"{manifest.get('schema_version')!r}, but this version of qim3d "
+            f"supports version {_SCHEMA_VERSION}. Upgrade qim3d."
+        )
     datasets = manifest.get("datasets") if isinstance(manifest, dict) else None
     if not isinstance(datasets, list):
         raise ValueError(f"Manifest at {url} has no list of datasets.")
