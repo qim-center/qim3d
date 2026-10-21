@@ -262,6 +262,45 @@ def test_existing_download_is_reused(downloader, urlretrieve, tmp_path):
     assert urlretrieve.call_count == 1
 
 
+@pytest.mark.parametrize(
+    ("volume_format", "filename"), [("tiff", "coral.tif"), ("zarr", "coral.zarr")]
+)
+def test_replace_downloads_again(downloader, tmp_path, volume_format, filename):
+    old = tmp_path / "coral" / filename
+    old.parent.mkdir()
+    if volume_format == "zarr":
+        old.mkdir()
+        (old / "stale").write_bytes(b"old")
+    else:
+        old.write_bytes(b"old")
+
+    path = downloader.download_dataset(
+        "coral", format=volume_format, output_dir=tmp_path, replace=True
+    )
+
+    assert path == old
+    if volume_format == "zarr":
+        assert list(path.iterdir()) == []
+    else:
+        assert path.read_bytes() == b"scan"
+    assert list(path.parent.iterdir()) == [path]
+
+
+def test_failed_replace_keeps_old_copy(downloader, urlretrieve, tmp_path):
+    old = tmp_path / "coral" / "coral.tif"
+    old.parent.mkdir()
+    old.write_bytes(b"old")
+    urlretrieve.side_effect = ConnectionError("interrupted")
+
+    with pytest.raises(ConnectionError):
+        downloader.download_dataset(
+            "coral", format="tiff", output_dir=tmp_path, replace=True
+        )
+
+    assert old.read_bytes() == b"old"
+    assert list(old.parent.iterdir()) == [old]
+
+
 def test_interrupted_download_leaves_no_partial_file(downloader, urlretrieve, tmp_path):
     def interrupt(url, destination, reporthook=None):
         Path(destination).write_bytes(b"partial")

@@ -4,6 +4,7 @@
 import json
 import logging
 import os
+import shutil
 import tempfile
 import urllib.request
 from copy import deepcopy
@@ -186,12 +187,15 @@ class Downloader:
         *,
         format: Literal["tiff", "zarr"],
         output_dir: str | os.PathLike = ".",
+        replace: bool = False,
     ) -> Path:
         """Download a manifest volume and return its local path.
 
         ``format`` is "tiff" or "zarr". The volume is stored under
-        ``output_dir/dataset_id/``. An existing path is reused;
-        new downloads are staged so failures do not leave a partial final path.
+        ``output_dir/dataset_id/``. An existing path is reused unless
+        ``replace=True``, which downloads the volume again and replaces the old
+        copy once the new download has finished. New downloads are staged so
+        failures do not leave a partial final path or remove the old copy.
         """
         # The ID must be a single folder name, so it can't escape output_dir, for example "../coal-briquette"
         if (
@@ -204,10 +208,10 @@ class Downloader:
 
         url, filename, size_bytes = self._get_volume(dataset_id, format)
         destination = dataset_dir / filename
-        if destination.exists():
+        if destination.exists() and not replace:
             _logger.info("Dataset volume already downloaded: %s", destination)
             return destination
-        if destination.is_symlink():
+        if destination.is_symlink() and not replace:
             raise FileNotFoundError(f"{destination} is a broken symbolic link")
 
         dataset_dir.mkdir(parents=True, exist_ok=True)
@@ -216,8 +220,13 @@ class Downloader:
         ) as staging:
             staged = Path(staging) / filename
             self._download_url(url, staged, format, size_bytes)
-            if destination.exists():
+            if destination.exists() and not replace:
                 return destination
+            # Remove the old copy only now that the new one has downloaded
+            if destination.is_dir() and not destination.is_symlink():
+                shutil.rmtree(destination)
+            elif destination.is_symlink() or destination.exists():
+                destination.unlink()
             os.replace(staged, destination)
         return destination
 
@@ -229,17 +238,21 @@ class Downloader:
         output_dir: str | os.PathLike = ".",
         virtual_stack: bool = True,
         scale: int | Literal["lowest", "highest"] = 0,
+        replace: bool = False,
     ) -> object:
         """Download a volume if needed, then return its image data.
 
         ``format`` is "tiff" or "zarr". ``virtual_stack=True`` uses lazy loading
         where supported. ``scale`` selects
         an OME-Zarr resolution (0, a coarser integer, "highest", or "lowest");
-        other formats only accept the default scale of 0.
+        other formats only accept the default scale of 0. ``replace=True``
+        downloads the volume again even if it is already downloaded.
         """
         if format != "zarr" and scale not in (0, "highest"):
             raise ValueError("scale is only supported for OME-Zarr volumes")
-        path = self.download_dataset(dataset_id, format=format, output_dir=output_dir)
+        path = self.download_dataset(
+            dataset_id, format=format, output_dir=output_dir, replace=replace
+        )
         if format == "zarr":
             return qim3d.io.import_ome_zarr(path, scale=scale, load=not virtual_stack)
         return load(path=path, virtual_stack=virtual_stack)
