@@ -4136,7 +4136,7 @@ requires-dist = [
     { name = "nibabel", specifier = ">=5.2.0" },
     { name = "numpy", specifier = ">=2.2.0" },
     { name = "olefile", specifier = ">=0.46" },
-    { name = "ome-zarr", specifier = ">=0.12.0" },
+    { name = "ome-zarr", specifier = ">=0.15.0" },
     { name = "outputformat", specifier = ">=0.1.3" },
     { name = "pillow", specifier = ">=10.0.1" },
     { name = "plotly", specifier = ">=5.14.1" },
