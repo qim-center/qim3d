@@ -361,7 +361,8 @@ def import_ome_zarr(
             * **numpy.ndarray**: The full image data loaded into memory (if `load=True`).
             * **dask.array.Array**: A lazy-loaded Dask array connected to the Zarr store (if `load=False`).
     Raises:
-        ValueError: If the requested `scale` index exceeds the available levels in the dataset.
+        ValueError: If the requested `scale` index exceeds the available levels in the dataset,
+            or if no OME-Zarr image is found at `path`.
 
     Example:
         ```python
@@ -381,6 +382,11 @@ def import_ome_zarr(
 
     reader = Reader(parse_url(path))
     nodes = list(reader())
+    if not nodes:
+        raise ValueError(
+            f"No OME-Zarr image found at {path}. If it was downloaded with "
+            "ome-zarr 0.13 or 0.14, delete it and download it again."
+        )
     image_node = nodes[0]
     dask_data = image_node.data
 
