@@ -19,7 +19,6 @@ import PIL.Image
 import plotly.colors
 import plotly.graph_objects as go
 import pyvista as pv
-import seaborn as sns
 import skimage.measure
 import zarr
 from IPython.display import HTML, Image, Video, clear_output, display
@@ -1231,6 +1230,8 @@ def histogram(
         ![viz histogram](../../assets/screenshots/viz-histogram-coarse.png)
 
     """
+    import seaborn as sns
+
     if not (0 <= slice_axis < volume.ndim):
         msg = f"Axis must be an integer between 0 and {volume.ndim - 1}."
         raise ValueError(msg)

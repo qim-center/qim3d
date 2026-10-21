@@ -1,5 +1,4 @@
 import numpy as np
-from slgbuilder import GraphObject, MaxflowBuilder
 
 
 def segment_layers(
@@ -61,6 +60,8 @@ def segment_layers(
         ![layer_segmentation](../../assets/screenshots/layers.png)
         ![layer_segmentation](../../assets/screenshots/segmented_layers.png)
     """
+    from slgbuilder import GraphObject, MaxflowBuilder
+
     if isinstance(data, np.ndarray):
         data = data.astype(np.int32)
         if inverted:

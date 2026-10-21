@@ -8,8 +8,8 @@ Volumetric visualization using K3D.
 """
 
 import logging
+from typing import TYPE_CHECKING
 
-import k3d
 import matplotlib.pyplot as plt
 import numpy as np
 import plotly.graph_objects as go
@@ -18,6 +18,9 @@ from matplotlib.colors import Colormap
 
 from qim3d.utils._decorators import coarseness
 from qim3d.utils._misc import downscale_img, scale_to_float16
+
+if TYPE_CHECKING:
+    import k3d
 
 _logger = logging.getLogger(__name__)
 
@@ -39,7 +42,7 @@ def volumetric(
     data_type: str = "scaled_float16",
     camera_mode: str = "orbit",
     **kwargs,
-) -> k3d.Plot | None:
+) -> "k3d.Plot | None":
     """
     Renders a 3D volume using high-performance hardware-accelerated ray-casting.
 
@@ -114,6 +117,7 @@ def volumetric(
         plot = qim3d.viz.volumetric(vol, show=False, save="my_render.html")
         ```
     """
+    import k3d
 
     pixel_count = volume.shape[0] * volume.shape[1] * volume.shape[2]
     # target is 60fps on m1 macbook pro, using test volume: https://data.qim.dk/pages/foam.html
@@ -230,7 +234,7 @@ def mesh(
     show: bool = True,
     save: bool = False,
     **kwargs,
-) -> k3d.Plot | go.FigureWidget | None:
+) -> "k3d.Plot | go.FigureWidget | None":
     """
     Visualizes a 3D surface mesh using either high-fidelity or fast interactive backends.
 
@@ -296,6 +300,7 @@ def mesh(
         ```
         ![k3d_visualization](../../assets/screenshots/viz-k3d_mesh.png)
     """
+    import k3d
 
     if len(mesh.vertices()) > 100000:
         msg = f"The mesh has {len(mesh.vertices())} vertices, visualization may be slow. Consider using a smaller <mesh_precision> when computing the mesh."

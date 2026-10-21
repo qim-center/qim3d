@@ -1,12 +1,8 @@
 import logging
 from typing import Literal
 
-import ipywidgets as widgets
-import k3d
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy.ndimage
-from IPython.display import display
 from numpy.typing import DTypeLike
 
 import qim3d
@@ -703,6 +699,8 @@ class ParameterVisualizer:
         return scale_to_float16(vol)
 
     def _build_widgets(self) -> None:
+        import ipywidgets as widgets
+
         # Widgets
         self.noise_slider = widgets.FloatSlider(
             value=self.config["noise_scale"],
@@ -845,6 +843,9 @@ class ParameterVisualizer:
             )
 
     def _setup_plot(self) -> None:
+        import k3d
+        import matplotlib.pyplot as plt
+
         vol = self._compute_volume()
 
         cmap = plt.get_cmap(self.colormap_dropdown.value)
@@ -872,6 +873,9 @@ class ParameterVisualizer:
         self.plot += self.plt_volume
 
     def _on_change(self, change: dict | None = None) -> None:
+        import k3d
+        import matplotlib.pyplot as plt
+
         self.config["noise_type"] = self.noise_type_dropdown.value
         self.config["noise_scale"] = self.noise_slider.value
         self.config["decay_rate"] = self.decay_slider.value
@@ -929,6 +933,9 @@ class ParameterVisualizer:
             ]
 
     def _display_ui(self) -> None:
+        import ipywidgets as widgets
+        from IPython.display import display
+
         small_box = widgets.Layout(width="65px")
         for box in [
             self.base_shape_x_text,

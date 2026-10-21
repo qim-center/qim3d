@@ -4,7 +4,6 @@ import logging
 from typing import Optional
 
 import numpy as np
-from IPython.display import display
 
 import qim3d
 
@@ -101,6 +100,8 @@ def local_thickness(
 
     # Visualize the local thickness if requested
     if visualize:
+        from IPython.display import display
+
         display(qim3d.viz.local_thickness(image, local_thickness, **viz_kwargs))
 
     return local_thickness
