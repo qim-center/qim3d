@@ -6,7 +6,7 @@ First, qim3d is imported, and a mussel volume is loaded:
 import qim3d
 
 downloader = qim3d.io.Downloader()
-volume = downloader.Mussel.ClosedMussel1_DOWNSAMPLED(load_file=True)
+volume = downloader.load_dataset("mussel", format="tiff")
 ```
 
 ## Slices

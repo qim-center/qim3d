@@ -6,6 +6,7 @@ import logging
 import math
 import os
 import shutil
+from typing import Literal
 
 import dask.array as da
 import numpy as np
@@ -247,7 +248,7 @@ def export_ome_zarr(
 
         # Load a sample dataset
         downloader = qim3d.io.Downloader()
-        data = downloader.Snail.Escargot(load_file=True)
+        data = downloader.load_dataset("escargot", format="zarr")
 
         # Export to OME-Zarr with 2x downsampling per level
         qim3d.io.export_ome_zarr("Escargot.zarr", data, chunk_size=128, downsample_rate=2)
@@ -332,7 +333,9 @@ def export_ome_zarr(
 
 
 def import_ome_zarr(
-    path: str | os.PathLike, scale: int = 0, load: bool = True
+    path: str | os.PathLike,
+    scale: int | Literal["lowest", "highest"] = 0,
+    load: bool = True,
 ) -> np.ndarray:
     """
     Imports or reads image data from an OME-Zarr (NGFF) container.
@@ -358,7 +361,8 @@ def import_ome_zarr(
             * **numpy.ndarray**: The full image data loaded into memory (if `load=True`).
             * **dask.array.Array**: A lazy-loaded Dask array connected to the Zarr store (if `load=False`).
     Raises:
-        ValueError: If the requested `scale` index exceeds the available levels in the dataset.
+        ValueError: If the requested `scale` index exceeds the available levels in the dataset,
+            or if no OME-Zarr image is found at `path`.
 
     Example:
         ```python
@@ -378,6 +382,11 @@ def import_ome_zarr(
 
     reader = Reader(parse_url(path))
     nodes = list(reader())
+    if not nodes:
+        raise ValueError(
+            f"No OME-Zarr image found at {path}. If it was downloaded with "
+            "ome-zarr 0.13 or 0.14, delete it and download it again."
+        )
     image_node = nodes[0]
     dask_data = image_node.data
 

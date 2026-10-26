@@ -7,7 +7,7 @@ First, qim3d is imported:
 import qim3d
 
 downloader = qim3d.io.Downloader()
-volume = downloader.Mussel.ClosedMussel1_DOWNSAMPLED(load_file=True)
+volume = downloader.load_dataset("mussel", format="tiff")
 ```
 
 One can interactively find fitting thresholds for volume segmentation using different methods, and see how they segment the volume in different slices:
