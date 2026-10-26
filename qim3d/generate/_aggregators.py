@@ -4,7 +4,7 @@ from typing import Literal
 import numpy as np
 import scipy.ndimage
 from numpy.typing import DTypeLike
-from tqdm.notebook import tqdm
+from tqdm.auto import tqdm
 
 import qim3d.generate
 

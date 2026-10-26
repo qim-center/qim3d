@@ -3,7 +3,6 @@
 import logging
 
 import numpy as np
-from IPython.display import display
 
 
 def structure_tensor(
@@ -109,6 +108,8 @@ def structure_tensor(
     val, vec = st.eig_special_3d(s_vol, full=full, eigenvalue_order="asc")
 
     if visualize:
+        from IPython.display import display
+
         from qim3d.viz import vectors
 
         display(vectors(volume, vec, **viz_kwargs))
