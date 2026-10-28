@@ -316,9 +316,6 @@ def test_docstrings_operations(func):
     "func", functions_by_module["processing"], ids=lambda d: d.__name__
 )
 def test_docstrings_processing(func):
-    # Exclude qim3d.processing.segment_layers function, since it uses unavailable example data
-    if func.__name__ == "segment_layers":
-        return
     check_docstring(obj=func)
 
 
