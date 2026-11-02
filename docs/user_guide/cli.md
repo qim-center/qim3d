@@ -123,7 +123,7 @@ You can launch volumetric visualizations directly from the command line. By defa
 
     A new tab in the default browser will be open with the visualization:
 
-    ![volume-explorer](../../assets/screenshots/volume-explorer-compressed.gif)
+    ![volume-explorer](../../assets/screenshots/volume-explorer.avif)
 
 !!! Example "Example using k3d"
     ``` title="Command"
