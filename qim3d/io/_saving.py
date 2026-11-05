@@ -416,12 +416,12 @@ class DataSaver:
 
 def save(
     path: str | os.PathLike,
-    data: np.ndarray,
+    data: np.ndarray | da.Array,
     replace: bool = False,
     compression: bool = False,
-    basename: bool = None,
+    basename: str | None = None,
     sliced_dim: int = 0,
-    chunk_shape: str = "auto",
+    chunk_shape: int | tuple | dict | str = "auto",
     **kwargs,
 ) -> None:
     """
