@@ -24,6 +24,17 @@ Example:
 
 """
 
+__lazy_modules__ = [
+    "dask.array",
+    "h5py",
+    "nibabel",
+    "tifffile",
+    "zarr",
+    "pydicom.dataset",
+    "pydicom.uid",
+    "pygel3d",
+]
+
 import datetime
 import logging
 import os

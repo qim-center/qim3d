@@ -1,5 +1,17 @@
 """Provides a collection of visualization functions."""
 
+__lazy_modules__ = [
+    "dask.array",
+    "imageio.v2",
+    "pyvista",
+    "seaborn",
+    "zarr",
+    "IPython.display",
+    "ipywidgets",
+    "ipywidgets.widgets",
+    "tqdm.notebook",
+]
+
 import inspect
 import io
 import logging
@@ -29,6 +41,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.figure import Figure
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from scipy import ndimage
+from tqdm.notebook import tqdm
 
 import qim3d
 import qim3d.operations
@@ -36,12 +49,6 @@ from qim3d._types import ColormapLike, PathLike
 from qim3d.utils._decorators import coarseness
 
 _logger = logging.getLogger(__name__)
-
-# For progress bar in Jupyter notebooks
-try:
-    from tqdm.notebook import tqdm
-except ImportError:
-    from tqdm import tqdm
 
 
 @coarseness("volume")

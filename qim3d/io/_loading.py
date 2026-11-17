@@ -10,6 +10,8 @@ Example:
 
 """
 
+__lazy_modules__ = ["dask", "dask.array", "h5py", "tifffile", "zarr", "pygel3d"]
+
 import difflib
 import logging
 import os

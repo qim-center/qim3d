@@ -2,6 +2,16 @@
 Exporting data to different formats.
 """
 
+__lazy_modules__ = [
+    "dask.array",
+    "zarr",
+    "ome_zarr",
+    "ome_zarr.io",
+    "ome_zarr.reader",
+    "ome_zarr.scale",
+    "ome_zarr.writer",
+]
+
 import logging
 import math
 import os

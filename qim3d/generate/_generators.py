@@ -1,3 +1,5 @@
+__lazy_modules__ = ["ipywidgets", "k3d", "IPython.display"]
+
 import logging
 from typing import Literal
 

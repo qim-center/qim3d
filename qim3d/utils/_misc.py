@@ -1,5 +1,7 @@
 """Provides a collection of internal utility functions."""
 
+__lazy_modules__ = ["requests"]
+
 import difflib
 import getpass
 import hashlib

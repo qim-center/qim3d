@@ -1,3 +1,5 @@
+__lazy_modules__ = ["nibabel", "tifffile", "zarr"]
+
 import difflib
 import os
 from itertools import product

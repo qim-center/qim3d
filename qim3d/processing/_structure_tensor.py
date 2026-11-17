@@ -1,5 +1,7 @@
 """Wrapper for the structure tensor function from the structure_tensor package."""
 
+__lazy_modules__ = ["IPython.display"]
+
 import logging
 
 import numpy as np

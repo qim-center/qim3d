@@ -24,11 +24,16 @@ def coarseness(*volumes: str) -> Callable:
         return None
 
     def decorator(func: Callable) -> Callable:
-        sig = inspect.signature(func)
-        kwargs_pname = find_kwargs(sig)
+        # Computed on first call: inspecting the signature evaluates the type hints,
+        # which would load lazily imported packages (e.g. k3d) at import time
+        @functools.cache
+        def signature() -> tuple[inspect.Signature, str | None]:
+            sig = inspect.signature(func)
+            return sig, find_kwargs(sig)
 
         @functools.wraps(func)
         def wrapper(*args, **kwargs) -> Any:
+            sig, kwargs_pname = signature()
             # Handle if the original function does not have coarseness nor kwargs
             if (
                 "coarseness" in kwargs

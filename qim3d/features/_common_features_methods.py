@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pygel3d"]
+
 import logging
 
 import numpy as np

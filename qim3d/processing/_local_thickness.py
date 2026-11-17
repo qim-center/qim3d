@@ -1,5 +1,7 @@
 """Wrapper for the local thickness function from the localthickness package including visualization functions."""
 
+__lazy_modules__ = ["IPython.display"]
+
 import logging
 from typing import Optional
 

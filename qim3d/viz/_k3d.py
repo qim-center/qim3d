@@ -7,6 +7,8 @@ Volumetric visualization using K3D.
 
 """
 
+__lazy_modules__ = ["k3d", "pygel3d"]
+
 import logging
 
 import k3d

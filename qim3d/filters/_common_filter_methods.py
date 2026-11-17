@@ -1,5 +1,7 @@
 """Provides filter functions and classes for image processing"""
 
+__lazy_modules__ = ["dask.array", "dask_image.ndfilters"]
+
 import abc
 import inspect
 import logging

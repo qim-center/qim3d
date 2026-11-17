@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pyvista", "pygel3d", "pytetwild"]
+
 import io
 
 import numpy as np
