@@ -1,12 +1,32 @@
 import logging
 import os
 import threading
+from collections.abc import Sequence
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 _logger = logging.getLogger(__name__)
 
 
 class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
+    """A `SimpleHTTPRequestHandler` with CORS headers and an optional
+    allow-list of served paths.
+
+    When the ``allowed_paths`` argument (a set of relative paths, with
+    ``/`` as separator) is provided, a request is only served if its
+    resolved path equals one of the allowed paths, or lies underneath one
+    of them (this is what makes it possible to serve an entire directory
+    tree, such as an OME-Zarr store, while still hiding everything else).
+    Any other request is answered with a 404. When ``allowed_paths`` is
+    None, everything under the server root is served, as in the standard
+    behavior.
+    """
+
+    def __init__(self, *args, allowed_paths: set[str] | None = None, **kwargs):
+        # Note: must be set before super().__init__, because it calls
+        # handle(), which in turn reads allowed_paths in send_head
+        self.allowed_paths = allowed_paths
+        super().__init__(*args, **kwargs)
+
     def end_headers(self):
         """Add CORS headers to each response."""
         # Allow requests from any origin, or restrict to specific domains by specifying the origin
@@ -54,27 +74,73 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
         # Write the encoded HTML directly to the response
         self.wfile.write(encoded)
 
+    def send_head(self):
+        """Enforce the allowed-paths restriction before serving anything."""
+        if self.allowed_paths is not None:
+            try:
+                path = self.translate_path(self.path)
+                rel = os.path.relpath(path, self.directory)
+            except Exception:
+                # Fail closed: anything we cannot resolve is denied
+                rel = None
+            if rel is not None and any(
+                rel == allowed or rel.startswith(allowed + os.sep)
+                for allowed in self.allowed_paths
+            ):
+                return super().send_head()
+            self.send_error(404, "Not found")
+            return None
+        return super().send_head()
 
-def start_http_server(directory: str, port: int = 8000) -> HTTPServer:
+
+def start_http_server(
+    directory: str,
+    port: int = 8000,
+    allowed_paths: str | Sequence[str] | None = None,
+) -> HTTPServer:
     """
     Starts an HTTP server serving the specified directory on the given port with CORS enabled.
 
     Parameters
-    directory (str): The directory to serve.
+    directory (str): The directory to serve as the server root.
     port (int): The port number to use (default is 8000).
+    allowed_paths (str | Sequence[str] | None): Optionally restricts which
+        resources under the root directory can be requested. Only these
+        paths, relative to ``directory`` (single file paths, or a directory
+        together with its entire subtree), are served; any other request is
+        answered with a 404. If None (default), the whole directory is
+        served.
 
     """
-    # Change the working directory to the specified directory
-    os.chdir(directory)
+    directory = os.path.abspath(directory)
+
+    if allowed_paths is None:
+        allowed: set[str] | None = None
+    else:
+        if isinstance(allowed_paths, str):
+            allowed_paths = [allowed_paths]
+        allowed = {p.replace(os.sep, "/") for p in allowed_paths}
+
+    # Bind the directory and the allow-list to the handler instances of this
+    # specific server, without changing the working directory of the process
+    class _Handler(CustomHTTPRequestHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(
+                *args, directory=directory, allowed_paths=allowed, **kwargs
+            )
 
     # Create the server
-    server = HTTPServer(("", port), CustomHTTPRequestHandler)
+    server = HTTPServer(("", port), _Handler)
 
     # Run the server in a separate thread so it doesn't block execution
     thread = threading.Thread(target=server.serve_forever)
     thread.daemon = True
     thread.start()
 
-    _logger.info(f"Serving directory '{directory}'\nhttp://localhost:{port}/")
+    if allowed is not None:
+        what = "'{}'".format(", ".join(sorted(allowed)))
+    else:
+        what = "the whole directory"
+    _logger.info(f"Serving {what} from '{directory}'\nhttp://localhost:{port}/")
 
     return server

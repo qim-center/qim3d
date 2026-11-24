@@ -110,9 +110,15 @@ def try_opening_volume_explorer(
         if is_installed:
             filename_norm = os.path.normpath(os.path.abspath(filename))
 
-            # Start the http server
+            # Start the http server, restricted so that it can only serve
+            # the requested dataset: a single file, or, in case of an
+            # OME-Zarr store, the entire store directory (and nothing
+            # outside of it)
+            basename = os.path.basename(filename_norm)
             qim3d.utils.start_http_server(
-                os.path.dirname(filename_norm), port=file_server_port
+                os.path.dirname(filename_norm),
+                port=file_server_port,
+                allowed_paths=[basename] if basename else None,
             )
 
             viz_url = f"http://localhost:{viewer_port}/?src=http://localhost:{file_server_port}/{os.path.basename(filename_norm)}"
