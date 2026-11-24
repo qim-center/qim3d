@@ -77,4 +77,5 @@ tag-release:
     git diff --exit-code HEAD -- uv.lock
     just pc-all
     git tag --annotate v{{ trim(`uv version --short`) }} --message "v{{ trim(`uv version --short`) }}"
+    git push origin
     git push origin v{{ trim(`uv version --short`) }}
