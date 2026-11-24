@@ -1,5 +1,7 @@
 """Deals with DOI for references"""
 
+__lazy_modules__ = ["requests"]
+
 import json
 import logging
 

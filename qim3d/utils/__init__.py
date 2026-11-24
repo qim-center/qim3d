@@ -1,5 +1,11 @@
 from ._decorators import coarseness
-from ._doi import *
+from ._doi import (
+    build_reference_string,
+    custom_header,
+    get_bibtex,
+    get_metadata,
+    get_reference,
+)
 from ._misc import (
     downscale_img,
     get_css,

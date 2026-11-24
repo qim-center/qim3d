@@ -1,3 +1,5 @@
+__lazy_modules__ = ["pygel3d", "pyvista", "qim3d.mesh._common_mesh_methods"]
+
 import logging
 
 import pygel3d

@@ -1,3 +1,5 @@
+__lazy_modules__ = ["tqdm.notebook"]
+
 import logging
 from typing import Literal
 

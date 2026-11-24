@@ -33,6 +33,8 @@ app.launch()
 
 """
 
+__lazy_modules__ = ["localthickness", "tifffile"]
+
 import os
 
 import localthickness as lt

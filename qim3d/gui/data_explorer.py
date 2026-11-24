@@ -15,6 +15,8 @@ app.launch()
 ```
 """
 
+__lazy_modules__ = ["zarr"]
+
 import datetime
 import logging
 import os

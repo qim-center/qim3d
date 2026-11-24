@@ -1,6 +1,8 @@
 # ruff: noqa: S310
 """Discover QIM datasets and download their volumes."""
 
+__lazy_modules__ = ["ome_zarr.utils"]
+
 import json
 import logging
 import os

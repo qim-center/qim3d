@@ -1,3 +1,5 @@
+__lazy_modules__ = ["ipywidgets"]
+
 import logging
 
 import ipywidgets as widgets
