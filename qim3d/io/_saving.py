@@ -83,18 +83,20 @@ class DataSaver:
         self.sliced_dim = kwargs.get("sliced_dim", 0)
         self.chunk_shape = kwargs.get("chunk_shape", "auto")
 
-    def save_tiff(self, path: str | os.PathLike, data: np.ndarray):
+   def save_tiff(self, path: str | os.PathLike, data: np.ndarray):
         """
         Save data to a TIFF file to the given path.
 
         Args:
             path (str): The path to save file to
             data (numpy.ndarray): The data to be saved
-
         """
-        tifffile.imwrite(path, data, compression=self.compression)
+        if os.path.exists(path) and not self.replace:
+            raise FileExistsError(
+                f"File '{path}' already exists. Set replace=True to overwrite."
+            )
 
-    def save_tiff_stack(self, path: str | os.PathLike, data: np.ndarray):
+        tifffile.imwrite(path, data, compression=self.compression)
         """
         Save data as a TIFF stack containing slices in separate files to the given path.
         The slices will be named according to the basename plus a suffix with a zero-filled
